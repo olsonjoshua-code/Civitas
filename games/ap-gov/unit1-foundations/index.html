@@ -671,6 +671,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <div class="trophy-display" id="trophy-display"></div>
     <div class="uc-btns">
       <button class="uc-btn primary" onclick="playAgain()">↺ Play Again</button>
+      <button class="uc-btn secondary" onclick="printUnitCertificate()" style="border-color:var(--gold);color:var(--gc)">🖨️ Print Certificate</button>
       <button class="uc-btn secondary" onclick="returnToShell()">← Back to Civitas</button>
     </div>
   </div>
@@ -1042,6 +1043,96 @@ function launchBriefing() {
 
 function startVocabQuiz() {
   notify('Vocab Quiz coming soon! Complete the flashcards first to prepare.');
+}
+
+
+// ── CERTIFICATE ─────────────────────────────────────────
+function printUnitCertificate() {
+  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
+  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+  const unitData = progress[UNIT_ID] || {};
+  const accuracy = unitData.bestAccuracy || 0;
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const trophy = accuracy >= 90 ? '🏆 Gold' : accuracy >= 75 ? '⭐ Silver' : accuracy >= 60 ? '🥉 Bronze' : '✅ Completed';
+  const trophyColor = accuracy >= 90 ? '#ffd700' : accuracy >= 75 ? '#c8c8d8' : accuracy >= 60 ? '#cd7f32' : '#38a050';
+
+  // Count completed rounds
+  let roundsDone = 0;
+  for (let i = 0; i < 4; i++) {
+    try { const r = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_r' + i) || 'null'); if (r && r.completed) roundsDone++; } catch(e) {}
+  }
+
+  const w = window.open('', '_blank', 'width=900,height=620');
+  if (!w) { notify('Allow popups to print your certificate.'); return; }
+  w.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>Unit Certificate — ${UNIT_TITLE}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#faf7f0;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+  .cert{width:820px;background:#faf7f0;border:3px solid ${trophyColor};padding:42px 56px;position:relative;text-align:center;
+    box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${trophyColor},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
+  .cert::before,.cert::after{content:'⚖';position:absolute;font-size:24px;color:${trophyColor};opacity:.4}
+  .cert::before{top:14px;left:14px} .cert::after{top:14px;right:14px}
+  .corner{position:absolute;font-size:16px;color:${trophyColor};opacity:.4}
+  .eyebrow{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.32em;color:#8a6a2a;text-transform:uppercase;margin-bottom:6px}
+  .main-title{font-family:'Cinzel Decorative',serif;font-size:26px;font-weight:700;color:#1a1208;letter-spacing:.08em;margin:6px 0;line-height:1.2}
+  .divider{height:2px;background:linear-gradient(90deg,transparent,${trophyColor},transparent);margin:13px auto;width:82%}
+  .thin-div{height:1px;background:linear-gradient(90deg,transparent,${trophyColor}88,transparent);margin:9px auto;width:55%}
+  .awarded{font-size:11px;color:#5a4520;letter-spacing:.15em;margin:7px 0;font-family:'Cinzel',serif}
+  .student-name{font-family:'Cinzel Decorative',serif;font-size:34px;font-weight:700;color:#1a1208;margin:10px 0;letter-spacing:.04em}
+  .subtitle{font-family:'Crimson Text',serif;font-size:14px;color:#5a4520;line-height:1.75;margin:8px 0;font-style:italic}
+  .unit-badge{display:inline-block;background:rgba(0,0,0,.04);border:1px solid ${trophyColor}55;padding:6px 18px;margin:8px 0;font-family:'Cinzel',serif;font-size:11px;color:#8a6a2a;letter-spacing:.15em}
+  .stats{display:flex;justify-content:center;gap:32px;margin:16px 0;padding:12px 20px;background:rgba(0,0,0,.03);border:1px solid ${trophyColor}44}
+  .stat-val{font-size:22px;font-weight:700;color:#8a4820;font-family:'Cinzel Decorative',serif}
+  .stat-lbl{font-size:8px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px;font-family:'DM Sans',sans-serif}
+  .trophy-badge{font-size:15px;font-family:'Cinzel',serif;color:${trophyColor};letter-spacing:.1em;margin:8px 0}
+  .sigs{display:flex;justify-content:space-around;margin-top:20px;padding-top:14px;border-top:1px solid rgba(0,0,0,.15)}
+  .sig{text-align:center;min-width:160px}
+  .sig-line{width:150px;height:1px;background:#8a6a2a;margin:0 auto 4px}
+  .sig-name{font-size:11px;color:#1a1208;font-weight:600;font-family:'Cinzel',serif}
+  .sig-title{font-size:8px;color:#8a6a2a;letter-spacing:.1em;font-family:'DM Sans',sans-serif}
+  .school{font-size:9px;color:#8a6a2a;letter-spacing:.1em;margin-top:12px}
+  .print-btn{margin-top:20px;padding:10px 28px;background:#c9a84c;border:none;color:#1a1208;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;cursor:pointer}
+  .print-btn:hover{background:#a8863a}
+  .print-btn.close{background:#5a4520;color:#faf7f0;margin-left:10px}
+  @media print{body{padding:0;background:white}.cert{box-shadow:none}.no-print{display:none!important}}
+</style></head><body>
+<div>
+<div class="cert">
+  <span class="corner" style="bottom:14px;left:14px">⚖</span>
+  <span class="corner" style="bottom:14px;right:14px">⚖</span>
+  <div class="eyebrow">AP U.S. Government & Politics · Civitas</div>
+  <div style="font-size:52px;margin:8px 0;filter:drop-shadow(0 2px 8px rgba(201,168,76,.3))">🏛️</div>
+  <div class="main-title">Certificate of Completion</div>
+  <div class="divider"></div>
+  <div class="awarded">This certifies that</div>
+  <div class="student-name">${studentName}</div>
+  <div class="thin-div"></div>
+  <div class="subtitle">has successfully completed all four rounds of</div>
+  <div class="unit-badge">AP GOV · ${UNIT_TITLE}</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-val">${accuracy}%</div><div class="stat-lbl">BEST ACCURACY</div></div>
+    <div class="stat"><div class="stat-val">${roundsDone}/4</div><div class="stat-lbl">ROUNDS DONE</div></div>
+    <div class="stat"><div class="stat-val">${trophy.split(' ')[0]}</div><div class="stat-lbl">TROPHY</div></div>
+  </div>
+  <div class="trophy-badge">${trophy} Achievement</div>
+  <div class="divider"></div>
+  <div class="sigs">
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${studentName}</div><div class="sig-title">STUDENT</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${date}</div><div class="sig-title">DATE COMPLETED</div></div>
+  </div>
+  <div class="school">Civitas · AP U.S. Government & Politics · ${new Date().getFullYear()}</div>
+</div>
+<div style="text-align:center" class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>
+  <button class="print-btn close" onclick="window.close()">✕ CLOSE</button>
+</div>
+</div>
+</body></html>`);
+  w.document.close();
 }
 
 function returnToShell() {
