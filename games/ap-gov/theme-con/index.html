@@ -468,6 +468,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 'use strict';
 
 const UNIT_ID = 'apg_bi_con';
+const GAME_TITLE = 'Constitutionalism';
 const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
 
 // ── QUESTION BANK ─────────────────────────────────────────────────────────────
@@ -1190,6 +1191,73 @@ async function submitFRQ(frqId) {
 }
 
 // Anti-cheat
+
+// ── CERTIFICATE ─────────────────────────────────────────
+function printUnitCertificate() {
+  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
+  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+  const unitData = progress[UNIT_ID] || {};
+  const accuracy = unitData.bestAccuracy || 0;
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const trophy = accuracy >= 90 ? '🏆 Gold' : accuracy >= 75 ? '⭐ Silver' : accuracy >= 60 ? '🥉 Bronze' : '✅ Completed';
+  const trophyColor = accuracy >= 90 ? '#ffd700' : accuracy >= 75 ? '#c8c8d8' : accuracy >= 60 ? '#cd7f32' : '#38a050';
+  let roundsDone = 0;
+  for (let i = 0; i < 4; i++) {
+    try { const r = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_r' + i) || 'null'); if (r && r.completed) roundsDone++; } catch(e) {}
+  }
+  const w = window.open('', '_blank', 'width=860,height=580');
+  if (!w) { notify('Allow popups to print your certificate.'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Big Idea Certificate</title>'
+    + '<style>@import url(\'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&family=DM+Sans:wght@400&display=swap\');'
+    + '*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;font-family:\'DM Sans\',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}'
+    + '.cert{width:780px;background:#faf7f0;border:3px solid '+trophyColor+';padding:36px 48px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px '+trophyColor+',0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}'
+    + '.cert::before,.cert::after{content:\'⚖\';position:absolute;font-size:20px;color:'+trophyColor+';opacity:.4}.cert::before{top:12px;left:12px}.cert::after{top:12px;right:12px}'
+    + '.corner{position:absolute;font-size:14px;color:'+trophyColor+';opacity:.4}'
+    + '.eyebrow{font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:5px}'
+    + '.main-title{font-family:\'Cinzel Decorative\',serif;font-size:22px;font-weight:700;color:#1a1208;letter-spacing:.08em;margin:5px 0}'
+    + '.divider{height:2px;background:linear-gradient(90deg,transparent,'+trophyColor+',transparent);margin:11px auto;width:80%}'
+    + '.awarded{font-size:10px;color:#5a4520;letter-spacing:.15em;margin:6px 0;font-family:\'Cinzel\',serif}'
+    + '.student-name{font-family:\'Cinzel Decorative\',serif;font-size:30px;font-weight:700;color:#1a1208;margin:8px 0}'
+    + '.badge{display:inline-block;border:1px solid '+trophyColor+'88;padding:5px 16px;margin:6px 0;font-family:\'Cinzel\',serif;font-size:9px;color:#8a6a2a;letter-spacing:.18em}'
+    + '.stats{display:flex;justify-content:center;gap:28px;margin:13px 0;padding:10px 18px;background:rgba(0,0,0,.03);border:1px solid '+trophyColor+'44}'
+    + '.stat-val{font-size:20px;font-weight:700;color:#8a4820;font-family:\'Cinzel Decorative\',serif}.stat-lbl{font-size:7px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px}'
+    + '.sigs{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(0,0,0,.12)}'
+    + '.sig-line{width:140px;height:1px;background:#8a6a2a;margin:0 auto 3px}.sig-name{font-size:10px;color:#1a1208;font-weight:600;font-family:\'Cinzel\',serif}.sig-title{font-size:7px;color:#8a6a2a;letter-spacing:.1em}'
+    + '.school{font-size:8px;color:#8a6a2a;letter-spacing:.1em;margin-top:10px}'
+    + '.print-btn{margin-top:16px;padding:8px 24px;background:#c9a84c;border:none;color:#1a1208;font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:.08em;cursor:pointer}'
+    + '.print-btn.close{background:#5a4520;color:#faf7f0;margin-left:8px}'
+    + '@media print{body{padding:0}.cert{box-shadow:none}.no-print{display:none!important}}'
+    + '</style></head><body><div><div class="cert">'
+    + '<span class="corner" style="bottom:12px;left:12px">⚖</span><span class="corner" style="bottom:12px;right:12px">⚖</span>'
+    + '<div class="eyebrow">AP U.S. Government & Politics · Big Idea Review · Civitas</div>'
+    + '<div style="font-size:44px;margin:6px 0">🏛️</div>'
+    + '<div class="main-title">Certificate of Completion</div>'
+    + '<div class="divider"></div>'
+    + '<div class="awarded">This certifies that</div>'
+    + '<div class="student-name">'+studentName+'</div>'
+    + '<div style="font-family:\'Crimson Text\',serif;font-size:12px;color:#5a4520;font-style:italic;margin:5px 0">has completed the Big Idea cross-unit review game</div>'
+    + '<div class="badge">BIG IDEA: '+GAME_TITLE.toUpperCase()+'</div>'
+    + '<div class="stats">'
+    + '<div class="stat"><div class="stat-val">'+accuracy+'%</div><div class="stat-lbl">BEST ACCURACY</div></div>'
+    + '<div class="stat"><div class="stat-val">'+roundsDone+'/4</div><div class="stat-lbl">ROUNDS DONE</div></div>'
+    + '<div class="stat"><div class="stat-val">'+trophy.split(' ')[0]+'</div><div class="stat-lbl">TROPHY</div></div>'
+    + '</div>'
+    + '<div style="font-family:\'Cinzel\',serif;font-size:13px;color:'+trophyColor+';letter-spacing:.1em;margin:6px 0">'+trophy+' Achievement</div>'
+    + '<div class="divider"></div>'
+    + '<div class="sigs">'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+studentName+'</div><div class="sig-title">STUDENT</div></div>'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+date+'</div><div class="sig-title">DATE COMPLETED</div></div>'
+    + '</div>'
+    + '<div class="school">Civitas · AP U.S. Government & Politics · '+new Date().getFullYear()+'</div>'
+    + '</div>'
+    + '<div style="text-align:center" class="no-print">'
+    + '<button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>'
+    + '<button class="print-btn close" onclick="window.close()">✕ CLOSE</button>'
+    + '</div></div></body></html>');
+  w.document.close();
+}
+
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
   document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
