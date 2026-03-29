@@ -5377,7 +5377,32 @@ document.addEventListener('DOMContentLoaded',()=>{
     SFX.playTitle();
     document.removeEventListener('click',startTitle);
   },{once:true});
-  // Check for existing save
+
+  // ── Auto-login from Civitas shell — runs FIRST before continue banner ──
+  try{
+    const civName=localStorage.getItem('civitas_student_name');
+    const civPeriod=localStorage.getItem('civitas_student_period')||'guest';
+    if(civName){
+      const parts=civName.trim().split(' ');
+      const first=parts[0]||'Student';
+      const last=parts.slice(1).join(' ')||'User';
+      const sk='apgov_v1_'+first.toLowerCase()+'_'+last.toLowerCase().replace(/\s+/g,'');
+      window._loginFirst=first.charAt(0).toUpperCase()+first.slice(1).toLowerCase();
+      window._loginLast=last.charAt(0).toUpperCase()+last.slice(1).toLowerCase();
+      window._loginPeriod=civPeriod;
+      window._loginSaveKey=sk;
+      window._isGuest=(civPeriod==='guest');
+      window._isTeacher=false;
+      const ex=localStorage.getItem(sk);
+      if(ex){const d=JSON.parse(ex);if(d&&d.name){G=d;G.period=civPeriod;launchGame();return;}}
+      const freshSave={name:window._loginFirst+' '+window._loginLast,period:civPeriod,level:1,xp:0,score:0,hp:100,maxHp:100,gold:0,packs:0,episodes:{},collection:[],avatarId:'scholar'};
+      localStorage.setItem(sk,JSON.stringify(freshSave));
+      localStorage.setItem('apgov_last_key',sk);
+      G=freshSave;goToAvatarCreator();return;
+    }
+  }catch(e){}
+
+  // Check for existing save (shown only when NOT coming from Civitas)
   try{
     const lastKey=localStorage.getItem('apgov_last_key');
     if(lastKey){
