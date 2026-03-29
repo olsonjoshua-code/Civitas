@@ -1565,6 +1565,12 @@ function enterShell(){
   document.getElementById('continue-screen').style.display='none';
   document.getElementById('shell').style.display='flex';
 
+  // Auto-return to last active course if coming back from a game
+  try{
+    const lastCourse = localStorage.getItem('civitas_last_course');
+    if(lastCourse){ localStorage.removeItem('civitas_last_course'); updateHUD(); buildCharGrid(); enterCourse(lastCourse); return; }
+  }catch(e){}
+
   if(IS_TEACHER){
     document.getElementById('nav-teacher').style.display='inline-block';
     showMainView('teacher');
