@@ -289,7 +289,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
 .course-view.active{display:block;animation:fadeIn .3s ease}
 
 /* Unit grid (for AP courses) */
-.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px}
+.unit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:900px){.unit-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.unit-grid{grid-template-columns:1fr}}
 .unit-card-grid{background:var(--bg2);border:1px solid var(--border);cursor:pointer;
   transition:all .2s;position:relative;overflow:hidden}
 .unit-card-grid:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.5)}
@@ -839,6 +841,27 @@ const COURSE_UNITS = {
      desc:'Battle through all 5 units in the Civitas RPG campaign. Unlock historical figures and earn the title of Master Citizen.',
      topics:['All units','All FRQ types','AP Exam Final Challenge'],
      hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/rpg/'},
+    // Big Idea Theme Games
+    {id:'apg_bi_con', num:'Big Idea', title:'Constitutionalism', icon:'🏛️', color:'#7060d0',
+     desc:'Cross-unit review of all constitutional principles — federalism, separation of powers, checks and balances.',
+     topics:['Units 1 & 2','Federalism','Separation of powers','Checks & balances','Amendment process'],
+     isBigIdea:true, bigIdea:'CON', hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/theme-con/'},
+    {id:'apg_bi_lor', num:'Big Idea', title:'Liberty & Order', icon:'⚖️', color:'#7060d0',
+     desc:'The enduring tension between individual rights and government authority across all units.',
+     topics:['Units 1, 3 & 5','Bill of Rights','Civil liberties','Civil rights','Due process'],
+     isBigIdea:true, bigIdea:'LOR', hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/theme-lor/'},
+    {id:'apg_bi_pmcd', num:'Big Idea', title:'Competing Interests', icon:'🤝', color:'#7060d0',
+     desc:'How competing political, economic, and social interests shape policy across all branches.',
+     topics:['Units 2, 4 & 5','Policymaking','Interest groups','Iron triangles','Bureaucracy'],
+     isBigIdea:true, bigIdea:'PMCD', hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/theme-pmcd/'},
+    {id:'apg_bi_mk', num:'Big Idea', title:'Civic Participation', icon:'✊', color:'#7060d0',
+     desc:'How citizens engage with government through elections, parties, movements, and media.',
+     topics:['Units 4 & 5','Voting','Political parties','Social movements','Linkage institutions'],
+     isBigIdea:true, bigIdea:'MK', hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/theme-mk/'},
+    {id:'apg_bi_mpa', num:'Big Idea', title:'Political Analysis', icon:'📊', color:'#7060d0',
+     desc:'Pure data round — charts, graphs, polling data, and quantitative analysis across all units.',
+     topics:['All units','Voter turnout data','Polling trends','Electoral maps','Budget charts'],
+     isBigIdea:true, bigIdea:'MPA', hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/theme-mpa/'},
   ],
   hs_ush: [
     {id:'ush_placeholder', num:'Course', title:'American Chronicles', icon:'⚔️', color:'#c07818',
@@ -1749,6 +1772,9 @@ function renderCourseUnits(){
 
   el.innerHTML=`<div class="unit-grid">${units.map(u=>{
     const done=(cp.unitsCompleted||[]).includes(u.id);
+    const isBigIdea=!!u.isBigIdea;
+    const cardColor=isBigIdea?'var(--civitas)':u.color;
+
     if(u.externalUrl){
       return`<div class="unit-card-grid" onclick="window.open('${u.externalUrl}','_blank')" style="border-top:3px solid ${u.color}">
         <div class="ucg-art">${u.icon}
@@ -1761,14 +1787,22 @@ function renderCourseUnits(){
         </div>
       </div>`;
     }
-    return`<div class="unit-card-grid ${done?'done':''}" onclick="openUnitPreview('${_activeCourseId}','${u.id}')" style="border-top:3px solid ${u.color}">
-      <div class="ucg-art">${u.icon}
-        ${done?'<div style="position:absolute;top:6px;right:6px;font-size:14px">✅</div>':''}
+
+    return`<div class="unit-card-grid ${done?'done':''} ${isBigIdea?'big-idea-card':''}"
+      onclick="openUnitPreview('${_activeCourseId}','${u.id}')"
+      style="border-top:3px solid ${cardColor};${isBigIdea?'background:linear-gradient(135deg,rgba(112,96,208,.08),var(--bg2))':''}">
+      <div class="ucg-art" style="${isBigIdea?'background:rgba(112,96,208,.06)':''}">
+        <span style="font-size:36px">${u.icon}</span>
+        ${done?`<div style="position:absolute;top:6px;right:6px;font-size:14px">✅</div>`:''}
+        ${isBigIdea?`<div style="position:absolute;top:6px;left:6px;font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--civitas2);background:rgba(112,96,208,.15);border:1px solid var(--civitas);padding:2px 6px">BIG IDEA · ${u.bigIdea}</div>`:''}
       </div>
       <div class="ucg-body">
-        <div class="ucg-num">${u.num}</div>
+        <div class="ucg-num" style="${isBigIdea?'color:var(--civitas2)':''}">${u.num}</div>
         <div class="ucg-title">${u.title}</div>
-        <div class="ucg-status ${done?'ucg-done':u.url?'ucg-play':'ucg-done'}">${done?'✓ Completed':u.url?'▶ Play Now':'🔜 Coming Soon'}</div>
+        <div class="ucg-status ${done?'ucg-done':u.url?'ucg-play':'ucg-done'}"
+          style="${isBigIdea&&!done?'border-color:var(--civitas);color:var(--civitas2)':''}">
+          ${done?'✓ Completed':u.url?'▶ Play Now':'🔜 Coming Soon'}
+        </div>
       </div>
     </div>`;
   }).join('')}</div>`;
