@@ -190,15 +190,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
 .q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
 .q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
-.q-stem{font-family:var(--crimson);font-size:17px;color:var(--cream);line-height:1.65;margin-bottom:18px}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
 
 /* Choices */
-.choices{display:flex;flex-direction:column;gap:9px}
-.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:13px 16px;cursor:pointer;
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;
   display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
 .choice:hover:not(.answered){border-color:var(--blue2);background:rgba(72,120,208,.06)}
-.choice-letter{font-family:var(--bebas);font-size:15px;color:var(--text3);flex-shrink:0;width:18px;transition:color .15s}
-.choice-text{font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
 .choice.selected{border-color:var(--blue);background:rgba(72,120,208,.08)}
 .choice.selected .choice-letter,.choice.selected .choice-text{color:var(--blue2)}
 .choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
@@ -216,9 +216,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .explanation strong{color:var(--green2)}
 
 /* Submit / Next buttons */
-#btn-submit{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--blue);
-  border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
-#btn-submit:hover{background:var(--blue2)}
+#btn-submit{display:none!important}
 #btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
   border:2px solid var(--blue);color:var(--blue2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
 #btn-next:hover{background:var(--blue);color:#fff}
@@ -1140,9 +1138,6 @@ function renderQuestion() {
 
   // Scroll to top
   el.scrollTop = 0;
-
-  // Show submit
-  document.getElementById('btn-submit').style.display = 'inline-block';
 }
 
 function renderStimulus(round, set) {
@@ -1312,11 +1307,8 @@ function checksBalancesSVG() {
 function selectChoice(id) {
   if (G.answered) return;
   G.selectedChoice = id;
-  document.querySelectorAll('.choice').forEach(c => {
-    c.classList.remove('selected');
-    if (c.id === 'choice-' + id) c.classList.add('selected');
-  });
-  document.getElementById('btn-submit').style.display = 'inline-block';
+  // Immediately grade — no separate submit step
+  submitAnswer();
 }
 
 function submitAnswer() {
