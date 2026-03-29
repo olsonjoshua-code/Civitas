@@ -1,1 +1,1889 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 2: Interactions Among Branches — AP Gov · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0e1420;--bg3:#141c2a;--panel:#111828;
+  --border:#1e2a3e;--border2:#2a3a54;
+  --blue:#4878d0;--blue2:#6898e8;--blue3:#a0c0f8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --text:#e8f0f8;--text2:#8090a8;--text3:#4a5a70;--cream:#f0e8d8;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(72,120,208,.1) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(112,96,208,.08) 0%,transparent 50%)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--blue2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));transition:width .2s;width:0}
+
+/* ── HUB (landing screen) ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+
+/* Hero banner */
+.hub-hero{background:linear-gradient(135deg,rgba(72,120,208,.15) 0%,rgba(8,12,20,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(72,120,208,.02) 40px,rgba(72,120,208,.02) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(72,120,208,.4))}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--blue2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:560px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--blue2);font-weight:500}
+
+/* Back button */
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;
+  background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--blue);color:var(--blue2)}
+
+/* Hub tabs */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--blue2)}
+.hub-tab.active{color:var(--blue2);border-bottom-color:var(--blue)}
+
+/* Hub content */
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* Activity cards */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;
+  transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;
+  letter-spacing:1px;padding:3px 8px;border:1px solid}
+
+/* CED coverage tags */
+.ced-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px}
+.ced-tag{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:10px 14px}
+.ced-tag-code{font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:2px}
+.ced-tag-title{font-family:var(--dm);font-size:10px;color:var(--text2)}
+
+/* Required docs/cases */
+.req-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
+.req-item{background:var(--bg2);border:1px solid var(--border);padding:10px 14px;
+  display:flex;align-items:center;gap:12px}
+.req-item-icon{font-size:16px;flex-shrink:0}
+.req-item-name{font-family:var(--playfair);font-size:12px;color:var(--cream);flex:1}
+.req-item-where{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.req-item-check{font-size:14px;flex-shrink:0}
+
+/* Progress bar */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));transition:width .6s;border-radius:2px}
+
+/* Section header */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--blue2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--blue);display:block}
+
+/* ══════════════════════════════════════
+   GAME ENGINE
+══════════════════════════════════════ */
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+
+/* Game header */
+#game-header{background:rgba(8,12,20,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--blue);color:var(--blue2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--blue2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--blue)}
+.gp-pip.active{background:var(--blue2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#game-timer{font-family:var(--bebas);font-size:18px;color:var(--text2);min-width:40px;text-align:right}
+#game-timer.warn{color:var(--amber);animation:timerPulse 1s infinite}
+#game-timer.danger{color:var(--red);animation:timerPulse .5s infinite}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--blue2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--blue2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--blue);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Stimulus box */
+.stimulus-box{background:rgba(72,120,208,.06);border:1px solid rgba(72,120,208,.2);
+  border-left:3px solid var(--blue);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--blue2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:12px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;font-style:italic}
+.stimulus-chart{margin-top:12px}
+.stimulus-desc{font-family:var(--dm);font-size:12px;color:var(--text2);line-height:1.6;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);padding:12px 14px;margin-top:10px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.topic{border-color:var(--blue);color:var(--blue2)}
+.q-tag.bi{border-color:var(--purple);color:var(--purple2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--blue2);background:rgba(72,120,208,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--blue);background:rgba(72,120,208,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--blue2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--blue);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--blue);color:#fff}
+
+/* ── UNIT COMPLETE ── */
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;
+  background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);
+  box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(24px,5vw,36px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.trophy-display{display:flex;gap:14px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.trophy-item{background:var(--bg2);border:2px solid;padding:14px 20px;text-align:center;min-width:100px}
+.trophy-item-icon{font-size:28px;margin-bottom:6px}
+.trophy-item-name{font-family:var(--bebas);font-size:12px;letter-spacing:1px}
+.trophy-item-desc{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--blue);border:2px solid var(--blue);color:#fff}
+.uc-btn.primary:hover{background:var(--blue2);border-color:var(--blue2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.uc-btn.secondary:hover{border-color:var(--blue);color:var(--blue2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Chart bars */
+.chart-wrap{margin-top:14px}
+.chart-title{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--blue2);margin-bottom:10px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;background:linear-gradient(180deg,var(--blue2),var(--blue));border-radius:2px 2px 0 0;
+  transition:height .6s ease;min-height:2px;position:relative}
+.chart-bar:hover::after{content:attr(data-val);position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-family:var(--bebas);font-size:10px;color:var(--blue2);white-space:nowrap}
+.chart-label{font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center}
+.chart-source{font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:8px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--blue);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--blue2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+@media(max-width:600px){
+  .hub-hero{padding:20px;flex-direction:column;text-align:center}
+  .hub-content{padding:16px 16px 60px}
+  .activity-grid{grid-template-columns:1fr}
+  #question-area{padding:14px 14px 14px}
+  .question-card{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="ld-icon">⚖️</div>
+  <div class="ld-title">Unit 2: Branches</div>
+  <div class="ld-sub">AP U.S. Government & Politics · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<!-- ══ HUB ══ -->
+<div id="hub">
+
+  <!-- Hero -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">⚖️</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP U.S. GOVERNMENT · UNIT 2</div>
+      <div class="hub-title">Interactions Among Branches</div>
+      <div class="hub-desc">How Congress, the Presidency, the Bureaucracy, and the Courts interact through formal powers, checks and balances, and the ongoing competition for policy influence.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Topics: <span>7 CED Standards</span></div>
+        <div class="hub-meta-item">📄 Documents: <span>Federalist 70, 78</span></div>
+        <div class="hub-meta-item">⚖️ Cases: <span>Marbury · Baker v. Carr · Shaw v. Reno</span></div>
+        <div class="hub-meta-item">🎮 Rounds: <span>4</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to Civitas</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('coverage',this)">📊 CED Coverage</button>
+  </div>
+
+  <!-- Hub Content -->
+  <div class="hub-content">
+
+    <!-- PLAY TAB -->
+    <div class="hub-panel active" id="tab-play">
+
+      <!-- Progress -->
+      <div class="prog-wrap" id="prog-wrap" style="display:none">
+        <div class="prog-label">
+          <span>YOUR PROGRESS</span>
+          <span id="prog-pct">0%</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="sh">Activities</div>
+      <div class="activity-grid">
+
+        <!-- Main Game -->
+        <div class="activity-card" onclick="startGame()" style="border-top:3px solid var(--blue)">
+          <div class="activity-card-strip" style="background:var(--blue)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">🎮</div>
+            <div class="activity-card-label">MAIN ACTIVITY · 4 ROUNDS</div>
+            <div class="activity-card-title">Unit 1 Game</div>
+            <div class="activity-card-desc">Four rounds of AP-style questions — knowledge check, document analysis, data interpretation, and visual stimulus. Randomized every attempt.</div>
+            <div class="activity-card-action" style="color:var(--blue2)">▶ Start Game</div>
+          </div>
+          <div class="activity-card-badge" id="game-badge" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
+        </div>
+
+        <!-- Briefing -->
+        <div class="activity-card" onclick="switchTab('briefing',document.querySelectorAll('.hub-tab')[1])" style="border-top:3px solid var(--teal)">
+          <div class="activity-card-strip" style="background:var(--teal)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">📋</div>
+            <div class="activity-card-label">STUDY GUIDE</div>
+            <div class="activity-card-title">Unit Briefing</div>
+            <div class="activity-card-desc">Complete review of all Unit 1 topics, required documents, SCOTUS cases, and key vocabulary — written for AP exam readiness.</div>
+            <div class="activity-card-action" style="color:var(--teal2)">→ Read Briefing</div>
+          </div>
+        </div>
+
+        <!-- Flashcards -->
+        <div class="activity-card" onclick="launchFlashcards()" style="border-top:3px solid var(--amber)">
+          <div class="activity-card-strip" style="background:var(--amber)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">🃏</div>
+            <div class="activity-card-label">VOCABULARY · SPACED REPETITION</div>
+            <div class="activity-card-title">Flashcard Deck</div>
+            <div class="activity-card-desc">Study all Unit 1 key terms — from popular sovereignty to judicial review — with the Civitas flashcard engine.</div>
+            <div class="activity-card-action" style="color:var(--amber)">→ Study Flashcards</div>
+          </div>
+        </div>
+
+        <!-- Vocab Quiz -->
+        <div class="activity-card" onclick="switchTab('quiz',document.querySelectorAll('.hub-tab')[3])" style="border-top:3px solid var(--purple)">
+          <div class="activity-card-strip" style="background:var(--purple)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">✅</div>
+            <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
+            <div class="activity-card-title">Vocab Check</div>
+            <div class="activity-card-desc">Graded vocabulary quiz covering all Unit 1 terms. Pass with 80%+ to earn a Vocab Medal and gold reward.</div>
+            <div class="activity-card-action" style="color:var(--purple2)">→ Take Quiz</div>
+          </div>
+          <div class="activity-card-badge" id="vocab-badge" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
+        </div>
+
+      </div>
+
+      <!-- Round preview -->
+      <div class="sh">What's in the Game</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:4px">ROUND 1</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Knowledge Check</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">15 MCQ drawn from a bank of 35+</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">ROUND 2</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Document Challenge</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Federalist 70, 71, or Federalist 78</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--teal2);letter-spacing:2px;margin-bottom:4px">ROUND 3</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Data Analysis</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Voter turnout or spending data</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">ROUND 4</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Visual Stimulus</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Political cartoon analysis</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRIEFING TAB -->
+    <div class="hub-panel" id="tab-briefing">
+      <div class="sh">Unit Briefing</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);padding:28px 32px;text-align:center">
+        <div style="font-size:40px;margin-bottom:14px">📋</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Briefing</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          The complete Unit 1 study guide covering Congress, the presidency, the federal bureaucracy, the federal courts, and how the three branches check and balance each other across all required documents and SCOTUS cases.
+        </div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:20px;letter-spacing:1px">BRIEFING DOCUMENT IN DEVELOPMENT · COMING SOON</div>
+        <button onclick="launchBriefing()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--teal);color:var(--teal2);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--teal)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--teal2)'">
+          Open Briefing →
+        </button>
+      </div>
+
+      <!-- Topic outline placeholder -->
+      <div style="margin-top:20px">
+        <div class="sh">Topics Covered</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${['2.1 — Congress: Senate & House','2.2 — Structures & Powers of Congress','2.3 — Congressional Behavior','2.4 — Roles & Powers of the President','2.5 — Checks on the Presidency','2.6 — Expansion of Presidential Power','2.7 — The Bureaucracy','2.8 — Discretionary & Rule-Making Authority','2.9 — Checks on the Bureaucracy','2.10 — The Court System','2.11 — Power of Judicial Review','2.12 — Checks on the Judicial Branch','2.13 — Relationships Among Branches'].map(t=>`
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">${t}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- VOCAB TAB -->
+    <div class="hub-panel" id="tab-vocab">
+      <div class="sh">Vocabulary Flashcards</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:28px 32px;text-align:center;margin-bottom:20px">
+        <div style="font-size:40px;margin-bottom:14px">🃏</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Flashcard Deck</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          Study all key Unit 1 terms including popular sovereignty, federalism, separation of powers, checks and balances, judicial review, enumerated powers, implied powers, and more.
+        </div>
+        <button onclick="launchFlashcards()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--amber);color:var(--amber);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--amber)';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='var(--amber)'">
+          Launch Flashcards →
+        </button>
+      </div>
+
+      <div class="sh">Key Terms — Unit 1</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+        ${['Bicameralism','Committee System','Speaker of the House','Filibuster','Cloture','Override','Appropriations','Pocket Veto','Executive Order','Executive Agreement','Signing Statement','Judicial Review','Marbury v. Madison','Baker v. Carr','Shaw v. Reno','Iron Triangle','Issue Network','Bureaucratic Discretion','Federalist No. 70','Federalist No. 78'].map(t=>`
+        <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">${t}</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- VOCAB QUIZ TAB -->
+    <div class="hub-panel" id="tab-quiz">
+      <div class="sh">Vocabulary Quiz</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:28px 32px;text-align:center">
+        <div style="font-size:40px;margin-bottom:14px">✅</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Vocab Check</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          20 vocabulary questions covering all Unit 1 key terms. Score 80% or higher to earn a <strong style="color:var(--purple2)">Vocab Medal 🎖</strong> and a gold reward. You can retake to improve.
+        </div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:20px;letter-spacing:1px">VOCAB QUIZ · 20 QUESTIONS · 80% TO PASS</div>
+        <button onclick="startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">
+          Start Vocab Quiz →
+        </button>
+      </div>
+    </div>
+
+    <!-- FRQ PRACTICE TAB -->
+    <div class="hub-panel" id="tab-frq">
+      <div class="sh">FRQ Practice — AI Graded</div>
+      <div style="background:rgba(112,96,208,.06);border:1px solid var(--purple);border-left:3px solid var(--purple2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">
+        <strong style="color:var(--purple2)">How it works:</strong> Write your response in the box below, then click Submit. Claude grades it against the official College Board rubric point by point and gives you instant feedback. You can resubmit as many times as you want to improve your score.
+      </div>
+
+      <!-- FRQ 1: Concept Application -->
+      <div class="frq-card" style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,rgba(72,120,208,.1),transparent);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">📋</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">UNIT 2 · CONCEPT APPLICATION FRQ · 3 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">The Legislative Process in Action</div>
+          </div>
+          <div id="frq1-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            The president issues an executive order directing all federal agencies to prioritize domestic manufacturing when awarding contracts. Several members of Congress argue the order exceeds the president's constitutional authority. Use the scenario above to answer the following:
+            <br><br>
+            <strong>(A)</strong> Describe a power Congress has that is relevant to this scenario.<br>
+            <strong>(B)</strong> In the context of this scenario, explain how the congressional power you described in Part A can be used to check the president's executive order.<br>
+            <strong>(C)</strong> Explain how the Supreme Court's power of judicial review could be used to resolve the dispute described in the scenario.
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq1-text" style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq1',this)" placeholder="Describe a relevant congressional power, explain how it checks the executive order, then explain how judicial review could resolve the dispute..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq1-wc">0 words</div>
+            <button onclick="submitFRQHub('frq1')" id="frq1-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq1-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+
+      <!-- FRQ 2: Argument Essay -->
+      <div class="frq-card" style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,rgba(112,96,208,.1),transparent);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">✍️</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">UNIT 2 · ARGUMENT ESSAY · 6 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">Faction & Democratic Governance</div>
+          </div>
+          <div id="frq2-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            Develop an argument that explains whether the growth of presidential power has been beneficial or harmful to American democracy.
+            <br><br>
+            Use at least <strong>one piece of evidence</strong> from one of the following foundational documents:
+            <ul style="margin:10px 0 10px 20px;line-height:2">
+              <li>Federalist No. 70</li>
+              <li>Federalist No. 78</li>
+            </ul>
+            In your essay, you must:
+            <ul style="margin:0 0 0 20px;line-height:2">
+              <li>Articulate a defensible claim or thesis that establishes a line of reasoning</li>
+              <li>Support your claim with at least TWO pieces of evidence (one from the documents above)</li>
+              <li>Use reasoning to explain why your evidence supports your claim</li>
+              <li>Respond to an opposing perspective using rebuttal or refutation</li>
+            </ul>
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq2-text" style="width:100%;min-height:200px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq2',this)" placeholder="Begin with a clear thesis about presidential power. Use evidence from Federalist No. 70 or 78. Address a counterargument..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq2-wc">0 words</div>
+            <button onclick="submitFRQHub('frq2')" id="frq2-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq2-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+    </div>
+
+    <!-- CED COVERAGE TAB -->
+    <div class="hub-panel" id="tab-coverage">
+      <div class="sh">CED Topic Coverage</div>
+      <div class="ced-grid">
+        ${[
+          {code:'1.1',title:'Ideals of Democracy'},
+          {code:'1.2',title:'Types of Democracy'},
+          {code:'1.3',title:'Government Power & Individual Rights'},
+          {code:'1.4',title:'Challenges of the Articles of Confederation'},
+          {code:'1.5',title:'Ratification of the Constitution'},
+          {code:'1.6',title:'Principles of American Government'},
+          {code:'1.7',title:'Relationships Among Branches'}
+        ].map(t=>`
+        <div class="ced-tag">
+          <div class="ced-tag-code">${t.code}</div>
+          <div class="ced-tag-title">${t.title}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Required Foundational Documents</div>
+      <div class="req-list">
+        ${[
+          {icon:'📜',name:'Federalist No. 70',where:'Round 2 — Document Set A'},
+          {icon:'📜',name:'Federalist No. 78',where:'Round 2 — Document Set B'},
+        ].map(r=>`
+        <div class="req-item">
+          <div class="req-item-icon">${r.icon}</div>
+          <div class="req-item-name">${r.name}</div>
+          <div class="req-item-where">${r.where}</div>
+          <div class="req-item-check" id="doc-check-${r.name.replace(/\s/g,'_')}">⬜</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Required SCOTUS Cases</div>
+      <div class="req-list">
+        ${[
+          {icon:'⚖️',name:'Marbury v. Madison (1803)',where:'Round 2 — Document Set B'},
+          {icon:'⚖️',name:'Baker v. Carr (1962)',where:'Round 1 — MCQ'},
+          {icon:'⚖️',name:'Shaw v. Reno (1993)',where:'Round 1 — MCQ'},
+        ].map(r=>`
+        <div class="req-item">
+          <div class="req-item-icon">${r.icon}</div>
+          <div class="req-item-name">${r.name}</div>
+          <div class="req-item-where">${r.where}</div>
+          <div class="req-item-check">⬜</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Big Ideas in This Unit</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${[
+          {bi:'CON',label:'Constitutionalism',color:'var(--blue)'},
+          {bi:'LOR',label:'Liberty & Order',color:'var(--teal)'},
+          {bi:'PMCD',label:'Competing Interests',color:'var(--amber)'},
+          {bi:'MPA',label:'Political Analysis',color:'var(--purple)'},
+        ].map(b=>`
+        <div style="background:var(--bg2);border:1px solid ${b.color};border-left:3px solid ${b.color};padding:10px 16px">
+          <div style="font-family:var(--bebas);font-size:13px;color:${b.color};letter-spacing:2px">${b.bi}</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${b.label}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+  </div><!-- hub-content -->
+</div><!-- hub -->
+
+<!-- ══ GAME ENGINE ══ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <div id="game-round-label">ROUND 1 — KNOWLEDGE CHECK</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+    <div id="game-timer">—</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND 1 OF 4</div>
+    <div class="ri-title" id="ri-title">Knowledge Check</div>
+    <div class="ri-desc" id="ri-desc">15 multiple choice questions drawn randomly from a bank of 35+. Each question is tagged with its CED topic code and Big Idea.</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn" onclick="nextRound()">Next Round →</button>
+  </div>
+
+  <!-- Unit complete -->
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal" id="uc-seal">🏛️</div>
+    <div class="uc-title">UNIT 1 COMPLETE</div>
+    <div class="uc-name">Interactions Among Branches</div>
+    <div class="uc-score" id="uc-score">—</div>
+    <div class="uc-grade" id="uc-grade">OVERALL ACCURACY</div>
+    <div class="trophy-display" id="trophy-display"></div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="playAgain()">↺ Play Again</button>
+      <button class="uc-btn secondary" onclick="returnToShell()">← Back to Civitas</button>
+    </div>
+  </div>
+
+</div><!-- game -->
+
+<script>
+'use strict';
+
+// ── CONFIGURATION ──────────────────────────────────
+const UNIT_ID = 'apg_u2';
+const UNIT_TITLE = 'Interactions Among Branches';
+const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+const FLASHCARD_URL = CIVITAS_URL + 'games/flashcards/?deck=apgov_unit2';
+const BRIEFING_URL = CIVITAS_URL + 'briefings/ap-gov/unit2-briefing.html';
+
+// ── QUESTION BANK ───────────────────────────────────
+// DROP YOUR JSON HERE — replace QUESTION_BANK with the output from the AI
+// The JSON structure matches the prompt exactly.
+// Until the real question bank is ready, placeholder questions keep the game functional.
+
+const QUESTION_BANK = {
+  unit: 'ap_gov_unit1',
+  title: 'Interactions Among Branches',
+  rounds: [
+    {
+      id: 'round1_mcq',
+      type: 'mcq',
+      label: 'Round 1 — Knowledge Check',
+      icon: '📋',
+      color: 'var(--blue)',
+      draw: 15,
+      desc: '15 multiple choice questions drawn randomly from the question bank. Each question is tagged with its CED topic code and Big Idea.',
+      questions: [
+        // ── UNIT 2 QUESTION BANK — DROP JSON HERE ──
+        // Replace this placeholder with the AI-generated JSON for Unit 2
+        // Topic codes: 2.1 through 2.13
+        // Required documents: Federalist No. 70, Federalist No. 78
+        // Required cases: Marbury v. Madison, Baker v. Carr, Shaw v. Reno
+        // Big Ideas: CON, LOR, PMCD, MK, MPA
+        // Minimum 35 questions, draw 15 per play
+        {id:'u2_placeholder_001',topic:'2.4',bigIdea:'CON',difficulty:'accessible',
+          stem:'Which of the following is an example of a formal power of the president?',
+          choices:[
+            {id:'A',text:'Signing or vetoing legislation passed by Congress.'},
+            {id:'B',text:'Introducing bills directly on the floor of the House of Representatives.'},
+            {id:'C',text:'Appointing federal judges without Senate confirmation required.'},
+            {id:'D',text:'Overriding a Supreme Court ruling with an executive order.'}
+          ],correct:'A',explanation:'The veto is one of the president\'s explicit constitutional powers under Article II. The other choices describe powers the president does not have.'},
+        {id:'u2_placeholder_002',topic:'2.11',bigIdea:'CON',difficulty:'accessible',
+          stem:'The power of judicial review — the authority of courts to strike down laws that violate the Constitution — was established by',
+          choices:[
+            {id:'A',text:'Marbury v. Madison (1803), in which Chief Justice Marshall claimed the power for the Supreme Court.'},
+            {id:'B',text:'The text of Article III of the Constitution, which explicitly grants courts this authority.'},
+            {id:'C',text:'An act of Congress passed in 1789 creating the federal court system under the Judiciary Act.'},
+            {id:'D',text:'Baker v. Carr (1962), which expanded federal court jurisdiction over political questions.'}
+          ],correct:'A',explanation:'Judicial review is not explicitly stated in the Constitution — it was claimed by Chief Justice John Marshall in the landmark Marbury v. Madison decision.'},
+        {id:'u2_placeholder_003',topic:'2.1',bigIdea:'CON',difficulty:'accessible',
+          stem:'The United States Congress is bicameral, meaning it',
+          choices:[
+            {id:'A',text:'consists of two separate chambers — the Senate and the House of Representatives.'},
+            {id:'B',text:'divides its members equally between two political parties at all times.'},
+            {id:'C',text:'meets in two separate sessions each year, one for each chamber.'},
+            {id:'D',text:'requires two separate votes before any legislation can be sent to the president.'}
+          ],correct:'A',explanation:'Bicameral refers to the two-chamber structure: the House of Representatives (435 members, proportional) and the Senate (100 members, 2 per state).'}
+      ]
+    },
+    {
+      id:'round2_document', type:'document_stimulus', label:'Round 2 — Document Challenge',
+      icon:'📄', color:'var(--amber)', draw:1,
+      desc:'Read a required foundational document excerpt, then answer questions about its argument, significance, and connection to course concepts.',
+      sets:[
+        {
+          id:'fed70_set', document:'Federalist No. 70', author:'Alexander Hamilton', year:1788,
+          excerpt:'Energy in the executive is a leading character in the definition of good government. It is essential to the protection of the community against foreign attacks; it is not less essential to the steady administration of the laws; to the protection of property against those irregular and high-handed combinations which sometimes interrupt the ordinary course of justice; to the security of liberty against the enterprises and assaults of ambition, of faction, and of anarchy. A feeble executive implies a feeble execution of the government. A feeble execution is but another phrase for a bad execution; and a government ill executed, whatever it may be in theory, must be, in practice, a bad government.',
+          source:'Federalist No. 70, Alexander Hamilton, 1788. Public domain.',
+          questions:[
+            {id:'u2_doc_f70_001',topic:'2.4',bigIdea:'CON',difficulty:'accessible',
+              stem:'Hamilton\'s main argument in this excerpt is that',
+              choices:[
+                {id:'A',text:'a strong, energetic executive is essential to effective and legitimate government.'},
+                {id:'B',text:'the president should be able to override Congress whenever efficiency requires it.'},
+                {id:'C',text:'a weak executive is preferable because it prevents tyranny and abuse of power.'},
+                {id:'D',text:'the executive branch should be led by a committee rather than a single president.'}
+              ],correct:'A',explanation:'Hamilton argues that "energy in the executive" — meaning a strong, decisive presidency — is essential for effective governance, national security, and the rule of law.'},
+            {id:'u2_doc_f70_002',topic:'2.5',bigIdea:'LOR',difficulty:'moderate',
+              stem:'Hamilton\'s argument in this excerpt most directly responds to which concern about executive power?',
+              choices:[
+                {id:'A',text:'That a strong executive would threaten liberty, by arguing that executive energy actually protects liberty from faction and anarchy.'},
+                {id:'B',text:'That the president would be too weak to negotiate treaties, by proposing that Congress share treaty power.'},
+                {id:'C',text:'That the executive branch would become corrupt, by calling for a rotating presidency among the states.'},
+                {id:'D',text:'That the courts would undermine presidential authority through excessive judicial review of executive actions.'}
+              ],correct:'A',explanation:'Hamilton addresses the Anti-Federalist fear that a powerful executive threatens liberty by arguing the opposite: executive energy is necessary to protect liberty from internal threats like faction and external threats like foreign attack.'},
+            {id:'u2_doc_f70_003',topic:'2.6',bigIdea:'CON',difficulty:'moderate',
+              stem:'Which modern development would most directly support Hamilton\'s argument about executive energy?',
+              choices:[
+                {id:'A',text:'Presidents using executive orders and emergency powers to respond rapidly to national crises without waiting for congressional action.'},
+                {id:'B',text:'Congress using the appropriations process to defund presidential initiatives it opposes.'},
+                {id:'C',text:'The Supreme Court striking down presidential executive orders as exceeding constitutional authority.'},
+                {id:'D',text:'The War Powers Resolution limiting the president\'s ability to deploy troops without congressional approval.'}
+              ],correct:'A',explanation:'The expansion of presidential emergency powers and executive orders reflects Hamilton\'s vision of an energetic executive capable of rapid, decisive action — the same quality Hamilton argued was essential in Federalist No. 70.'},
+            {id:'u2_doc_f70_004',topic:'2.4',bigIdea:'CON',difficulty:'challenging',
+              stem:'Which of the following would be the strongest counterargument to Hamilton\'s position in this excerpt?',
+              choices:[
+                {id:'A',text:'A feeble executive may be less efficient but better protects liberty because concentrated executive power has historically led to tyranny and abuse.'},
+                {id:'B',text:'Hamilton\'s argument is undermined because the Constitution already guarantees executive energy through the necessary and proper clause.'},
+                {id:'C',text:'Hamilton\'s view is incorrect because the Anti-Federalists ultimately supported ratification of the Constitution with a strong executive.'},
+                {id:'D',text:'A committee-style executive would be more energetic because it would draw on more expertise and diverse perspectives than a single leader.'}
+              ],correct:'A',explanation:'The strongest counterargument accepts Hamilton\'s efficiency logic but rejects his conclusion: history shows that concentrated executive power frequently leads to tyranny, suggesting that some feebleness is a worthwhile tradeoff for liberty. This mirrors the Anti-Federalist critique.'}
+          ]
+        },
+        {
+          id:'fed78_set', document:'Federalist No. 78', author:'Alexander Hamilton', year:1788,
+          excerpt:'The complete independence of the courts of justice is peculiarly essential in a limited Constitution. By a limited Constitution, I understand one which contains certain specified exceptions to the legislative authority; such, for instance, as that it shall pass no bills of attainder, no ex post facto laws, and the like. Limitations of this kind can be preserved in practice no other way than through the medium of courts of justice, whose duty it must be to declare all acts contrary to the manifest tenor of the Constitution void. Without this, all the reservations of particular rights or privileges would amount to nothing.',
+          source:'Federalist No. 78, Alexander Hamilton, 1788. Public domain.',
+          questions:[
+            {id:'u2_doc_f78_001',topic:'2.11',bigIdea:'CON',difficulty:'accessible',
+              stem:'Hamilton\'s main argument in this excerpt is that',
+              choices:[
+                {id:'A',text:'an independent judiciary is essential to enforce the Constitution\'s limits on legislative power.'},
+                {id:'B',text:'Congress should have the final say on whether its own laws are constitutional.'},
+                {id:'C',text:'the president should appoint judges who reflect the will of the majority.'},
+                {id:'D',text:'constitutional rights can be protected effectively through elections alone.'}
+              ],correct:'A',explanation:'Hamilton argues that without an independent judiciary capable of striking down unconstitutional laws, the Constitution\'s limits on government power would be meaningless in practice.'},
+            {id:'u2_doc_f78_002',topic:'2.11',bigIdea:'CON',difficulty:'moderate',
+              stem:'Hamilton\'s argument in Federalist No. 78 most directly laid the groundwork for which landmark Supreme Court decision?',
+              choices:[
+                {id:'A',text:'Marbury v. Madison (1803), in which the Court claimed the power to strike down laws that violate the Constitution.'},
+                {id:'B',text:'Baker v. Carr (1962), in which the Court ruled that federal courts could hear cases about legislative apportionment.'},
+                {id:'C',text:'Shaw v. Reno (1993), in which the Court ruled that racial gerrymandering violates the Equal Protection Clause.'},
+                {id:'D',text:'McCulloch v. Maryland (1819), in which the Court upheld Congress\'s use of implied powers to create a national bank.'}
+              ],correct:'A',explanation:'Federalist No. 78 directly anticipated and justified the power of judicial review — the power Marshall formally claimed for the Court in Marbury v. Madison just 15 years later.'},
+            {id:'u2_doc_f78_003',topic:'2.12',bigIdea:'CON',difficulty:'moderate',
+              stem:'Which of the following is the most direct check Congress has on the independent judiciary Hamilton describes?',
+              choices:[
+                {id:'A',text:'The Senate\'s power to confirm or reject presidential nominees to the federal judiciary.'},
+                {id:'B',text:'Congress\'s authority to overturn Supreme Court decisions by a simple majority vote.'},
+                {id:'C',text:'The House\'s power to reassign cases from federal courts to state courts.'},
+                {id:'D',text:'Congress\'s authority to remove justices from office without following any set procedure.'}
+              ],correct:'A',explanation:'Although Hamilton argues for judicial independence, the Constitution\'s check on that independence is the Senate\'s confirmation power — Congress shapes the judiciary\'s composition through the appointments process even if it cannot easily remove sitting justices.'},
+            {id:'u2_doc_f78_004',topic:'2.11',bigIdea:'LOR',difficulty:'challenging',
+              stem:'A critic of judicial review might argue that Hamilton\'s position in Federalist No. 78 is fundamentally undemocratic because',
+              choices:[
+                {id:'A',text:'it gives unelected, life-tenured judges the power to override decisions made by elected representatives accountable to the people.'},
+                {id:'B',text:'it requires a unanimous Supreme Court before any law can be struck down as unconstitutional.'},
+                {id:'C',text:'it concentrates too much power in Congress, undermining the independence Hamilton claims to value.'},
+                {id:'D',text:'it was written before the Constitution was ratified and therefore has no legal or political standing.'}
+              ],correct:'A',explanation:'The democratic critique of judicial review is that it allows unelected justices with life tenure to nullify acts of elected legislatures — undermining popular sovereignty. Hamilton anticipated this objection and tried to answer it, but the tension between judicial independence and democratic accountability remains a live debate.'}
+          ]
+        }
+      ]
+    },
+    {
+      id:'round3_data', type:'data_stimulus', label:'Round 3 — Data Analysis',
+      icon:'📊', color:'var(--teal)', draw:1,
+      desc:'Analyze real political data and answer questions connecting the data to constitutional principles and course concepts.',
+      sets:[
+        {
+          id:'presidential_approval_set',
+          title:'Presidential Approval Ratings at Start of Term vs. End of Term (Selected Presidents)',
+          source:'Gallup Presidential Approval Center; Pew Research Center. Public data.',
+          chartType:'grouped_bar', chartLabel:'Approval Rating %',
+          data:{
+            labels:['Reagan','Clinton','G.W. Bush','Obama','Trump'],
+            federal:[51,58,57,67,45],
+            stateLocal:[49,37,34,59,34]
+          },
+          note:'Blue = Approval at start of first term · Teal = Approval at end of second term (or final term)',
+          questions:[
+            {id:'u2_data_pa_001',topic:'2.4',bigIdea:'MPA',difficulty:'accessible',
+              stem:'Based on the data, which president shown had the highest approval rating at the start of his first term?',
+              choices:[
+                {id:'A',text:'Barack Obama, with approximately 67% approval at the start of his first term.'},
+                {id:'B',text:'George W. Bush, with approximately 57% approval at the start of his first term.'},
+                {id:'C',text:'Bill Clinton, with approximately 58% approval at the start of his first term.'},
+                {id:'D',text:'Ronald Reagan, with approximately 51% approval at the start of his first term.'}
+              ],correct:'A',explanation:'The data shows Obama with the highest starting approval at approximately 67%, reflecting historically high public enthusiasm at the start of his presidency.'},
+            {id:'u2_data_pa_002',topic:'2.5',bigIdea:'MPA',difficulty:'moderate',
+              stem:'Which conclusion is best supported by comparing the starting and ending approval ratings in the data?',
+              choices:[
+                {id:'A',text:'Presidential approval tends to decline over time, suggesting that governing is generally harder than campaigning.'},
+                {id:'B',text:'Presidents who start with high approval always finish with higher approval than those who start lower.'},
+                {id:'C',text:'Approval ratings have no meaningful relationship to a president\'s ability to achieve legislative goals.'},
+                {id:'D',text:'All presidents shown experienced exactly the same pattern of approval change during their terms.'}
+              ],correct:'A',explanation:'The pattern of declining approval across most presidents shown suggests that the challenges and controversies of governing typically erode the goodwill presidents enjoy at the start of their terms.'},
+            {id:'u2_data_pa_003',topic:'2.4',bigIdea:'PMCD',difficulty:'moderate',
+              stem:'A political scientist studying presidential power would most likely argue that the approval rating trends shown in the data reflect which challenge?',
+              choices:[
+                {id:'A',text:'Presidents face competing demands from Congress, interest groups, and the public that make it nearly impossible to maintain broad approval while governing.'},
+                {id:'B',text:'Approval ratings are determined entirely by economic conditions and have no relationship to presidential decisions or leadership.'},
+                {id:'C',text:'The data prove that the president is constitutionally too powerful, since every president shown began with majority approval.'},
+                {id:'D',text:'Presidential approval is most strongly affected by the number of executive orders a president issues during their term.'}
+              ],correct:'A',explanation:'Political scientists view declining approval as reflecting the inherent difficulty of the presidency: every policy decision creates winners and losers, interest groups apply opposing pressures, and partisan opponents are energized — making sustained broad approval nearly impossible.'},
+            {id:'u2_data_pa_004',topic:'2.5',bigIdea:'MPA',difficulty:'challenging',
+              stem:'Which of the following is the most appropriate caution when using approval rating data to evaluate presidential effectiveness?',
+              choices:[
+                {id:'A',text:'Approval ratings measure public sentiment at a moment in time but do not directly measure policy outcomes, constitutional compliance, or historical significance.'},
+                {id:'B',text:'The data shown prove that all presidents are equally effective regardless of their approval ratings at any point in their terms.'},
+                {id:'C',text:'Approval ratings are the most reliable measure of presidential effectiveness because they reflect direct public judgment of performance.'},
+                {id:'D',text:'The data demonstrate that Congress is more popular than the president in all years shown.'}
+              ],correct:'A',explanation:'Approval ratings are a measure of public opinion, not of policy effectiveness or constitutional behavior. A president can have low approval and still accomplish significant policy goals (LBJ, Bush post-9/11) or high approval and accomplish little. Historical judgments of effectiveness often diverge sharply from contemporaneous approval ratings.'}
+          ]
+        },
+        {
+          id:'bills_passed_set',
+          title:'Bills Introduced vs. Bills Enacted into Law (Selected Congresses)',
+          source:'Congress.gov; Congressional Research Service. Public data.',
+          chartType:'bar', chartLabel:'Number of Bills',
+          data:{labels:['104th','107th','110th','113th','116th','117th'],values:[88,383,460,296,344,365]},
+          note:'Bills enacted into law per Congress (2-year session). Source: Congress.gov.',
+          questions:[
+            {id:'u2_data_bl_001',topic:'2.2',bigIdea:'MPA',difficulty:'accessible',
+              stem:'Based on the data, which Congress shown enacted the fewest bills into law?',
+              choices:[
+                {id:'A',text:'The 104th Congress, which enacted approximately 88 bills into law.'},
+                {id:'B',text:'The 113th Congress, which enacted approximately 296 bills into law.'},
+                {id:'C',text:'The 107th Congress, which enacted approximately 383 bills into law.'},
+                {id:'D',text:'The 116th Congress, which enacted approximately 344 bills into law.'}
+              ],correct:'A',explanation:'The 104th Congress (1995-97, the "Republican Revolution" Congress) enacted the fewest bills at approximately 88 — reflecting both partisan conflict with President Clinton and an ideological preference for limiting government action.'},
+            {id:'u2_data_bl_002',topic:'2.3',bigIdea:'PMCD',difficulty:'moderate',
+              stem:'Which conclusion about the legislative process is best supported by the data?',
+              choices:[
+                {id:'A',text:'Congress enacts a very small fraction of the thousands of bills introduced each session, reflecting the many veto points in the legislative process.'},
+                {id:'B',text:'Congress enacts an increasing number of laws in every successive session, showing growing legislative productivity over time.'},
+                {id:'C',text:'The number of bills enacted is primarily determined by the size of the majority party\'s margin in the House.'},
+                {id:'D',text:'The data show that Congress enacted fewer bills after the 1990s due to constitutional amendments restricting legislative authority.'}
+              ],correct:'A',explanation:'The data show that even in productive Congresses, only hundreds of bills pass out of thousands introduced — reflecting the many veto points (committee action, floor votes, conference, presidential signature) that bills must survive in the American legislative process.'},
+            {id:'u2_data_bl_003',topic:'2.2',bigIdea:'CON',difficulty:'moderate',
+              stem:'The relatively low number of bills enacted, shown in the data, most directly reflects which feature of the American legislative process?',
+              choices:[
+                {id:'A',text:'The bicameral structure and multiple veto points built into the legislative process, which make passing legislation deliberately difficult.'},
+                {id:'B',text:'A constitutional prohibition on Congress passing more than 400 bills per two-year session.'},
+                {id:'C',text:'The president\'s authority to prevent all legislation from reaching the floor for a vote.'},
+                {id:'D',text:'The Supreme Court\'s power to block bills from becoming law before they are signed by the president.'}
+              ],correct:'A',explanation:'The Framers deliberately designed a legislative process with many steps and veto points — committee approval, floor votes in both chambers, conference, presidential signature — to make legislation difficult to pass. The data reflect this design: most bills die before becoming law.'}
+          ]
+        }
+      ]
+    },
+    {
+      id:'round4_visual', type:'visual_stimulus', label:'Round 4 — Visual Analysis',
+      icon:'🖼️', color:'var(--purple)', draw:1,
+      desc:'Analyze a political cartoon and answer questions about its argument, symbolism, and connection to constitutional principles.',
+      sets:[
+        {
+          id:'iron_triangle_cartoon',
+          title:'Political Cartoon: The Iron Triangle',
+          source:'Original classroom-safe scenario based on political science iron triangle model.',
+          description:'A political cartoon shows a solid steel triangle. At each corner sits a figure: one corner is labeled "Congress (Committees)," one is labeled "Federal Agencies (Bureaucracy)," and one is labeled "Interest Groups." Double-headed arrows connect each corner to the other two, showing relationships flowing both ways. Along the arrows are labels: "Funding & Oversight," "Regulations & Benefits," and "Campaign Support & Information." A smaller figure labeled "The Public" stands outside the triangle, pressing against it but unable to get in. The caption reads: "A Cozy Little Triangle."',
+          svgType:'iron_triangle',
+          questions:[
+            {id:'u2_vis_it_001',topic:'2.7',bigIdea:'PMCD',difficulty:'accessible',
+              stem:'The cartoonist\'s main argument is most likely that',
+              choices:[
+                {id:'A',text:'congressional committees, federal agencies, and interest groups form mutually beneficial relationships that may exclude broader public interests.'},
+                {id:'B',text:'the three branches of government — Congress, the president, and the courts — cooperate effectively to serve the public.'},
+                {id:'C',text:'interest groups always work against the preferences of Congress and federal agencies.'},
+                {id:'D',text:'the American public has more political influence than Congress, agencies, or interest groups combined.'}
+              ],correct:'A',explanation:'The iron triangle model describes the mutually reinforcing relationships among congressional committees (who fund agencies and write legislation), bureaucratic agencies (who regulate and provide benefits), and interest groups (who provide campaign support and expertise) — relationships that can become self-serving and difficult for outsiders to penetrate.'},
+            {id:'u2_vis_it_002',topic:'2.8',bigIdea:'PMCD',difficulty:'moderate',
+              stem:'The figure labeled "The Public" standing outside the triangle most directly symbolizes which concern about American government?',
+              choices:[
+                {id:'A',text:'That close relationships among policymaking insiders can reduce accountability to ordinary citizens and broader public interests.'},
+                {id:'B',text:'That citizens are constitutionally prohibited from participating in the federal regulatory process.'},
+                {id:'C',text:'That the public has deliberately chosen to remain uninvolved in bureaucratic policymaking.'},
+                {id:'D',text:'That the Supreme Court has ruled that citizens have no standing to challenge agency regulations.'}
+              ],correct:'A',explanation:'The excluded public figure represents the concern that iron triangle relationships — however efficient — can become insular and self-serving, with policy outcomes reflecting insider interests rather than the broader public good. This is a fundamental democratic accountability problem.'},
+            {id:'u2_vis_it_003',topic:'2.9',bigIdea:'CON',difficulty:'challenging',
+              stem:'Which of the following would most directly challenge the "cozy triangle" shown in the cartoon?',
+              choices:[
+                {id:'A',text:'A congressional oversight hearing investigating whether a federal agency has been captured by the industry it is supposed to regulate.'},
+                {id:'B',text:'A federal agency issuing new regulations that increase benefits for the interest group shown in the cartoon.'},
+                {id:'C',text:'An interest group donating to the campaigns of committee members who oversee the relevant agency.'},
+                {id:'D',text:'A congressional committee increasing the budget of the agency shown in the triangle.'}
+              ],correct:'A',explanation:'Congressional oversight — especially adversarial hearings investigating regulatory capture — is one of the primary mechanisms for disrupting iron triangle relationships. The other choices all reinforce rather than challenge the cozy triangle.'}
+          ]
+        },
+        {
+          id:'veto_override_cartoon',
+          title:'Political Cartoon: The Tug of War Over Legislation',
+          source:'Original classroom-safe scenario based on the presidential veto process.',
+          description:'A political cartoon shows a piece of paper labeled "THE BILL" being pulled in opposite directions. On the left, a figure labeled "CONGRESS" pulls with both hands. On the right, a figure labeled "PRESIDENT" pulls in the other direction and has stamped the bill with a large red "VETO." Above the tug of war, a scoreboard reads: "Override needed: 2/3 of both chambers." In the background, a figure labeled "SUPREME COURT" sits in a chair watching, holding a gavel labeled "JUDICIAL REVIEW."',
+          svgType:'veto_tug',
+          questions:[
+            {id:'u2_vis_vt_001',topic:'2.5',bigIdea:'CON',difficulty:'accessible',
+              stem:'The cartoon most directly illustrates which constitutional mechanism?',
+              choices:[
+                {id:'A',text:'Checks and balances, showing Congress and the president exercising formal powers to limit each other over legislation.'},
+                {id:'B',text:'Federalism, showing the national government and state governments competing over policy authority.'},
+                {id:'C',text:'Judicial review, showing the Supreme Court\'s power to strike down legislation as unconstitutional.'},
+                {id:'D',text:'The commerce clause, showing Congress\'s authority to regulate economic activity across states.'}
+              ],correct:'A',explanation:'The veto-and-override dynamic shown is a classic illustration of checks and balances — the president checks Congress with the veto; Congress checks the president with the override power. The Supreme Court watching reflects its separate role in the broader system.'},
+            {id:'u2_vis_vt_002',topic:'2.5',bigIdea:'CON',difficulty:'moderate',
+              stem:'The scoreboard reading "Override needed: 2/3 of both chambers" suggests which conclusion about the veto power?',
+              choices:[
+                {id:'A',text:'The president\'s veto is a powerful check because the supermajority required for override is difficult to achieve in practice.'},
+                {id:'B',text:'Congress can always override a presidential veto as long as a simple majority votes to do so.'},
+                {id:'C',text:'The president can veto constitutional amendments passed by Congress.'},
+                {id:'D',text:'The Supreme Court must approve any congressional attempt to override a presidential veto.'}
+              ],correct:'A',explanation:'Requiring a two-thirds vote in both chambers to override makes the veto a powerful tool. In practice, less than 10% of presidential vetoes are overridden, meaning the veto often functions as an absolute barrier to legislation the president opposes.'},
+            {id:'u2_vis_vt_003',topic:'2.11',bigIdea:'CON',difficulty:'challenging',
+              stem:'The Supreme Court figure watching in the background most directly represents which constitutional principle?',
+              choices:[
+                {id:'A',text:'Even if Congress overrides a veto and enacts a law, the Court can still review and potentially invalidate that law under its power of judicial review.'},
+                {id:'B',text:'The Supreme Court must approve all bills before they can be signed into law by the president.'},
+                {id:'C',text:'The Court is passive in the American political system and never intervenes in disputes between Congress and the president.'},
+                {id:'D',text:'Congress can appeal to the Court to override a presidential veto when a two-thirds vote is not achievable.'}
+              ],correct:'A',explanation:'The Court\'s presence in the background — watching with its gavel of judicial review — represents the reality that even successfully enacted legislation faces a third check: the judiciary can still strike down laws that violate the Constitution, regardless of how they survived the legislative-executive process.'}
+          ]
+        }
+      ]
+    }
+  ]
+};
+// ── GAME STATE// ── GAME STATE ────────────────────────────────────
+let G = {
+  roundIdx: 0,
+  questionIdx: 0,
+  questions: [],       // current round's drawn questions
+  currentSet: null,    // for stimulus rounds
+  selectedChoice: null,
+  answered: false,
+  roundScores: [],     // {correct, total} per round
+  totalGold: 0,
+  sessionCorrect: 0,
+  sessionTotal: 0,
+  timer: null,
+  timeLeft: 0,
+  introShown: false,
+};
+
+// ── STUDENT STATE (from Civitas shell) ──────────────
+const S = {
+  name: localStorage.getItem('civitas_student_name') || '',
+  gold: parseInt(localStorage.getItem('civitas_gold') || '0'),
+};
+
+// ── BOOT ──────────────────────────────────────────
+window.addEventListener('load', () => {
+  const fill = document.getElementById('ld-fill');
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 25 + 10;
+    fill.style.width = Math.min(p, 96) + '%';
+    if (p >= 96) {
+      clearInterval(iv);
+      fill.style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          showHub();
+        }, 500);
+      }, 300);
+    }
+  }, 100);
+});
+
+// ── HUB ───────────────────────────────────────────
+function showHub() {
+  document.getElementById('hub').style.display = 'flex';
+  loadProgress();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function loadProgress() {
+  try {
+    const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const unitData = progress[UNIT_ID] || {};
+    if (unitData.bestAccuracy) {
+      const pct = unitData.bestAccuracy;
+      document.getElementById('prog-wrap').style.display = 'block';
+      document.getElementById('prog-pct').textContent = pct + '%';
+      document.getElementById('prog-fill').style.width = pct + '%';
+      // Show trophy badge
+      const badge = document.getElementById('game-badge');
+      if (badge) {
+        const trophy = getTrophyForAccuracy(pct);
+        badge.textContent = trophy.label;
+        badge.style.display = 'block';
+        badge.style.borderColor = trophy.color;
+        badge.style.color = trophy.color;
+      }
+    }
+  } catch(e) {}
+}
+
+function launchFlashcards() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = FLASHCARD_URL;
+}
+
+function launchBriefing() {
+  window.open(BRIEFING_URL, '_blank');
+}
+
+function startVocabQuiz() {
+  notify('Vocab Quiz coming soon! Complete the flashcards first to prepare.');
+}
+
+function returnToShell() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = CIVITAS_URL;
+}
+
+// ── GAME START ────────────────────────────────────
+function startGame() {
+  G = {
+    roundIdx: 0,
+    questionIdx: 0,
+    questions: [],
+    currentSet: null,
+    selectedChoice: null,
+    answered: false,
+    roundScores: [],
+    totalGold: 0,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    timer: null,
+    timeLeft: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame() {
+  if (G.sessionTotal > 0 && !confirm('Exit the game? Your progress for this attempt will be lost.')) return;
+  clearTimer();
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+}
+
+function buildProgressPips() {
+  const rounds = QUESTION_BANK.rounds;
+  const el = document.getElementById('gp-pips');
+  el.innerHTML = rounds.map((r, i) => `<div class="gp-pip ${i === 0 ? 'active' : ''}" id="pip-${i}"></div>`).join('');
+}
+
+function updatePips() {
+  QUESTION_BANK.rounds.forEach((r, i) => {
+    const pip = document.getElementById('pip-' + i);
+    if (!pip) return;
+    pip.classList.remove('done', 'active');
+    if (i < G.roundIdx) pip.classList.add('done');
+    else if (i === G.roundIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ────────────────────────────────────
+function showRoundIntro() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  document.getElementById('ri-icon').textContent = round.icon;
+  document.getElementById('ri-round').textContent = `ROUND ${G.roundIdx + 1} OF ${QUESTION_BANK.rounds.length}`;
+  document.getElementById('ri-title').textContent = round.label;
+  document.getElementById('ri-desc').textContent = round.desc;
+  document.getElementById('game-round-label').textContent = round.label.toUpperCase();
+  document.getElementById('game-round-label').style.color = round.color;
+
+  // Show document/data info
+  const docsEl = document.getElementById('ri-docs');
+  if (round.type === 'document_stimulus') {
+    docsEl.textContent = '📄 ' + round.sets.map(s => s.document).join(' · ');
+  } else if (round.type === 'data_stimulus') {
+    docsEl.textContent = '📊 ' + round.sets.map(s => s.title).join(' · ');
+  } else {
+    docsEl.textContent = '';
+  }
+
+  updatePips();
+  G.introShown = false;
+}
+
+function dismissIntro() {
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── ROUND PREPARATION ─────────────────────────────
+function prepareRound() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+
+  if (round.type === 'mcq') {
+    // Shuffle and draw questions
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    G.questions = shuffled.slice(0, Math.min(round.draw, shuffled.length));
+    G.currentSet = null;
+  } else if (round.type === 'document_stimulus' || round.type === 'data_stimulus' || round.type === 'visual_stimulus') {
+    // Pick random set
+    const sets = round.sets;
+    G.currentSet = sets[Math.floor(Math.random() * sets.length)];
+    G.questions = [...G.currentSet.questions];
+  }
+
+  // Shuffle answer choices for each question
+  G.questions = G.questions.map(q => ({
+    ...q,
+    choices: [...q.choices].sort(() => Math.random() - 0.5)
+  }));
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  G.roundScores.push({ correct: 0, total: 0 });
+
+  renderQuestion();
+}
+
+// ── QUESTION RENDERING ────────────────────────────
+function renderQuestion() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+
+  let html = '';
+
+  // Render stimulus on first question of stimulus rounds
+  if (G.questionIdx === 0 && G.currentSet) {
+    html += renderStimulus(round, G.currentSet);
+  }
+
+  // Question card
+  html += `<div class="question-card" id="qcard">
+    <div class="q-meta">
+      <div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>
+      <div class="q-tag topic">${q.topic}</div>
+      <div class="q-tag bi">${q.bigIdea}</div>
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">
+      ${q.choices.map(c => `
+        <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+          <div class="choice-letter">${c.id}</div>
+          <div class="choice-text">${c.text}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+
+  // Render chart if data round
+  if (G.currentSet?.chartType && G.questionIdx === 0) {
+    renderChart(G.currentSet);
+  }
+
+  // Scroll to top
+  el.scrollTop = 0;
+}
+
+function renderStimulus(round, set) {
+  if (round.type === 'document_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">📄 FOUNDATIONAL DOCUMENT</div>
+      <div class="stimulus-title">${set.document}${set.author?' — '+set.author:''} (${set.year})</div>
+      <div class="stimulus-source">${set.source}</div>
+      <div class="stimulus-text">"${set.excerpt}"</div>
+    </div>`;
+  } else if (round.type === 'data_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">📊 DATA STIMULUS</div>
+      <div class="stimulus-title">${set.title}</div>
+      <div class="stimulus-source">${set.source}</div>
+      <div id="chart-container"></div>
+      ${set.note?`<div class="stimulus-desc" style="margin-top:8px;font-size:10px">${set.note}</div>`:''}
+    </div>`;
+  } else if (round.type === 'visual_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
+      <div class="stimulus-title">${set.title}</div>
+      <div class="stimulus-source">${set.source}</div>
+      ${renderCartoonSVG(set)}
+      <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
+    </div>`;
+  }
+  return '';
+}
+
+function renderChart(set) {
+  const container = document.getElementById('chart-container');
+  if (!container || !set.data) return;
+
+  if (set.chartType === 'grouped_bar') {
+    renderGroupedBar(container, set);
+  } else {
+    renderSimpleBar(container, set);
+  }
+}
+
+function renderSimpleBar(container, set) {
+  const { labels, values } = set.data;
+  const max = Math.max(...values);
+  let html = `<div class="chart-wrap"><div class="chart-title">${set.chartLabel||''}</div><div class="chart-bars">`;
+  labels.forEach((lbl, i) => {
+    const pct = Math.round((values[i] / max) * 100);
+    html += `<div class="chart-bar-wrap"><div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div></div>`;
+  });
+  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
+  labels.forEach(lbl => { html += `<div class="chart-label" style="flex:1">${lbl}</div>`; });
+  html += `</div><div class="chart-source">${set.source}</div></div>`;
+  container.innerHTML = html;
+  setTimeout(() => { container.querySelectorAll('.chart-bar').forEach(b => { b.style.height = b.dataset.target; }); }, 100);
+}
+
+function renderGroupedBar(container, set) {
+  const { labels, federal, stateLocal } = set.data;
+  const max = 100;
+  let html = `<div class="chart-wrap">
+    <div style="display:flex;gap:14px;margin-bottom:8px;font-family:var(--dm);font-size:9px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--blue);display:inline-block"></span>Federal</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--teal);display:inline-block"></span>State & Local</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-end;height:120px;border-bottom:1px solid var(--border2)">`;
+  labels.forEach((lbl, i) => {
+    const fp = Math.round((federal[i] / max) * 100);
+    const sp = Math.round((stateLocal[i] / max) * 100);
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:100px;width:100%">
+        <div style="flex:1;background:var(--blue);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${fp}%" title="Federal: ${federal[i]}%"></div>
+        <div style="flex:1;background:var(--teal);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${sp}%" title="State/Local: ${stateLocal[i]}%"></div>
+      </div>
+    </div>`;
+  });
+  html += `</div><div style="display:flex;gap:16px;margin-top:4px">`;
+  labels.forEach(lbl => { html += `<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;line-height:1.3">${lbl}</div>`; });
+  html += `</div><div class="chart-source" style="margin-top:8px">${set.source}</div></div>`;
+  container.innerHTML = html;
+  setTimeout(() => {
+    container.querySelectorAll('[data-target]').forEach(b => { b.style.height = b.dataset.target; });
+  }, 100);
+}
+
+// SVG Cartoon renderer
+function renderCartoonSVG(set) {
+  if (!set.svgType) return '';
+  if (set.svgType === 'iron_triangle') return ironTriangleSVG();
+  if (set.svgType === 'veto_tug') return vetoTugSVG();
+  return '';
+}
+
+function ironTriangleSVG() {
+  return `<svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <rect width="560" height="240" fill="rgba(14,20,32,.8)" rx="4"/>
+    <!-- Triangle lines -->
+    <polygon points="280,30 80,200 480,200" fill="none" stroke="#4a5a70" stroke-width="2"/>
+    <!-- Corner nodes -->
+    <!-- Congress top -->
+    <rect x="220" y="14" width="120" height="36" rx="4" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+    <text x="280" y="28" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">CONGRESS</text>
+    <text x="280" y="42" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4878d0">(Committees)</text>
+    <!-- Interest Groups bottom-left -->
+    <rect x="28" y="186" width="120" height="36" rx="4" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
+    <text x="88" y="200" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#2aaa98" letter-spacing="1">INTEREST</text>
+    <text x="88" y="214" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">Groups</text>
+    <!-- Agencies bottom-right -->
+    <rect x="412" y="186" width="120" height="36" rx="4" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
+    <text x="472" y="200" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#9080f0" letter-spacing="1">FEDERAL</text>
+    <text x="472" y="214" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#9080f0">Agencies</text>
+    <!-- Arrow labels on edges -->
+    <text x="158" y="118" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8" transform="rotate(-57,158,118)">Funding &amp; Oversight</text>
+    <text x="402" y="118" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8" transform="rotate(57,402,118)">Regulations &amp; Benefits</text>
+    <text x="280" y="215" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8">Campaign Support &amp; Info</text>
+    <!-- Public figure outside -->
+    <circle cx="280" cy="175" r="14" fill="#0a1018" stroke="#e04040" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="280" y="173" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#e04040">PUBLIC</text>
+    <text x="280" y="183" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#e04040">excluded</text>
+    <!-- Caption -->
+    <text x="280" y="232" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"A Cozy Little Triangle"</text>
+  </svg>`;
+}
+
+function vetoTugSVG() {
+  return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <rect width="560" height="230" fill="rgba(14,20,32,.8)" rx="4"/>
+    <!-- Bill document center -->
+    <rect x="218" y="85" width="124" height="70" rx="3" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5"/>
+    <text x="280" y="108" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">THE BILL</text>
+    <!-- VETO stamp -->
+    <rect x="228" y="118" width="104" height="26" rx="2" fill="rgba(224,64,64,.15)" stroke="#e04040" stroke-width="1.5"/>
+    <text x="280" y="135" text-anchor="middle" font-family="'Bebas Neue'" font-size="16" fill="#e04040" letter-spacing="3">VETO</text>
+    <!-- Congress figure left -->
+    <circle cx="90" cy="100" r="24" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+    <text x="90" y="97" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8">CONGRESS</text>
+    <text x="90" y="109" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4878d0">pulls →</text>
+    <line x1="114" y1="100" x2="218" y2="118" stroke="#4878d0" stroke-width="3" stroke-linecap="round"/>
+    <!-- President figure right -->
+    <circle cx="470" cy="100" r="24" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
+    <text x="470" y="97" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#2aaa98">PRESIDENT</text>
+    <text x="470" y="109" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">← pulls</text>
+    <line x1="446" y1="100" x2="342" y2="118" stroke="#2aaa98" stroke-width="3" stroke-linecap="round"/>
+    <!-- Scoreboard -->
+    <rect x="180" y="168" width="200" height="30" rx="3" fill="#0a1018" stroke="#4a5a70" stroke-width="1"/>
+    <text x="280" y="182" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#e8a020" letter-spacing="1">OVERRIDE NEEDED:</text>
+    <text x="280" y="193" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e8f0f8">2/3 of both chambers</text>
+    <!-- Supreme Court watcher -->
+    <circle cx="280" cy="42" r="18" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
+    <text x="280" y="38" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">SUPREME</text>
+    <text x="280" y="48" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">COURT</text>
+    <text x="280" y="68" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8">watching with judicial review</text>
+    <!-- Caption -->
+    <text x="280" y="220" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Wins the Tug of War?"</text>
+  </svg>`;
+}
+  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <!-- Background -->
+    <rect width="560" height="220" fill="rgba(14,20,32,.8)" rx="4"/>
+    <!-- National Govt figure (left) -->
+    <g>
+      <circle cx="80" cy="80" r="22" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+      <text x="80" y="84" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">NATIONAL</text>
+      <text x="80" y="96" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">GOVT</text>
+      <rect x="60" y="104" width="40" height="50" fill="#1e3a5a" stroke="#4878d0" stroke-width="1"/>
+      <line x1="60" y1="120" x2="42" y2="140" stroke="#4878d0" stroke-width="2.5"/>
+      <line x1="100" y1="120" x2="118" y2="105" stroke="#4878d0" stroke-width="2.5"/>
+    </g>
+    <!-- States figure (right) -->
+    <g>
+      <circle cx="480" cy="80" r="22" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1.5"/>
+      <text x="480" y="88" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#2aaa98" letter-spacing="1">STATES</text>
+      <rect x="460" y="104" width="40" height="50" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1"/>
+      <line x1="460" y1="120" x2="442" y2="105" stroke="#2aaa98" stroke-width="2.5"/>
+      <line x1="500" y1="120" x2="518" y2="140" stroke="#2aaa98" stroke-width="2.5"/>
+    </g>
+    <!-- Rope -->
+    <path d="M118 110 Q140 118 160 112 Q200 100 240 108 Q280 116 320 108 Q360 100 400 112 Q420 118 442 110" fill="none" stroke="#a07840" stroke-width="4" stroke-linecap="round"/>
+    <!-- Policy box -->
+    <rect x="220" y="128" width="120" height="66" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5" rx="3"/>
+    <text x="280" y="148" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">PUBLIC</text>
+    <text x="280" y="162" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">POLICY</text>
+    <!-- Labels on box -->
+    <text x="248" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Education</text>
+    <text x="280" y="186" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Health Care</text>
+    <text x="313" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Elections</text>
+    <!-- Caption -->
+    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Holds the Stronger Grip?"</text>
+  </svg>`;
+}
+
+
+// ── ANSWER HANDLING ────────────────────────────────
+function selectChoice(id) {
+  if (G.answered) return;
+  G.selectedChoice = id;
+  // Immediately grade — no separate submit step
+  submitAnswer();
+}
+
+function submitAnswer() {
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  G.roundScores[G.roundScores.length - 1].total++;
+
+  if (correct) {
+    G.sessionCorrect++;
+    G.roundScores[G.roundScores.length - 1].correct++;
+    const gold = 10;
+    G.totalGold += gold;
+    spawnGold('+' + gold + ' 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-', '');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation';
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  // Update gold display
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion() {
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ─────────────────────────────────
+function showRoundComplete() {
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const rs = G.roundScores[G.roundScores.length - 1];
+  const pct = rs.total > 0 ? Math.round(rs.correct / rs.total * 100) : 0;
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+
+  document.getElementById('rc-icon').textContent = pct >= 80 ? '⭐' : pct >= 60 ? '✅' : '📋';
+  document.getElementById('rc-title').textContent = round.label + ' Complete';
+  document.getElementById('rc-score').textContent = rs.correct + '/' + rs.total;
+  document.getElementById('rc-score').style.color = pct >= 80 ? 'var(--green2)' : pct >= 60 ? 'var(--amber)' : 'var(--red2)';
+  document.getElementById('rc-sub').textContent = pct + '% ACCURACY';
+
+  const isLast = G.roundIdx >= QUESTION_BANK.rounds.length - 1;
+  const nextBtn = document.getElementById('rc-next-btn');
+  nextBtn.textContent = isLast ? 'See Final Score →' : 'Next Round →';
+  nextBtn.onclick = isLast ? showUnitComplete : nextRound;
+}
+
+function nextRound() {
+  G.roundIdx++;
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  showRoundIntro();
+}
+
+// ── UNIT COMPLETE ──────────────────────────────────
+function showUnitComplete() {
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'flex';
+
+  const pct = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  document.getElementById('uc-score').textContent = pct + '%';
+  document.getElementById('uc-score').style.color = trophy.color;
+  document.getElementById('uc-grade').textContent = G.sessionCorrect + '/' + G.sessionTotal + ' CORRECT · ' + trophy.label;
+  document.getElementById('uc-seal').textContent = trophy.icon;
+  document.getElementById('uc-seal').style.borderColor = trophy.color;
+  document.getElementById('uc-seal').style.boxShadow = '0 0 40px ' + trophy.glow;
+
+  // Trophy display
+  document.getElementById('trophy-display').innerHTML = `
+    <div class="trophy-item" style="border-color:${trophy.color}">
+      <div class="trophy-item-icon">${trophy.icon}</div>
+      <div class="trophy-item-name" style="color:${trophy.color}">${trophy.label}</div>
+      <div class="trophy-item-desc">${pct}% accuracy</div>
+    </div>
+    <div class="trophy-item" style="border-color:var(--gc)">
+      <div class="trophy-item-icon">🪙</div>
+      <div class="trophy-item-name" style="color:var(--gc)">${G.totalGold} Gold</div>
+      <div class="trophy-item-desc">Earned this run</div>
+    </div>`;
+
+  // Save progress
+  saveProgress(pct);
+
+  // Award gold to Civitas shell
+  awardGoldToShell(G.totalGold, 'AP Gov Unit 1');
+}
+
+function getTrophyForAccuracy(pct) {
+  if (pct === 100) return { label: 'Historian', icon: '🏛️', color: 'var(--purple2)', glow: 'rgba(144,128,240,.4)' };
+  if (pct >= 90)  return { label: 'Gold Trophy', icon: '🥇', color: 'var(--gold)', glow: 'rgba(255,215,0,.4)' };
+  if (pct >= 80)  return { label: 'Silver Trophy', icon: '🥈', color: 'var(--text)', glow: 'rgba(200,200,216,.3)' };
+  if (pct >= 70)  return { label: 'Bronze Trophy', icon: '🥉', color: '#cd7f32', glow: 'rgba(205,127,50,.3)' };
+  if (pct >= 60)  return { label: 'Completed', icon: '✅', color: 'var(--green2)', glow: 'rgba(42,170,80,.3)' };
+  return { label: 'Keep Trying', icon: '📋', color: 'var(--text3)', glow: 'rgba(100,100,120,.2)' };
+}
+
+function saveProgress(pct) {
+  try {
+    const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    if (!progress[UNIT_ID] || pct > (progress[UNIT_ID].bestAccuracy || 0)) {
+      progress[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
+      localStorage.setItem('civitas_unit_progress', JSON.stringify(progress));
+    }
+  } catch(e) {}
+}
+
+function awardGoldToShell(amount, source) {
+  try {
+    const current = parseInt(localStorage.getItem('civitas_gold') || '0');
+    localStorage.setItem('civitas_gold', current + amount);
+    // Signal to shell on return
+    localStorage.setItem('civitas_gold_pending', JSON.stringify({ amount, source }));
+  } catch(e) {}
+}
+
+function playAgain() {
+  document.getElementById('unit-complete').style.display = 'none';
+  startGame();
+}
+
+// ── UTILS ──────────────────────────────────────────
+function spawnGold(text) {
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random() * 60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg) {
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+function clearTimer() {
+  if (G.timer) { clearInterval(G.timer); G.timer = null; }
+}
+
+// ── FRQ HUB FUNCTIONS ────────────────────────────────
+const FRQ_RUBRICS = {
+  frq1: {
+    title: 'Federalism in Practice (Concept Application)',
+    maxScore: 3,
+    goldReward: 60,
+    rubric: `This is a 3-point Concept Application FRQ scored as follows:
+
+PART A (1 point): Student describes a constitutional provision relevant to the scenario. Accept: supremacy clause, necessary and proper clause, commerce clause, 10th Amendment, preemption doctrine. Must be accurately described, not just named.
+
+PART B (1 point): Student explains how the provision described in Part A creates a conflict between state and national governments in the context of the marijuana scenario. Must connect the specific provision to the specific conflict — not a generic answer.
+
+PART C (1 point): Student explains how McCulloch v. Maryland (1819) could be used to resolve a similar federal-state conflict. Must accurately reference McCulloch's holding (implied powers, necessary and proper clause, national supremacy) and apply it to the scenario logic.
+
+SCORING NOTES:
+- Each part is scored independently (0 or 1)
+- Generic or vague answers earn 0
+- Student does not need to use the word "McCulloch" if they accurately describe the holding
+- Maximum 3 points total`
+  },
+  frq2: {
+    title: 'Faction & Democratic Governance (Argument Essay)',
+    maxScore: 6,
+    goldReward: 120,
+    rubric: `This is a 6-point Argument Essay FRQ scored as follows:
+
+TASK A — THESIS (1 point): Student articulates a defensible claim that explains whether a large republic helps or hinders democratic governance, AND establishes a line of reasoning. Must go beyond restating the prompt. Cannot earn Task B3 or D without earning Task A.
+
+TASK B1 — EVIDENCE (1 point): One piece of evidence accurately linked to the topic.
+
+TASK B2 — EVIDENCE (1 point): One specific and relevant piece of evidence supporting the claim OR two pieces relevant to the topic. NOTE: To earn Task B3, must use one of the listed foundational documents.
+
+TASK B3 — EVIDENCE (1 point): TWO pieces of specific and relevant evidence supporting the claim. MUST include evidence from Federalist No. 10 OR Brutus No. 1. Requires Task A.
+
+TASK C — REASONING (1 point): Correctly explains HOW or WHY the evidence supports the argument. Requires at least Task B1.
+
+TASK D — COUNTERARGUMENT (1 point): Responds to an opposing perspective with rebuttal or refutation. Must describe the alternate perspective AND rebut/refute it. Requires Task A.
+
+SCORING NOTES:
+- Tasks B3 and D require Task A
+- Task C requires Task B1
+- Maximum 6 points total
+- Using Federalist No. 10 or Brutus No. 1 accurately counts as foundational document evidence`
+  }
+};
+
+function updateFRQWordCount(frqId, el) {
+  const wc = document.getElementById(frqId + '-wc');
+  if (!wc) return;
+  const words = el.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+  wc.textContent = words + ' word' + (words !== 1 ? 's' : '');
+  wc.style.color = words < 50 ? 'var(--red2)' : words < 150 ? 'var(--amber)' : 'var(--green2)';
+}
+
+async function submitFRQHub(frqId) {
+  const rubricData = FRQ_RUBRICS[frqId];
+  if (!rubricData) return;
+
+  const textEl = document.getElementById(frqId + '-text');
+  const btnEl = document.getElementById(frqId + '-btn');
+  const feedbackEl = document.getElementById(frqId + '-feedback');
+  if (!textEl || !feedbackEl) return;
+
+  const response = textEl.value.trim();
+  const wordCount = response.split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 40) { notify('Write at least 40 words before submitting.'); return; }
+
+  // Loading state
+  btnEl.disabled = true;
+  btnEl.textContent = '⏳ Grading…';
+  feedbackEl.style.display = 'block';
+  feedbackEl.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:8px 0">
+    <div style="font-size:22px">🏛️</div>
+    <div>
+      <div style="font-family:var(--bebas);font-size:13px;color:var(--purple2);letter-spacing:2px">Grading against the AP rubric…</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px">This takes about 10 seconds</div>
+    </div>
+  </div>`;
+
+  try {
+    const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are an expert AP U.S. Government and Politics FRQ grader. Score strictly against the official College Board rubric. Be fair, specific, and encouraging. Respond ONLY in valid JSON — no markdown, no preamble.`,
+        messages: [{
+          role: 'user',
+          content: `Grade this AP Gov FRQ response.
+
+FRQ TITLE: ${rubricData.title}
+
+RUBRIC:
+${rubricData.rubric}
+
+STUDENT RESPONSE:
+${response}
+
+Return ONLY this JSON — tasks vary by FRQ type:
+
+For a 3-point Concept Application FRQ:
+{
+  "totalScore": <0-3>,
+  "tasks": {
+    "A": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "C": {"earned": <0|1>, "feedback": "<specific feedback>"}
+  },
+  "overallFeedback": "<2-3 sentence summary>",
+  "improveHint": "<one actionable improvement>"
+}
+
+For a 6-point Argument Essay FRQ:
+{
+  "totalScore": <0-6>,
+  "tasks": {
+    "A": {"earned": <0|1>, "feedback": "<specific feedback on thesis>"},
+    "B1": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B2": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B3": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "C": {"earned": <0|1>, "feedback": "<specific feedback on reasoning>"},
+    "D": {"earned": <0|1>, "feedback": "<specific feedback on counterargument>"}
+  },
+  "overallFeedback": "<2-3 sentence summary>",
+  "improveHint": "<one actionable improvement>"
+}`
+        }]
+      })
+    });
+
+    const data = await apiResponse.json();
+    const raw = data.content?.[0]?.text || '{}';
+    const result = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    const score = result.totalScore ?? 0;
+    const tasks = result.tasks || {};
+
+    // Save best score
+    try {
+      const key = 'civitas_frq_' + UNIT_ID + '_' + frqId;
+      const prev = parseInt(localStorage.getItem(key) || '0');
+      const isNew = score > prev;
+      if (isNew) localStorage.setItem(key, score);
+
+      // Award gold on improvement
+      if (isNew && score > 0) {
+        const gold = Math.round(rubricData.goldReward * (score / rubricData.maxScore));
+        awardGoldToShell(gold, 'FRQ: ' + rubricData.title);
+        spawnGold('+' + gold + ' 🪙');
+      }
+
+      // Show badge
+      const badge = document.getElementById(frqId + '-badge');
+      if (badge) {
+        badge.textContent = score + '/' + rubricData.maxScore;
+        badge.style.display = 'block';
+      }
+    } catch(e) {}
+
+    // Save to Supabase
+    saveFRQResult(frqId, score, rubricData.maxScore, response, result.overallFeedback);
+
+    // Task label maps
+    const taskLabels3 = { A: 'Part A', B: 'Part B', C: 'Part C' };
+    const taskLabels6 = { A: 'Thesis', B1: 'Evidence 1', B2: 'Evidence 2', B3: 'Foundational Doc', C: 'Reasoning', D: 'Counterargument' };
+    const taskLabels = rubricData.maxScore === 3 ? taskLabels3 : taskLabels6;
+    const taskColors = { A:'var(--amber)', B:'var(--teal2)', B1:'var(--teal2)', B2:'var(--teal2)', B3:'var(--blue2)', C:'var(--green2)', D:'var(--purple2)' };
+
+    feedbackEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--bebas);font-size:44px;line-height:1;color:${score>=Math.ceil(rubricData.maxScore*.8)?'var(--green2)':score>=Math.ceil(rubricData.maxScore*.5)?'var(--amber)':'var(--red2)'}">${score}/${rubricData.maxScore}</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">AP SCORE</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.6;font-style:italic">${result.overallFeedback || ''}</div>
+        </div>
+      </div>
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">POINT BREAKDOWN</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:7px;margin-bottom:12px">
+        ${Object.entries(tasks).map(([t, d]) => `
+          <div style="background:var(--bg3);border:1px solid ${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--border)'};border-left:3px solid ${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--border)'};padding:9px 12px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-family:var(--bebas);font-size:10px;color:${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--text3)'}">${taskLabels[t] || 'Task '+t}</span>
+              <span style="font-family:var(--bebas);font-size:13px;color:${d.earned ? 'var(--green2)' : 'var(--red2)'}">${d.earned ? '✓ +1' : '✗ 0'}</span>
+            </div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${d.feedback || ''}</div>
+          </div>`).join('')}
+      </div>
+      ${result.improveHint ? `<div style="background:rgba(112,96,208,.08);border:1px solid var(--purple2);border-left:3px solid var(--purple2);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">💡 KEY IMPROVEMENT</div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">${result.improveHint}</div>
+      </div>` : ''}
+      <div style="margin-top:10px;font-family:var(--dm);font-size:9px;color:var(--text3)">Revise your response above and resubmit to improve your score.</div>`;
+
+    btnEl.textContent = '↺ Resubmit';
+
+  } catch(e) {
+    feedbackEl.innerHTML = `<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection and try again.<br><small>${e.message}</small></div>`;
+    btnEl.textContent = '⚡ Submit for AI Grading';
+  }
+  btnEl.disabled = false;
+}
+
+async function saveFRQResult(frqId, score, maxScore, response, feedback) {
+  const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+  const studentName = localStorage.getItem('civitas_student_name') || 'Unknown';
+  try {
+    await fetch(SUPA_URL + '/rest/v1/civitas_frq_results', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        student_name: studentName,
+        full_name: studentName,
+        course_id: 'ap_gov',
+        frq_id: UNIT_ID + '_' + frqId,
+        score, max_score: maxScore,
+        response_text: response.slice(0, 3000),
+        ai_feedback: (feedback || '').slice(0, 1000),
+        submitted_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
+
+// ── Anti-cheat
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('keydown',e=>{
+    if(isInput(e.target))return;
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&['u','s'].includes(e.key.toLowerCase()))e.preventDefault();
+  });
+  document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+</script>
+</body>
+</html>
