@@ -1,1 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 1: Foundations of Democracy — AP Gov · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0e1420;--bg3:#141c2a;--panel:#111828;
+  --border:#1e2a3e;--border2:#2a3a54;
+  --blue:#4878d0;--blue2:#6898e8;--blue3:#a0c0f8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --text:#e8f0f8;--text2:#8090a8;--text3:#4a5a70;--cream:#f0e8d8;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(72,120,208,.1) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(112,96,208,.08) 0%,transparent 50%)}
 
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--blue2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));transition:width .2s;width:0}
+
+/* ── HUB (landing screen) ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+
+/* Hero banner */
+.hub-hero{background:linear-gradient(135deg,rgba(72,120,208,.15) 0%,rgba(8,12,20,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(72,120,208,.02) 40px,rgba(72,120,208,.02) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(72,120,208,.4))}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--blue2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:560px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--blue2);font-weight:500}
+
+/* Back button */
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;
+  background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--blue);color:var(--blue2)}
+
+/* Hub tabs */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--blue2)}
+.hub-tab.active{color:var(--blue2);border-bottom-color:var(--blue)}
+
+/* Hub content */
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* Activity cards */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;
+  transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;
+  letter-spacing:1px;padding:3px 8px;border:1px solid}
+
+/* CED coverage tags */
+.ced-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px}
+.ced-tag{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:10px 14px}
+.ced-tag-code{font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:2px}
+.ced-tag-title{font-family:var(--dm);font-size:10px;color:var(--text2)}
+
+/* Required docs/cases */
+.req-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
+.req-item{background:var(--bg2);border:1px solid var(--border);padding:10px 14px;
+  display:flex;align-items:center;gap:12px}
+.req-item-icon{font-size:16px;flex-shrink:0}
+.req-item-name{font-family:var(--playfair);font-size:12px;color:var(--cream);flex:1}
+.req-item-where{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.req-item-check{font-size:14px;flex-shrink:0}
+
+/* Progress bar */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));transition:width .6s;border-radius:2px}
+
+/* Section header */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--blue2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--blue);display:block}
+
+/* ══════════════════════════════════════
+   GAME ENGINE
+══════════════════════════════════════ */
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+
+/* Game header */
+#game-header{background:rgba(8,12,20,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--blue);color:var(--blue2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--blue2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--blue)}
+.gp-pip.active{background:var(--blue2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#game-timer{font-family:var(--bebas);font-size:18px;color:var(--text2);min-width:40px;text-align:right}
+#game-timer.warn{color:var(--amber);animation:timerPulse 1s infinite}
+#game-timer.danger{color:var(--red);animation:timerPulse .5s infinite}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--blue2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--blue2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--blue);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Stimulus box */
+.stimulus-box{background:rgba(72,120,208,.06);border:1px solid rgba(72,120,208,.2);
+  border-left:3px solid var(--blue);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--blue2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:12px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;font-style:italic}
+.stimulus-chart{margin-top:12px}
+.stimulus-desc{font-family:var(--dm);font-size:12px;color:var(--text2);line-height:1.6;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);padding:12px 14px;margin-top:10px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.topic{border-color:var(--blue);color:var(--blue2)}
+.q-tag.bi{border-color:var(--purple);color:var(--purple2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:17px;color:var(--cream);line-height:1.65;margin-bottom:18px}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:9px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:13px 16px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--blue2);background:rgba(72,120,208,.06)}
+.choice-letter{font-family:var(--bebas);font-size:15px;color:var(--text3);flex-shrink:0;width:18px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--blue);background:rgba(72,120,208,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--blue2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+
+/* Submit / Next buttons */
+#btn-submit{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--blue);
+  border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-submit:hover{background:var(--blue2)}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--blue);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--blue);color:var(--blue2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--blue);color:#fff}
+
+/* ── UNIT COMPLETE ── */
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;
+  background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);
+  box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(24px,5vw,36px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.trophy-display{display:flex;gap:14px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.trophy-item{background:var(--bg2);border:2px solid;padding:14px 20px;text-align:center;min-width:100px}
+.trophy-item-icon{font-size:28px;margin-bottom:6px}
+.trophy-item-name{font-family:var(--bebas);font-size:12px;letter-spacing:1px}
+.trophy-item-desc{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--blue);border:2px solid var(--blue);color:#fff}
+.uc-btn.primary:hover{background:var(--blue2);border-color:var(--blue2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.uc-btn.secondary:hover{border-color:var(--blue);color:var(--blue2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Chart bars */
+.chart-wrap{margin-top:14px}
+.chart-title{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--blue2);margin-bottom:10px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;background:linear-gradient(180deg,var(--blue2),var(--blue));border-radius:2px 2px 0 0;
+  transition:height .6s ease;min-height:2px;position:relative}
+.chart-bar:hover::after{content:attr(data-val);position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-family:var(--bebas);font-size:10px;color:var(--blue2);white-space:nowrap}
+.chart-label{font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center}
+.chart-source{font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:8px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--blue);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--blue2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+@media(max-width:600px){
+  .hub-hero{padding:20px;flex-direction:column;text-align:center}
+  .hub-content{padding:16px 16px 60px}
+  .activity-grid{grid-template-columns:1fr}
+  #question-area{padding:14px 14px 14px}
+  .question-card{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="ld-icon">📜</div>
+  <div class="ld-title">Unit 1: Foundations</div>
+  <div class="ld-sub">AP U.S. Government & Politics · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<!-- ══ HUB ══ -->
+<div id="hub">
+
+  <!-- Hero -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">📜</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP U.S. GOVERNMENT · UNIT 1</div>
+      <div class="hub-title">Foundations of American Democracy</div>
+      <div class="hub-desc">The philosophical origins of American democracy, the failures of the Articles of Confederation, and the constitutional framework that replaced it.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Topics: <span>7 CED Standards</span></div>
+        <div class="hub-meta-item">📄 Documents: <span>Federalist 10, 51 · Brutus 1</span></div>
+        <div class="hub-meta-item">⚖️ Cases: <span>McCulloch · Lopez</span></div>
+        <div class="hub-meta-item">🎮 Rounds: <span>4</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to Civitas</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('coverage',this)">📊 CED Coverage</button>
+  </div>
+
+  <!-- Hub Content -->
+  <div class="hub-content">
+
+    <!-- PLAY TAB -->
+    <div class="hub-panel active" id="tab-play">
+
+      <!-- Progress -->
+      <div class="prog-wrap" id="prog-wrap" style="display:none">
+        <div class="prog-label">
+          <span>YOUR PROGRESS</span>
+          <span id="prog-pct">0%</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="sh">Activities</div>
+      <div class="activity-grid">
+
+        <!-- Main Game -->
+        <div class="activity-card" onclick="startGame()" style="border-top:3px solid var(--blue)">
+          <div class="activity-card-strip" style="background:var(--blue)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">🎮</div>
+            <div class="activity-card-label">MAIN ACTIVITY · 4 ROUNDS</div>
+            <div class="activity-card-title">Unit 1 Game</div>
+            <div class="activity-card-desc">Four rounds of AP-style questions — knowledge check, document analysis, data interpretation, and visual stimulus. Randomized every attempt.</div>
+            <div class="activity-card-action" style="color:var(--blue2)">▶ Start Game</div>
+          </div>
+          <div class="activity-card-badge" id="game-badge" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
+        </div>
+
+        <!-- Briefing -->
+        <div class="activity-card" onclick="switchTab('briefing',document.querySelectorAll('.hub-tab')[1])" style="border-top:3px solid var(--teal)">
+          <div class="activity-card-strip" style="background:var(--teal)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">📋</div>
+            <div class="activity-card-label">STUDY GUIDE</div>
+            <div class="activity-card-title">Unit Briefing</div>
+            <div class="activity-card-desc">Complete review of all Unit 1 topics, required documents, SCOTUS cases, and key vocabulary — written for AP exam readiness.</div>
+            <div class="activity-card-action" style="color:var(--teal2)">→ Read Briefing</div>
+          </div>
+        </div>
+
+        <!-- Flashcards -->
+        <div class="activity-card" onclick="launchFlashcards()" style="border-top:3px solid var(--amber)">
+          <div class="activity-card-strip" style="background:var(--amber)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">🃏</div>
+            <div class="activity-card-label">VOCABULARY · SPACED REPETITION</div>
+            <div class="activity-card-title">Flashcard Deck</div>
+            <div class="activity-card-desc">Study all Unit 1 key terms — from popular sovereignty to judicial review — with the Civitas flashcard engine.</div>
+            <div class="activity-card-action" style="color:var(--amber)">→ Study Flashcards</div>
+          </div>
+        </div>
+
+        <!-- Vocab Quiz -->
+        <div class="activity-card" onclick="switchTab('quiz',document.querySelectorAll('.hub-tab')[3])" style="border-top:3px solid var(--purple)">
+          <div class="activity-card-strip" style="background:var(--purple)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">✅</div>
+            <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
+            <div class="activity-card-title">Vocab Check</div>
+            <div class="activity-card-desc">Graded vocabulary quiz covering all Unit 1 terms. Pass with 80%+ to earn a Vocab Medal and gold reward.</div>
+            <div class="activity-card-action" style="color:var(--purple2)">→ Take Quiz</div>
+          </div>
+          <div class="activity-card-badge" id="vocab-badge" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
+        </div>
+
+      </div>
+
+      <!-- Round preview -->
+      <div class="sh">What's in the Game</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:4px">ROUND 1</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Knowledge Check</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">15 MCQ drawn from a bank of 35+</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">ROUND 2</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Document Challenge</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Federalist 10, 51, or Brutus 1</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--teal2);letter-spacing:2px;margin-bottom:4px">ROUND 3</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Data Analysis</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Voter turnout or spending data</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 14px">
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">ROUND 4</div>
+          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Visual Stimulus</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Political cartoon analysis</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRIEFING TAB -->
+    <div class="hub-panel" id="tab-briefing">
+      <div class="sh">Unit Briefing</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);padding:28px 32px;text-align:center">
+        <div style="font-size:40px;margin-bottom:14px">📋</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Briefing</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          The complete Unit 1 study guide covering Enlightenment philosophy, Articles of Confederation, Constitutional Convention, federalism, separation of powers, checks and balances, and all required documents and SCOTUS cases.
+        </div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:20px;letter-spacing:1px">BRIEFING DOCUMENT IN DEVELOPMENT · COMING SOON</div>
+        <button onclick="launchBriefing()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--teal);color:var(--teal2);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--teal)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--teal2)'">
+          Open Briefing →
+        </button>
+      </div>
+
+      <!-- Topic outline placeholder -->
+      <div style="margin-top:20px">
+        <div class="sh">Topics Covered</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${['1.1 — Ideals of Democracy','1.2 — Types of Democracy (Participatory, Pluralist, Elite)','1.3 — Government Power and Individual Rights','1.4 — Challenges of the Articles of Confederation','1.5 — Ratification of the U.S. Constitution','1.6 — Principles of American Government','1.7 — Relationships Among Branches'].map(t=>`
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">${t}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- VOCAB TAB -->
+    <div class="hub-panel" id="tab-vocab">
+      <div class="sh">Vocabulary Flashcards</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:28px 32px;text-align:center;margin-bottom:20px">
+        <div style="font-size:40px;margin-bottom:14px">🃏</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Flashcard Deck</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          Study all key Unit 1 terms including popular sovereignty, federalism, separation of powers, checks and balances, judicial review, enumerated powers, implied powers, and more.
+        </div>
+        <button onclick="launchFlashcards()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--amber);color:var(--amber);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--amber)';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='var(--amber)'">
+          Launch Flashcards →
+        </button>
+      </div>
+
+      <div class="sh">Key Terms — Unit 1</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+        ${['Popular Sovereignty','Natural Rights','Social Contract','Federalism','Separation of Powers','Checks & Balances','Judicial Review','Enumerated Powers','Implied Powers','Necessary & Proper','Supremacy Clause','Commerce Clause','Bicameral Legislature','Republicanism','Limited Government','Anti-Federalists','Federalists','Ratification','Amendment Process','Elastic Clause'].map(t=>`
+        <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">${t}</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- VOCAB QUIZ TAB -->
+    <div class="hub-panel" id="tab-quiz">
+      <div class="sh">Vocabulary Quiz</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:28px 32px;text-align:center">
+        <div style="font-size:40px;margin-bottom:14px">✅</div>
+        <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:8px">Unit 1 Vocab Check</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 20px;line-height:1.7">
+          20 vocabulary questions covering all Unit 1 key terms. Score 80% or higher to earn a <strong style="color:var(--purple2)">Vocab Medal 🎖</strong> and a gold reward. You can retake to improve.
+        </div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:20px;letter-spacing:1px">VOCAB QUIZ · 20 QUESTIONS · 80% TO PASS</div>
+        <button onclick="startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">
+          Start Vocab Quiz →
+        </button>
+      </div>
+    </div>
+
+    <!-- CED COVERAGE TAB -->
+    <div class="hub-panel" id="tab-coverage">
+      <div class="sh">CED Topic Coverage</div>
+      <div class="ced-grid">
+        ${[
+          {code:'1.1',title:'Ideals of Democracy'},
+          {code:'1.2',title:'Types of Democracy'},
+          {code:'1.3',title:'Government Power & Individual Rights'},
+          {code:'1.4',title:'Challenges of the Articles of Confederation'},
+          {code:'1.5',title:'Ratification of the Constitution'},
+          {code:'1.6',title:'Principles of American Government'},
+          {code:'1.7',title:'Relationships Among Branches'}
+        ].map(t=>`
+        <div class="ced-tag">
+          <div class="ced-tag-code">${t.code}</div>
+          <div class="ced-tag-title">${t.title}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Required Foundational Documents</div>
+      <div class="req-list">
+        ${[
+          {icon:'📜',name:'Federalist No. 10',where:'Round 2 — Document Set A'},
+          {icon:'📜',name:'Federalist No. 51',where:'Round 2 — Document Set B'},
+          {icon:'📜',name:'Brutus No. 1',where:'Round 2 — Document Set C'},
+          {icon:'📜',name:'Articles of Confederation',where:'Round 1 — MCQ'},
+          {icon:'📜',name:'U.S. Constitution',where:'Round 1 — MCQ + Round 2'},
+          {icon:'📜',name:'Declaration of Independence',where:'Round 1 — MCQ'},
+        ].map(r=>`
+        <div class="req-item">
+          <div class="req-item-icon">${r.icon}</div>
+          <div class="req-item-name">${r.name}</div>
+          <div class="req-item-where">${r.where}</div>
+          <div class="req-item-check" id="doc-check-${r.name.replace(/\s/g,'_')}">⬜</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Required SCOTUS Cases</div>
+      <div class="req-list">
+        ${[
+          {icon:'⚖️',name:'McCulloch v. Maryland (1819)',where:'Round 3 — Data Set'},
+          {icon:'⚖️',name:'United States v. Lopez (1995)',where:'Round 1 — MCQ'},
+        ].map(r=>`
+        <div class="req-item">
+          <div class="req-item-icon">${r.icon}</div>
+          <div class="req-item-name">${r.name}</div>
+          <div class="req-item-where">${r.where}</div>
+          <div class="req-item-check">⬜</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Big Ideas in This Unit</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${[
+          {bi:'CON',label:'Constitutionalism',color:'var(--blue)'},
+          {bi:'LOR',label:'Liberty & Order',color:'var(--teal)'},
+          {bi:'PMCD',label:'Competing Interests',color:'var(--amber)'},
+          {bi:'MPA',label:'Political Analysis',color:'var(--purple)'},
+        ].map(b=>`
+        <div style="background:var(--bg2);border:1px solid ${b.color};border-left:3px solid ${b.color};padding:10px 16px">
+          <div style="font-family:var(--bebas);font-size:13px;color:${b.color};letter-spacing:2px">${b.bi}</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${b.label}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+  </div><!-- hub-content -->
+</div><!-- hub -->
+
+<!-- ══ GAME ENGINE ══ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <div id="game-round-label">ROUND 1 — KNOWLEDGE CHECK</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+    <div id="game-timer">—</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND 1 OF 4</div>
+    <div class="ri-title" id="ri-title">Knowledge Check</div>
+    <div class="ri-desc" id="ri-desc">15 multiple choice questions drawn randomly from a bank of 35+. Each question is tagged with its CED topic code and Big Idea.</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn" onclick="nextRound()">Next Round →</button>
+  </div>
+
+  <!-- Unit complete -->
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal" id="uc-seal">🏛️</div>
+    <div class="uc-title">UNIT 1 COMPLETE</div>
+    <div class="uc-name">Foundations of American Democracy</div>
+    <div class="uc-score" id="uc-score">—</div>
+    <div class="uc-grade" id="uc-grade">OVERALL ACCURACY</div>
+    <div class="trophy-display" id="trophy-display"></div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="playAgain()">↺ Play Again</button>
+      <button class="uc-btn secondary" onclick="returnToShell()">← Back to Civitas</button>
+    </div>
+  </div>
+
+</div><!-- game -->
+
+<script>
+'use strict';
+
+// ── CONFIGURATION ──────────────────────────────────
+const UNIT_ID = 'apg_u1';
+const UNIT_TITLE = 'Foundations of American Democracy';
+const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+const FLASHCARD_URL = CIVITAS_URL + 'games/flashcards/?deck=apgov_unit1';
+const BRIEFING_URL = CIVITAS_URL + 'briefings/ap-gov/unit1-briefing.html';
+
+// ── QUESTION BANK ───────────────────────────────────
+// DROP YOUR JSON HERE — replace QUESTION_BANK with the output from the AI
+// The JSON structure matches the prompt exactly.
+// Until the real question bank is ready, placeholder questions keep the game functional.
+
+const QUESTION_BANK = {
+  unit: 'ap_gov_unit1',
+  title: 'Foundations of American Democracy',
+  rounds: [
+    {
+      id: 'round1_mcq',
+      type: 'mcq',
+      label: 'Round 1 — Knowledge Check',
+      icon: '📋',
+      color: 'var(--blue)',
+      draw: 15,
+      desc: '15 multiple choice questions drawn randomly from the question bank. Each question is tagged with its CED topic code and Big Idea.',
+      questions: [
+        // ── PLACEHOLDER QUESTIONS ──
+        // Replace this array with the AI-generated question bank
+        {
+          id:'u1_placeholder_001', topic:'1.1', bigIdea:'CON', difficulty:'accessible',
+          stem:'Which of the following best describes the concept of popular sovereignty as understood by the Framers of the Constitution?',
+          choices:[
+            {id:'A',text:'Government authority derives from the consent of the governed, expressed through elections, representation, and the ability to amend the Constitution.'},
+            {id:'B',text:'A nation-state has the inherent right to govern its own territory free from the interference of foreign governments or international organizations.'},
+            {id:'C',text:'Political power is most effectively exercised by a small group of educated elites who can make rational decisions on behalf of the broader public.'},
+            {id:'D',text:'The supreme law of the land, as established by the Constitution, cannot be changed through ordinary legislative processes or executive action.'}
+          ],
+          correct:'A',
+          explanation:'Popular sovereignty holds that legitimate government authority is derived from the consent of the governed. This principle is embedded in the Preamble ("We the People"), the amendment process, and the system of free elections. It was a direct rejection of monarchical divine right theories of authority.'
+        },
+        {
+          id:'u1_placeholder_002', topic:'1.4', bigIdea:'CON', difficulty:'moderate',
+          stem:'The primary reason the Articles of Confederation were replaced by the Constitution was that the Articles failed to',
+          choices:[
+            {id:'A',text:'establish a bicameral legislature that could represent both large and small states proportionally in the national government.'},
+            {id:'B',text:'provide the national government with sufficient power to tax, regulate commerce, and enforce laws across the states.'},
+            {id:'C',text:'include a bill of rights that would protect individual liberties from infringement by the new federal government.'},
+            {id:'D',text:'create an executive branch with enough authority to conduct foreign policy and negotiate treaties with European powers independently.'}
+          ],
+          correct:'B',
+          explanation:'The Articles of Confederation created a weak national government that could not levy taxes, regulate interstate commerce, or compel states to comply with national laws. This made it impossible to pay Revolutionary War debts, regulate the economy, or respond to crises like Shays\'s Rebellion, leading to the Constitutional Convention of 1787.'
+        },
+        {
+          id:'u1_placeholder_003', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
+          stem:'In McCulloch v. Maryland (1819), the Supreme Court ruled that the federal government had the authority to establish a national bank primarily based on which constitutional provision?',
+          choices:[
+            {id:'A',text:'The commerce clause, which grants Congress the power to regulate trade among the several states and with foreign nations.'},
+            {id:'B',text:'The necessary and proper clause, which allows Congress to make all laws required to carry out its enumerated powers effectively.'},
+            {id:'C',text:'The supremacy clause, which establishes that federal law takes precedence over state law in all areas of potential conflict.'},
+            {id:'D',text:'The general welfare clause, which authorizes Congress to spend money for the benefit of the nation as a whole.'}
+          ],
+          correct:'B',
+          explanation:'Chief Justice Marshall\'s ruling in McCulloch v. Maryland established the doctrine of implied powers. The necessary and proper clause allows Congress to use any means reasonably related to carrying out its enumerated powers — including establishing a bank to manage currency and debt, even though a "bank" is not explicitly mentioned in the Constitution.'
+        },
+        {
+          id:'u1_placeholder_004', topic:'1.2', bigIdea:'MK', difficulty:'accessible',
+          stem:'Which of the following best illustrates a pluralist model of democracy in action?',
+          choices:[
+            {id:'A',text:'Citizens vote directly on proposed legislation through ballot initiatives and referendums rather than delegating that authority to elected representatives.'},
+            {id:'B',text:'A small group of wealthy business leaders and military officials exercise disproportionate influence over government policy decisions across all major issues.'},
+            {id:'C',text:'Competing interest groups — environmental organizations, industry lobbies, and labor unions — all advocate for their positions in the legislative process.'},
+            {id:'D',text:'Government officials are selected through competitive elections in which all adult citizens have an equal and unrestricted right to participate.'}
+          ],
+          correct:'C',
+          explanation:'Pluralism holds that democracy functions through competition among multiple organized interest groups. No single group dominates; instead, policy emerges from the conflict and compromise among competing groups. Choice A describes participatory democracy; B describes elite theory; D describes electoral democracy generally.'
+        },
+        {
+          id:'u1_placeholder_005', topic:'1.5', bigIdea:'CON', difficulty:'challenging',
+          stem:'The Federalists and Anti-Federalists disagreed most fundamentally about which of the following questions during the ratification debates of 1787–1788?',
+          choices:[
+            {id:'A',text:'Whether the United States should maintain a standing army capable of defending against both foreign invasion and domestic insurrection in times of crisis.'},
+            {id:'B',text:'Whether a strong central government could adequately protect individual liberties without a formal enumeration of rights in the constitutional text itself.'},
+            {id:'C',text:'Whether the system of slavery should be abolished immediately or phased out gradually as a precondition for ratification of the new Constitution.'},
+            {id:'D',text:'Whether the president should be selected by direct popular vote or by an indirect method such as the Electoral College that filtered popular preferences.'}
+          ],
+          correct:'B',
+          explanation:'The central debate during ratification was whether a powerful central government threatened individual liberty. Anti-Federalists (Brutus No. 1) argued that a strong national government would inevitably tyrannize citizens without explicit protections. Federalists (Madison, Federalist 51) countered that structural mechanisms like separation of powers and checks and balances were sufficient. This debate led directly to the Bill of Rights.'
+        },
+        {
+          id:'u1_placeholder_006', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
+          stem:'Which of the following scenarios best demonstrates the constitutional principle of checks and balances in operation?',
+          choices:[
+            {id:'A',text:'Congress passes legislation establishing a new federal agency to regulate environmental pollution and oversee enforcement of clean air standards.'},
+            {id:'B',text:'The Senate confirms the president\'s nominee to the Supreme Court after conducting hearings and reviewing the nominee\'s judicial record and qualifications.'},
+            {id:'C',text:'The Supreme Court unanimously upholds a federal statute as constitutional, ruling that Congress acted within its enumerated powers under the commerce clause.'},
+            {id:'D',text:'The president submits the annual federal budget to Congress and proposes new spending priorities for the upcoming fiscal year.'}
+          ],
+          correct:'B',
+          explanation:'Checks and balances refers to the constitutional mechanisms by which each branch limits and monitors the others. Senate confirmation of presidential nominees is a textbook example: the executive nominates (presidential power), but the legislative branch must approve (legislative check). This prevents any one branch from exercising unchecked authority over federal appointments.'
+        },
+        {
+          id:'u1_placeholder_007', topic:'1.3', bigIdea:'LOR', difficulty:'accessible',
+          stem:'The tension between majority rule and minority rights in American democracy is most directly addressed by which constitutional mechanism?',
+          choices:[
+            {id:'A',text:'The amendment process, which requires supermajority approval to change the Constitution and thereby protects foundational rights from simple majority revision.'},
+            {id:'B',text:'The Electoral College system, which gives smaller states disproportionate influence in presidential elections relative to their population size.'},
+            {id:'C',text:'The Senate\'s equal representation structure, which ensures that every state receives the same number of senators regardless of population.'},
+            {id:'D',text:'Federalism, which divides power between national and state governments and allows states to serve as laboratories of democracy on most policy issues.'}
+          ],
+          correct:'A',
+          explanation:'The supermajority requirements for constitutional amendments (two-thirds of Congress and three-fourths of states) protect fundamental rights and structural principles from being overridden by simple majorities. This embodies the Framers\' concern about "tyranny of the majority" — ensuring that core liberties cannot be voted away by a temporary majority.'
+        },
+        {
+          id:'u1_placeholder_008', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
+          stem:'United States v. Lopez (1995) was a significant ruling because it',
+          choices:[
+            {id:'A',text:'upheld Congress\'s broad authority to regulate any economic activity that has a substantial effect on interstate commerce under the commerce clause.'},
+            {id:'B',text:'established for the first time that the commerce clause could not be used to justify federal regulation of noneconomic, local activities without a clear connection to commerce.'},
+            {id:'C',text:'ruled that states could establish their own gun regulations that went further than federal law in restricting access to firearms near school zones.'},
+            {id:'D',text:'determined that the federal government\'s power to regulate commerce extends to all activities, economic or otherwise, that take place within state boundaries.'}
+          ],
+          correct:'B',
+          explanation:'In Lopez, the Supreme Court struck down the Gun-Free School Zones Act, ruling that carrying a gun near a school was not an economic activity with a substantial effect on interstate commerce. This was the first time in 60 years the Court had struck down a federal law for exceeding commerce clause authority, reaffirming limits on federal power and the importance of federalism.'
+        },
+        {
+          id:'u1_placeholder_009', topic:'1.1', bigIdea:'LOR', difficulty:'accessible',
+          stem:'John Locke\'s theory of natural rights most directly influenced which aspect of American government?',
+          choices:[
+            {id:'A',text:'The decision to create a bicameral legislature with the Senate providing equal representation for all states regardless of population differences.'},
+            {id:'B',text:'The principle that individuals possess inherent rights to life, liberty, and property that government cannot legitimately violate or take away arbitrarily.'},
+            {id:'C',text:'The establishment of a system of federalism in which power is divided between the national government and the individual state governments.'},
+            {id:'D',text:'The creation of a Supreme Court with the power to interpret the Constitution and invalidate laws that conflict with its provisions.'}
+          ],
+          correct:'B',
+          explanation:'Locke argued that individuals possess natural rights — life, liberty, and property — that exist prior to and independent of government. Government\'s purpose is to protect these rights, and citizens may overthrow a government that fails to do so. This idea appears directly in the Declaration of Independence ("life, liberty and the pursuit of happiness") and forms the philosophical foundation of American constitutionalism.'
+        },
+        {
+          id:'u1_placeholder_010', topic:'1.6', bigIdea:'CON', difficulty:'challenging',
+          stem:'Which of the following best explains why the Framers chose a federal system of government over a unitary system?',
+          choices:[
+            {id:'A',text:'A federal system was more efficient because it allowed the national government to administer all policy areas from a centralized location without state interference.'},
+            {id:'B',text:'A unitary system had been proposed but rejected because the larger states feared they would lose influence over national policy to the smaller states.'},
+            {id:'C',text:'A federal system preserved existing state sovereignty and provided a structural safeguard against tyranny by dividing power between levels of government.'},
+            {id:'D',text:'A federal system was required by the terms of the Treaty of Paris, which recognized the independence of each of the thirteen states individually.'}
+          ],
+          correct:'C',
+          explanation:'The Framers chose federalism for practical and philosophical reasons. Practically, the states existed as sovereign entities before the Constitution and would not have accepted a unitary system. Philosophically, dividing power between national and state governments served as a structural check against tyranny — if either level became oppressive, the other could resist. Madison articulated this in Federalist No. 51.'
+        },
+        {
+          id:'u1_placeholder_011', topic:'1.4', bigIdea:'CON', difficulty:'moderate',
+          stem:'Shays\'s Rebellion (1786–1787) most directly contributed to the calling of the Constitutional Convention because it demonstrated that',
+          choices:[
+            {id:'A',text:'state governments were becoming too powerful relative to the national government and needed to be checked by a stronger federal authority.'},
+            {id:'B',text:'the national government under the Articles of Confederation lacked the power to maintain order and protect property against domestic insurrection.'},
+            {id:'C',text:'the economic policies of the individual states were causing widespread prosperity in some regions while creating severe poverty in others.'},
+            {id:'D',text:'the existing system of taxation was fundamentally unfair and needed to be reformed to distribute the burden of government more equitably.'}
+          ],
+          correct:'B',
+          explanation:'Shays\'s Rebellion was an armed uprising by Massachusetts farmers protesting debt and foreclosures. The national government under the Articles could not raise troops or funds to suppress it — it had to rely on private funding and state militias. This exposed the weakness of the Articles and convinced many, including Washington and Madison, that a stronger national government was essential for stability.'
+        },
+        {
+          id:'u1_placeholder_012', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
+          stem:'The Great Compromise (Connecticut Compromise) of 1787 resolved the conflict between large and small states by',
+          choices:[
+            {id:'A',text:'creating a unicameral legislature in which each state received representation proportional to its population, satisfying the demands of the larger states.'},
+            {id:'B',text:'establishing a bicameral legislature with proportional representation in the House and equal representation in the Senate, satisfying both sides.'},
+            {id:'C',text:'allowing each state to determine its own method of selecting representatives to the national legislature regardless of population considerations.'},
+            {id:'D',text:'granting additional electoral votes to smaller states in presidential elections to compensate for their disadvantage in the House of Representatives.'}
+          ],
+          correct:'B',
+          explanation:'The Great Compromise created a bicameral legislature: the House of Representatives with representation based on population (Virginia Plan) and the Senate with equal representation for all states (New Jersey Plan). This broke the deadlock between large and small states and made ratification possible. It remains one of the most consequential compromises in American political history.'
+        },
+        {
+          id:'u1_placeholder_013', topic:'1.2', bigIdea:'MK', difficulty:'challenging',
+          stem:'A political scientist argues that American democracy most closely resembles an elite model rather than a pluralist model. Which of the following evidence would most strongly support this argument?',
+          choices:[
+            {id:'A',text:'Research showing that citizens with higher incomes and more education are more likely to vote in both presidential and congressional elections than those with lower incomes.'},
+            {id:'B',text:'Studies demonstrating that policy outcomes consistently align with the preferences of economic elites and organized interest groups rather than with majority public opinion.'},
+            {id:'C',text:'Data indicating that voter turnout in the United States is lower than in most other advanced democratic nations, particularly among younger voters.'},
+            {id:'D',text:'Evidence that members of Congress vote with their party leadership more frequently than they respond to constituent pressure on major legislative votes.'}
+          ],
+          correct:'B',
+          explanation:'Elite theory holds that a small, powerful group effectively controls policy regardless of democratic processes. The strongest evidence for this would be systematic research showing that policy outcomes match elite preferences — not popular preferences — regardless of public opinion. Simple voter turnout or participation gaps (A, C) show inequality in participation but not necessarily elite control of outcomes. Party voting (D) reflects institutional incentives, not elite domination.'
+        },
+        {
+          id:'u1_placeholder_014', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
+          stem:'Which of the following best describes the constitutional principle of separation of powers?',
+          choices:[
+            {id:'A',text:'The division of governmental authority between the national government and state governments in a federal system designed to prevent concentration of power.'},
+            {id:'B',text:'The assignment of distinct legislative, executive, and judicial functions to separate branches, each with its own personnel and constitutional responsibilities.'},
+            {id:'C',text:'The requirement that different political parties share power in the government so that no single party can dominate all branches simultaneously.'},
+            {id:'D',text:'The constitutional prohibition on any single government official holding positions in more than one branch of government at the same time.'}
+          ],
+          correct:'B',
+          explanation:'Separation of powers refers to the division of government into three distinct branches — legislative, executive, and judicial — each with constitutionally assigned functions and separate personnel. This prevents the concentration of power that the Framers associated with tyranny. It is distinct from federalism (division between national and state governments) and from the two-party system, which is not constitutionally mandated.'
+        },
+        {
+          id:'u1_placeholder_015', topic:'1.3', bigIdea:'LOR', difficulty:'accessible',
+          stem:'The concept of limited government, as embedded in the U.S. Constitution, is most directly reflected in which of the following?',
+          choices:[
+            {id:'A',text:'The establishment of a bicameral Congress that requires both chambers to approve legislation before it can be sent to the president for signature or veto.'},
+            {id:'B',text:'The Bill of Rights, which explicitly enumerates specific protections that government cannot infringe upon regardless of majority preferences or legislative action.'},
+            {id:'C',text:'The Electoral College system, which prevents any single state or region from exercising disproportionate influence over the selection of the president.'},
+            {id:'D',text:'The amendment process, which requires broad consensus across states and chambers before any changes can be made to the constitutional text itself.'}
+          ],
+          correct:'B',
+          explanation:'Limited government means that government authority is constrained — there are things government simply cannot do. The Bill of Rights is the most direct expression of this: it lists specific rights (speech, religion, due process, etc.) that government may not violate even if a majority wishes to. The Framers believed that without explicit limits, government power would inevitably expand to infringe on individual liberty.'
+        }
+      ]
+    },
+    {
+      id: 'round2_document',
+      type: 'document_stimulus',
+      label: 'Round 2 — Document Challenge',
+      icon: '📄',
+      color: 'var(--amber)',
+      draw: 1,
+      desc: 'Read a required foundational document excerpt, then answer 4 questions about its argument, significance, and connection to course concepts.',
+      sets: [
+        {
+          id:'fed51_set',
+          document:'Federalist No. 51',
+          author:'James Madison',
+          year:1788,
+          excerpt:'If men were angels, no government would be necessary. If angels were to govern men, neither external nor internal controls on government would be necessary. In framing a government which is to be administered by men over men, the great difficulty lies in this: you must first enable the government to control the governed; and in the next place oblige it to control itself. A dependence on the people is, no doubt, the primary control on the government; but experience has taught mankind the necessity of auxiliary precautions.',
+          source:'Federalist No. 51, James Madison, 1788. Public domain.',
+          questions:[
+            {
+              id:'u1_doc_fed51_001', topic:'1.6', bigIdea:'CON', difficulty:'accessible',
+              stem:'Madison\'s phrase "auxiliary precautions" in this excerpt most likely refers to which constitutional mechanism?',
+              choices:[
+                {id:'A',text:'The system of checks and balances and separation of powers that prevents any single branch from accumulating excessive authority.'},
+                {id:'B',text:'The Bill of Rights, which explicitly enumerates the individual liberties that the national government is prohibited from violating.'},
+                {id:'C',text:'The amendment process, which requires broad supermajority consensus before any changes can be made to the constitutional text.'},
+                {id:'D',text:'The federal structure of government, which divides power between national and state governments to prevent geographic concentration.'}
+              ],
+              correct:'A',
+              explanation:'Madison argues that elections alone ("dependence on the people") are not sufficient to control government — additional structural mechanisms are needed. These "auxiliary precautions" are the checks and balances built into the Constitution: separation of powers, bicameralism, the veto, judicial review, and the federal structure. Madison developed this argument most fully in the remainder of Federalist No. 51.'
+            },
+            {
+              id:'u1_doc_fed51_002', topic:'1.3', bigIdea:'LOR', difficulty:'moderate',
+              stem:'Which of the following best describes the problem Madison identifies in the phrase "oblige it [government] to control itself"?',
+              choices:[
+                {id:'A',text:'Governments composed of self-interested human beings will naturally tend to expand their power unless structural constraints force accountability.'},
+                {id:'B',text:'Citizens cannot be trusted to vote wisely because they lack the education and information necessary to make rational political decisions.'},
+                {id:'C',text:'The size of the American republic makes it impossible for representatives to remain accountable to their constituents across such vast distances.'},
+                {id:'D',text:'Government officials will inevitably abuse their power because the Constitution fails to specify clear penalties for violations of their constitutional duties.'}
+              ],
+              correct:'A',
+              explanation:'Madison\'s insight — building on his reading of Montesquieu and historical examples — is that government is composed of human beings who are not angels. Self-interest, ambition, and the temptation of power mean that those who govern will expand their authority unless structural mechanisms force restraint. This is why institutional design (checks, balances, federalism) matters more than relying on the virtue of officeholders.'
+            },
+            {
+              id:'u1_doc_fed51_003', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
+              stem:'How does Madison\'s argument in Federalist No. 51 respond to the Anti-Federalist concern expressed in Brutus No. 1?',
+              choices:[
+                {id:'A',text:'Madison agrees that a bill of rights is necessary but argues it should be added as amendments after ratification rather than included in the original text.'},
+                {id:'B',text:'Madison concedes that a strong national government poses risks but argues that structural mechanisms — not a bill of rights — are sufficient safeguards.'},
+                {id:'C',text:'Madison argues that the Anti-Federalists\' concerns are based on a misreading of the Constitution\'s text and that the document already limits government clearly.'},
+                {id:'D',text:'Madison dismisses the Anti-Federalist position entirely, arguing that the virtue and wisdom of elected officials will prevent any abuse of national power.'}
+              ],
+              correct:'B',
+              explanation:'Brutus No. 1 argued that the Constitution gave the national government too much power and that a bill of rights was essential. Madison\'s response (Federalist 51) was structural: the Constitution\'s design — separation of powers, checks and balances, federalism, bicameralism — creates competing interests that prevent tyranny without needing an explicit list of rights. Madison did eventually support the Bill of Rights as a political compromise, but his theoretical argument was structural.'
+            },
+            {
+              id:'u1_doc_fed51_004', topic:'1.7', bigIdea:'CON', difficulty:'challenging',
+              stem:'A political scientist argues that Madison\'s logic in Federalist No. 51 applies to modern American government in which of the following ways?',
+              choices:[
+                {id:'A',text:'Congressional oversight committees, inspector generals, and the judicial review power all serve as modern "auxiliary precautions" limiting executive branch authority.'},
+                {id:'B',text:'The rise of political parties has effectively replaced the need for structural checks because parties discipline their members to govern responsibly.'},
+                {id:'C',text:'Modern administrative agencies have made the separation of powers obsolete by combining legislative, executive, and judicial functions in single bodies.'},
+                {id:'D',text:'The direct election of senators, established by the 17th Amendment, has made government more democratic and therefore eliminated the need for structural restraints.'}
+              ],
+              correct:'A',
+              explanation:'Madison\'s "auxiliary precautions" principle applies directly to modern government: congressional oversight, the Government Accountability Office, inspector generals, and judicial review are all structural mechanisms that check executive power — exactly what Madison envisioned. These institutions embody the principle that structural design, not individual virtue, is the primary safeguard against governmental overreach.'
+            }
+          ]
+        },
+        {
+          id:'fed10_set',
+          document:'Federalist No. 10',
+          author:'James Madison',
+          year:1787,
+          excerpt:'By a faction, I understand a number of citizens, whether amounting to a majority or a minority of the whole, who are united and actuated by some common impulse of passion, or of interest, adverse to the rights of other citizens, or to the permanent and aggregate interests of the community... The latent causes of faction are thus sown in the nature of man... The inference to which we are brought is, that the CAUSES of faction cannot be removed, and that relief is only to be sought in the means of controlling its EFFECTS.',
+          source:'Federalist No. 10, James Madison, 1787. Public domain.',
+          questions:[
+            {
+              id:'u1_doc_fed10_001', topic:'1.2', bigIdea:'PMCD', difficulty:'accessible',
+              stem:'According to Madison\'s definition in this excerpt, which of the following would best qualify as a "faction"?',
+              choices:[
+                {id:'A',text:'A group of citizens united by shared religious beliefs who advocate for school prayer policies that other citizens view as violating the establishment clause.'},
+                {id:'B',text:'A majority of Congress members from both parties who support increasing the defense budget in response to a perceived foreign military threat.'},
+                {id:'C',text:'A bipartisan commission of experts appointed by the president to study and recommend reforms to the federal tax code.'},
+                {id:'D',text:'A state legislature that passes a law establishing speed limits and traffic regulations that apply uniformly to all drivers within its jurisdiction.'}
+              ],
+              correct:'A',
+              explanation:'Madison defines a faction as a group united by a "common impulse of passion or interest" that is "adverse to the rights of other citizens." A religious group advocating for policies that others believe violate their constitutional rights fits this definition precisely — it is a group acting on shared interest that potentially harms others. The bipartisan commission and traffic regulations serve broad public interests, not factional ones.'
+            },
+            {
+              id:'u1_doc_fed10_002', topic:'1.2', bigIdea:'PMCD', difficulty:'moderate',
+              stem:'Madison argues that "the causes of faction cannot be removed." Which of the following best explains the reasoning behind this conclusion?',
+              choices:[
+                {id:'A',text:'The constitutional protection of free speech and assembly makes it legally impossible for government to prevent citizens from organizing into factions.'},
+                {id:'B',text:'Factions arise from human nature — differences in opinion, interests, and passion — which are ineradicable without eliminating the liberty that makes faction possible.'},
+                {id:'C',text:'The size and diversity of the American republic ensure that so many different factions will form that no single one can ever dominate the others permanently.'},
+                {id:'D',text:'Elected representatives are too closely connected to their constituents\' factional interests to ever act against those interests in pursuit of the common good.'}
+              ],
+              correct:'B',
+              explanation:'Madison argues that faction arises from human nature itself — people differ in opinion, wealth, property, and passion. To eliminate faction, you would have to either destroy liberty (which makes organized advocacy possible) or give everyone identical opinions, faculties, and property. Since neither is desirable or possible, the solution must be to control faction\'s effects — which Madison argues a large republic can do better than a small one.'
+            },
+            {
+              id:'u1_doc_fed10_003', topic:'1.2', bigIdea:'PMCD', difficulty:'challenging',
+              stem:'Which of the following modern political phenomena would Madison most likely view as a confirmation of his theory of faction?',
+              choices:[
+                {id:'A',text:'The growth of independent voters who do not affiliate with either major political party and who prioritize issue-by-issue evaluation of candidates.'},
+                {id:'B',text:'The rise of single-issue interest groups that lobby Congress exclusively on narrow policy areas like gun rights, abortion, or environmental regulation.'},
+                {id:'C',text:'The expansion of the federal bureaucracy into policy areas previously managed by state and local governments under the principles of federalism.'},
+                {id:'D',text:'The increasing use of primary elections to select party nominees rather than allowing party bosses to choose candidates through closed conventions.'}
+              ],
+              correct:'B',
+              explanation:'Single-issue interest groups are essentially the modern form of Madison\'s factions — groups united by a specific common interest that advocate for policies benefiting their members, often at the expense of broader public interests. Madison would recognize these immediately as the "latent causes of faction" made manifest. The large republic\'s diversity of competing interests was supposed to prevent any single faction from dominating — a principle that modern pluralist theorists also invoke.'
+            },
+            {
+              id:'u1_doc_fed10_004', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
+              stem:'How does Madison\'s argument in Federalist No. 10 address the Anti-Federalist concern that a large republic cannot sustain democratic self-government?',
+              choices:[
+                {id:'A',text:'Madison concedes that large republics are more vulnerable to factionalism but argues that a stronger national government can suppress faction more effectively.'},
+                {id:'B',text:'Madison inverts the Anti-Federalist position by arguing that a large republic — with more diverse interests — is actually better at controlling majority factions than a small one.'},
+                {id:'C',text:'Madison argues that the size of the republic is irrelevant because the Constitution\'s structural mechanisms will prevent faction regardless of geographic scale.'},
+                {id:'D',text:'Madison agrees with the Anti-Federalists that small republics are preferable but argues that a confederation of small republics can achieve the same result.'}
+              ],
+              correct:'B',
+              explanation:'This is Madison\'s most brilliant rhetorical move in Federalist No. 10. Anti-Federalists (following classical republican theory) argued that large republics inevitably become tyrannical. Madison inverts this: a large republic contains more diverse interests and factions, making it harder for any single majority faction to form and dominate. The diversity of interests in an extended republic is a safeguard against tyranny, not a source of it.'
+            }
+          ]
+        },
+        {
+          id:'brutus1_set',
+          document:'Brutus No. 1',
+          author:'Robert Yates (attributed)',
+          year:1787,
+          excerpt:'If the constitution is adopted, it will give expression to the tendency of power to expand. The legislature of the United States will be in its nature very different from the state legislatures. The power of the federal legislature will be unlimited with respect to all that respects the general welfare... [T]he general legislature will possess the power to lay and collect taxes, duties, imposts, and excises; to pay the debts and provide for the common defense and general welfare of the United States.',
+          source:'Brutus No. 1, attributed to Robert Yates, 1787. Public domain.',
+          questions:[
+            {
+              id:'u1_doc_brutus_001', topic:'1.5', bigIdea:'LOR', difficulty:'accessible',
+              stem:'The author of Brutus No. 1 is primarily concerned that the proposed Constitution would',
+              choices:[
+                {id:'A',text:'fail to establish a sufficiently powerful national government capable of addressing the weaknesses exposed by the Articles of Confederation.'},
+                {id:'B',text:'create a national government with effectively unlimited taxing and spending power that would eventually overwhelm and absorb state governments.'},
+                {id:'C',text:'concentrate excessive power in the executive branch, creating a presidency that would eventually evolve into a de facto monarchy.'},
+                {id:'D',text:'establish a judiciary with life tenure that would be unaccountable to the public and free to impose its own political preferences on the nation.'}
+              ],
+              correct:'B',
+              explanation:'Brutus No. 1 focuses primarily on the taxing and spending power granted to the national legislature. The author argues that the power to tax "for the general welfare" is effectively unlimited and will allow Congress to expand federal power indefinitely at the expense of state governments. This is the Anti-Federalist fear of consolidated national power overriding state sovereignty.'
+            },
+            {
+              id:'u1_doc_brutus_002', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
+              stem:'Which Federalist Paper most directly responds to the concerns raised in Brutus No. 1 about unlimited legislative power?',
+              choices:[
+                {id:'A',text:'Federalist No. 10, in which Madison argues that the diversity of factions in a large republic prevents any single group from dominating national policy.'},
+                {id:'B',text:'Federalist No. 51, in which Madison argues that the structural mechanisms of checks and balances prevent any branch from accumulating unlimited power.'},
+                {id:'C',text:'Federalist No. 78, in which Hamilton argues that the judiciary\'s power of judicial review provides a check on congressional overreach.'},
+                {id:'D',text:'Federalist No. 70, in which Hamilton argues that a single executive is more accountable and energetic than a plural executive committee.'}
+              ],
+              correct:'B',
+              explanation:'Federalist No. 51 is Madison\'s most direct response to Anti-Federalist concerns about unlimited government power. While Brutus No. 1 argued the Constitution would lead to unlimited legislative authority, Madison argued in No. 51 that the system of checks and balances — each branch checking the others, and federalism dividing power between levels — would prevent any consolidation of unlimited power.'
+            },
+            {
+              id:'u1_doc_brutus_003', topic:'1.1', bigIdea:'LOR', difficulty:'challenging',
+              stem:'A political scientist in 2024 argues that Brutus No. 1\'s prediction about federal power has been largely vindicated by American history. Which of the following developments would most strongly support this argument?',
+              choices:[
+                {id:'A',text:'The Supreme Court\'s ruling in United States v. Lopez (1995) that Congress exceeded its commerce clause authority in the Gun-Free School Zones Act.'},
+                {id:'B',text:'The dramatic expansion of federal authority during the New Deal era and the near-complete abandonment of dual federalism as a constitutional doctrine.'},
+                {id:'C',text:'The ratification of the 10th Amendment, which explicitly reserves powers not delegated to the federal government to the states and the people.'},
+                {id:'D',text:'The constitutional amendment process, which has been used only 27 times in American history, suggesting that federal power has remained constrained.'}
+              ],
+              correct:'B',
+              explanation:'Brutus No. 1 predicted that the "general welfare" taxing power would lead to unlimited federal expansion. The New Deal era most strongly vindicates this prediction: the Supreme Court abandoned dual federalism, Congress used the commerce clause and spending power to regulate virtually every area of American life, and the federal government grew dramatically relative to the states — precisely what the Anti-Federalists feared.'
+            },
+            {
+              id:'u1_doc_brutus_004', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
+              stem:'The author of Brutus No. 1 would most likely have supported which of the following changes to the proposed Constitution?',
+              choices:[
+                {id:'A',text:'Creating a stronger executive branch with broader emergency powers to respond effectively to threats to national security and domestic stability.'},
+                {id:'B',text:'Establishing a unicameral national legislature with proportional representation to make the federal government more directly responsive to popular will.'},
+                {id:'C',text:'Adding explicit limitations on federal taxing and spending power and including a formal bill of rights protecting individual and state liberties.'},
+                {id:'D',text:'Expanding the size of the Supreme Court and giving it stronger authority to strike down both federal and state laws as unconstitutional.'}
+              ],
+              correct:'C',
+              explanation:'Anti-Federalists like the author of Brutus No. 1 advocated for explicit limits on federal power and a formal bill of rights. Their position was that without specific constitutional prohibitions, the elastic clause and general welfare language would be used to justify unlimited federal expansion. The eventual adoption of the Bill of Rights, including the 10th Amendment reserving powers to states, was a direct concession to Anti-Federalist demands.'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'round3_data',
+      type: 'data_stimulus',
+      label: 'Round 3 — Data Analysis',
+      icon: '📊',
+      color: 'var(--teal)',
+      draw: 1,
+      desc: 'Analyze real political data — voter turnout, government spending, or demographic information — and answer questions connecting the data to course concepts.',
+      sets: [
+        {
+          id:'voter_turnout_set',
+          title:'U.S. Presidential Election Voter Turnout, 1980–2020',
+          source:'U.S. Census Bureau, Current Population Survey, Voting and Registration Supplement, 2021.',
+          chartType:'bar',
+          chartLabel:'% of Voting-Eligible Population',
+          data:{
+            labels:['1980','1984','1988','1992','1996','2000','2004','2008','2012','2016','2020'],
+            values:[52.8,55.2,50.3,58.1,49.0,54.2,60.1,61.6,58.6,60.1,66.8]
+          },
+          questions:[
+            {
+              id:'u1_data_vt_001', topic:'1.1', bigIdea:'MPA', difficulty:'accessible',
+              stem:'Based on the data, which of the following correctly identifies the election year with the lowest voter turnout shown in the chart?',
+              choices:[
+                {id:'A',text:'1988, in which approximately 50.3% of the voting-eligible population participated in the presidential election.'},
+                {id:'B',text:'1980, in which approximately 52.8% of the voting-eligible population cast ballots in the presidential election.'},
+                {id:'C',text:'1996, in which approximately 49.0% of the voting-eligible population participated in the presidential election — the lowest shown.'},
+                {id:'D',text:'2000, in which approximately 54.2% of the voting-eligible population voted in the first presidential election of the new millennium.'}
+              ],
+              correct:'C',
+              explanation:'The 1996 presidential election between Bill Clinton and Bob Dole had the lowest turnout among years shown at approximately 49.0% of voting-eligible population. This was notable as the first presidential election in modern history to fall below 50% VEP turnout. Analysts attributed this to low enthusiasm, a lack of competitive dynamics, and poor weather in parts of the country on Election Day.'
+            },
+            {
+              id:'u1_data_vt_002', topic:'1.1', bigIdea:'MPA', difficulty:'moderate',
+              stem:'Which of the following best accounts for the significant increase in voter turnout between 2000 and 2008 visible in the data?',
+              choices:[
+                {id:'A',text:'The passage of the National Voter Registration Act in 1993 made voter registration significantly easier by allowing registration at motor vehicle offices.'},
+                {id:'B',text:'Increased political mobilization, competitive elections, and heightened public interest — particularly in 2008 — drove turnout substantially higher than in 2000.'},
+                {id:'C',text:'The Supreme Court\'s decision in Bush v. Gore (2000) inspired widespread civic outrage that permanently elevated citizen engagement in subsequent elections.'},
+                {id:'D',text:'Amendments to the Voting Rights Act during this period removed remaining barriers to participation for previously underrepresented demographic groups.'}
+              ],
+              correct:'B',
+              explanation:'The increase in turnout from 2000 to 2004 and especially 2008 reflects intense mobilization efforts, highly competitive elections (particularly the historic 2008 Obama-McCain contest), and increased political polarization that energized both parties\' bases. The 2008 election saw dramatically increased turnout among young voters and African Americans. The NVRA was passed in 1993 — before this period — so it does not explain the 2000–2008 increase specifically.'
+            },
+            {
+              id:'u1_data_vt_003', topic:'1.1', bigIdea:'MK', difficulty:'moderate',
+              stem:'The data in the chart most directly relates to which democratic ideal discussed in Unit 1?',
+              choices:[
+                {id:'A',text:'The principle of limited government, which holds that constitutional constraints protect individual rights from government overreach and majority tyranny.'},
+                {id:'B',text:'The concept of popular sovereignty, which holds that legitimate government derives from and reflects the participation and consent of the governed.'},
+                {id:'C',text:'The idea of separation of powers, which divides government functions among branches to prevent concentration of authority in any single institution.'},
+                {id:'D',text:'The principle of federalism, which divides authority between national and state governments to create multiple access points for citizen participation.'}
+              ],
+              correct:'B',
+              explanation:'Voter turnout data is most directly relevant to popular sovereignty — the principle that government derives authority from the active participation and consent of citizens. Low turnout raises questions about whether government truly reflects popular will; high turnout suggests broad citizen engagement in self-governance. The data tracks how many citizens actually exercise their foundational democratic right, making it a direct measure of popular sovereignty in practice.'
+            }
+          ]
+        },
+        {
+          id:'fed_state_spending_set',
+          title:'Federal vs. State & Local Government Spending as % of GDP, 1960–2020',
+          source:'U.S. Office of Management and Budget; Tax Policy Center, 2022.',
+          chartType:'bar',
+          chartLabel:'% of GDP',
+          data:{
+            labels:['1960','1970','1980','1990','2000','2010','2020'],
+            values:[18.0,20.0,22.0,22.5,18.5,25.0,31.5],
+            values2:[10.0,12.0,12.5,12.0,11.5,13.0,14.5]
+          },
+          note:'Blue bars = Federal spending. Teal bars = State & Local spending.',
+          questions:[
+            {
+              id:'u1_data_fs_001', topic:'1.6', bigIdea:'MPA', difficulty:'accessible',
+              stem:'Based on the data, which of the following best describes the overall trend in federal government spending from 1960 to 2020?',
+              choices:[
+                {id:'A',text:'Federal spending as a percentage of GDP remained essentially stable throughout this period, fluctuating only slightly around 20% of GDP.'},
+                {id:'B',text:'Federal spending as a percentage of GDP increased significantly over this period, reaching its highest level shown in 2020 at approximately 31.5%.'},
+                {id:'C',text:'Federal spending as a percentage of GDP declined steadily from 1960 to 2000 before rebounding sharply in the most recent decade shown.'},
+                {id:'D',text:'Federal spending as a percentage of GDP grew more slowly than state and local spending throughout this period, suggesting a shift toward decentralization.'}
+              ],
+              correct:'B',
+              explanation:'The data shows federal spending growing from 18% of GDP in 1960 to 31.5% in 2020, with the sharp increase in 2020 reflecting COVID-19 emergency spending. This long-term trend of federal expansion relative to GDP reflects the growth of federal programs in health care (Medicare/Medicaid), Social Security, defense, and — in crisis years — emergency stimulus. It broadly supports the argument that federal power has expanded over time.'
+            },
+            {
+              id:'u1_data_fs_002', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
+              stem:'The pattern of federal spending growth shown in the data most directly supports which argument about American federalism?',
+              choices:[
+                {id:'A',text:'The constitutional design of dual federalism has successfully maintained a balance between federal and state power throughout American history.'},
+                {id:'B',text:'The Anti-Federalist concern — expressed in Brutus No. 1 — that the national government\'s spending power would expand dramatically over time has been largely vindicated.'},
+                {id:'C',text:'The Framers\' system of checks and balances has effectively constrained the growth of federal spending to levels consistent with constitutional limitations.'},
+                {id:'D',text:'The principle of new federalism, which transfers program responsibility to states, has reduced the federal government\'s share of national economic activity.'}
+              ],
+              correct:'B',
+              explanation:'The long-term expansion of federal spending as a share of GDP directly supports the Anti-Federalist concern voiced in Brutus No. 1 — that broad federal taxing and spending authority ("for the general welfare") would enable unlimited expansion of national government power. From 18% to 31.5% of GDP over 60 years, with state and local spending growing far more slowly, suggests a fundamental shift toward federal dominance that the Anti-Federalists predicted.'
+            },
+            {
+              id:'u1_data_fs_003', topic:'1.6', bigIdea:'PMCD', difficulty:'challenging',
+              stem:'A political scientist uses this data to argue that "cooperative federalism has replaced dual federalism in American governance." Which of the following most directly supports this interpretation?',
+              choices:[
+                {id:'A',text:'The data shows that federal spending has grown while state and local spending has remained flat, suggesting the federal government has absorbed all policy responsibility.'},
+                {id:'B',text:'Federal grants-in-aid to states have grown substantially over this period, creating a system in which states implement federally funded programs — blending rather than separating federal and state functions.'},
+                {id:'C',text:'The data demonstrates that both federal and state spending have grown, suggesting that the two levels of government have expanded independently without coordination.'},
+                {id:'D',text:'State and local spending as a percentage of GDP has declined relative to federal spending, indicating that states have ceded policy authority back to the national government.'}
+              ],
+              correct:'B',
+              explanation:'Cooperative federalism (marble cake federalism) describes a system where federal and state governments are intertwined rather than separate (layer cake/dual federalism). The growth in federal spending shown in the data is largely driven by federal grants to states — Medicaid, highway funding, education grants — which states then administer. This means federal money flows through state bureaucracies, creating the interdependence that characterizes cooperative federalism. The answer requires knowledge beyond the chart itself.'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'round4_visual',
+      type: 'visual_stimulus',
+      label: 'Round 4 — Visual Analysis',
+      icon: '🖼️',
+      color: 'var(--purple)',
+      draw: 1,
+      desc: 'Analyze a political cartoon and answer questions about its argument, symbolism, and connection to constitutional principles.',
+      sets: [
+        {
+          id:'checks_cartoon_set',
+          title:'Political Cartoon: The Great Balancing Act',
+          source:'Adapted from political cartoon tradition. Concept based on public domain Library of Congress imagery.',
+          description:'The cartoon depicts three large figures labeled "CONGRESS," "PRESIDENT," and "SUPREME COURT," each seated in a corner of a triangle. Each figure is connected to the other two by thick iron chains. Each figure pulls against the chains, straining but unable to move freely. In the center of the triangle, a smaller figure labeled "THE AMERICAN PEOPLE" stands peacefully. Below the image, the caption reads: "The System That Keeps Them All in Check." The Congress figure holds a scroll labeled "LAWS"; the President holds a document labeled "VETOES & APPOINTMENTS"; the Court holds scales labeled "JUDICIAL REVIEW."',
+          questions:[
+            {
+              id:'u1_vis_cb_001', topic:'1.7', bigIdea:'CON', difficulty:'accessible',
+              stem:'The chains connecting the three figures in this cartoon most directly symbolize which constitutional principle?',
+              choices:[
+                {id:'A',text:'Federalism, because the chains represent the ties that bind the national government to state governments in a federal system of shared sovereignty.'},
+                {id:'B',text:'Checks and balances, because the chains represent the constitutional constraints that each branch places on the other two, preventing any from acting alone.'},
+                {id:'C',text:'Separation of powers, because the chains represent the clear division of government functions among three distinct and fully independent branches.'},
+                {id:'D',text:'Popular sovereignty, because the chains represent the binding obligation of all government officials to remain responsive to the will of the citizens they serve.'}
+              ],
+              correct:'B',
+              explanation:'The chains connecting and restraining each branch represent checks and balances — the constitutional mechanisms by which each branch limits the other two. The Congress is restrained by presidential vetoes and judicial review; the President is checked by congressional override and confirmation powers; the Court is checked by congressional jurisdiction and the appointment process. The visual metaphor of chains holding each branch back from unilateral action captures this precisely.'
+            },
+            {
+              id:'u1_vis_cb_002', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
+              stem:'The cartoonist\'s placement of "THE AMERICAN PEOPLE" at the center of the triangle most likely conveys which of the following ideas?',
+              choices:[
+                {id:'A',text:'Citizens have more political power than any branch of government and can override the decisions of Congress, the president, and the courts through direct democracy.'},
+                {id:'B',text:'The system of checks and balances exists to protect citizens — the source of governmental authority — from abuse by any single branch of government.'},
+                {id:'C',text:'Citizens are irrelevant to the day-to-day operation of government, which functions primarily through competition among the three constitutional branches.'},
+                {id:'D',text:'The three branches of government are in constant conflict, leaving citizens without effective representation or protection of their fundamental rights.'}
+              ],
+              correct:'B',
+              explanation:'By placing the American people at the center — peaceful and protected while the three branches strain against each other — the cartoonist suggests that the system of checks and balances ultimately serves the people. The institutional conflict among branches is a feature, not a bug: it keeps each branch from overreaching, protecting citizens from the tyranny that any unchecked branch might otherwise impose. This reflects the Framers\' intent as articulated in Federalist No. 51.'
+            },
+            {
+              id:'u1_vis_cb_003', topic:'1.5', bigIdea:'LOR', difficulty:'challenging',
+              stem:'Which of the following best explains why the author of Brutus No. 1 would have found this cartoon\'s optimistic view of the constitutional system unconvincing?',
+              choices:[
+                {id:'A',text:'Brutus No. 1\'s author believed the judiciary was too weak to effectively check either Congress or the executive, making the depicted balance impossible.'},
+                {id:'B',text:'Brutus No. 1\'s author argued that the national government\'s taxing and spending power was so vast that structural mechanisms could not prevent its eventual dominance over the states.'},
+                {id:'C',text:'Brutus No. 1\'s author believed that the chains depicted in the cartoon would eventually break because human ambition always overcomes constitutional constraints.'},
+                {id:'D',text:'Brutus No. 1\'s author contended that only a bill of rights — not structural mechanisms — could effectively protect citizens from governmental overreach.'}
+              ],
+              correct:'B',
+              explanation:'The author of Brutus No. 1 would argue that the cartoon\'s depiction is misleading because it focuses on the three federal branches checking each other — but the fundamental Anti-Federalist concern was about the federal government as a whole overwhelming state governments. Even if internal federal checks work perfectly, the national government\'s unlimited taxing and spending power would still expand federal dominance over the states. The cartoon misses the federalism dimension entirely.'
+            }
+          ]
+        },
+        {
+          id:'federalism_cartoon_set',
+          title:'Political Cartoon: Layer Cake vs. Marble Cake',
+          source:'Original concept based on political science literature. Adapts the "layer cake/marble cake federalism" metaphor used in political science since Morton Grodzins (1960).',
+          description:'The cartoon is divided into two panels. The left panel shows a neat, three-layer cake labeled "DUAL FEDERALISM (1787–1930s)": the bottom layer reads "STATE POWERS," the middle reads "FEDERAL POWERS," and the top reads "RESERVED POWERS." The layers are perfectly separated by clean lines. The right panel shows a messy marble cake labeled "COOPERATIVE FEDERALISM (1930s–TODAY)": the purple and white cake swirls are completely mixed, with labels reading "FEDERAL" and "STATE" scattered throughout the mixing. Below the panels, the caption reads: "Which cake are we eating today?"',
+          questions:[
+            {
+              id:'u1_vis_fed_001', topic:'1.6', bigIdea:'CON', difficulty:'accessible',
+              stem:'The left panel\'s "layer cake" image most directly illustrates which concept from constitutional law?',
+              choices:[
+                {id:'A',text:'Cooperative federalism, in which federal and state governments work together on shared programs funded by federal grants distributed to the states.'},
+                {id:'B',text:'Dual federalism, in which the national and state governments each have distinct, separate spheres of authority that do not overlap or intrude on each other.'},
+                {id:'C',text:'New federalism, in which the federal government returns policy responsibility to the states through block grants and reduced federal regulation of state programs.'},
+                {id:'D',text:'Fiscal federalism, in which the federal government uses its superior taxing power to fund programs administered at the state and local government levels.'}
+              ],
+              correct:'B',
+              explanation:'The layer cake analogy was developed by political scientist Morton Grodzins to describe dual federalism — the theory that federal and state governments occupy completely separate and non-overlapping spheres of authority. Just as a layer cake has distinct, separated layers that don\'t mix, dual federalism envisions federal and state powers as clearly delineated. This was the dominant understanding of federalism from the founding through the New Deal era.'
+            },
+            {
+              id:'u1_vis_fed_002', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
+              stem:'The cartoonist\'s question "Which cake are we eating today?" implies which of the following about American federalism?',
+              choices:[
+                {id:'A',text:'The U.S. has returned to a dual federalism model since the 1990s, with states reasserting their authority in response to decades of federal expansion.'},
+                {id:'B',text:'The appropriate balance between federal and state power remains contested, and the actual distribution of power has shifted significantly over American history.'},
+                {id:'C',text:'Neither model of federalism accurately describes the American system, which has always been characterized by complete national supremacy over state governments.'},
+                {id:'D',text:'The marble cake model is constitutionally superior to the layer cake model and has been formally endorsed by the Supreme Court as the correct interpretation.'}
+              ],
+              correct:'B',
+              explanation:'The cartoonist\'s question is fundamentally about the contested and evolving nature of American federalism. The shift from the layer cake (dual federalism) to the marble cake (cooperative federalism) reflects real historical changes — the New Deal expansion, the Great Society programs, Medicaid, the proliferation of federal grants-in-aid. But the question implies this is ongoing: debates about Obamacare, education policy, and environmental regulation all involve competing visions of the federal-state balance.'
+            },
+            {
+              id:'u1_vis_fed_003', topic:'1.6', bigIdea:'PMCD', difficulty:'challenging',
+              stem:'Which Supreme Court case most directly marked the transition from the "layer cake" to the "marble cake" era of American federalism?',
+              choices:[
+                {id:'A',text:'Marbury v. Madison (1803), which established the power of judicial review and gave the Supreme Court authority to interpret federal-state power boundaries.'},
+                {id:'B',text:'McCulloch v. Maryland (1819), which broadly interpreted implied federal powers and established national supremacy over state attempts to tax federal institutions.'},
+                {id:'C',text:'United States v. Lopez (1995), which struck down a federal law as exceeding commerce clause authority and began a partial return toward dual federalism limits.'},
+                {id:'D',text:'NLRB v. Jones & Laughlin Steel (1937), which upheld broad New Deal commerce clause authority and effectively ended dual federalism as a constitutional doctrine.'}
+              ],
+              correct:'D',
+              explanation:'NLRB v. Jones & Laughlin Steel (1937) was the pivotal "switch in time that saved nine" case — the Supreme Court upheld New Deal legislation under a dramatically expanded commerce clause interpretation. This effectively ended the dual federalism era and began the cooperative federalism era, in which Congress could regulate virtually any economic activity. McCulloch (1819) was important but predated the marble cake era; Lopez (1995) was a partial correction, not the transition.'
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+// ── GAME STATE ────────────────────────────────────
+let G = {
+  roundIdx: 0,
+  questionIdx: 0,
+  questions: [],       // current round's drawn questions
+  currentSet: null,    // for stimulus rounds
+  selectedChoice: null,
+  answered: false,
+  roundScores: [],     // {correct, total} per round
+  totalGold: 0,
+  sessionCorrect: 0,
+  sessionTotal: 0,
+  timer: null,
+  timeLeft: 0,
+  introShown: false,
+};
+
+// ── STUDENT STATE (from Civitas shell) ──────────────
+const S = {
+  name: localStorage.getItem('civitas_student_name') || '',
+  gold: parseInt(localStorage.getItem('civitas_gold') || '0'),
+};
+
+// ── BOOT ──────────────────────────────────────────
+window.addEventListener('load', () => {
+  const fill = document.getElementById('ld-fill');
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 25 + 10;
+    fill.style.width = Math.min(p, 96) + '%';
+    if (p >= 96) {
+      clearInterval(iv);
+      fill.style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          showHub();
+        }, 500);
+      }, 300);
+    }
+  }, 100);
+});
+
+// ── HUB ───────────────────────────────────────────
+function showHub() {
+  document.getElementById('hub').style.display = 'flex';
+  loadProgress();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function loadProgress() {
+  try {
+    const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const unitData = progress[UNIT_ID] || {};
+    if (unitData.bestAccuracy) {
+      const pct = unitData.bestAccuracy;
+      document.getElementById('prog-wrap').style.display = 'block';
+      document.getElementById('prog-pct').textContent = pct + '%';
+      document.getElementById('prog-fill').style.width = pct + '%';
+      // Show trophy badge
+      const badge = document.getElementById('game-badge');
+      if (badge) {
+        const trophy = getTrophyForAccuracy(pct);
+        badge.textContent = trophy.label;
+        badge.style.display = 'block';
+        badge.style.borderColor = trophy.color;
+        badge.style.color = trophy.color;
+      }
+    }
+  } catch(e) {}
+}
+
+function launchFlashcards() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = FLASHCARD_URL;
+}
+
+function launchBriefing() {
+  window.open(BRIEFING_URL, '_blank');
+}
+
+function startVocabQuiz() {
+  notify('Vocab Quiz coming soon! Complete the flashcards first to prepare.');
+}
+
+function returnToShell() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = CIVITAS_URL;
+}
+
+// ── GAME START ────────────────────────────────────
+function startGame() {
+  G = {
+    roundIdx: 0,
+    questionIdx: 0,
+    questions: [],
+    currentSet: null,
+    selectedChoice: null,
+    answered: false,
+    roundScores: [],
+    totalGold: 0,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    timer: null,
+    timeLeft: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame() {
+  if (G.sessionTotal > 0 && !confirm('Exit the game? Your progress for this attempt will be lost.')) return;
+  clearTimer();
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+}
+
+function buildProgressPips() {
+  const rounds = QUESTION_BANK.rounds;
+  const el = document.getElementById('gp-pips');
+  el.innerHTML = rounds.map((r, i) => `<div class="gp-pip ${i === 0 ? 'active' : ''}" id="pip-${i}"></div>`).join('');
+}
+
+function updatePips() {
+  QUESTION_BANK.rounds.forEach((r, i) => {
+    const pip = document.getElementById('pip-' + i);
+    if (!pip) return;
+    pip.classList.remove('done', 'active');
+    if (i < G.roundIdx) pip.classList.add('done');
+    else if (i === G.roundIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ────────────────────────────────────
+function showRoundIntro() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  document.getElementById('ri-icon').textContent = round.icon;
+  document.getElementById('ri-round').textContent = `ROUND ${G.roundIdx + 1} OF ${QUESTION_BANK.rounds.length}`;
+  document.getElementById('ri-title').textContent = round.label;
+  document.getElementById('ri-desc').textContent = round.desc;
+  document.getElementById('game-round-label').textContent = round.label.toUpperCase();
+  document.getElementById('game-round-label').style.color = round.color;
+
+  // Show document/data info
+  const docsEl = document.getElementById('ri-docs');
+  if (round.type === 'document_stimulus') {
+    docsEl.textContent = '📄 ' + round.sets.map(s => s.document).join(' · ');
+  } else if (round.type === 'data_stimulus') {
+    docsEl.textContent = '📊 ' + round.sets.map(s => s.title).join(' · ');
+  } else {
+    docsEl.textContent = '';
+  }
+
+  updatePips();
+  G.introShown = false;
+}
+
+function dismissIntro() {
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── ROUND PREPARATION ─────────────────────────────
+function prepareRound() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+
+  if (round.type === 'mcq') {
+    // Shuffle and draw questions
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    G.questions = shuffled.slice(0, Math.min(round.draw, shuffled.length));
+    G.currentSet = null;
+  } else if (round.type === 'document_stimulus' || round.type === 'data_stimulus' || round.type === 'visual_stimulus') {
+    // Pick random set
+    const sets = round.sets;
+    G.currentSet = sets[Math.floor(Math.random() * sets.length)];
+    G.questions = [...G.currentSet.questions];
+  }
+
+  // Shuffle answer choices for each question
+  G.questions = G.questions.map(q => ({
+    ...q,
+    choices: [...q.choices].sort(() => Math.random() - 0.5)
+  }));
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  G.roundScores.push({ correct: 0, total: 0 });
+
+  renderQuestion();
+}
+
+// ── QUESTION RENDERING ────────────────────────────
+function renderQuestion() {
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+
+  let html = '';
+
+  // Render stimulus on first question of stimulus rounds
+  if (G.questionIdx === 0 && G.currentSet) {
+    html += renderStimulus(round, G.currentSet);
+  }
+
+  // Question card
+  html += `<div class="question-card" id="qcard">
+    <div class="q-meta">
+      <div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>
+      <div class="q-tag topic">${q.topic}</div>
+      <div class="q-tag bi">${q.bigIdea}</div>
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">
+      ${q.choices.map(c => `
+        <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+          <div class="choice-letter">${c.id}</div>
+          <div class="choice-text">${c.text}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+
+  // Render chart if data round
+  if (G.currentSet?.chartType && G.questionIdx === 0) {
+    renderChart(G.currentSet);
+  }
+
+  // Scroll to top
+  el.scrollTop = 0;
+
+  // Show submit
+  document.getElementById('btn-submit').style.display = 'inline-block';
+}
+
+function renderStimulus(round, set) {
+  if (round.type === 'document_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">📄 FOUNDATIONAL DOCUMENT</div>
+      <div class="stimulus-title">${set.document} ${set.author ? '— ' + set.author : ''} (${set.year})</div>
+      <div class="stimulus-source">${set.source}</div>
+      <div class="stimulus-text">"${set.excerpt}"</div>
+    </div>`;
+  } else if (round.type === 'data_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">📊 DATA STIMULUS</div>
+      <div class="stimulus-title">${set.title}</div>
+      <div class="stimulus-source">${set.source}</div>
+      <div class="stimulus-chart" id="chart-container"></div>
+      ${set.note ? `<div class="stimulus-desc">${set.note}</div>` : ''}
+    </div>`;
+  } else if (round.type === 'visual_stimulus') {
+    return `<div class="stimulus-box">
+      <div class="stimulus-label">🖼️ VISUAL STIMULUS</div>
+      <div class="stimulus-title">${set.title}</div>
+      <div class="stimulus-source">${set.source}</div>
+      <div class="stimulus-desc">${set.description}</div>
+    </div>`;
+  }
+  return '';
+}
+
+function renderChart(set) {
+  const container = document.getElementById('chart-container');
+  if (!container || !set.data) return;
+
+  const { labels, values } = set.data;
+  const max = Math.max(...values);
+
+  let html = `<div class="chart-wrap">
+    <div class="chart-title">${set.chartLabel || ''}</div>
+    <div class="chart-bars">`;
+
+  labels.forEach((lbl, i) => {
+    const pct = Math.round((values[i] / max) * 100);
+    html += `<div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div>
+    </div>`;
+  });
+
+  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
+  labels.forEach(lbl => {
+    html += `<div class="chart-label" style="flex:1">${lbl}</div>`;
+  });
+  html += `</div><div class="chart-source">${set.source}</div></div>`;
+
+  container.innerHTML = html;
+
+  // Animate bars after render
+  setTimeout(() => {
+    container.querySelectorAll('.chart-bar').forEach(bar => {
+      bar.style.height = bar.dataset.target;
+    });
+  }, 100);
+}
+
+// ── ANSWER HANDLING ────────────────────────────────
+function selectChoice(id) {
+  if (G.answered) return;
+  G.selectedChoice = id;
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.remove('selected');
+    if (c.id === 'choice-' + id) c.classList.add('selected');
+  });
+  document.getElementById('btn-submit').style.display = 'inline-block';
+}
+
+function submitAnswer() {
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  G.roundScores[G.roundScores.length - 1].total++;
+
+  if (correct) {
+    G.sessionCorrect++;
+    G.roundScores[G.roundScores.length - 1].correct++;
+    const gold = 10;
+    G.totalGold += gold;
+    spawnGold('+' + gold + ' 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-', '');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation';
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  // Update gold display
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion() {
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ─────────────────────────────────
+function showRoundComplete() {
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const rs = G.roundScores[G.roundScores.length - 1];
+  const pct = rs.total > 0 ? Math.round(rs.correct / rs.total * 100) : 0;
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+
+  document.getElementById('rc-icon').textContent = pct >= 80 ? '⭐' : pct >= 60 ? '✅' : '📋';
+  document.getElementById('rc-title').textContent = round.label + ' Complete';
+  document.getElementById('rc-score').textContent = rs.correct + '/' + rs.total;
+  document.getElementById('rc-score').style.color = pct >= 80 ? 'var(--green2)' : pct >= 60 ? 'var(--amber)' : 'var(--red2)';
+  document.getElementById('rc-sub').textContent = pct + '% ACCURACY';
+
+  const isLast = G.roundIdx >= QUESTION_BANK.rounds.length - 1;
+  const nextBtn = document.getElementById('rc-next-btn');
+  nextBtn.textContent = isLast ? 'See Final Score →' : 'Next Round →';
+  nextBtn.onclick = isLast ? showUnitComplete : nextRound;
+}
+
+function nextRound() {
+  G.roundIdx++;
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  showRoundIntro();
+}
+
+// ── UNIT COMPLETE ──────────────────────────────────
+function showUnitComplete() {
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'flex';
+
+  const pct = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  document.getElementById('uc-score').textContent = pct + '%';
+  document.getElementById('uc-score').style.color = trophy.color;
+  document.getElementById('uc-grade').textContent = G.sessionCorrect + '/' + G.sessionTotal + ' CORRECT · ' + trophy.label;
+  document.getElementById('uc-seal').textContent = trophy.icon;
+  document.getElementById('uc-seal').style.borderColor = trophy.color;
+  document.getElementById('uc-seal').style.boxShadow = '0 0 40px ' + trophy.glow;
+
+  // Trophy display
+  document.getElementById('trophy-display').innerHTML = `
+    <div class="trophy-item" style="border-color:${trophy.color}">
+      <div class="trophy-item-icon">${trophy.icon}</div>
+      <div class="trophy-item-name" style="color:${trophy.color}">${trophy.label}</div>
+      <div class="trophy-item-desc">${pct}% accuracy</div>
+    </div>
+    <div class="trophy-item" style="border-color:var(--gc)">
+      <div class="trophy-item-icon">🪙</div>
+      <div class="trophy-item-name" style="color:var(--gc)">${G.totalGold} Gold</div>
+      <div class="trophy-item-desc">Earned this run</div>
+    </div>`;
+
+  // Save progress
+  saveProgress(pct);
+
+  // Award gold to Civitas shell
+  awardGoldToShell(G.totalGold, 'AP Gov Unit 1');
+}
+
+function getTrophyForAccuracy(pct) {
+  if (pct === 100) return { label: 'Historian', icon: '🏛️', color: 'var(--purple2)', glow: 'rgba(144,128,240,.4)' };
+  if (pct >= 90)  return { label: 'Gold Trophy', icon: '🥇', color: 'var(--gold)', glow: 'rgba(255,215,0,.4)' };
+  if (pct >= 80)  return { label: 'Silver Trophy', icon: '🥈', color: 'var(--text)', glow: 'rgba(200,200,216,.3)' };
+  if (pct >= 70)  return { label: 'Bronze Trophy', icon: '🥉', color: '#cd7f32', glow: 'rgba(205,127,50,.3)' };
+  if (pct >= 60)  return { label: 'Completed', icon: '✅', color: 'var(--green2)', glow: 'rgba(42,170,80,.3)' };
+  return { label: 'Keep Trying', icon: '📋', color: 'var(--text3)', glow: 'rgba(100,100,120,.2)' };
+}
+
+function saveProgress(pct) {
+  try {
+    const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    if (!progress[UNIT_ID] || pct > (progress[UNIT_ID].bestAccuracy || 0)) {
+      progress[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
+      localStorage.setItem('civitas_unit_progress', JSON.stringify(progress));
+    }
+  } catch(e) {}
+}
+
+function awardGoldToShell(amount, source) {
+  try {
+    const current = parseInt(localStorage.getItem('civitas_gold') || '0');
+    localStorage.setItem('civitas_gold', current + amount);
+    // Signal to shell on return
+    localStorage.setItem('civitas_gold_pending', JSON.stringify({ amount, source }));
+  } catch(e) {}
+}
+
+function playAgain() {
+  document.getElementById('unit-complete').style.display = 'none';
+  startGame();
+}
+
+// ── UTILS ──────────────────────────────────────────
+function spawnGold(text) {
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random() * 60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg) {
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+function clearTimer() {
+  if (G.timer) { clearInterval(G.timer); G.timer = null; }
+}
+
+// Anti-cheat
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('keydown',e=>{
+    if(isInput(e.target))return;
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&['u','s'].includes(e.key.toLowerCase()))e.preventDefault();
+  });
+  document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+</script>
+</body>
+</html>
