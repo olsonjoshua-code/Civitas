@@ -1409,16 +1409,21 @@ function buildCourseSelector(){
     return`<div class="course-group">
       <div class="course-group-label">${group}</div>
       <div class="course-grid">
-        ${courses.map(c=>`
-          <div class="course-opt ${_setupSelectedCourses.includes(c.id)?'selected':''} ${c.comingSoon?'':''}
-            onclick="toggleCourse('${c.id}')" style="border-color:${_setupSelectedCourses.includes(c.id)?c.color:'var(--border)'}">
+        ${courses.map(c=>{
+          const selected=_setupSelectedCourses.includes(c.id);
+          const borderColor=selected?c.color:'var(--border)';
+          const opacity=c.comingSoon?'opacity:.45;pointer-events:none':'';
+          return`<div class="course-opt ${selected?'selected':''}"
+            onclick="toggleCourse('${c.id}')"
+            style="border-color:${borderColor};${opacity}">
             <div class="course-opt-icon">${c.icon}</div>
             <div class="course-opt-info">
               <div class="course-opt-name">${c.name}</div>
               <div class="course-opt-grade">${c.grade}${c.comingSoon?' · Coming Soon':''}</div>
             </div>
             <div class="course-opt-check">✓</div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   }).join('');
@@ -1427,6 +1432,7 @@ function buildCourseSelector(){
 function toggleCourse(id){
   const cat=COURSE_CATALOG.find(c=>c.id===id);
   if(!cat)return;
+  if(cat.comingSoon){notify('📚 '+cat.name+' — coming soon!');return;}
   if(_setupSelectedCourses.includes(id)){
     _setupSelectedCourses=_setupSelectedCourses.filter(x=>x!==id);
     delete _setupPeriods[id];
