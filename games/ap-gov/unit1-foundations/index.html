@@ -333,6 +333,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
     <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
     <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
     <button class="hub-tab" onclick="switchTab('coverage',this)">📊 CED Coverage</button>
   </div>
 
@@ -494,6 +495,85 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       </div>
     </div>
 
+    <!-- FRQ PRACTICE TAB -->
+    <div class="hub-panel" id="tab-frq">
+      <div class="sh">FRQ Practice — AI Graded</div>
+      <div style="background:rgba(112,96,208,.06);border:1px solid var(--purple);border-left:3px solid var(--purple2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">
+        <strong style="color:var(--purple2)">How it works:</strong> Write your response in the box below, then click Submit. Claude grades it against the official College Board rubric point by point and gives you instant feedback. You can resubmit as many times as you want to improve your score.
+      </div>
+
+      <!-- FRQ 1: Concept Application -->
+      <div class="frq-card" style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,rgba(72,120,208,.1),transparent);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">📋</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">UNIT 1 · CONCEPT APPLICATION FRQ · 3 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">Federalism in Practice</div>
+          </div>
+          <div id="frq1-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            The state of Colorado passes a law legalizing recreational marijuana, which remains illegal under federal law. Use the scenario above to answer the following:
+            <br><br>
+            <strong>(A)</strong> Describe a constitutional provision that is relevant to this scenario.<br>
+            <strong>(B)</strong> In the context of this scenario, explain how the constitutional provision you described in Part A creates a conflict between the state and national governments.<br>
+            <strong>(C)</strong> Explain how McCulloch v. Maryland (1819) could be used to resolve a similar conflict between state and national law.
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq1-text" style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq1',this)" placeholder="Write your response here. Address parts A, B, and C clearly..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq1-wc">0 words</div>
+            <button onclick="submitFRQHub('frq1')" id="frq1-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq1-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+
+      <!-- FRQ 2: Argument Essay -->
+      <div class="frq-card" style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,rgba(112,96,208,.1),transparent);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">✍️</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">UNIT 1 · ARGUMENT ESSAY · 6 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">Faction & Democratic Governance</div>
+          </div>
+          <div id="frq2-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            Develop an argument that explains whether the large size of the American republic helps or hinders democratic governance.
+            <br><br>
+            Use at least <strong>one piece of evidence</strong> from one of the following foundational documents:
+            <ul style="margin:10px 0 10px 20px;line-height:2">
+              <li>Federalist No. 10</li>
+              <li>Brutus No. 1</li>
+            </ul>
+            In your essay, you must:
+            <ul style="margin:0 0 0 20px;line-height:2">
+              <li>Articulate a defensible claim or thesis that establishes a line of reasoning</li>
+              <li>Support your claim with at least TWO pieces of evidence (one from the documents above)</li>
+              <li>Use reasoning to explain why your evidence supports your claim</li>
+              <li>Respond to an opposing perspective using rebuttal or refutation</li>
+            </ul>
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq2-text" style="width:100%;min-height:200px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq2',this)" placeholder="Begin with a clear thesis. Use evidence from Federalist No. 10 or Brutus No. 1. Address a counterargument..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq2-wc">0 words</div>
+            <button onclick="submitFRQHub('frq2')" id="frq2-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq2-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+    </div>
+
     <!-- CED COVERAGE TAB -->
     <div class="hub-panel" id="tab-coverage">
       <div class="sh">CED Topic Coverage</div>
@@ -648,581 +728,149 @@ const QUESTION_BANK = {
       draw: 15,
       desc: '15 multiple choice questions drawn randomly from the question bank. Each question is tagged with its CED topic code and Big Idea.',
       questions: [
-        // ── PLACEHOLDER QUESTIONS ──
-        // Replace this array with the AI-generated question bank
-        {
-          id:'u1_placeholder_001', topic:'1.1', bigIdea:'CON', difficulty:'accessible',
-          stem:'Which of the following best describes the concept of popular sovereignty as understood by the Framers of the Constitution?',
-          choices:[
-            {id:'A',text:'Government authority derives from the consent of the governed, expressed through elections, representation, and the ability to amend the Constitution.'},
-            {id:'B',text:'A nation-state has the inherent right to govern its own territory free from the interference of foreign governments or international organizations.'},
-            {id:'C',text:'Political power is most effectively exercised by a small group of educated elites who can make rational decisions on behalf of the broader public.'},
-            {id:'D',text:'The supreme law of the land, as established by the Constitution, cannot be changed through ordinary legislative processes or executive action.'}
-          ],
-          correct:'A',
-          explanation:'Popular sovereignty holds that legitimate government authority is derived from the consent of the governed. This principle is embedded in the Preamble ("We the People"), the amendment process, and the system of free elections. It was a direct rejection of monarchical divine right theories of authority.'
-        },
-        {
-          id:'u1_placeholder_002', topic:'1.4', bigIdea:'CON', difficulty:'moderate',
-          stem:'The primary reason the Articles of Confederation were replaced by the Constitution was that the Articles failed to',
-          choices:[
-            {id:'A',text:'establish a bicameral legislature that could represent both large and small states proportionally in the national government.'},
-            {id:'B',text:'provide the national government with sufficient power to tax, regulate commerce, and enforce laws across the states.'},
-            {id:'C',text:'include a bill of rights that would protect individual liberties from infringement by the new federal government.'},
-            {id:'D',text:'create an executive branch with enough authority to conduct foreign policy and negotiate treaties with European powers independently.'}
-          ],
-          correct:'B',
-          explanation:'The Articles of Confederation created a weak national government that could not levy taxes, regulate interstate commerce, or compel states to comply with national laws. This made it impossible to pay Revolutionary War debts, regulate the economy, or respond to crises like Shays\'s Rebellion, leading to the Constitutional Convention of 1787.'
-        },
-        {
-          id:'u1_placeholder_003', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
-          stem:'In McCulloch v. Maryland (1819), the Supreme Court ruled that the federal government had the authority to establish a national bank primarily based on which constitutional provision?',
-          choices:[
-            {id:'A',text:'The commerce clause, which grants Congress the power to regulate trade among the several states and with foreign nations.'},
-            {id:'B',text:'The necessary and proper clause, which allows Congress to make all laws required to carry out its enumerated powers effectively.'},
-            {id:'C',text:'The supremacy clause, which establishes that federal law takes precedence over state law in all areas of potential conflict.'},
-            {id:'D',text:'The general welfare clause, which authorizes Congress to spend money for the benefit of the nation as a whole.'}
-          ],
-          correct:'B',
-          explanation:'Chief Justice Marshall\'s ruling in McCulloch v. Maryland established the doctrine of implied powers. The necessary and proper clause allows Congress to use any means reasonably related to carrying out its enumerated powers — including establishing a bank to manage currency and debt, even though a "bank" is not explicitly mentioned in the Constitution.'
-        },
-        {
-          id:'u1_placeholder_004', topic:'1.2', bigIdea:'MK', difficulty:'accessible',
-          stem:'Which of the following best illustrates a pluralist model of democracy in action?',
-          choices:[
-            {id:'A',text:'Citizens vote directly on proposed legislation through ballot initiatives and referendums rather than delegating that authority to elected representatives.'},
-            {id:'B',text:'A small group of wealthy business leaders and military officials exercise disproportionate influence over government policy decisions across all major issues.'},
-            {id:'C',text:'Competing interest groups — environmental organizations, industry lobbies, and labor unions — all advocate for their positions in the legislative process.'},
-            {id:'D',text:'Government officials are selected through competitive elections in which all adult citizens have an equal and unrestricted right to participate.'}
-          ],
-          correct:'C',
-          explanation:'Pluralism holds that democracy functions through competition among multiple organized interest groups. No single group dominates; instead, policy emerges from the conflict and compromise among competing groups. Choice A describes participatory democracy; B describes elite theory; D describes electoral democracy generally.'
-        },
-        {
-          id:'u1_placeholder_005', topic:'1.5', bigIdea:'CON', difficulty:'challenging',
-          stem:'The Federalists and Anti-Federalists disagreed most fundamentally about which of the following questions during the ratification debates of 1787–1788?',
-          choices:[
-            {id:'A',text:'Whether the United States should maintain a standing army capable of defending against both foreign invasion and domestic insurrection in times of crisis.'},
-            {id:'B',text:'Whether a strong central government could adequately protect individual liberties without a formal enumeration of rights in the constitutional text itself.'},
-            {id:'C',text:'Whether the system of slavery should be abolished immediately or phased out gradually as a precondition for ratification of the new Constitution.'},
-            {id:'D',text:'Whether the president should be selected by direct popular vote or by an indirect method such as the Electoral College that filtered popular preferences.'}
-          ],
-          correct:'B',
-          explanation:'The central debate during ratification was whether a powerful central government threatened individual liberty. Anti-Federalists (Brutus No. 1) argued that a strong national government would inevitably tyrannize citizens without explicit protections. Federalists (Madison, Federalist 51) countered that structural mechanisms like separation of powers and checks and balances were sufficient. This debate led directly to the Bill of Rights.'
-        },
-        {
-          id:'u1_placeholder_006', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
-          stem:'Which of the following scenarios best demonstrates the constitutional principle of checks and balances in operation?',
-          choices:[
-            {id:'A',text:'Congress passes legislation establishing a new federal agency to regulate environmental pollution and oversee enforcement of clean air standards.'},
-            {id:'B',text:'The Senate confirms the president\'s nominee to the Supreme Court after conducting hearings and reviewing the nominee\'s judicial record and qualifications.'},
-            {id:'C',text:'The Supreme Court unanimously upholds a federal statute as constitutional, ruling that Congress acted within its enumerated powers under the commerce clause.'},
-            {id:'D',text:'The president submits the annual federal budget to Congress and proposes new spending priorities for the upcoming fiscal year.'}
-          ],
-          correct:'B',
-          explanation:'Checks and balances refers to the constitutional mechanisms by which each branch limits and monitors the others. Senate confirmation of presidential nominees is a textbook example: the executive nominates (presidential power), but the legislative branch must approve (legislative check). This prevents any one branch from exercising unchecked authority over federal appointments.'
-        },
-        {
-          id:'u1_placeholder_007', topic:'1.3', bigIdea:'LOR', difficulty:'accessible',
-          stem:'The tension between majority rule and minority rights in American democracy is most directly addressed by which constitutional mechanism?',
-          choices:[
-            {id:'A',text:'The amendment process, which requires supermajority approval to change the Constitution and thereby protects foundational rights from simple majority revision.'},
-            {id:'B',text:'The Electoral College system, which gives smaller states disproportionate influence in presidential elections relative to their population size.'},
-            {id:'C',text:'The Senate\'s equal representation structure, which ensures that every state receives the same number of senators regardless of population.'},
-            {id:'D',text:'Federalism, which divides power between national and state governments and allows states to serve as laboratories of democracy on most policy issues.'}
-          ],
-          correct:'A',
-          explanation:'The supermajority requirements for constitutional amendments (two-thirds of Congress and three-fourths of states) protect fundamental rights and structural principles from being overridden by simple majorities. This embodies the Framers\' concern about "tyranny of the majority" — ensuring that core liberties cannot be voted away by a temporary majority.'
-        },
-        {
-          id:'u1_placeholder_008', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
-          stem:'United States v. Lopez (1995) was a significant ruling because it',
-          choices:[
-            {id:'A',text:'upheld Congress\'s broad authority to regulate any economic activity that has a substantial effect on interstate commerce under the commerce clause.'},
-            {id:'B',text:'established for the first time that the commerce clause could not be used to justify federal regulation of noneconomic, local activities without a clear connection to commerce.'},
-            {id:'C',text:'ruled that states could establish their own gun regulations that went further than federal law in restricting access to firearms near school zones.'},
-            {id:'D',text:'determined that the federal government\'s power to regulate commerce extends to all activities, economic or otherwise, that take place within state boundaries.'}
-          ],
-          correct:'B',
-          explanation:'In Lopez, the Supreme Court struck down the Gun-Free School Zones Act, ruling that carrying a gun near a school was not an economic activity with a substantial effect on interstate commerce. This was the first time in 60 years the Court had struck down a federal law for exceeding commerce clause authority, reaffirming limits on federal power and the importance of federalism.'
-        },
-        {
-          id:'u1_placeholder_009', topic:'1.1', bigIdea:'LOR', difficulty:'accessible',
-          stem:'John Locke\'s theory of natural rights most directly influenced which aspect of American government?',
-          choices:[
-            {id:'A',text:'The decision to create a bicameral legislature with the Senate providing equal representation for all states regardless of population differences.'},
-            {id:'B',text:'The principle that individuals possess inherent rights to life, liberty, and property that government cannot legitimately violate or take away arbitrarily.'},
-            {id:'C',text:'The establishment of a system of federalism in which power is divided between the national government and the individual state governments.'},
-            {id:'D',text:'The creation of a Supreme Court with the power to interpret the Constitution and invalidate laws that conflict with its provisions.'}
-          ],
-          correct:'B',
-          explanation:'Locke argued that individuals possess natural rights — life, liberty, and property — that exist prior to and independent of government. Government\'s purpose is to protect these rights, and citizens may overthrow a government that fails to do so. This idea appears directly in the Declaration of Independence ("life, liberty and the pursuit of happiness") and forms the philosophical foundation of American constitutionalism.'
-        },
-        {
-          id:'u1_placeholder_010', topic:'1.6', bigIdea:'CON', difficulty:'challenging',
-          stem:'Which of the following best explains why the Framers chose a federal system of government over a unitary system?',
-          choices:[
-            {id:'A',text:'A federal system was more efficient because it allowed the national government to administer all policy areas from a centralized location without state interference.'},
-            {id:'B',text:'A unitary system had been proposed but rejected because the larger states feared they would lose influence over national policy to the smaller states.'},
-            {id:'C',text:'A federal system preserved existing state sovereignty and provided a structural safeguard against tyranny by dividing power between levels of government.'},
-            {id:'D',text:'A federal system was required by the terms of the Treaty of Paris, which recognized the independence of each of the thirteen states individually.'}
-          ],
-          correct:'C',
-          explanation:'The Framers chose federalism for practical and philosophical reasons. Practically, the states existed as sovereign entities before the Constitution and would not have accepted a unitary system. Philosophically, dividing power between national and state governments served as a structural check against tyranny — if either level became oppressive, the other could resist. Madison articulated this in Federalist No. 51.'
-        },
-        {
-          id:'u1_placeholder_011', topic:'1.4', bigIdea:'CON', difficulty:'moderate',
-          stem:'Shays\'s Rebellion (1786–1787) most directly contributed to the calling of the Constitutional Convention because it demonstrated that',
-          choices:[
-            {id:'A',text:'state governments were becoming too powerful relative to the national government and needed to be checked by a stronger federal authority.'},
-            {id:'B',text:'the national government under the Articles of Confederation lacked the power to maintain order and protect property against domestic insurrection.'},
-            {id:'C',text:'the economic policies of the individual states were causing widespread prosperity in some regions while creating severe poverty in others.'},
-            {id:'D',text:'the existing system of taxation was fundamentally unfair and needed to be reformed to distribute the burden of government more equitably.'}
-          ],
-          correct:'B',
-          explanation:'Shays\'s Rebellion was an armed uprising by Massachusetts farmers protesting debt and foreclosures. The national government under the Articles could not raise troops or funds to suppress it — it had to rely on private funding and state militias. This exposed the weakness of the Articles and convinced many, including Washington and Madison, that a stronger national government was essential for stability.'
-        },
-        {
-          id:'u1_placeholder_012', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
-          stem:'The Great Compromise (Connecticut Compromise) of 1787 resolved the conflict between large and small states by',
-          choices:[
-            {id:'A',text:'creating a unicameral legislature in which each state received representation proportional to its population, satisfying the demands of the larger states.'},
-            {id:'B',text:'establishing a bicameral legislature with proportional representation in the House and equal representation in the Senate, satisfying both sides.'},
-            {id:'C',text:'allowing each state to determine its own method of selecting representatives to the national legislature regardless of population considerations.'},
-            {id:'D',text:'granting additional electoral votes to smaller states in presidential elections to compensate for their disadvantage in the House of Representatives.'}
-          ],
-          correct:'B',
-          explanation:'The Great Compromise created a bicameral legislature: the House of Representatives with representation based on population (Virginia Plan) and the Senate with equal representation for all states (New Jersey Plan). This broke the deadlock between large and small states and made ratification possible. It remains one of the most consequential compromises in American political history.'
-        },
-        {
-          id:'u1_placeholder_013', topic:'1.2', bigIdea:'MK', difficulty:'challenging',
-          stem:'A political scientist argues that American democracy most closely resembles an elite model rather than a pluralist model. Which of the following evidence would most strongly support this argument?',
-          choices:[
-            {id:'A',text:'Research showing that citizens with higher incomes and more education are more likely to vote in both presidential and congressional elections than those with lower incomes.'},
-            {id:'B',text:'Studies demonstrating that policy outcomes consistently align with the preferences of economic elites and organized interest groups rather than with majority public opinion.'},
-            {id:'C',text:'Data indicating that voter turnout in the United States is lower than in most other advanced democratic nations, particularly among younger voters.'},
-            {id:'D',text:'Evidence that members of Congress vote with their party leadership more frequently than they respond to constituent pressure on major legislative votes.'}
-          ],
-          correct:'B',
-          explanation:'Elite theory holds that a small, powerful group effectively controls policy regardless of democratic processes. The strongest evidence for this would be systematic research showing that policy outcomes match elite preferences — not popular preferences — regardless of public opinion. Simple voter turnout or participation gaps (A, C) show inequality in participation but not necessarily elite control of outcomes. Party voting (D) reflects institutional incentives, not elite domination.'
-        },
-        {
-          id:'u1_placeholder_014', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
-          stem:'Which of the following best describes the constitutional principle of separation of powers?',
-          choices:[
-            {id:'A',text:'The division of governmental authority between the national government and state governments in a federal system designed to prevent concentration of power.'},
-            {id:'B',text:'The assignment of distinct legislative, executive, and judicial functions to separate branches, each with its own personnel and constitutional responsibilities.'},
-            {id:'C',text:'The requirement that different political parties share power in the government so that no single party can dominate all branches simultaneously.'},
-            {id:'D',text:'The constitutional prohibition on any single government official holding positions in more than one branch of government at the same time.'}
-          ],
-          correct:'B',
-          explanation:'Separation of powers refers to the division of government into three distinct branches — legislative, executive, and judicial — each with constitutionally assigned functions and separate personnel. This prevents the concentration of power that the Framers associated with tyranny. It is distinct from federalism (division between national and state governments) and from the two-party system, which is not constitutionally mandated.'
-        },
-        {
-          id:'u1_placeholder_015', topic:'1.3', bigIdea:'LOR', difficulty:'accessible',
-          stem:'The concept of limited government, as embedded in the U.S. Constitution, is most directly reflected in which of the following?',
-          choices:[
-            {id:'A',text:'The establishment of a bicameral Congress that requires both chambers to approve legislation before it can be sent to the president for signature or veto.'},
-            {id:'B',text:'The Bill of Rights, which explicitly enumerates specific protections that government cannot infringe upon regardless of majority preferences or legislative action.'},
-            {id:'C',text:'The Electoral College system, which prevents any single state or region from exercising disproportionate influence over the selection of the president.'},
-            {id:'D',text:'The amendment process, which requires broad consensus across states and chambers before any changes can be made to the constitutional text itself.'}
-          ],
-          correct:'B',
-          explanation:'Limited government means that government authority is constrained — there are things government simply cannot do. The Bill of Rights is the most direct expression of this: it lists specific rights (speech, religion, due process, etc.) that government may not violate even if a majority wishes to. The Framers believed that without explicit limits, government power would inevitably expand to infringe on individual liberty.'
-        }
+        {id:'u1_mcq_001',topic:'1.1',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following best describes popular sovereignty?',choices:[{id:'A',text:'Political authority comes from the consent of the people, usually expressed through participation and elections.'},{id:'B',text:'Government authority comes from long-standing traditions that have been preserved across generations.'},{id:'C',text:'Political power belongs primarily to judges because they interpret the law for the nation.'},{id:'D',text:'Government power should be concentrated in the national legislature to avoid instability.'}],correct:'A',explanation:'Popular sovereignty means the people are the ultimate source of government authority, a principle reflected in the Declaration of Independence and the Constitution.'},
+        {id:'u1_mcq_002',topic:'1.1',bigIdea:'LOR',difficulty:'accessible',stem:'The Declaration of Independence most directly reflects the idea that government exists to',choices:[{id:'A',text:'protect natural rights such as life, liberty, and the pursuit of happiness.'},{id:'B',text:'preserve the authority of hereditary rulers over society.'},{id:'C',text:'guarantee equal economic outcomes for every citizen.'},{id:'D',text:'expand military strength before securing individual liberty at home.'}],correct:'A',explanation:'The Declaration argues that people possess natural rights and that governments are created to secure those rights.'},
+        {id:'u1_mcq_003',topic:'1.1',bigIdea:'LOR',difficulty:'moderate',stem:'A government that allows the majority to make policy while still protecting freedom of speech and due process is best illustrating',choices:[{id:'A',text:'majority rule with minority rights.'},{id:'B',text:'unitary sovereignty with centralized authority.'},{id:'C',text:'direct democracy without constitutional limits.'},{id:'D',text:'executive supremacy over rival institutions.'}],correct:'A',explanation:'American democracy balances majority rule with constitutional protections that preserve minority rights and civil liberties.'},
+        {id:'u1_mcq_004',topic:'1.1',bigIdea:'CON',difficulty:'moderate',stem:'Which of the following scenarios best reflects the social contract theory of government?',choices:[{id:'A',text:'Citizens agree to obey laws in exchange for security and protection of their rights.'},{id:'B',text:'The ruler governs by divine right and cannot be challenged by the public.'},{id:'C',text:'The military determines policy because force creates political legitimacy.'},{id:'D',text:'Judges inherit authority through family lineage and custom.'}],correct:'A',explanation:'Social contract theory holds that legitimate government is based on an agreement in which people accept political authority in return for protection and order.'},
+        {id:'u1_mcq_005',topic:'1.2',bigIdea:'PMCD',difficulty:'accessible',stem:'A pluralist model of democracy assumes that political power is primarily held by',choices:[{id:'A',text:'many competing groups that influence public policy through bargaining and advocacy.'},{id:'B',text:'a small set of military officials who impose decisions without opposition.'},{id:'C',text:'one national assembly that directly carries out every citizen preference.'},{id:'D',text:'a permanent aristocratic class that controls all major institutions.'}],correct:'A',explanation:'Pluralist theory argues that public policy emerges from competition among organized interests rather than from a single ruling group.'},
+        {id:'u1_mcq_006',topic:'1.2',bigIdea:'MK',difficulty:'accessible',stem:'Which of the following is the best example of participatory democracy?',choices:[{id:'A',text:'Citizens attend town meetings and vote directly on local policy proposals.'},{id:'B',text:'Party leaders negotiate a bill in private and present it for a final vote.'},{id:'C',text:'A small group of donors coordinates campaign strategy for several candidates.'},{id:'D',text:'Federal judges issue a ruling based on constitutional interpretation.'}],correct:'A',explanation:'Participatory democracy emphasizes broad, direct citizen involvement in political decision-making.'},
+        {id:'u1_mcq_007',topic:'1.2',bigIdea:'PMCD',difficulty:'moderate',stem:'An advocate of elite democracy would be most likely to agree with which statement?',choices:[{id:'A',text:'Complex policy decisions are often shaped by a relatively small number of political and economic leaders.'},{id:'B',text:'Most important public policies are decided by citizens voting directly in national referenda.'},{id:'C',text:'Public policy reflects equal influence from all groups in society at all times.'},{id:'D',text:'State and local governments should be abolished so citizens can participate more often.'}],correct:'A',explanation:'Elite democracy argues that political influence is concentrated among a relatively small set of leaders and institutions.'},
+        {id:'u1_mcq_008',topic:'1.3',bigIdea:'LOR',difficulty:'accessible',stem:'A core purpose of constitutional limits on government power is to',choices:[{id:'A',text:'prevent public officials from infringing on individual liberties without restraint.'},{id:'B',text:'allow each branch to act without review from any competing institution.'},{id:'C',text:'ensure that states can ignore national laws whenever conflict arises.'},{id:'D',text:'remove the need for elections by creating permanent offices.'}],correct:'A',explanation:'Constitutional limits restrain government and protect liberty by preventing arbitrary uses of power.'},
+        {id:'u1_mcq_009',topic:'1.3',bigIdea:'CON',difficulty:'moderate',stem:'The addition of the Bill of Rights to the Constitution was primarily intended to',choices:[{id:'A',text:'address fears that the new national government might threaten individual freedoms.'},{id:'B',text:'eliminate the need for state constitutions in matters of civil liberty.'},{id:'C',text:'give the president direct authority over criminal trials in the states.'},{id:'D',text:'replace the principle of federalism with a confederal system.'}],correct:'A',explanation:'Anti-Federalists worried that the Constitution did not sufficiently protect liberty, so the Bill of Rights was added to secure specific civil liberties.'},
+        {id:'u1_mcq_010',topic:'1.3',bigIdea:'CON',difficulty:'moderate',stem:'In McCulloch v. Maryland (1819), the Supreme Court strengthened national power by ruling that',choices:[{id:'A',text:'Congress could use implied powers under the necessary and proper clause to create a national bank.'},{id:'B',text:'states could tax federal institutions when they operated inside state boundaries.'},{id:'C',text:'the commerce clause gave Congress unlimited authority over all local activity.'},{id:'D',text:'the Bill of Rights applied only to the federal government and not to the states.'}],correct:'A',explanation:'McCulloch upheld implied powers and rejected Maryland\'s attempt to tax the national bank, reinforcing the supremacy of national law.'},
+        {id:'u1_mcq_011',topic:'1.3',bigIdea:'CON',difficulty:'moderate',stem:'United States v. Lopez (1995) is important to the study of federalism because the Court held that',choices:[{id:'A',text:'Congress\'s commerce power has constitutional limits and does not extend to every local activity.'},{id:'B',text:'states may nullify any federal law they believe harms local interests.'},{id:'C',text:'Congress may regulate schools without reference to any enumerated power.'},{id:'D',text:'the necessary and proper clause overrides all state police powers.'}],correct:'A',explanation:'Lopez struck down the Gun-Free School Zones Act because possessing a gun near a school was not sufficiently tied to interstate commerce.'},
+        {id:'u1_mcq_012',topic:'1.3',bigIdea:'LOR',difficulty:'challenging',stem:'Which of the following tensions is most central to Topic 1.3 in AP U.S. Government?',choices:[{id:'A',text:'Balancing governmental authority needed for order with constitutional protections for individual liberty.'},{id:'B',text:'Balancing military alliances abroad with tariff policy at home.'},{id:'C',text:'Balancing campaign advertising with judicial precedent in civil cases.'},{id:'D',text:'Balancing media ratings with executive cabinet appointments.'}],correct:'A',explanation:'Topic 1.3 centers on the ongoing tension between empowering government enough to govern effectively and limiting it enough to protect freedom.'},
+        {id:'u1_mcq_013',topic:'1.4',bigIdea:'CON',difficulty:'accessible',stem:'Under the Articles of Confederation, a major weakness of the national government was its inability to',choices:[{id:'A',text:'levy taxes directly on individuals.'},{id:'B',text:'conduct diplomacy with foreign nations.'},{id:'C',text:'declare war with approval from the states.'},{id:'D',text:'manage western territories in any capacity.'}],correct:'A',explanation:'Congress under the Articles had to request money from the states because it lacked independent taxing power.'},
+        {id:'u1_mcq_014',topic:'1.4',bigIdea:'CON',difficulty:'accessible',stem:'Shays\' Rebellion contributed to calls for a stronger national government because it suggested that the Articles of Confederation',choices:[{id:'A',text:'left the country too weak to maintain order and respond effectively to domestic unrest.'},{id:'B',text:'gave Congress too much military power over the states.'},{id:'C',text:'made the executive branch too dominant in national politics.'},{id:'D',text:'required direct popular approval before any state could enforce taxes.'}],correct:'A',explanation:'The rebellion exposed the confederation government\'s inability to deal effectively with internal disorder.'},
+        {id:'u1_mcq_015',topic:'1.4',bigIdea:'PMCD',difficulty:'moderate',stem:'Which of the following best illustrates an economic problem under the Articles of Confederation?',choices:[{id:'A',text:'States could impose tariffs on one another, creating barriers to interstate commerce.'},{id:'B',text:'Congress issued too much national regulation of manufacturing and banking.'},{id:'C',text:'The president frequently vetoed revenue bills supported by the states.'},{id:'D',text:'The Supreme Court repeatedly struck down state tax laws as unconstitutional.'}],correct:'A',explanation:'The Articles created a weak central government, allowing states to pursue conflicting economic policies that disrupted national unity.'},
+        {id:'u1_mcq_016',topic:'1.5',bigIdea:'CON',difficulty:'accessible',stem:'The Connecticut Compromise resolved disagreement at the Constitutional Convention by',choices:[{id:'A',text:'creating a bicameral legislature with equal representation in the Senate and proportional representation in the House.'},{id:'B',text:'allowing each state one vote in both chambers of Congress.'},{id:'C',text:'giving the president authority to appoint all members of Congress.'},{id:'D',text:'requiring all tax bills to begin in the Senate rather than the House.'}],correct:'A',explanation:'The Great Compromise blended the Virginia and New Jersey Plans by creating two chambers with different rules of representation.'},
+        {id:'u1_mcq_017',topic:'1.5',bigIdea:'CON',difficulty:'accessible',stem:'Supporters of the Constitution during ratification were known as',choices:[{id:'A',text:'Federalists.'},{id:'B',text:'Anti-Federalists.'},{id:'C',text:'Whigs.'},{id:'D',text:'Progressives.'}],correct:'A',explanation:'Federalists supported ratification of the Constitution and argued that the new framework would strengthen the union.'},
+        {id:'u1_mcq_018',topic:'1.5',bigIdea:'LOR',difficulty:'moderate',stem:'Anti-Federalists were most likely to oppose ratification of the Constitution because they believed it',choices:[{id:'A',text:'created a national government that could become too distant from the people and threaten liberty.'},{id:'B',text:'failed to establish an independent judiciary with life tenure.'},{id:'C',text:'gave too much power to state legislatures over national policy.'},{id:'D',text:'made amendment too easy and therefore weakened constitutional stability.'}],correct:'A',explanation:'Anti-Federalists worried that the proposed Constitution concentrated too much power in the national government and lacked a bill of rights.'},
+        {id:'u1_mcq_019',topic:'1.5',bigIdea:'CON',difficulty:'moderate',stem:'Brutus No. 1 most directly expressed concern that the proposed Constitution would',choices:[{id:'A',text:'allow the national government to expand its authority at the expense of the states.'},{id:'B',text:'leave Congress too weak to regulate interstate commerce.'},{id:'C',text:'prevent the national government from defending the nation effectively.'},{id:'D',text:'give the House of Representatives too little power compared with the Senate.'}],correct:'A',explanation:'Brutus argued that the Constitution\'s broad grants of national power would eventually swallow state authority and endanger liberty.'},
+        {id:'u1_mcq_020',topic:'1.5',bigIdea:'PMCD',difficulty:'moderate',stem:'Federalist No. 10 argues that a large republic is useful because it',choices:[{id:'A',text:'makes it harder for any one faction to dominate the political system.'},{id:'B',text:'ensures that citizens can vote directly on every national law.'},{id:'C',text:'eliminates disagreement by creating uniform public opinion.'},{id:'D',text:'permits state governments to veto all acts of Congress.'}],correct:'A',explanation:'Madison argued that a large republic would contain many interests, making oppressive majorities less likely to form.'},
+        {id:'u1_mcq_021',topic:'1.6',bigIdea:'CON',difficulty:'accessible',stem:'Separation of powers is the constitutional principle that',choices:[{id:'A',text:'assigns different powers and responsibilities to distinct branches of government.'},{id:'B',text:'allows states to disregard national laws they oppose.'},{id:'C',text:'permits all branches to share the same formal powers equally.'},{id:'D',text:'requires each level of government to maintain identical institutions.'}],correct:'A',explanation:'The Constitution divides authority among legislative, executive, and judicial institutions to prevent concentration of power.'},
+        {id:'u1_mcq_022',topic:'1.6',bigIdea:'CON',difficulty:'accessible',stem:'Federalism is best defined as a system in which',choices:[{id:'A',text:'power is shared between a national government and regional governments.'},{id:'B',text:'all governing authority is concentrated in a single central institution.'},{id:'C',text:'citizens vote directly on every law without elected representatives.'},{id:'D',text:'the judiciary controls both taxation and law enforcement.'}],correct:'A',explanation:'Federalism divides authority between national and state governments, each of which has constitutionally recognized powers.'},
+        {id:'u1_mcq_023',topic:'1.6',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following is the clearest example of checks and balances?',choices:[{id:'A',text:'The president vetoes a bill passed by Congress.'},{id:'B',text:'The House introduces a revenue bill.'},{id:'C',text:'A governor signs a state budget into law.'},{id:'D',text:'A city council approves a zoning ordinance.'}],correct:'A',explanation:'Checks and balances allow one branch to limit another; the veto is a classic executive check on Congress.'},
+        {id:'u1_mcq_024',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'Which constitutional principle is most closely connected to the idea that elected officials act on behalf of the people?',choices:[{id:'A',text:'Republicanism.'},{id:'B',text:'Judicial supremacy.'},{id:'C',text:'Unitary government.'},{id:'D',text:'Direct democracy.'}],correct:'A',explanation:'Republicanism refers to a system in which the people govern through elected representatives.'},
+        {id:'u1_mcq_025',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'The supremacy clause establishes that',choices:[{id:'A',text:'the Constitution and valid federal laws take precedence over conflicting state laws.'},{id:'B',text:'state constitutions automatically override federal statutes in domestic policy.'},{id:'C',text:'the president may suspend any state law during a national emergency.'},{id:'D',text:'the Supreme Court can revise the text of the Constitution by majority vote.'}],correct:'A',explanation:'Article VI declares that the Constitution, federal laws, and treaties are the supreme law of the land.'},
+        {id:'u1_mcq_026',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'A power specifically listed in the Constitution for Congress is best described as',choices:[{id:'A',text:'an enumerated power.'},{id:'B',text:'a reserved power.'},{id:'C',text:'an inherent state power.'},{id:'D',text:'a concurrent judicial power.'}],correct:'A',explanation:'Enumerated powers are expressly stated in the Constitution, especially in Article I, Section 8.'},
+        {id:'u1_mcq_027',topic:'1.6',bigIdea:'CON',difficulty:'challenging',stem:'Which of the following best explains why the amendment process reflects both federalism and popular sovereignty?',choices:[{id:'A',text:'Amendments require action by national institutions and ratification by states, linking the people and multiple levels of government.'},{id:'B',text:'Amendments can be adopted only by the president after a nationwide referendum.'},{id:'C',text:'Amendments are proposed by state courts and approved by the national bureaucracy.'},{id:'D',text:'Amendments are valid whenever a majority of governors publicly support them.'}],correct:'A',explanation:'The amendment process involves both national and state institutions and ultimately derives legitimacy from the sovereign people.'},
+        {id:'u1_mcq_028',topic:'1.7',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following describes a formal power the Senate has over the executive branch?',choices:[{id:'A',text:'Confirming presidential appointments.'},{id:'B',text:'Issuing executive orders.'},{id:'C',text:'Declaring laws unconstitutional.'},{id:'D',text:'Negotiating treaties independently.'}],correct:'A',explanation:'The Senate checks the executive by confirming many presidential nominees and by consenting to treaties.'},
+        {id:'u1_mcq_029',topic:'1.7',bigIdea:'CON',difficulty:'accessible',stem:'If Congress passes a law and the president vetoes it, Congress can still enact the law by',choices:[{id:'A',text:'overriding the veto with a two-thirds vote in both chambers.'},{id:'B',text:'appealing directly to the Supreme Court for final approval.'},{id:'C',text:'receiving support from a majority of state governors.'},{id:'D',text:'calling a national referendum on the measure.'}],correct:'A',explanation:'A two-thirds vote in both the House and Senate can override a presidential veto.'},
+        {id:'u1_mcq_030',topic:'1.7',bigIdea:'CON',difficulty:'moderate',stem:'Which of the following best illustrates Congress checking the judiciary?',choices:[{id:'A',text:'The Senate confirms or rejects nominees to the federal bench.'},{id:'B',text:'The president grants pardons to individuals convicted in federal court.'},{id:'C',text:'The Supreme Court interprets statutes passed by Congress.'},{id:'D',text:'State legislatures redraw congressional district lines after the census.'}],correct:'A',explanation:'The Senate\'s confirmation power gives Congress a formal role in shaping the federal judiciary.'},
+        {id:'u1_mcq_031',topic:'1.7',bigIdea:'CON',difficulty:'moderate',stem:'The House of Representatives and Senate play different roles in the impeachment process because',choices:[{id:'A',text:'the House impeaches while the Senate conducts the trial and decides whether to convict.'},{id:'B',text:'the Senate impeaches while the House conducts the trial and determines removal.'},{id:'C',text:'the House can remove officials directly, while the Senate can only censure them.'},{id:'D',text:'both chambers must unanimously agree before impeachment articles may be drafted.'}],correct:'A',explanation:'The House has the sole power of impeachment, and the Senate has the sole power to try impeachments.'},
+        {id:'u1_mcq_032',topic:'1.7',bigIdea:'CON',difficulty:'moderate',stem:'Which situation best demonstrates the relationship between the branches in making national policy?',choices:[{id:'A',text:'Congress writes a bill, the president signs or vetoes it, and courts may later interpret its constitutionality.'},{id:'B',text:'The president writes statutes, and the judiciary collects taxes to fund them.'},{id:'C',text:'State governors ratify federal court decisions before they take effect.'},{id:'D',text:'The Supreme Court proposes constitutional amendments and the Senate campaigns for them.'}],correct:'A',explanation:'Policymaking under the Constitution often involves sequential action and review by multiple branches.'},
+        {id:'u1_mcq_033',topic:'1.7',bigIdea:'CON',difficulty:'challenging',stem:'Federalist No. 51\'s claim that "ambition must be made to counteract ambition" most directly supports the idea that',choices:[{id:'A',text:'institutional rivalry can help preserve liberty by preventing any one branch from becoming dominant.'},{id:'B',text:'political parties should be abolished so branches can cooperate more fully.'},{id:'C',text:'the states should replace the national government whenever conflict occurs.'},{id:'D',text:'judges should control elections because they are least vulnerable to ambition.'}],correct:'A',explanation:'Madison argued that each branch should have enough independence and motive to check the others.'},
+        {id:'u1_mcq_034',topic:'1.1',bigIdea:'CON',difficulty:'moderate',stem:'The Declaration of Independence\'s list of grievances against King George III was primarily intended to',choices:[{id:'A',text:'justify dissolving political ties with Britain by showing a pattern of abuses.'},{id:'B',text:'propose a compromise that would keep the colonies under Parliament.'},{id:'C',text:'create a detailed plan for the Articles of Confederation.'},{id:'D',text:'establish judicial review as a protection against monarchy.'}],correct:'A',explanation:'The grievances were evidence used to justify revolution by showing that the king had violated the colonists\' rights.'},
+        {id:'u1_mcq_035',topic:'1.5',bigIdea:'CON',difficulty:'moderate',stem:'Compared with the Articles of Confederation, the Constitution of 1787 created a national government that was',choices:[{id:'A',text:'stronger because it could tax, regulate commerce, and act directly on individuals.'},{id:'B',text:'weaker because it had fewer powers over military and foreign affairs.'},{id:'C',text:'identical in structure except for the addition of a bill of rights.'},{id:'D',text:'based entirely on state supremacy in matters of law and revenue.'}],correct:'A',explanation:'The Constitution replaced the loose confederation with a stronger national government possessing enumerated powers and separate branches.'},
+        {id:'u1_mcq_036',topic:'1.1',bigIdea:'MPA',difficulty:'moderate',stem:'A researcher studying democratic participation compares voter turnout across five countries. The United States ranks fourth out of five nations. Which of the following conclusions is best supported by this data alone?',choices:[{id:'A',text:'U.S. voter participation is lower than in most of the countries compared, though the data do not explain why.'},{id:'B',text:'The United States is not a democracy because fewer than half of its citizens vote in every election.'},{id:'C',text:'Electoral rules in the U.S. are identical to those in the other four countries studied.'},{id:'D',text:'Lower turnout in the U.S. proves that citizens are satisfied with current government policy.'}],correct:'A',explanation:'Comparative turnout data can show relative participation levels, but they cannot by themselves explain the causes — further evidence is needed to draw causal conclusions about electoral rules, satisfaction, or democratic legitimacy.'}
       ]
     },
     {
-      id: 'round2_document',
-      type: 'document_stimulus',
-      label: 'Round 2 — Document Challenge',
-      icon: '📄',
-      color: 'var(--amber)',
-      draw: 1,
-      desc: 'Read a required foundational document excerpt, then answer 4 questions about its argument, significance, and connection to course concepts.',
-      sets: [
+      id:'round2_document', type:'document_stimulus', label:'Round 2 — Document Challenge',
+      icon:'📄', color:'var(--amber)', draw:1,
+      desc:'Read a required foundational document excerpt, then answer questions about its argument, significance, and connection to course concepts.',
+      sets:[
         {
-          id:'fed51_set',
-          document:'Federalist No. 51',
-          author:'James Madison',
-          year:1788,
+          id:'fed10_set', document:'Federalist No. 10', author:'James Madison', year:1787,
+          excerpt:'Among the numerous advantages promised by a well-constructed Union, none deserves to be more accurately developed than its tendency to break and control the violence of faction. The friend of popular governments never finds himself so much alarmed for their character and fate as when he contemplates their propensity to this dangerous vice. A pure democracy can admit of no cure for the mischiefs of faction. A republic, by which I mean a government in which the scheme of representation takes place, opens a different prospect and promises the cure for which we are seeking.',
+          source:'Federalist No. 10, James Madison, 1787. Public domain.',
+          questions:[
+            {id:'u1_doc_f10_001',topic:'1.5',bigIdea:'PMCD',difficulty:'accessible',stem:'Which statement best captures Madison\'s argument in this excerpt?',choices:[{id:'A',text:'A large republic can better control the effects of faction than a pure democracy can.'},{id:'B',text:'State governments should hold more power than the national government in all cases.'},{id:'C',text:'The only way to eliminate faction is to ban competing political interests entirely.'},{id:'D',text:'A monarchy is more stable than any representative form of government.'}],correct:'A',explanation:'Madison argues that representation and the size of the republic help prevent any one faction from dominating.'},
+            {id:'u1_doc_f10_002',topic:'1.2',bigIdea:'PMCD',difficulty:'moderate',stem:'The term "faction" in the excerpt most nearly refers to',choices:[{id:'A',text:'a group of citizens united by a shared interest that may conflict with the rights of others or the public good.'},{id:'B',text:'a court created to settle disputes between national and state governments.'},{id:'C',text:'a temporary alliance formed only during declared wars.'},{id:'D',text:'an unelected executive council that supervises the legislature.'}],correct:'A',explanation:'Madison defined faction as a group driven by shared interests or passions adverse to others\' rights or the common good.'},
+            {id:'u1_doc_f10_003',topic:'1.2',bigIdea:'MK',difficulty:'moderate',stem:'Which current political concept is most directly connected to Madison\'s concern about faction?',choices:[{id:'A',text:'Interest groups competing to influence public policy.'},{id:'B',text:'The Census counting population every ten years.'},{id:'C',text:'The Senate conducting confirmation hearings.'},{id:'D',text:'State governors issuing emergency orders.'}],correct:'A',explanation:'Modern interest groups reflect the competing interests Madison described as factions in republican government.'},
+            {id:'u1_doc_f10_004',topic:'1.6',bigIdea:'CON',difficulty:'challenging',stem:'Which constitutional principle is most clearly reinforced by this excerpt?',choices:[{id:'A',text:'Republicanism, because public views are filtered through elected representatives.'},{id:'B',text:'Judicial review, because courts can overturn legislative acts.'},{id:'C',text:'Reserved powers, because states retain authority not delegated to the national government.'},{id:'D',text:'Unitary sovereignty, because all political power flows from one central institution.'}],correct:'A',explanation:'Madison contrasts pure democracy with republican representation, making republicanism the most direct constitutional principle tied to the excerpt.'}
+          ]
+        },
+        {
+          id:'fed51_set', document:'Federalist No. 51', author:'James Madison', year:1788,
           excerpt:'If men were angels, no government would be necessary. If angels were to govern men, neither external nor internal controls on government would be necessary. In framing a government which is to be administered by men over men, the great difficulty lies in this: you must first enable the government to control the governed; and in the next place oblige it to control itself. A dependence on the people is, no doubt, the primary control on the government; but experience has taught mankind the necessity of auxiliary precautions.',
           source:'Federalist No. 51, James Madison, 1788. Public domain.',
           questions:[
-            {
-              id:'u1_doc_fed51_001', topic:'1.6', bigIdea:'CON', difficulty:'accessible',
-              stem:'Madison\'s phrase "auxiliary precautions" in this excerpt most likely refers to which constitutional mechanism?',
-              choices:[
-                {id:'A',text:'The system of checks and balances and separation of powers that prevents any single branch from accumulating excessive authority.'},
-                {id:'B',text:'The Bill of Rights, which explicitly enumerates the individual liberties that the national government is prohibited from violating.'},
-                {id:'C',text:'The amendment process, which requires broad supermajority consensus before any changes can be made to the constitutional text.'},
-                {id:'D',text:'The federal structure of government, which divides power between national and state governments to prevent geographic concentration.'}
-              ],
-              correct:'A',
-              explanation:'Madison argues that elections alone ("dependence on the people") are not sufficient to control government — additional structural mechanisms are needed. These "auxiliary precautions" are the checks and balances built into the Constitution: separation of powers, bicameralism, the veto, judicial review, and the federal structure. Madison developed this argument most fully in the remainder of Federalist No. 51.'
-            },
-            {
-              id:'u1_doc_fed51_002', topic:'1.3', bigIdea:'LOR', difficulty:'moderate',
-              stem:'Which of the following best describes the problem Madison identifies in the phrase "oblige it [government] to control itself"?',
-              choices:[
-                {id:'A',text:'Governments composed of self-interested human beings will naturally tend to expand their power unless structural constraints force accountability.'},
-                {id:'B',text:'Citizens cannot be trusted to vote wisely because they lack the education and information necessary to make rational political decisions.'},
-                {id:'C',text:'The size of the American republic makes it impossible for representatives to remain accountable to their constituents across such vast distances.'},
-                {id:'D',text:'Government officials will inevitably abuse their power because the Constitution fails to specify clear penalties for violations of their constitutional duties.'}
-              ],
-              correct:'A',
-              explanation:'Madison\'s insight — building on his reading of Montesquieu and historical examples — is that government is composed of human beings who are not angels. Self-interest, ambition, and the temptation of power mean that those who govern will expand their authority unless structural mechanisms force restraint. This is why institutional design (checks, balances, federalism) matters more than relying on the virtue of officeholders.'
-            },
-            {
-              id:'u1_doc_fed51_003', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
-              stem:'How does Madison\'s argument in Federalist No. 51 respond to the Anti-Federalist concern expressed in Brutus No. 1?',
-              choices:[
-                {id:'A',text:'Madison agrees that a bill of rights is necessary but argues it should be added as amendments after ratification rather than included in the original text.'},
-                {id:'B',text:'Madison concedes that a strong national government poses risks but argues that structural mechanisms — not a bill of rights — are sufficient safeguards.'},
-                {id:'C',text:'Madison argues that the Anti-Federalists\' concerns are based on a misreading of the Constitution\'s text and that the document already limits government clearly.'},
-                {id:'D',text:'Madison dismisses the Anti-Federalist position entirely, arguing that the virtue and wisdom of elected officials will prevent any abuse of national power.'}
-              ],
-              correct:'B',
-              explanation:'Brutus No. 1 argued that the Constitution gave the national government too much power and that a bill of rights was essential. Madison\'s response (Federalist 51) was structural: the Constitution\'s design — separation of powers, checks and balances, federalism, bicameralism — creates competing interests that prevent tyranny without needing an explicit list of rights. Madison did eventually support the Bill of Rights as a political compromise, but his theoretical argument was structural.'
-            },
-            {
-              id:'u1_doc_fed51_004', topic:'1.7', bigIdea:'CON', difficulty:'challenging',
-              stem:'A political scientist argues that Madison\'s logic in Federalist No. 51 applies to modern American government in which of the following ways?',
-              choices:[
-                {id:'A',text:'Congressional oversight committees, inspector generals, and the judicial review power all serve as modern "auxiliary precautions" limiting executive branch authority.'},
-                {id:'B',text:'The rise of political parties has effectively replaced the need for structural checks because parties discipline their members to govern responsibly.'},
-                {id:'C',text:'Modern administrative agencies have made the separation of powers obsolete by combining legislative, executive, and judicial functions in single bodies.'},
-                {id:'D',text:'The direct election of senators, established by the 17th Amendment, has made government more democratic and therefore eliminated the need for structural restraints.'}
-              ],
-              correct:'A',
-              explanation:'Madison\'s "auxiliary precautions" principle applies directly to modern government: congressional oversight, the Government Accountability Office, inspector generals, and judicial review are all structural mechanisms that check executive power — exactly what Madison envisioned. These institutions embody the principle that structural design, not individual virtue, is the primary safeguard against governmental overreach.'
-            }
+            {id:'u1_doc_f51_001',topic:'1.6',bigIdea:'CON',difficulty:'accessible',stem:'Madison\'s main argument in this excerpt is that',choices:[{id:'A',text:'government must be strong enough to govern but structured so that it also restrains itself.'},{id:'B',text:'the states should replace the national government whenever abuses occur.'},{id:'C',text:'the executive should dominate because unified power produces efficiency.'},{id:'D',text:'citizens should participate directly in every national policy decision.'}],correct:'A',explanation:'Madison argues for limited but effective government, supported by structural safeguards against abuse.'},
+            {id:'u1_doc_f51_002',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'The "auxiliary precautions" Madison refers to are best understood as',choices:[{id:'A',text:'institutional checks such as separation of powers and checks and balances.'},{id:'B',text:'standing armies placed under the sole control of state governments.'},{id:'C',text:'laws that prohibit political parties from forming national organizations.'},{id:'D',text:'temporary tax increases adopted during periods of military conflict.'}],correct:'A',explanation:'Madison believed that relying on virtue alone was insufficient, so government needed structural safeguards.'},
+            {id:'u1_doc_f51_003',topic:'1.7',bigIdea:'CON',difficulty:'moderate',stem:'Which current political concept most directly reflects Madison\'s reasoning in this excerpt?',choices:[{id:'A',text:'One branch checking another through powers such as vetoes, confirmations, and judicial review.'},{id:'B',text:'Citizens voting in state primaries to choose party nominees.'},{id:'C',text:'Political parties drafting platforms at national conventions.'},{id:'D',text:'States redrawing district boundaries after reapportionment.'}],correct:'A',explanation:'The excerpt supports the modern system of branch rivalry and mutual restraint built into the Constitution.'},
+            {id:'u1_doc_f51_004',topic:'1.7',bigIdea:'CON',difficulty:'challenging',stem:'Which constitutional principle is most directly emphasized by the phrase "oblige it to control itself"?',choices:[{id:'A',text:'Checks and balances.'},{id:'B',text:'Direct democracy.'},{id:'C',text:'Reserved powers.'},{id:'D',text:'Popular election of senators.'}],correct:'A',explanation:'Madison is describing a system in which the branches are designed to restrain one another.'}
           ]
         },
         {
-          id:'fed10_set',
-          document:'Federalist No. 10',
-          author:'James Madison',
-          year:1787,
-          excerpt:'By a faction, I understand a number of citizens, whether amounting to a majority or a minority of the whole, who are united and actuated by some common impulse of passion, or of interest, adverse to the rights of other citizens, or to the permanent and aggregate interests of the community... The latent causes of faction are thus sown in the nature of man... The inference to which we are brought is, that the CAUSES of faction cannot be removed, and that relief is only to be sought in the means of controlling its EFFECTS.',
-          source:'Federalist No. 10, James Madison, 1787. Public domain.',
+          id:'brutus1_set', document:'Brutus No. 1', author:'Brutus (attributed)', year:1787,
+          excerpt:'In a republic, the manners, sentiments, and interests of the people should be similar. If this be not the case, there will be a constant clashing of opinions; and the representatives of one part will be continually striving against those of the other. In a free republic, although all laws are derived from the consent of the people, yet the people are not always sufficiently informed to exercise that judgment which is necessary to preserve liberty. In a large extended republic, the legislature cannot attend to the various concerns and wants of its different parts.',
+          source:'Brutus No. 1, 1787. Public domain.',
           questions:[
-            {
-              id:'u1_doc_fed10_001', topic:'1.2', bigIdea:'PMCD', difficulty:'accessible',
-              stem:'According to Madison\'s definition in this excerpt, which of the following would best qualify as a "faction"?',
-              choices:[
-                {id:'A',text:'A group of citizens united by shared religious beliefs who advocate for school prayer policies that other citizens view as violating the establishment clause.'},
-                {id:'B',text:'A majority of Congress members from both parties who support increasing the defense budget in response to a perceived foreign military threat.'},
-                {id:'C',text:'A bipartisan commission of experts appointed by the president to study and recommend reforms to the federal tax code.'},
-                {id:'D',text:'A state legislature that passes a law establishing speed limits and traffic regulations that apply uniformly to all drivers within its jurisdiction.'}
-              ],
-              correct:'A',
-              explanation:'Madison defines a faction as a group united by a "common impulse of passion or interest" that is "adverse to the rights of other citizens." A religious group advocating for policies that others believe violate their constitutional rights fits this definition precisely — it is a group acting on shared interest that potentially harms others. The bipartisan commission and traffic regulations serve broad public interests, not factional ones.'
-            },
-            {
-              id:'u1_doc_fed10_002', topic:'1.2', bigIdea:'PMCD', difficulty:'moderate',
-              stem:'Madison argues that "the causes of faction cannot be removed." Which of the following best explains the reasoning behind this conclusion?',
-              choices:[
-                {id:'A',text:'The constitutional protection of free speech and assembly makes it legally impossible for government to prevent citizens from organizing into factions.'},
-                {id:'B',text:'Factions arise from human nature — differences in opinion, interests, and passion — which are ineradicable without eliminating the liberty that makes faction possible.'},
-                {id:'C',text:'The size and diversity of the American republic ensure that so many different factions will form that no single one can ever dominate the others permanently.'},
-                {id:'D',text:'Elected representatives are too closely connected to their constituents\' factional interests to ever act against those interests in pursuit of the common good.'}
-              ],
-              correct:'B',
-              explanation:'Madison argues that faction arises from human nature itself — people differ in opinion, wealth, property, and passion. To eliminate faction, you would have to either destroy liberty (which makes organized advocacy possible) or give everyone identical opinions, faculties, and property. Since neither is desirable or possible, the solution must be to control faction\'s effects — which Madison argues a large republic can do better than a small one.'
-            },
-            {
-              id:'u1_doc_fed10_003', topic:'1.2', bigIdea:'PMCD', difficulty:'challenging',
-              stem:'Which of the following modern political phenomena would Madison most likely view as a confirmation of his theory of faction?',
-              choices:[
-                {id:'A',text:'The growth of independent voters who do not affiliate with either major political party and who prioritize issue-by-issue evaluation of candidates.'},
-                {id:'B',text:'The rise of single-issue interest groups that lobby Congress exclusively on narrow policy areas like gun rights, abortion, or environmental regulation.'},
-                {id:'C',text:'The expansion of the federal bureaucracy into policy areas previously managed by state and local governments under the principles of federalism.'},
-                {id:'D',text:'The increasing use of primary elections to select party nominees rather than allowing party bosses to choose candidates through closed conventions.'}
-              ],
-              correct:'B',
-              explanation:'Single-issue interest groups are essentially the modern form of Madison\'s factions — groups united by a specific common interest that advocate for policies benefiting their members, often at the expense of broader public interests. Madison would recognize these immediately as the "latent causes of faction" made manifest. The large republic\'s diversity of competing interests was supposed to prevent any single faction from dominating — a principle that modern pluralist theorists also invoke.'
-            },
-            {
-              id:'u1_doc_fed10_004', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
-              stem:'How does Madison\'s argument in Federalist No. 10 address the Anti-Federalist concern that a large republic cannot sustain democratic self-government?',
-              choices:[
-                {id:'A',text:'Madison concedes that large republics are more vulnerable to factionalism but argues that a stronger national government can suppress faction more effectively.'},
-                {id:'B',text:'Madison inverts the Anti-Federalist position by arguing that a large republic — with more diverse interests — is actually better at controlling majority factions than a small one.'},
-                {id:'C',text:'Madison argues that the size of the republic is irrelevant because the Constitution\'s structural mechanisms will prevent faction regardless of geographic scale.'},
-                {id:'D',text:'Madison agrees with the Anti-Federalists that small republics are preferable but argues that a confederation of small republics can achieve the same result.'}
-              ],
-              correct:'B',
-              explanation:'This is Madison\'s most brilliant rhetorical move in Federalist No. 10. Anti-Federalists (following classical republican theory) argued that large republics inevitably become tyrannical. Madison inverts this: a large republic contains more diverse interests and factions, making it harder for any single majority faction to form and dominate. The diversity of interests in an extended republic is a safeguard against tyranny, not a source of it.'
-            }
-          ]
-        },
-        {
-          id:'brutus1_set',
-          document:'Brutus No. 1',
-          author:'Robert Yates (attributed)',
-          year:1787,
-          excerpt:'If the constitution is adopted, it will give expression to the tendency of power to expand. The legislature of the United States will be in its nature very different from the state legislatures. The power of the federal legislature will be unlimited with respect to all that respects the general welfare... [T]he general legislature will possess the power to lay and collect taxes, duties, imposts, and excises; to pay the debts and provide for the common defense and general welfare of the United States.',
-          source:'Brutus No. 1, attributed to Robert Yates, 1787. Public domain.',
-          questions:[
-            {
-              id:'u1_doc_brutus_001', topic:'1.5', bigIdea:'LOR', difficulty:'accessible',
-              stem:'The author of Brutus No. 1 is primarily concerned that the proposed Constitution would',
-              choices:[
-                {id:'A',text:'fail to establish a sufficiently powerful national government capable of addressing the weaknesses exposed by the Articles of Confederation.'},
-                {id:'B',text:'create a national government with effectively unlimited taxing and spending power that would eventually overwhelm and absorb state governments.'},
-                {id:'C',text:'concentrate excessive power in the executive branch, creating a presidency that would eventually evolve into a de facto monarchy.'},
-                {id:'D',text:'establish a judiciary with life tenure that would be unaccountable to the public and free to impose its own political preferences on the nation.'}
-              ],
-              correct:'B',
-              explanation:'Brutus No. 1 focuses primarily on the taxing and spending power granted to the national legislature. The author argues that the power to tax "for the general welfare" is effectively unlimited and will allow Congress to expand federal power indefinitely at the expense of state governments. This is the Anti-Federalist fear of consolidated national power overriding state sovereignty.'
-            },
-            {
-              id:'u1_doc_brutus_002', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
-              stem:'Which Federalist Paper most directly responds to the concerns raised in Brutus No. 1 about unlimited legislative power?',
-              choices:[
-                {id:'A',text:'Federalist No. 10, in which Madison argues that the diversity of factions in a large republic prevents any single group from dominating national policy.'},
-                {id:'B',text:'Federalist No. 51, in which Madison argues that the structural mechanisms of checks and balances prevent any branch from accumulating unlimited power.'},
-                {id:'C',text:'Federalist No. 78, in which Hamilton argues that the judiciary\'s power of judicial review provides a check on congressional overreach.'},
-                {id:'D',text:'Federalist No. 70, in which Hamilton argues that a single executive is more accountable and energetic than a plural executive committee.'}
-              ],
-              correct:'B',
-              explanation:'Federalist No. 51 is Madison\'s most direct response to Anti-Federalist concerns about unlimited government power. While Brutus No. 1 argued the Constitution would lead to unlimited legislative authority, Madison argued in No. 51 that the system of checks and balances — each branch checking the others, and federalism dividing power between levels — would prevent any consolidation of unlimited power.'
-            },
-            {
-              id:'u1_doc_brutus_003', topic:'1.1', bigIdea:'LOR', difficulty:'challenging',
-              stem:'A political scientist in 2024 argues that Brutus No. 1\'s prediction about federal power has been largely vindicated by American history. Which of the following developments would most strongly support this argument?',
-              choices:[
-                {id:'A',text:'The Supreme Court\'s ruling in United States v. Lopez (1995) that Congress exceeded its commerce clause authority in the Gun-Free School Zones Act.'},
-                {id:'B',text:'The dramatic expansion of federal authority during the New Deal era and the near-complete abandonment of dual federalism as a constitutional doctrine.'},
-                {id:'C',text:'The ratification of the 10th Amendment, which explicitly reserves powers not delegated to the federal government to the states and the people.'},
-                {id:'D',text:'The constitutional amendment process, which has been used only 27 times in American history, suggesting that federal power has remained constrained.'}
-              ],
-              correct:'B',
-              explanation:'Brutus No. 1 predicted that the "general welfare" taxing power would lead to unlimited federal expansion. The New Deal era most strongly vindicates this prediction: the Supreme Court abandoned dual federalism, Congress used the commerce clause and spending power to regulate virtually every area of American life, and the federal government grew dramatically relative to the states — precisely what the Anti-Federalists feared.'
-            },
-            {
-              id:'u1_doc_brutus_004', topic:'1.5', bigIdea:'CON', difficulty:'moderate',
-              stem:'The author of Brutus No. 1 would most likely have supported which of the following changes to the proposed Constitution?',
-              choices:[
-                {id:'A',text:'Creating a stronger executive branch with broader emergency powers to respond effectively to threats to national security and domestic stability.'},
-                {id:'B',text:'Establishing a unicameral national legislature with proportional representation to make the federal government more directly responsive to popular will.'},
-                {id:'C',text:'Adding explicit limitations on federal taxing and spending power and including a formal bill of rights protecting individual and state liberties.'},
-                {id:'D',text:'Expanding the size of the Supreme Court and giving it stronger authority to strike down both federal and state laws as unconstitutional.'}
-              ],
-              correct:'C',
-              explanation:'Anti-Federalists like the author of Brutus No. 1 advocated for explicit limits on federal power and a formal bill of rights. Their position was that without specific constitutional prohibitions, the elastic clause and general welfare language would be used to justify unlimited federal expansion. The eventual adoption of the Bill of Rights, including the 10th Amendment reserving powers to states, was a direct concession to Anti-Federalist demands.'
-            }
+            {id:'u1_doc_brutus1_001',topic:'1.5',bigIdea:'CON',difficulty:'accessible',stem:'Which statement best captures the author\'s argument in this excerpt?',choices:[{id:'A',text:'A large republic is likely to become too distant from the people to protect liberty effectively.'},{id:'B',text:'A strong national government is the best safeguard against majority tyranny.'},{id:'C',text:'Direct democracy is the only practical form of government in a large nation.'},{id:'D',text:'The executive branch should be stronger than the legislature in all republics.'}],correct:'A',explanation:'Brutus argues that an extensive republic will be too large and diverse to represent the people effectively and preserve liberty.'},
+            {id:'u1_doc_brutus1_002',topic:'1.5',bigIdea:'LOR',difficulty:'moderate',stem:'The concerns raised in this excerpt most directly support which Anti-Federalist position?',choices:[{id:'A',text:'The proposed Constitution needed stronger protections for liberty and limits on national power.'},{id:'B',text:'The Articles of Confederation should be replaced by a constitutional monarchy.'},{id:'C',text:'The House of Representatives should have longer terms to stabilize public opinion.'},{id:'D',text:'The Supreme Court should be elected directly by the public.'}],correct:'A',explanation:'Anti-Federalists feared the Constitution would create a government too powerful and remote from the people, threatening liberty.'},
+            {id:'u1_doc_brutus1_003',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'Which current political concept is most closely connected to the concern expressed in the excerpt?',choices:[{id:'A',text:'Debates over whether the national government is too distant from local communities.'},{id:'B',text:'The use of statistical sampling in public opinion surveys.'},{id:'C',text:'The president\'s role as commander in chief.'},{id:'D',text:'The Senate\'s advice and consent role in judicial nominations.'}],correct:'A',explanation:'Brutus worried that a large national system would not respond well to local needs, a concern that still appears in federalism debates.'},
+            {id:'u1_doc_brutus1_004',topic:'1.2',bigIdea:'PMCD',difficulty:'challenging',stem:'Which of the following is the best comparison between Brutus No. 1 and Federalist No. 10?',choices:[{id:'A',text:'Brutus saw a large republic as a threat to liberty, while Madison saw size and diversity as a protection against faction.'},{id:'B',text:'Brutus supported pluralism, while Madison believed faction should be eliminated through censorship.'},{id:'C',text:'Brutus wanted a stronger national judiciary, while Madison preferred state supremacy.'},{id:'D',text:'Brutus favored direct democracy, while Madison favored hereditary leadership.'}],correct:'A',explanation:'The two texts disagree sharply on whether a large republic preserves liberty or endangers it.'}
           ]
         }
       ]
     },
     {
-      id: 'round3_data',
-      type: 'data_stimulus',
-      label: 'Round 3 — Data Analysis',
-      icon: '📊',
-      color: 'var(--teal)',
-      draw: 1,
-      desc: 'Analyze real political data — voter turnout, government spending, or demographic information — and answer questions connecting the data to course concepts.',
-      sets: [
+      id:'round3_data', type:'data_stimulus', label:'Round 3 — Data Analysis',
+      icon:'📊', color:'var(--teal)', draw:1,
+      desc:'Analyze real political data and answer questions connecting the data to constitutional principles and course concepts.',
+      sets:[
         {
           id:'voter_turnout_set',
-          title:'U.S. Presidential Election Voter Turnout, 1980–2020',
-          source:'U.S. Census Bureau, Current Population Survey, Voting and Registration Supplement, 2021.',
-          chartType:'bar',
-          chartLabel:'% of Voting-Eligible Population',
-          data:{
-            labels:['1980','1984','1988','1992','1996','2000','2004','2008','2012','2016','2020'],
-            values:[52.8,55.2,50.3,58.1,49.0,54.2,60.1,61.6,58.6,60.1,66.8]
-          },
+          title:'U.S. Presidential Election Voting Rate of Citizen Voting-Age Population',
+          source:'U.S. Census Bureau, Voting and Registration in the Election of November 2020; Pew Research Center. Public data.',
+          chartType:'bar', chartLabel:'% of Voting-Age Population',
+          data:{labels:['1980','1996','2000','2008','2016','2020'],values:[52.6,48.0,54.2,61.6,60.1,66.8]},
           questions:[
-            {
-              id:'u1_data_vt_001', topic:'1.1', bigIdea:'MPA', difficulty:'accessible',
-              stem:'Based on the data, which of the following correctly identifies the election year with the lowest voter turnout shown in the chart?',
-              choices:[
-                {id:'A',text:'1988, in which approximately 50.3% of the voting-eligible population participated in the presidential election.'},
-                {id:'B',text:'1980, in which approximately 52.8% of the voting-eligible population cast ballots in the presidential election.'},
-                {id:'C',text:'1996, in which approximately 49.0% of the voting-eligible population participated in the presidential election — the lowest shown.'},
-                {id:'D',text:'2000, in which approximately 54.2% of the voting-eligible population voted in the first presidential election of the new millennium.'}
-              ],
-              correct:'C',
-              explanation:'The 1996 presidential election between Bill Clinton and Bob Dole had the lowest turnout among years shown at approximately 49.0% of voting-eligible population. This was notable as the first presidential election in modern history to fall below 50% VEP turnout. Analysts attributed this to low enthusiasm, a lack of competitive dynamics, and poor weather in parts of the country on Election Day.'
-            },
-            {
-              id:'u1_data_vt_002', topic:'1.1', bigIdea:'MPA', difficulty:'moderate',
-              stem:'Which of the following best accounts for the significant increase in voter turnout between 2000 and 2008 visible in the data?',
-              choices:[
-                {id:'A',text:'The passage of the National Voter Registration Act in 1993 made voter registration significantly easier by allowing registration at motor vehicle offices.'},
-                {id:'B',text:'Increased political mobilization, competitive elections, and heightened public interest — particularly in 2008 — drove turnout substantially higher than in 2000.'},
-                {id:'C',text:'The Supreme Court\'s decision in Bush v. Gore (2000) inspired widespread civic outrage that permanently elevated citizen engagement in subsequent elections.'},
-                {id:'D',text:'Amendments to the Voting Rights Act during this period removed remaining barriers to participation for previously underrepresented demographic groups.'}
-              ],
-              correct:'B',
-              explanation:'The increase in turnout from 2000 to 2004 and especially 2008 reflects intense mobilization efforts, highly competitive elections (particularly the historic 2008 Obama-McCain contest), and increased political polarization that energized both parties\' bases. The 2008 election saw dramatically increased turnout among young voters and African Americans. The NVRA was passed in 1993 — before this period — so it does not explain the 2000–2008 increase specifically.'
-            },
-            {
-              id:'u1_data_vt_003', topic:'1.1', bigIdea:'MK', difficulty:'moderate',
-              stem:'The data in the chart most directly relates to which democratic ideal discussed in Unit 1?',
-              choices:[
-                {id:'A',text:'The principle of limited government, which holds that constitutional constraints protect individual rights from government overreach and majority tyranny.'},
-                {id:'B',text:'The concept of popular sovereignty, which holds that legitimate government derives from and reflects the participation and consent of the governed.'},
-                {id:'C',text:'The idea of separation of powers, which divides government functions among branches to prevent concentration of authority in any single institution.'},
-                {id:'D',text:'The principle of federalism, which divides authority between national and state governments to create multiple access points for citizen participation.'}
-              ],
-              correct:'B',
-              explanation:'Voter turnout data is most directly relevant to popular sovereignty — the principle that government derives authority from the active participation and consent of citizens. Low turnout raises questions about whether government truly reflects popular will; high turnout suggests broad citizen engagement in self-governance. The data tracks how many citizens actually exercise their foundational democratic right, making it a direct measure of popular sovereignty in practice.'
-            }
+            {id:'u1_data_vt_001',topic:'1.1',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which election year shown had the highest voting rate?',choices:[{id:'A',text:'2020, with approximately 66.8% of the voting-age population casting ballots.'},{id:'B',text:'2016, with approximately 60.1% of the voting-age population casting ballots.'},{id:'C',text:'2008, with approximately 61.6% of the voting-age population casting ballots.'},{id:'D',text:'2000, with approximately 54.2% of the voting-age population casting ballots.'}],correct:'A',explanation:'Among the years shown, 2020 has the highest voting rate at 66.8 percent.'},
+            {id:'u1_data_vt_002',topic:'1.1',bigIdea:'MPA',difficulty:'moderate',stem:'Which conclusion is best supported by the data?',choices:[{id:'A',text:'Voter participation in presidential elections has fluctuated over time but rose noticeably in 2008 and 2020.'},{id:'B',text:'Voter participation has declined steadily in every election since 1980.'},{id:'C',text:'Presidential turnout is always below 50 percent in modern elections.'},{id:'D',text:'The voting rate is identical in every election involving an incumbent president.'}],correct:'A',explanation:'The data show fluctuation rather than a straight line, with especially high participation in 2008 and 2020.'},
+            {id:'u1_data_vt_003',topic:'1.2',bigIdea:'MK',difficulty:'moderate',stem:'A supporter of participatory democracy would most likely use this data to argue that',choices:[{id:'A',text:'higher turnout is desirable because broader citizen involvement strengthens democratic legitimacy.'},{id:'B',text:'elected officials should replace voting with elite policy commissions.'},{id:'C',text:'turnout matters less than judicial independence in representative systems.'},{id:'D',text:'states should limit voter participation to citizens with advanced policy knowledge.'}],correct:'A',explanation:'Participatory democracy values widespread involvement, so higher turnout would be seen as evidence of stronger democratic engagement.'},
+            {id:'u1_data_vt_004',topic:'1.1',bigIdea:'MPA',difficulty:'challenging',stem:'Which of the following is the best caution when interpreting the turnout data alone?',choices:[{id:'A',text:'The data show changes in voting rates, but they do not by themselves explain why participation rose or fell.'},{id:'B',text:'The data prove that all states have identical election laws and voting experiences.'},{id:'C',text:'The data demonstrate that turnout is unrelated to campaign intensity or political conflict.'},{id:'D',text:'The data show that constitutional principles have changed over time.'}],correct:'A',explanation:'Quantitative data show patterns, but additional evidence is needed to explain the causes behind those patterns.'}
           ]
         },
         {
-          id:'fed_state_spending_set',
-          title:'Federal vs. State & Local Government Spending as % of GDP, 1960–2020',
-          source:'U.S. Office of Management and Budget; Tax Policy Center, 2022.',
-          chartType:'bar',
-          chartLabel:'% of GDP',
+          id:'federal_state_spending_set',
+          title:'Federal vs. State & Local Government Spending by Policy Area (Approximate % Share)',
+          source:'Congressional Research Service; U.S. Census Annual Survey of State and Local Government Finances. Public data.',
+          chartType:'grouped_bar', chartLabel:'% of Total Spending (approximate)',
           data:{
-            labels:['1960','1970','1980','1990','2000','2010','2020'],
-            values:[18.0,20.0,22.0,22.5,18.5,25.0,31.5],
-            values2:[10.0,12.0,12.5,12.0,11.5,13.0,14.5]
+            labels:['K-12 Education','National Defense','Medicaid','Transportation'],
+            federal:[8,100,64,28],
+            stateLocal:[92,0,36,72]
           },
-          note:'Blue bars = Federal spending. Teal bars = State & Local spending.',
+          note:'Blue = Federal share · Teal = State & Local share · Values are approximate and illustrative.',
           questions:[
-            {
-              id:'u1_data_fs_001', topic:'1.6', bigIdea:'MPA', difficulty:'accessible',
-              stem:'Based on the data, which of the following best describes the overall trend in federal government spending from 1960 to 2020?',
-              choices:[
-                {id:'A',text:'Federal spending as a percentage of GDP remained essentially stable throughout this period, fluctuating only slightly around 20% of GDP.'},
-                {id:'B',text:'Federal spending as a percentage of GDP increased significantly over this period, reaching its highest level shown in 2020 at approximately 31.5%.'},
-                {id:'C',text:'Federal spending as a percentage of GDP declined steadily from 1960 to 2000 before rebounding sharply in the most recent decade shown.'},
-                {id:'D',text:'Federal spending as a percentage of GDP grew more slowly than state and local spending throughout this period, suggesting a shift toward decentralization.'}
-              ],
-              correct:'B',
-              explanation:'The data shows federal spending growing from 18% of GDP in 1960 to 31.5% in 2020, with the sharp increase in 2020 reflecting COVID-19 emergency spending. This long-term trend of federal expansion relative to GDP reflects the growth of federal programs in health care (Medicare/Medicaid), Social Security, defense, and — in crisis years — emergency stimulus. It broadly supports the argument that federal power has expanded over time.'
-            },
-            {
-              id:'u1_data_fs_002', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
-              stem:'The pattern of federal spending growth shown in the data most directly supports which argument about American federalism?',
-              choices:[
-                {id:'A',text:'The constitutional design of dual federalism has successfully maintained a balance between federal and state power throughout American history.'},
-                {id:'B',text:'The Anti-Federalist concern — expressed in Brutus No. 1 — that the national government\'s spending power would expand dramatically over time has been largely vindicated.'},
-                {id:'C',text:'The Framers\' system of checks and balances has effectively constrained the growth of federal spending to levels consistent with constitutional limitations.'},
-                {id:'D',text:'The principle of new federalism, which transfers program responsibility to states, has reduced the federal government\'s share of national economic activity.'}
-              ],
-              correct:'B',
-              explanation:'The long-term expansion of federal spending as a share of GDP directly supports the Anti-Federalist concern voiced in Brutus No. 1 — that broad federal taxing and spending authority ("for the general welfare") would enable unlimited expansion of national government power. From 18% to 31.5% of GDP over 60 years, with state and local spending growing far more slowly, suggests a fundamental shift toward federal dominance that the Anti-Federalists predicted.'
-            },
-            {
-              id:'u1_data_fs_003', topic:'1.6', bigIdea:'PMCD', difficulty:'challenging',
-              stem:'A political scientist uses this data to argue that "cooperative federalism has replaced dual federalism in American governance." Which of the following most directly supports this interpretation?',
-              choices:[
-                {id:'A',text:'The data shows that federal spending has grown while state and local spending has remained flat, suggesting the federal government has absorbed all policy responsibility.'},
-                {id:'B',text:'Federal grants-in-aid to states have grown substantially over this period, creating a system in which states implement federally funded programs — blending rather than separating federal and state functions.'},
-                {id:'C',text:'The data demonstrates that both federal and state spending have grown, suggesting that the two levels of government have expanded independently without coordination.'},
-                {id:'D',text:'State and local spending as a percentage of GDP has declined relative to federal spending, indicating that states have ceded policy authority back to the national government.'}
-              ],
-              correct:'B',
-              explanation:'Cooperative federalism (marble cake federalism) describes a system where federal and state governments are intertwined rather than separate (layer cake/dual federalism). The growth in federal spending shown in the data is largely driven by federal grants to states — Medicaid, highway funding, education grants — which states then administer. This means federal money flows through state bureaucracies, creating the interdependence that characterizes cooperative federalism. The answer requires knowledge beyond the chart itself.'
-            }
+            {id:'u1_data_fs_001',topic:'1.6',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which policy area is funded almost entirely by the federal government?',choices:[{id:'A',text:'National Defense, which shows nearly 100% federal and 0% state-local funding.'},{id:'B',text:'K-12 Education, which shows the highest state-local share of any area shown.'},{id:'C',text:'Transportation, which shows a roughly even split between federal and state-local funding.'},{id:'D',text:'Medicaid, which shows a majority federal share with significant state-local contributions.'}],correct:'A',explanation:'The table shows national defense as nearly 100 percent federally funded and 0 percent state-local.'},
+            {id:'u1_data_fs_002',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'Which constitutional principle is best illustrated by the differences in spending responsibility shown in the data?',choices:[{id:'A',text:'Federalism, because different levels of government share responsibility for different public policies.'},{id:'B',text:'Judicial review, because courts determine annual budgets for all policy areas.'},{id:'C',text:'Popular sovereignty, because every budget item is approved by national referendum.'},{id:'D',text:'Unitary government, because the national government controls all domestic policy funding.'}],correct:'A',explanation:'The data show that some responsibilities are national, some are state-local, and some are shared, which is characteristic of federalism.'},
+            {id:'u1_data_fs_003',topic:'1.3',bigIdea:'PMCD',difficulty:'moderate',stem:'A policymaker citing the Medicaid figures would most likely argue that',choices:[{id:'A',text:'some major programs require intergovernmental cooperation rather than control by only one level of government.'},{id:'B',text:'state governments have no meaningful role in public finance.'},{id:'C',text:'the Constitution forbids shared spending responsibilities.'},{id:'D',text:'transportation policy should be handled only by local governments.'}],correct:'A',explanation:'Because Medicaid spending is divided between federal and state-local governments, it is a good example of shared policymaking responsibility.'},
+            {id:'u1_data_fs_004',topic:'1.6',bigIdea:'MPA',difficulty:'challenging',stem:'Which inference is best supported by the comparison of K-12 education and national defense spending?',choices:[{id:'A',text:'American federalism allocates different policy responsibilities to different levels of government depending on the issue area.'},{id:'B',text:'State governments are constitutionally prohibited from spending money on any national priority.'},{id:'C',text:'The federal government plays no role in education policy of any kind.'},{id:'D',text:'All domestic policies receive the same funding pattern across every state.'}],correct:'A',explanation:'The data suggest that some policy fields are mainly national while others are mainly state-local, reflecting the division of responsibilities under federalism.'}
           ]
         }
       ]
     },
     {
-      id: 'round4_visual',
-      type: 'visual_stimulus',
-      label: 'Round 4 — Visual Analysis',
-      icon: '🖼️',
-      color: 'var(--purple)',
-      draw: 1,
-      desc: 'Analyze a political cartoon and answer questions about its argument, symbolism, and connection to constitutional principles.',
-      sets: [
+      id:'round4_visual', type:'visual_stimulus', label:'Round 4 — Visual Analysis',
+      icon:'🖼️', color:'var(--purple)', draw:1,
+      desc:'Analyze a political cartoon and answer questions about its argument, symbolism, and connection to constitutional principles.',
+      sets:[
         {
-          id:'checks_cartoon_set',
-          title:'Political Cartoon: The Great Balancing Act',
-          source:'Adapted from political cartoon tradition. Concept based on public domain Library of Congress imagery.',
-          description:'The cartoon depicts three large figures labeled "CONGRESS," "PRESIDENT," and "SUPREME COURT," each seated in a corner of a triangle. Each figure is connected to the other two by thick iron chains. Each figure pulls against the chains, straining but unable to move freely. In the center of the triangle, a smaller figure labeled "THE AMERICAN PEOPLE" stands peacefully. Below the image, the caption reads: "The System That Keeps Them All in Check." The Congress figure holds a scroll labeled "LAWS"; the President holds a document labeled "VETOES & APPOINTMENTS"; the Court holds scales labeled "JUDICIAL REVIEW."',
+          id:'federalism_cartoon_set',
+          title:'Political Cartoon: The Tug of Federalism',
+          source:'Original classroom-safe scenario inspired by public-domain nineteenth-century federalism cartoons.',
+          description:'A political cartoon shows two large figures pulling on opposite ends of a rope tied around a box labeled "Public Policy." One figure is labeled "National Government" and the other "States." Around the box are smaller labels reading "Education," "Health Care," "Transportation," and "Elections." The caption reads, "Who Holds the Stronger Grip?"',
+          svgType:'federalism_tug',
           questions:[
-            {
-              id:'u1_vis_cb_001', topic:'1.7', bigIdea:'CON', difficulty:'accessible',
-              stem:'The chains connecting the three figures in this cartoon most directly symbolize which constitutional principle?',
-              choices:[
-                {id:'A',text:'Federalism, because the chains represent the ties that bind the national government to state governments in a federal system of shared sovereignty.'},
-                {id:'B',text:'Checks and balances, because the chains represent the constitutional constraints that each branch places on the other two, preventing any from acting alone.'},
-                {id:'C',text:'Separation of powers, because the chains represent the clear division of government functions among three distinct and fully independent branches.'},
-                {id:'D',text:'Popular sovereignty, because the chains represent the binding obligation of all government officials to remain responsive to the will of the citizens they serve.'}
-              ],
-              correct:'B',
-              explanation:'The chains connecting and restraining each branch represent checks and balances — the constitutional mechanisms by which each branch limits the other two. The Congress is restrained by presidential vetoes and judicial review; the President is checked by congressional override and confirmation powers; the Court is checked by congressional jurisdiction and the appointment process. The visual metaphor of chains holding each branch back from unilateral action captures this precisely.'
-            },
-            {
-              id:'u1_vis_cb_002', topic:'1.7', bigIdea:'CON', difficulty:'moderate',
-              stem:'The cartoonist\'s placement of "THE AMERICAN PEOPLE" at the center of the triangle most likely conveys which of the following ideas?',
-              choices:[
-                {id:'A',text:'Citizens have more political power than any branch of government and can override the decisions of Congress, the president, and the courts through direct democracy.'},
-                {id:'B',text:'The system of checks and balances exists to protect citizens — the source of governmental authority — from abuse by any single branch of government.'},
-                {id:'C',text:'Citizens are irrelevant to the day-to-day operation of government, which functions primarily through competition among the three constitutional branches.'},
-                {id:'D',text:'The three branches of government are in constant conflict, leaving citizens without effective representation or protection of their fundamental rights.'}
-              ],
-              correct:'B',
-              explanation:'By placing the American people at the center — peaceful and protected while the three branches strain against each other — the cartoonist suggests that the system of checks and balances ultimately serves the people. The institutional conflict among branches is a feature, not a bug: it keeps each branch from overreaching, protecting citizens from the tyranny that any unchecked branch might otherwise impose. This reflects the Framers\' intent as articulated in Federalist No. 51.'
-            },
-            {
-              id:'u1_vis_cb_003', topic:'1.5', bigIdea:'LOR', difficulty:'challenging',
-              stem:'Which of the following best explains why the author of Brutus No. 1 would have found this cartoon\'s optimistic view of the constitutional system unconvincing?',
-              choices:[
-                {id:'A',text:'Brutus No. 1\'s author believed the judiciary was too weak to effectively check either Congress or the executive, making the depicted balance impossible.'},
-                {id:'B',text:'Brutus No. 1\'s author argued that the national government\'s taxing and spending power was so vast that structural mechanisms could not prevent its eventual dominance over the states.'},
-                {id:'C',text:'Brutus No. 1\'s author believed that the chains depicted in the cartoon would eventually break because human ambition always overcomes constitutional constraints.'},
-                {id:'D',text:'Brutus No. 1\'s author contended that only a bill of rights — not structural mechanisms — could effectively protect citizens from governmental overreach.'}
-              ],
-              correct:'B',
-              explanation:'The author of Brutus No. 1 would argue that the cartoon\'s depiction is misleading because it focuses on the three federal branches checking each other — but the fundamental Anti-Federalist concern was about the federal government as a whole overwhelming state governments. Even if internal federal checks work perfectly, the national government\'s unlimited taxing and spending power would still expand federal dominance over the states. The cartoon misses the federalism dimension entirely.'
-            }
+            {id:'u1_vis_fed_001',topic:'1.6',bigIdea:'CON',difficulty:'accessible',stem:'The cartoonist\'s main argument is most likely that',choices:[{id:'A',text:'public policy often involves tension over how power should be divided between the national and state governments.'},{id:'B',text:'the judiciary has replaced both the national and state governments in domestic policymaking.'},{id:'C',text:'state governments have no constitutional role in elections, schools, or transportation.'},{id:'D',text:'federalism was eliminated once the Constitution replaced the Articles of Confederation.'}],correct:'A',explanation:'The rope-pulling image suggests conflict over control, which is central to federalism.'},
+            {id:'u1_vis_fed_002',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'The rope in the cartoon most clearly symbolizes',choices:[{id:'A',text:'ongoing competition and negotiation over governmental authority between levels of government.'},{id:'B',text:'judicial review of executive branch action within the federal system.'},{id:'C',text:'the amendment process used to revise the Constitution over time.'},{id:'D',text:'popular elections for members of Congress at the state and federal level.'}],correct:'A',explanation:'Because both levels of government are pulling on the same policy box, the rope represents shared and contested authority.'},
+            {id:'u1_vis_fed_003',topic:'1.3',bigIdea:'PMCD',difficulty:'challenging',stem:'Which contemporary debate would best connect to the argument shown in the cartoon?',choices:[{id:'A',text:'Whether election rules should be set mainly by states or more heavily regulated by the national government.'},{id:'B',text:'Whether the House or Senate should be required to initiate all revenue bills under the Constitution.'},{id:'C',text:'Whether Supreme Court justices should serve life terms or fixed, renewable terms set by statute.'},{id:'D',text:'Whether presidents should be required to deliver annual State of the Union addresses to Congress.'}],correct:'A',explanation:'Election administration is a modern example of federal-state conflict over authority, directly relevant to the cartoon\'s theme.'}
           ]
         },
         {
-          id:'federalism_cartoon_set',
-          title:'Political Cartoon: Layer Cake vs. Marble Cake',
-          source:'Original concept based on political science literature. Adapts the "layer cake/marble cake federalism" metaphor used in political science since Morton Grodzins (1960).',
-          description:'The cartoon is divided into two panels. The left panel shows a neat, three-layer cake labeled "DUAL FEDERALISM (1787–1930s)": the bottom layer reads "STATE POWERS," the middle reads "FEDERAL POWERS," and the top reads "RESERVED POWERS." The layers are perfectly separated by clean lines. The right panel shows a messy marble cake labeled "COOPERATIVE FEDERALISM (1930s–TODAY)": the purple and white cake swirls are completely mixed, with labels reading "FEDERAL" and "STATE" scattered throughout the mixing. Below the panels, the caption reads: "Which cake are we eating today?"',
+          id:'checks_balances_cartoon_set',
+          title:'Political Cartoon: The Great American Balancing Act',
+          source:'Original classroom-safe scenario inspired by public-domain separation-of-powers cartoons.',
+          description:'A political cartoon shows three figures standing on a narrow beam above a canyon. One figure is labeled "Congress," one is labeled "President," and one is labeled "Supreme Court." Each figure is holding chains attached to the other two, making it impossible for any one figure to move too far without pulling the others. A banner below reads, "The Great American Balancing Act."',
+          svgType:'checks_balances',
           questions:[
-            {
-              id:'u1_vis_fed_001', topic:'1.6', bigIdea:'CON', difficulty:'accessible',
-              stem:'The left panel\'s "layer cake" image most directly illustrates which concept from constitutional law?',
-              choices:[
-                {id:'A',text:'Cooperative federalism, in which federal and state governments work together on shared programs funded by federal grants distributed to the states.'},
-                {id:'B',text:'Dual federalism, in which the national and state governments each have distinct, separate spheres of authority that do not overlap or intrude on each other.'},
-                {id:'C',text:'New federalism, in which the federal government returns policy responsibility to the states through block grants and reduced federal regulation of state programs.'},
-                {id:'D',text:'Fiscal federalism, in which the federal government uses its superior taxing power to fund programs administered at the state and local government levels.'}
-              ],
-              correct:'B',
-              explanation:'The layer cake analogy was developed by political scientist Morton Grodzins to describe dual federalism — the theory that federal and state governments occupy completely separate and non-overlapping spheres of authority. Just as a layer cake has distinct, separated layers that don\'t mix, dual federalism envisions federal and state powers as clearly delineated. This was the dominant understanding of federalism from the founding through the New Deal era.'
-            },
-            {
-              id:'u1_vis_fed_002', topic:'1.6', bigIdea:'CON', difficulty:'moderate',
-              stem:'The cartoonist\'s question "Which cake are we eating today?" implies which of the following about American federalism?',
-              choices:[
-                {id:'A',text:'The U.S. has returned to a dual federalism model since the 1990s, with states reasserting their authority in response to decades of federal expansion.'},
-                {id:'B',text:'The appropriate balance between federal and state power remains contested, and the actual distribution of power has shifted significantly over American history.'},
-                {id:'C',text:'Neither model of federalism accurately describes the American system, which has always been characterized by complete national supremacy over state governments.'},
-                {id:'D',text:'The marble cake model is constitutionally superior to the layer cake model and has been formally endorsed by the Supreme Court as the correct interpretation.'}
-              ],
-              correct:'B',
-              explanation:'The cartoonist\'s question is fundamentally about the contested and evolving nature of American federalism. The shift from the layer cake (dual federalism) to the marble cake (cooperative federalism) reflects real historical changes — the New Deal expansion, the Great Society programs, Medicaid, the proliferation of federal grants-in-aid. But the question implies this is ongoing: debates about Obamacare, education policy, and environmental regulation all involve competing visions of the federal-state balance.'
-            },
-            {
-              id:'u1_vis_fed_003', topic:'1.6', bigIdea:'PMCD', difficulty:'challenging',
-              stem:'Which Supreme Court case most directly marked the transition from the "layer cake" to the "marble cake" era of American federalism?',
-              choices:[
-                {id:'A',text:'Marbury v. Madison (1803), which established the power of judicial review and gave the Supreme Court authority to interpret federal-state power boundaries.'},
-                {id:'B',text:'McCulloch v. Maryland (1819), which broadly interpreted implied federal powers and established national supremacy over state attempts to tax federal institutions.'},
-                {id:'C',text:'United States v. Lopez (1995), which struck down a federal law as exceeding commerce clause authority and began a partial return toward dual federalism limits.'},
-                {id:'D',text:'NLRB v. Jones & Laughlin Steel (1937), which upheld broad New Deal commerce clause authority and effectively ended dual federalism as a constitutional doctrine.'}
-              ],
-              correct:'D',
-              explanation:'NLRB v. Jones & Laughlin Steel (1937) was the pivotal "switch in time that saved nine" case — the Supreme Court upheld New Deal legislation under a dramatically expanded commerce clause interpretation. This effectively ended the dual federalism era and began the cooperative federalism era, in which Congress could regulate virtually any economic activity. McCulloch (1819) was important but predated the marble cake era; Lopez (1995) was a partial correction, not the transition.'
-            }
+            {id:'u1_vis_cb_001',topic:'1.7',bigIdea:'CON',difficulty:'accessible',stem:'The chains in the cartoon most directly represent which constitutional principle?',choices:[{id:'A',text:'Checks and balances, which allow each branch to limit and restrain the other two branches.'},{id:'B',text:'Direct democracy, which gives citizens immediate control over all government decisions.'},{id:'C',text:'Reserved powers, which protect state authority from federal interference.'},{id:'D',text:'Judicial federalism, which gives courts authority over both national and state law.'}],correct:'A',explanation:'The chains symbolize the ability of each branch to limit the others.'},
+            {id:'u1_vis_cb_002',topic:'1.7',bigIdea:'CON',difficulty:'moderate',stem:'The cartoonist\'s argument is best summarized by which statement?',choices:[{id:'A',text:'The constitutional system is designed so that no branch can act entirely without restraint from the other two.'},{id:'B',text:'The president is intended to dominate Congress and the courts during ordinary policymaking cycles.'},{id:'C',text:'The judiciary is the only branch with the authority to preserve democratic stability long-term.'},{id:'D',text:'Congress and the courts are constitutionally dependent on approval from state governors.'}],correct:'A',explanation:'The shared chains and balancing beam show mutual dependence and restraint among the branches.'},
+            {id:'u1_vis_cb_003',topic:'1.6',bigIdea:'CON',difficulty:'challenging',stem:'Which foundational document would most directly support the constitutional logic shown in the cartoon?',choices:[{id:'A',text:'Federalist No. 51, which argues that each branch must have the means to check the others.'},{id:'B',text:'Brutus No. 1, which argues that a large republic threatens individual liberty.'},{id:'C',text:'The Declaration of Independence, which lists grievances against the British monarchy.'},{id:'D',text:'The Articles of Confederation, which established the original framework before the Constitution.'}],correct:'A',explanation:'Federalist No. 51 argues that government must be structured so that each part can check the others.'}
           ]
         }
       ]
@@ -1501,7 +1149,7 @@ function renderStimulus(round, set) {
   if (round.type === 'document_stimulus') {
     return `<div class="stimulus-box">
       <div class="stimulus-label">📄 FOUNDATIONAL DOCUMENT</div>
-      <div class="stimulus-title">${set.document} ${set.author ? '— ' + set.author : ''} (${set.year})</div>
+      <div class="stimulus-title">${set.document}${set.author?' — '+set.author:''} (${set.year})</div>
       <div class="stimulus-source">${set.source}</div>
       <div class="stimulus-text">"${set.excerpt}"</div>
     </div>`;
@@ -1510,15 +1158,16 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">📊 DATA STIMULUS</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      <div class="stimulus-chart" id="chart-container"></div>
-      ${set.note ? `<div class="stimulus-desc">${set.note}</div>` : ''}
+      <div id="chart-container"></div>
+      ${set.note?`<div class="stimulus-desc" style="margin-top:8px;font-size:10px">${set.note}</div>`:''}
     </div>`;
   } else if (round.type === 'visual_stimulus') {
     return `<div class="stimulus-box">
-      <div class="stimulus-label">🖼️ VISUAL STIMULUS</div>
+      <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      <div class="stimulus-desc">${set.description}</div>
+      ${renderCartoonSVG(set)}
+      <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
   return '';
@@ -1528,34 +1177,135 @@ function renderChart(set) {
   const container = document.getElementById('chart-container');
   if (!container || !set.data) return;
 
+  if (set.chartType === 'grouped_bar') {
+    renderGroupedBar(container, set);
+  } else {
+    renderSimpleBar(container, set);
+  }
+}
+
+function renderSimpleBar(container, set) {
   const { labels, values } = set.data;
   const max = Math.max(...values);
-
-  let html = `<div class="chart-wrap">
-    <div class="chart-title">${set.chartLabel || ''}</div>
-    <div class="chart-bars">`;
-
+  let html = `<div class="chart-wrap"><div class="chart-title">${set.chartLabel||''}</div><div class="chart-bars">`;
   labels.forEach((lbl, i) => {
     const pct = Math.round((values[i] / max) * 100);
-    html += `<div class="chart-bar-wrap">
-      <div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div>
+    html += `<div class="chart-bar-wrap"><div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div></div>`;
+  });
+  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
+  labels.forEach(lbl => { html += `<div class="chart-label" style="flex:1">${lbl}</div>`; });
+  html += `</div><div class="chart-source">${set.source}</div></div>`;
+  container.innerHTML = html;
+  setTimeout(() => { container.querySelectorAll('.chart-bar').forEach(b => { b.style.height = b.dataset.target; }); }, 100);
+}
+
+function renderGroupedBar(container, set) {
+  const { labels, federal, stateLocal } = set.data;
+  const max = 100;
+  let html = `<div class="chart-wrap">
+    <div style="display:flex;gap:14px;margin-bottom:8px;font-family:var(--dm);font-size:9px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--blue);display:inline-block"></span>Federal</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--teal);display:inline-block"></span>State & Local</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-end;height:120px;border-bottom:1px solid var(--border2)">`;
+  labels.forEach((lbl, i) => {
+    const fp = Math.round((federal[i] / max) * 100);
+    const sp = Math.round((stateLocal[i] / max) * 100);
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:100px;width:100%">
+        <div style="flex:1;background:var(--blue);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${fp}%" title="Federal: ${federal[i]}%"></div>
+        <div style="flex:1;background:var(--teal);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${sp}%" title="State/Local: ${stateLocal[i]}%"></div>
+      </div>
     </div>`;
   });
-
-  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
-  labels.forEach(lbl => {
-    html += `<div class="chart-label" style="flex:1">${lbl}</div>`;
-  });
-  html += `</div><div class="chart-source">${set.source}</div></div>`;
-
+  html += `</div><div style="display:flex;gap:16px;margin-top:4px">`;
+  labels.forEach(lbl => { html += `<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;line-height:1.3">${lbl}</div>`; });
+  html += `</div><div class="chart-source" style="margin-top:8px">${set.source}</div></div>`;
   container.innerHTML = html;
-
-  // Animate bars after render
   setTimeout(() => {
-    container.querySelectorAll('.chart-bar').forEach(bar => {
-      bar.style.height = bar.dataset.target;
-    });
+    container.querySelectorAll('[data-target]').forEach(b => { b.style.height = b.dataset.target; });
   }, 100);
+}
+
+// SVG Cartoon renderer
+function renderCartoonSVG(set) {
+  if (!set.svgType) return '';
+  if (set.svgType === 'federalism_tug') return federalismTugSVG();
+  if (set.svgType === 'checks_balances') return checksBalancesSVG();
+  return '';
+}
+
+function federalismTugSVG() {
+  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <!-- Background -->
+    <rect width="560" height="220" fill="rgba(14,20,32,.8)" rx="4"/>
+    <!-- National Govt figure (left) -->
+    <g>
+      <circle cx="80" cy="80" r="22" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+      <text x="80" y="84" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">NATIONAL</text>
+      <text x="80" y="96" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">GOVT</text>
+      <rect x="60" y="104" width="40" height="50" fill="#1e3a5a" stroke="#4878d0" stroke-width="1"/>
+      <line x1="60" y1="120" x2="42" y2="140" stroke="#4878d0" stroke-width="2.5"/>
+      <line x1="100" y1="120" x2="118" y2="105" stroke="#4878d0" stroke-width="2.5"/>
+    </g>
+    <!-- States figure (right) -->
+    <g>
+      <circle cx="480" cy="80" r="22" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1.5"/>
+      <text x="480" y="88" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#2aaa98" letter-spacing="1">STATES</text>
+      <rect x="460" y="104" width="40" height="50" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1"/>
+      <line x1="460" y1="120" x2="442" y2="105" stroke="#2aaa98" stroke-width="2.5"/>
+      <line x1="500" y1="120" x2="518" y2="140" stroke="#2aaa98" stroke-width="2.5"/>
+    </g>
+    <!-- Rope -->
+    <path d="M118 110 Q140 118 160 112 Q200 100 240 108 Q280 116 320 108 Q360 100 400 112 Q420 118 442 110" fill="none" stroke="#a07840" stroke-width="4" stroke-linecap="round"/>
+    <!-- Policy box -->
+    <rect x="220" y="128" width="120" height="66" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5" rx="3"/>
+    <text x="280" y="148" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">PUBLIC</text>
+    <text x="280" y="162" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">POLICY</text>
+    <!-- Labels on box -->
+    <text x="248" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Education</text>
+    <text x="280" y="186" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Health Care</text>
+    <text x="313" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Elections</text>
+    <!-- Caption -->
+    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Holds the Stronger Grip?"</text>
+  </svg>`;
+}
+
+function checksBalancesSVG() {
+  return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <rect width="560" height="230" fill="rgba(14,20,32,.8)" rx="4"/>
+    <!-- Canyon/beam -->
+    <rect x="80" y="150" width="400" height="8" fill="#2a3a54" stroke="#4a5a70" stroke-width="1" rx="2"/>
+    <path d="M80 158 L60 220 L180 220 L140 158Z" fill="#0a1018"/>
+    <path d="M480 158 L500 220 L380 220 L420 158Z" fill="#0a1018"/>
+    <path d="M180 158 L220 200 L340 200 L380 158Z" fill="#060c14"/>
+    <!-- Congress (left) -->
+    <g>
+      <circle cx="140" cy="128" r="20" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+      <text x="140" y="126" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#6898e8">CONGRESS</text>
+      <rect x="122" y="148" width="36" height="4" fill="#1e3a5a"/>
+    </g>
+    <!-- President (center) -->
+    <g>
+      <circle cx="280" cy="118" r="20" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
+      <text x="280" y="114" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#2aaa98">PRESIDENT</text>
+      <rect x="262" y="138" width="36" height="4" fill="#1a2a1a"/>
+    </g>
+    <!-- Supreme Court (right) -->
+    <g>
+      <circle cx="420" cy="128" r="20" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
+      <text x="420" y="122" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">SUPREME</text>
+      <text x="420" y="134" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">COURT</text>
+      <rect x="402" y="148" width="36" height="4" fill="#2a1a3a"/>
+    </g>
+    <!-- Chains -->
+    <path d="M158 124 Q200 108 262 120" fill="none" stroke="#a07840" stroke-width="2" stroke-dasharray="4 2"/>
+    <path d="M298 120 Q360 108 402 124" fill="none" stroke="#a07840" stroke-width="2" stroke-dasharray="4 2"/>
+    <path d="M155 136 Q280 168 405 136" fill="none" stroke="#a07840" stroke-width="1.5" stroke-dasharray="4 2"/>
+    <!-- Banner -->
+    <rect x="150" y="178" width="260" height="28" fill="#0e1420" stroke="#4a5a70" stroke-width="1" rx="3"/>
+    <text x="280" y="196" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"The Great American Balancing Act"</text>
+  </svg>`;
 }
 
 // ── ANSWER HANDLING ────────────────────────────────
@@ -1746,7 +1496,238 @@ function clearTimer() {
   if (G.timer) { clearInterval(G.timer); G.timer = null; }
 }
 
-// Anti-cheat
+// ── FRQ HUB FUNCTIONS ────────────────────────────────
+const FRQ_RUBRICS = {
+  frq1: {
+    title: 'Federalism in Practice (Concept Application)',
+    maxScore: 3,
+    goldReward: 60,
+    rubric: `This is a 3-point Concept Application FRQ scored as follows:
+
+PART A (1 point): Student describes a constitutional provision relevant to the scenario. Accept: supremacy clause, necessary and proper clause, commerce clause, 10th Amendment, preemption doctrine. Must be accurately described, not just named.
+
+PART B (1 point): Student explains how the provision described in Part A creates a conflict between state and national governments in the context of the marijuana scenario. Must connect the specific provision to the specific conflict — not a generic answer.
+
+PART C (1 point): Student explains how McCulloch v. Maryland (1819) could be used to resolve a similar federal-state conflict. Must accurately reference McCulloch's holding (implied powers, necessary and proper clause, national supremacy) and apply it to the scenario logic.
+
+SCORING NOTES:
+- Each part is scored independently (0 or 1)
+- Generic or vague answers earn 0
+- Student does not need to use the word "McCulloch" if they accurately describe the holding
+- Maximum 3 points total`
+  },
+  frq2: {
+    title: 'Faction & Democratic Governance (Argument Essay)',
+    maxScore: 6,
+    goldReward: 120,
+    rubric: `This is a 6-point Argument Essay FRQ scored as follows:
+
+TASK A — THESIS (1 point): Student articulates a defensible claim that explains whether a large republic helps or hinders democratic governance, AND establishes a line of reasoning. Must go beyond restating the prompt. Cannot earn Task B3 or D without earning Task A.
+
+TASK B1 — EVIDENCE (1 point): One piece of evidence accurately linked to the topic.
+
+TASK B2 — EVIDENCE (1 point): One specific and relevant piece of evidence supporting the claim OR two pieces relevant to the topic. NOTE: To earn Task B3, must use one of the listed foundational documents.
+
+TASK B3 — EVIDENCE (1 point): TWO pieces of specific and relevant evidence supporting the claim. MUST include evidence from Federalist No. 10 OR Brutus No. 1. Requires Task A.
+
+TASK C — REASONING (1 point): Correctly explains HOW or WHY the evidence supports the argument. Requires at least Task B1.
+
+TASK D — COUNTERARGUMENT (1 point): Responds to an opposing perspective with rebuttal or refutation. Must describe the alternate perspective AND rebut/refute it. Requires Task A.
+
+SCORING NOTES:
+- Tasks B3 and D require Task A
+- Task C requires Task B1
+- Maximum 6 points total
+- Using Federalist No. 10 or Brutus No. 1 accurately counts as foundational document evidence`
+  }
+};
+
+function updateFRQWordCount(frqId, el) {
+  const wc = document.getElementById(frqId + '-wc');
+  if (!wc) return;
+  const words = el.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+  wc.textContent = words + ' word' + (words !== 1 ? 's' : '');
+  wc.style.color = words < 50 ? 'var(--red2)' : words < 150 ? 'var(--amber)' : 'var(--green2)';
+}
+
+async function submitFRQHub(frqId) {
+  const rubricData = FRQ_RUBRICS[frqId];
+  if (!rubricData) return;
+
+  const textEl = document.getElementById(frqId + '-text');
+  const btnEl = document.getElementById(frqId + '-btn');
+  const feedbackEl = document.getElementById(frqId + '-feedback');
+  if (!textEl || !feedbackEl) return;
+
+  const response = textEl.value.trim();
+  const wordCount = response.split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 40) { notify('Write at least 40 words before submitting.'); return; }
+
+  // Loading state
+  btnEl.disabled = true;
+  btnEl.textContent = '⏳ Grading…';
+  feedbackEl.style.display = 'block';
+  feedbackEl.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:8px 0">
+    <div style="font-size:22px">🏛️</div>
+    <div>
+      <div style="font-family:var(--bebas);font-size:13px;color:var(--purple2);letter-spacing:2px">Grading against the AP rubric…</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px">This takes about 10 seconds</div>
+    </div>
+  </div>`;
+
+  try {
+    const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are an expert AP U.S. Government and Politics FRQ grader. Score strictly against the official College Board rubric. Be fair, specific, and encouraging. Respond ONLY in valid JSON — no markdown, no preamble.`,
+        messages: [{
+          role: 'user',
+          content: `Grade this AP Gov FRQ response.
+
+FRQ TITLE: ${rubricData.title}
+
+RUBRIC:
+${rubricData.rubric}
+
+STUDENT RESPONSE:
+${response}
+
+Return ONLY this JSON — tasks vary by FRQ type:
+
+For a 3-point Concept Application FRQ:
+{
+  "totalScore": <0-3>,
+  "tasks": {
+    "A": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "C": {"earned": <0|1>, "feedback": "<specific feedback>"}
+  },
+  "overallFeedback": "<2-3 sentence summary>",
+  "improveHint": "<one actionable improvement>"
+}
+
+For a 6-point Argument Essay FRQ:
+{
+  "totalScore": <0-6>,
+  "tasks": {
+    "A": {"earned": <0|1>, "feedback": "<specific feedback on thesis>"},
+    "B1": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B2": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "B3": {"earned": <0|1>, "feedback": "<specific feedback>"},
+    "C": {"earned": <0|1>, "feedback": "<specific feedback on reasoning>"},
+    "D": {"earned": <0|1>, "feedback": "<specific feedback on counterargument>"}
+  },
+  "overallFeedback": "<2-3 sentence summary>",
+  "improveHint": "<one actionable improvement>"
+}`
+        }]
+      })
+    });
+
+    const data = await apiResponse.json();
+    const raw = data.content?.[0]?.text || '{}';
+    const result = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    const score = result.totalScore ?? 0;
+    const tasks = result.tasks || {};
+
+    // Save best score
+    try {
+      const key = 'civitas_frq_' + UNIT_ID + '_' + frqId;
+      const prev = parseInt(localStorage.getItem(key) || '0');
+      const isNew = score > prev;
+      if (isNew) localStorage.setItem(key, score);
+
+      // Award gold on improvement
+      if (isNew && score > 0) {
+        const gold = Math.round(rubricData.goldReward * (score / rubricData.maxScore));
+        awardGoldToShell(gold, 'FRQ: ' + rubricData.title);
+        spawnGold('+' + gold + ' 🪙');
+      }
+
+      // Show badge
+      const badge = document.getElementById(frqId + '-badge');
+      if (badge) {
+        badge.textContent = score + '/' + rubricData.maxScore;
+        badge.style.display = 'block';
+      }
+    } catch(e) {}
+
+    // Save to Supabase
+    saveFRQResult(frqId, score, rubricData.maxScore, response, result.overallFeedback);
+
+    // Task label maps
+    const taskLabels3 = { A: 'Part A', B: 'Part B', C: 'Part C' };
+    const taskLabels6 = { A: 'Thesis', B1: 'Evidence 1', B2: 'Evidence 2', B3: 'Foundational Doc', C: 'Reasoning', D: 'Counterargument' };
+    const taskLabels = rubricData.maxScore === 3 ? taskLabels3 : taskLabels6;
+    const taskColors = { A:'var(--amber)', B:'var(--teal2)', B1:'var(--teal2)', B2:'var(--teal2)', B3:'var(--blue2)', C:'var(--green2)', D:'var(--purple2)' };
+
+    feedbackEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--bebas);font-size:44px;line-height:1;color:${score>=Math.ceil(rubricData.maxScore*.8)?'var(--green2)':score>=Math.ceil(rubricData.maxScore*.5)?'var(--amber)':'var(--red2)'}">${score}/${rubricData.maxScore}</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">AP SCORE</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.6;font-style:italic">${result.overallFeedback || ''}</div>
+        </div>
+      </div>
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">POINT BREAKDOWN</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:7px;margin-bottom:12px">
+        ${Object.entries(tasks).map(([t, d]) => `
+          <div style="background:var(--bg3);border:1px solid ${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--border)'};border-left:3px solid ${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--border)'};padding:9px 12px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-family:var(--bebas);font-size:10px;color:${d.earned ? taskColors[t] || 'var(--blue)' : 'var(--text3)'}">${taskLabels[t] || 'Task '+t}</span>
+              <span style="font-family:var(--bebas);font-size:13px;color:${d.earned ? 'var(--green2)' : 'var(--red2)'}">${d.earned ? '✓ +1' : '✗ 0'}</span>
+            </div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${d.feedback || ''}</div>
+          </div>`).join('')}
+      </div>
+      ${result.improveHint ? `<div style="background:rgba(112,96,208,.08);border:1px solid var(--purple2);border-left:3px solid var(--purple2);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">💡 KEY IMPROVEMENT</div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">${result.improveHint}</div>
+      </div>` : ''}
+      <div style="margin-top:10px;font-family:var(--dm);font-size:9px;color:var(--text3)">Revise your response above and resubmit to improve your score.</div>`;
+
+    btnEl.textContent = '↺ Resubmit';
+
+  } catch(e) {
+    feedbackEl.innerHTML = `<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection and try again.<br><small>${e.message}</small></div>`;
+    btnEl.textContent = '⚡ Submit for AI Grading';
+  }
+  btnEl.disabled = false;
+}
+
+async function saveFRQResult(frqId, score, maxScore, response, feedback) {
+  const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+  const studentName = localStorage.getItem('civitas_student_name') || 'Unknown';
+  try {
+    await fetch(SUPA_URL + '/rest/v1/civitas_frq_results', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        student_name: studentName,
+        full_name: studentName,
+        course_id: 'ap_gov',
+        frq_id: UNIT_ID + '_' + frqId,
+        score, max_score: maxScore,
+        response_text: response.slice(0, 3000),
+        ai_feedback: (feedback || '').slice(0, 1000),
+        submitted_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
+
+// ── Anti-cheat
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
   document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
