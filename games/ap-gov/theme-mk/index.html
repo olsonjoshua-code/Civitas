@@ -237,6 +237,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
   <div class="hub-tabs">
     <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
     <button class="hub-tab" onclick="switchTab('about',this)">📋 About This Game</button>
   </div>
   <div class="hub-content">
@@ -253,6 +254,84 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       <div class="sh">Game Rounds</div>
       <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
     </div>
+    <div class="hub-panel" id="tab-frq">
+      <div class="sh">FRQ Practice — AI Graded</div>
+      <div style="background:rgba(112,96,208,.06);border:1px solid var(--acc);border-left:3px solid var(--acc2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">
+        <strong style="color:var(--acc2)">How it works:</strong> Write your response below, then click Submit. Claude grades it against the official College Board rubric point by point and gives you instant feedback. Resubmit as many times as you want to improve.
+      </div>
+
+      <!-- FRQ 1: Concept Application -->
+      <div style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">📋</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">MK · CONCEPT APPLICATION FRQ · 3 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">Voting Rights and Political Participation</div>
+          </div>
+          <div id="frq1-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            A state legislature passes a law requiring all voters to present a government-issued photo ID at the polls. Supporters argue the law prevents fraud. Critics argue it suppresses turnout among low-income and minority voters who are less likely to possess qualifying ID. A civil rights organization challenges the law in federal court. Use the scenario above to answer the following:
+            <br><br>
+            <strong>(A)</strong> Identify a constitutional amendment or federal law that is relevant to this scenario.<br>
+            <strong>(B)</strong> In the context of this scenario, explain how the provision you identified in Part A relates to the conflict over the voter ID law.<br>
+            <strong>(C)</strong> Explain how the concept of linkage institutions connects to the civil rights organization's decision to challenge the law in court.
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq1-text" style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq1',this)" placeholder="Identify a constitutional amendment or law, explain how it applies to the scenario, then connect to linkage institutions..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq1-wc">0 words</div>
+            <button onclick="submitFRQ('frq1')" id="frq1-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--acc);color:var(--acc2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--acc)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--acc2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq1-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+
+      <!-- FRQ 2: Argument Essay -->
+      <div style="background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+        <div style="border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">✍️</div>
+          <div style="flex:1">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">MK · ARGUMENT ESSAY · 6 POINTS</div>
+            <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">Social Movements and Democratic Change</div>
+          </div>
+          <div id="frq2-badge" style="display:none;font-family:var(--bebas);font-size:24px;color:var(--green2)"></div>
+        </div>
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>
+          <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">
+            Develop an argument that explains whether social movements are an effective means of expanding political participation and producing democratic change in the United States.
+            <br><br>
+            Use at least <strong>one piece of evidence</strong> from one of the following foundational documents:
+            <ul style="margin:10px 0 10px 20px;line-height:2">
+              <li>Letter from Birmingham Jail (Martin Luther King Jr., 1963)</li>
+              <li>Federalist No. 10 (James Madison, 1787)</li>
+            </ul>
+            In your essay, you must:
+            <ul style="margin:0 0 0 20px;line-height:2">
+              <li>Articulate a defensible claim or thesis that establishes a line of reasoning</li>
+              <li>Support your claim with at least TWO pieces of evidence (one from the documents above)</li>
+              <li>Use reasoning to explain why your evidence supports your claim</li>
+              <li>Respond to an opposing perspective using rebuttal or refutation</li>
+            </ul>
+          </div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>
+          <textarea id="frq2-text" style="width:100%;min-height:200px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--border2)'" oninput="updateFRQWordCount('frq2',this)" placeholder="Begin with a defensible thesis. Use evidence from Letter from Birmingham Jail or Federalist 10. Address a counterargument..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq2-wc">0 words</div>
+            <button onclick="submitFRQ('frq2')" id="frq2-btn" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--acc);color:var(--acc2);padding:8px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--acc)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--acc2)'">⚡ Submit for AI Grading</button>
+          </div>
+        </div>
+        <div id="frq2-feedback" style="display:none;padding:16px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)"></div>
+      </div>
+    </div>
+
     <div class="hub-panel" id="tab-about">
       <div class="sh">About This Game</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc2);padding:22px 26px;margin-bottom:18px">
@@ -520,7 +599,10 @@ function renderCompleteBanner(){
   el.parentNode.insertBefore(banner,el);
 }
 
-function returnToShell(){try{localStorage.setItem('civitas_returning','1');}catch(e){}window.location.href=CIVITAS_URL;}
+function returnToShell(){
+  try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_gov');}catch(e){}
+  window.location.href=CIVITAS_URL;
+}
 function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');}
 
 function startRound(roundIdx){
@@ -747,6 +829,106 @@ function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getIt
 function playAgain(){document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';renderRoundCards();}
 function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
 function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3200);}
+
+// ── FRQ FUNCTIONS ─────────────────────────────────
+const FRQ_RUBRICS = {
+  frq1: {
+    title: 'Voting Rights and Political Participation (Concept Application)',
+    maxScore: 3, goldReward: 60,
+    rubric: `3-point Concept Application FRQ:
+PART A (1 point): Student identifies a constitutional amendment or federal law relevant to the scenario. Accept: 15th Amendment (race), 24th Amendment (poll taxes), Voting Rights Act of 1965, 14th Amendment equal protection clause. Must be accurately described, not just named.
+PART B (1 point): Student explains how the provision identified in Part A relates to the conflict over the voter ID law in the specific scenario. Must connect the specific provision to the specific dispute — not a generic definition.
+PART C (1 point): Student explains how linkage institutions connect to the civil rights organization's decision to challenge the law. Must accurately describe linkage institutions (organizations connecting citizens to government) and explain how the organization acts as one by using the courts to influence policy on behalf of affected voters.
+SCORING: Each part scored independently (0 or 1). Generic answers earn 0. Maximum 3 points.`
+  },
+  frq2: {
+    title: 'Social Movements and Democratic Change (Argument Essay)',
+    maxScore: 6, goldReward: 120,
+    rubric: `6-point Argument Essay FRQ:
+TASK A — THESIS (1 point): Defensible claim about whether social movements are an effective means of expanding participation and producing democratic change, with a line of reasoning. Must go beyond restating the prompt. Required for Tasks B3 and D.
+TASK B1 — EVIDENCE (1 point): One accurate piece of evidence linked to the topic.
+TASK B2 — EVIDENCE (1 point): Second piece of evidence, or two total pieces relevant to the topic.
+TASK B3 — EVIDENCE (1 point): TWO pieces including evidence from the Letter from Birmingham Jail OR Federalist No. 10. Requires Task A.
+TASK C — REASONING (1 point): Explains HOW or WHY evidence supports the argument. Requires Task B1.
+TASK D — COUNTERARGUMENT (1 point): Describes an opposing view AND rebuts or refutes it. Requires Task A.
+SCORING: Tasks B3 and D require Task A. Task C requires Task B1. Maximum 6 points.`
+  }
+};
+
+function updateFRQWordCount(frqId, el) {
+  const wc = document.getElementById(frqId+'-wc');
+  if(!wc) return;
+  const words = el.value.trim().split(/\s+/).filter(w=>w.length>0).length;
+  wc.textContent = words+' word'+(words!==1?'s':'');
+  wc.style.color = words<50?'var(--red2)':words<150?'var(--amber)':'var(--green2)';
+}
+
+async function submitFRQ(frqId) {
+  const rd = FRQ_RUBRICS[frqId];
+  if(!rd) return;
+  const textEl=document.getElementById(frqId+'-text');
+  const btnEl=document.getElementById(frqId+'-btn');
+  const feedEl=document.getElementById(frqId+'-feedback');
+  if(!textEl||!feedEl) return;
+  const resp=textEl.value.trim();
+  if(resp.split(/\s+/).filter(w=>w.length>0).length<40){notify('Write at least 40 words first.');return;}
+  btnEl.disabled=true; btnEl.textContent='⏳ Grading…';
+  feedEl.style.display='block';
+  feedEl.innerHTML='<div style="padding:12px;font-family:var(--dm);font-size:11px;color:var(--acc2)">🏛️ Grading against the AP rubric — about 10 seconds…</div>';
+  try {
+    const apiResp = await fetch('https://aged-tooth-21e7.jonesolson79.workers.dev',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        system:'You are an expert AP U.S. Government and Politics FRQ grader. Score strictly against the official College Board rubric. Be fair, specific, and encouraging. Respond ONLY in valid JSON — no markdown, no preamble.',
+        messages:[{role:'user', content:
+          'Grade this AP Gov FRQ.\n\nFRQ TITLE: '+rd.title+'\n\nRUBRIC:\n'+rd.rubric+'\n\nSTUDENT RESPONSE:\n'+resp+'\n\n'+
+          (rd.maxScore===3?
+'This is a 3-POINT CONCEPT APPLICATION FRQ. Return ONLY this JSON:\n{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<Part A feedback>"},"B":{"earned":<0|1>,"feedback":"<Part B feedback>"},"C":{"earned":<0|1>,"feedback":"<Part C feedback>"}},"overallFeedback":"<2-3 sentence summary>","improveHint":"<one specific improvement>"}':
+'This is a 6-POINT ARGUMENT ESSAY FRQ. Return ONLY this JSON:\n{"totalScore":<0-6>,"tasks":{"A":{"earned":<0|1>,"feedback":"<thesis feedback>"},"B1":{"earned":<0|1>,"feedback":"<evidence 1>"},"B2":{"earned":<0|1>,"feedback":"<evidence 2>"},"B3":{"earned":<0|1>,"feedback":"<foundational doc>"},"C":{"earned":<0|1>,"feedback":"<reasoning>"},"D":{"earned":<0|1>,"feedback":"<counterargument>"}},"overallFeedback":"<2-3 sentence summary>","improveHint":"<one specific improvement>"}'
+          )
+        }]
+      })
+    });
+    const data=await apiResp.json();
+    const raw=data.content?.[0]?.text||'{}';
+    const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const score=result.totalScore??0;
+    const tasks=result.tasks||{};
+    try{
+      const key='civitas_frq_mk_'+frqId;
+      const prev=parseInt(localStorage.getItem(key)||'0');
+      if(score>prev){
+        localStorage.setItem(key,score);
+        const gold=Math.round(rd.goldReward*(score/rd.maxScore));
+        if(gold>0){const cur=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',cur+gold);spawnGold('+'+gold+' 🪙');}
+      }
+      const badge=document.getElementById(frqId+'-badge');
+      if(badge){badge.textContent=score+'/'+rd.maxScore;badge.style.display='block';}
+    }catch(e){}
+    const tl3={A:'Part A',B:'Part B',C:'Part C'};
+    const tl6={A:'Thesis',B1:'Evidence 1',B2:'Evidence 2',B3:'Foundational Doc',C:'Reasoning',D:'Counterargument'};
+    const tl=rd.maxScore===3?tl3:tl6;
+    const sc=score===rd.maxScore?'var(--green2)':score>=Math.ceil(rd.maxScore*.67)?'var(--amber)':'var(--red2)';
+    feedEl.innerHTML=`
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+        <div><div style="font-family:var(--bebas);font-size:44px;line-height:1;color:${sc}">${score}/${rd.maxScore}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3)">AP SCORE</div></div>
+        <div style="flex:1;font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.6;font-style:italic">${result.overallFeedback||''}</div>
+      </div>
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">POINT BREAKDOWN</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:7px;margin-bottom:12px">
+        ${Object.entries(tasks).map(([t,d])=>`<div style="background:var(--bg3);border:1px solid ${d.earned?'var(--acc)':'var(--border)'};border-left:3px solid ${d.earned?'var(--acc)':'var(--border)'};padding:9px 12px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:10px;color:${d.earned?'var(--acc2)':'var(--text3)'}">${tl[t]||'Task '+t}</span><span style="font-family:var(--bebas);font-size:13px;color:${d.earned?'var(--green2)':'var(--red2)'}">${d.earned?'✓ +1':'✗ 0'}</span></div><div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${d.feedback||''}</div></div>`).join('')}
+      </div>
+      ${result.improveHint?`<div style="background:rgba(0,0,0,.2);border-left:3px solid var(--acc2);padding:10px 14px;margin-bottom:8px"><div style="font-family:var(--bebas);font-size:9px;color:var(--acc2);letter-spacing:2px;margin-bottom:4px">💡 KEY IMPROVEMENT</div><div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">${result.improveHint}</div></div>`:''}
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Revise above and resubmit to improve your score.</div>`;
+    btnEl.textContent='↺ Resubmit';
+  } catch(e) {
+    feedEl.innerHTML=`<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection and try again.<br><small>${e.message}</small></div>`;
+    btnEl.textContent='⚡ Submit for AI Grading';
+  }
+  btnEl.disabled=false;
+}
+
 (function(){function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});document.addEventListener('keydown',e=>{if(isInput(e.target))return;const ctrl=e.ctrlKey||e.metaKey;if(ctrl&&['u','s'].includes(e.key.toLowerCase()))e.preventDefault();});document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});})();
 </script>
 </body>
