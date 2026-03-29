@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -342,30 +341,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <!-- PLAY TAB -->
     <div class="hub-panel active" id="tab-play">
 
-      <!-- Progress -->
-      <div class="prog-wrap" id="prog-wrap" style="display:none">
+      <!-- Overall unit progress bar -->
+      <div class="prog-wrap" id="prog-wrap">
         <div class="prog-label">
-          <span>YOUR PROGRESS</span>
-          <span id="prog-pct">0%</span>
+          <span>UNIT PROGRESS</span>
+          <span id="prog-pct">0 / 4 rounds complete</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       </div>
 
-      <div class="sh">Activities</div>
-      <div class="activity-grid">
+      <!-- Round cards -->
+      <div class="sh">Game Rounds</div>
+      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
 
-        <!-- Main Game -->
-        <div class="activity-card" onclick="startGame()" style="border-top:3px solid var(--blue)">
-          <div class="activity-card-strip" style="background:var(--blue)"></div>
-          <div class="activity-card-body">
-            <div class="activity-card-icon">🎮</div>
-            <div class="activity-card-label">MAIN ACTIVITY · 4 ROUNDS</div>
-            <div class="activity-card-title">Unit 1 Game</div>
-            <div class="activity-card-desc">Four rounds of AP-style questions — knowledge check, document analysis, data interpretation, and visual stimulus. Randomized every attempt.</div>
-            <div class="activity-card-action" style="color:var(--blue2)">▶ Start Game</div>
-          </div>
-          <div class="activity-card-badge" id="game-badge" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
-        </div>
+      <!-- Study activities -->
+      <div class="sh">Study Tools</div>
+      <div class="activity-grid">
 
         <!-- Briefing -->
         <div class="activity-card" onclick="switchTab('briefing',document.querySelectorAll('.hub-tab')[1])" style="border-top:3px solid var(--teal)">
@@ -374,7 +365,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
             <div class="activity-card-icon">📋</div>
             <div class="activity-card-label">STUDY GUIDE</div>
             <div class="activity-card-title">Unit Briefing</div>
-            <div class="activity-card-desc">Complete review of all Unit 1 topics, required documents, SCOTUS cases, and key vocabulary — written for AP exam readiness.</div>
+            <div class="activity-card-desc">Complete review of all Unit 2 topics, required documents, SCOTUS cases, and key vocabulary — written for AP exam readiness.</div>
             <div class="activity-card-action" style="color:var(--teal2)">→ Read Briefing</div>
           </div>
         </div>
@@ -386,7 +377,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
             <div class="activity-card-icon">🃏</div>
             <div class="activity-card-label">VOCABULARY · SPACED REPETITION</div>
             <div class="activity-card-title">Flashcard Deck</div>
-            <div class="activity-card-desc">Study all Unit 1 key terms — from popular sovereignty to judicial review — with the Civitas flashcard engine.</div>
+            <div class="activity-card-desc">Study all Unit 2 key terms — from popular sovereignty to judicial review — with the Civitas flashcard engine.</div>
             <div class="activity-card-action" style="color:var(--amber)">→ Study Flashcards</div>
           </div>
         </div>
@@ -404,31 +395,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
           <div class="activity-card-badge" id="vocab-badge" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
         </div>
 
-      </div>
+        <!-- FRQ -->
+        <div class="activity-card" onclick="switchTab('frq',document.querySelectorAll('.hub-tab')[4])" style="border-top:3px solid var(--purple2)">
+          <div class="activity-card-strip" style="background:var(--purple2)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">✍️</div>
+            <div class="activity-card-label">AI-GRADED · FREE RESPONSE</div>
+            <div class="activity-card-title">FRQ Practice</div>
+            <div class="activity-card-desc">Write and submit free-response questions graded instantly by AI against the official College Board rubric. Resubmit to improve.</div>
+            <div class="activity-card-action" style="color:var(--purple2)">→ Practice FRQs</div>
+          </div>
+        </div>
 
-      <!-- Round preview -->
-      <div class="sh">What's in the Game</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:12px 14px">
-          <div style="font-family:var(--bebas);font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:4px">ROUND 1</div>
-          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Knowledge Check</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">15 MCQ drawn from a bank of 35+</div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:12px 14px">
-          <div style="font-family:var(--bebas);font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">ROUND 2</div>
-          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Document Challenge</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Federalist 70, 71, or Federalist 78</div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);padding:12px 14px">
-          <div style="font-family:var(--bebas);font-size:10px;color:var(--teal2);letter-spacing:2px;margin-bottom:4px">ROUND 3</div>
-          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Data Analysis</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Voter turnout or spending data</div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 14px">
-          <div style="font-family:var(--bebas);font-size:10px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">ROUND 4</div>
-          <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:3px">Visual Stimulus</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Political cartoon analysis</div>
-        </div>
       </div>
     </div>
 
@@ -724,37 +702,41 @@ const QUESTION_BANK = {
       draw: 15,
       desc: '15 multiple choice questions drawn randomly from the question bank. Each question is tagged with its CED topic code and Big Idea.',
       questions: [
-        // ── UNIT 2 QUESTION BANK — DROP JSON HERE ──
-        // Replace this placeholder with the AI-generated JSON for Unit 2
-        // Topic codes: 2.1 through 2.13
-        // Required documents: Federalist No. 70, Federalist No. 78
-        // Required cases: Marbury v. Madison, Baker v. Carr, Shaw v. Reno
-        // Big Ideas: CON, LOR, PMCD, MK, MPA
-        // Minimum 35 questions, draw 15 per play
-        {id:'u2_placeholder_001',topic:'2.4',bigIdea:'CON',difficulty:'accessible',
-          stem:'Which of the following is an example of a formal power of the president?',
-          choices:[
-            {id:'A',text:'Signing or vetoing legislation passed by Congress.'},
-            {id:'B',text:'Introducing bills directly on the floor of the House of Representatives.'},
-            {id:'C',text:'Appointing federal judges without Senate confirmation required.'},
-            {id:'D',text:'Overriding a Supreme Court ruling with an executive order.'}
-          ],correct:'A',explanation:'The veto is one of the president\'s explicit constitutional powers under Article II. The other choices describe powers the president does not have.'},
-        {id:'u2_placeholder_002',topic:'2.11',bigIdea:'CON',difficulty:'accessible',
-          stem:'The power of judicial review — the authority of courts to strike down laws that violate the Constitution — was established by',
-          choices:[
-            {id:'A',text:'Marbury v. Madison (1803), in which Chief Justice Marshall claimed the power for the Supreme Court.'},
-            {id:'B',text:'The text of Article III of the Constitution, which explicitly grants courts this authority.'},
-            {id:'C',text:'An act of Congress passed in 1789 creating the federal court system under the Judiciary Act.'},
-            {id:'D',text:'Baker v. Carr (1962), which expanded federal court jurisdiction over political questions.'}
-          ],correct:'A',explanation:'Judicial review is not explicitly stated in the Constitution — it was claimed by Chief Justice John Marshall in the landmark Marbury v. Madison decision.'},
-        {id:'u2_placeholder_003',topic:'2.1',bigIdea:'CON',difficulty:'accessible',
-          stem:'The United States Congress is bicameral, meaning it',
-          choices:[
-            {id:'A',text:'consists of two separate chambers — the Senate and the House of Representatives.'},
-            {id:'B',text:'divides its members equally between two political parties at all times.'},
-            {id:'C',text:'meets in two separate sessions each year, one for each chamber.'},
-            {id:'D',text:'requires two separate votes before any legislation can be sent to the president.'}
-          ],correct:'A',explanation:'Bicameral refers to the two-chamber structure: the House of Representatives (435 members, proportional) and the Senate (100 members, 2 per state).'}
+        {id:'u2_mcq_001',topic:'2.1',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following best explains a major structural difference between the House of Representatives and the Senate?',choices:[{id:'A',text:'The House has members elected for two-year terms, while senators serve six-year terms.'},{id:'B',text:'The House confirms judicial nominees, while the Senate introduces revenue bills.'},{id:'C',text:'The House represents states equally, while the Senate represents districts by population.'},{id:'D',text:'The House can ratify treaties, while the Senate has sole power to impeach.'}],correct:'A',explanation:'A key structural difference is term length: House members serve two years and senators serve six years.'},
+        {id:'u2_mcq_002',topic:'2.1',bigIdea:'CON',difficulty:'accessible',stem:'The constitutional design of the Senate most directly reflects which principle?',choices:[{id:'A',text:'Federalism, because each state receives equal representation regardless of population.'},{id:'B',text:'Direct democracy, because senators are chosen by national popular vote.'},{id:'C',text:'Judicial review, because senators can declare laws unconstitutional.'},{id:'D',text:'Confederalism, because the Senate can nullify federal statutes.'}],correct:'A',explanation:'Equal representation of states in the Senate reflects the federal nature of the constitutional system.'},
+        {id:'u2_mcq_003',topic:'2.1',bigIdea:'MK',difficulty:'moderate',stem:'A member of the House is generally more likely than a senator to focus on short-term constituent concerns because House members',choices:[{id:'A',text:'face reelection every two years in smaller constituencies.'},{id:'B',text:'are appointed by state legislatures rather than elected by voters.'},{id:'C',text:'serve longer terms and therefore can ignore district opinion.'},{id:'D',text:'represent entire states and must appeal to broader statewide coalitions.'}],correct:'A',explanation:'Because House members serve shorter terms and represent smaller districts, they often respond more directly to constituent opinion.'},
+        {id:'u2_mcq_004',topic:'2.2',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following is a formal power of the Senate but not of the House of Representatives?',choices:[{id:'A',text:'Confirming presidential appointments'},{id:'B',text:'Initiating revenue bills'},{id:'C',text:'Impeaching federal officials'},{id:'D',text:'Choosing the Speaker of the House'}],correct:'A',explanation:'The Senate confirms executive and judicial appointments, a power not held by the House.'},
+        {id:'u2_mcq_005',topic:'2.2',bigIdea:'CON',difficulty:'accessible',stem:'Committee hearings and markups are important in Congress because they',choices:[{id:'A',text:'allow legislators to develop expertise, gather information, and revise bills before floor debate.'},{id:'B',text:'replace the need for floor votes in both chambers on major legislation.'},{id:'C',text:'permit the president to remove members who oppose the party agenda.'},{id:'D',text:'give the Supreme Court direct supervision over congressional procedure.'}],correct:'A',explanation:'Committees play a central role in lawmaking by reviewing, revising, and shaping legislation before it reaches the chamber floor.'},
+        {id:'u2_mcq_006',topic:'2.2',bigIdea:'PMCD',difficulty:'moderate',stem:'A discharge petition in the House is generally used when',choices:[{id:'A',text:'a majority seeks to bring a bill to the floor despite committee inaction.'},{id:'B',text:'the president wants to veto a bill before final passage.'},{id:'C',text:'the Senate attempts to block a judicial nomination permanently.'},{id:'D',text:'party leaders want to eliminate all committee influence over legislation.'}],correct:'A',explanation:'A discharge petition is a mechanism used to force a bill out of committee and onto the House floor.'},
+        {id:'u2_mcq_007',topic:'2.2',bigIdea:'CON',difficulty:'moderate',stem:'The House Rules Committee is especially powerful because it can',choices:[{id:'A',text:'set the terms of debate and the amendment process for legislation on the House floor.'},{id:'B',text:'confirm cabinet secretaries and ambassadors before they take office.'},{id:'C',text:'decide whether the Senate may ratify a treaty negotiated by the president.'},{id:'D',text:'review the constitutionality of bills before final passage in both chambers.'}],correct:'A',explanation:"The Rules Committee controls debate conditions in the House, making it one of the chamber's most influential bodies."},
+        {id:'u2_mcq_008',topic:'2.3',bigIdea:'MK',difficulty:'accessible',stem:'Members of Congress often engage in casework in order to',choices:[{id:'A',text:'help individual constituents navigate problems with government agencies.'},{id:'B',text:'write majority opinions for the Supreme Court.'},{id:'C',text:'formally regulate campaign contributions from interest groups.'},{id:'D',text:'conduct presidential impeachment trials in the Senate.'}],correct:'A',explanation:'Casework involves assisting constituents with matters such as benefits, visas, or agency delays.'},
+        {id:'u2_mcq_009',topic:'2.3',bigIdea:'MK',difficulty:'moderate',stem:'Incumbents in the House of Representatives often enjoy an electoral advantage because they',choices:[{id:'A',text:'benefit from name recognition, casework, and easier access to campaign resources.'},{id:'B',text:'are constitutionally guaranteed reelection unless formally censured.'},{id:'C',text:'can cancel elections in their districts during times of economic crisis.'},{id:'D',text:'serve life terms unless removed by a two-thirds vote of the House.'}],correct:'A',explanation:'Incumbency advantage often comes from visibility, constituent service, fundraising networks, and media access.'},
+        {id:'u2_mcq_010',topic:'2.3',bigIdea:'CON',difficulty:'challenging',stem:'Baker v. Carr (1962) was significant because the Supreme Court ruled that',choices:[{id:'A',text:'redistricting issues could be heard by federal courts under the equal protection clause.'},{id:'B',text:'racially gerrymandered districts were always unconstitutional if they favored incumbents.'},{id:'C',text:'states could ignore population differences when drawing legislative districts.'},{id:'D',text:'congressional districts had to be approved by the president before taking effect.'}],correct:'A',explanation:'Baker v. Carr made legislative apportionment justiciable, opening the door to federal court review of malapportionment claims.'},
+        {id:'u2_mcq_011',topic:'2.3',bigIdea:'CON',difficulty:'challenging',stem:'Shaw v. Reno (1993) is most closely associated with the idea that',choices:[{id:'A',text:'districts drawn predominantly on the basis of race may face equal protection challenges.'},{id:'B',text:'all partisan gerrymandering claims must be resolved only by Congress.'},{id:'C',text:'state legislatures are free to create districts of any shape without judicial review.'},{id:'D',text:'the House of Representatives may redraw Senate districts after each census.'}],correct:'A',explanation:'Shaw v. Reno held that bizarrely shaped majority-minority districts drawn mainly on racial lines could violate equal protection.'},
+        {id:'u2_mcq_012',topic:'2.4',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following is a formal constitutional power of the president?',choices:[{id:'A',text:'Vetoing legislation passed by Congress'},{id:'B',text:'Declaring laws unconstitutional'},{id:'C',text:'Appropriating money from the Treasury'},{id:'D',text:'Ratifying treaties without Senate approval'}],correct:'A',explanation:'The president has the formal power to veto bills, though Congress may override the veto.'},
+        {id:'u2_mcq_013',topic:'2.4',bigIdea:'CON',difficulty:'accessible',stem:"The president's role as commander in chief gives the officeholder primary responsibility for",choices:[{id:'A',text:'leading the armed forces.'},{id:'B',text:'ratifying constitutional amendments.'},{id:'C',text:'authoring judicial opinions.'},{id:'D',text:'overseeing Senate impeachment trials.'}],correct:'A',explanation:'As commander in chief, the president directs military operations, even though Congress retains war-related powers.'},
+        {id:'u2_mcq_014',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'Which situation best illustrates Congress checking the president?',choices:[{id:'A',text:'The Senate rejects a presidential nominee for a cabinet post.'},{id:'B',text:'The president issues a signing statement after a bill becomes law.'},{id:'C',text:'The Supreme Court reviews a lower court ruling.'},{id:'D',text:'A committee chair schedules hearings on a proposed bill.'}],correct:'A',explanation:"The Senate's advice-and-consent role is a clear legislative check on executive power."},
+        {id:'u2_mcq_015',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'Which of the following best illustrates the judiciary checking the executive branch?',choices:[{id:'A',text:'A federal court declares a presidential action unconstitutional.'},{id:'B',text:'The president negotiates a treaty with a foreign nation.'},{id:'C',text:'The Senate filibusters a major bill backed by the White House.'},{id:'D',text:'The House votes to impeach a federal judge.'}],correct:'A',explanation:'Courts can limit executive power by ruling executive actions unconstitutional.'},
+        {id:'u2_mcq_016',topic:'2.6',bigIdea:'CON',difficulty:'accessible',stem:'Presidential power has generally expanded over time in part because',choices:[{id:'A',text:'modern presidents play a larger role in foreign policy, administration, and national leadership.'},{id:'B',text:'the Constitution has been amended to give presidents permanent control over Congress.'},{id:'C',text:'the Supreme Court has transferred all legislative authority to the executive branch.'},{id:'D',text:'states have lost the ability to conduct elections for presidential candidates.'}],correct:'A',explanation:'The presidency has expanded through crisis leadership, growth of the federal government, and broader expectations for presidential action.'},
+        {id:'u2_mcq_017',topic:'2.6',bigIdea:'PMCD',difficulty:'moderate',stem:'Which of the following is the best example of an informal power of the president?',choices:[{id:'A',text:'Using the bully pulpit to shape public opinion and pressure Congress'},{id:'B',text:'Granting reprieves and pardons in federal cases'},{id:'C',text:'Making treaties with a two-thirds Senate vote'},{id:'D',text:'Nominating justices to the Supreme Court'}],correct:'A',explanation:'The bully pulpit is an informal presidential power based on visibility and influence rather than explicit constitutional text.'},
+        {id:'u2_mcq_018',topic:'2.7',bigIdea:'PMCD',difficulty:'accessible',stem:"Presidents often go public by appealing directly to citizens in order to",choices:[{id:'A',text:'build support for their policy goals and pressure other institutions.'},{id:'B',text:'replace the need for congressional lawmaking entirely.'},{id:'C',text:'prevent courts from reviewing executive actions.'},{id:'D',text:'formally amend the Constitution through public speeches.'}],correct:'A',explanation:'Going public is a communication strategy presidents use to mobilize opinion and influence Congress or the bureaucracy.'},
+        {id:'u2_mcq_019',topic:'2.7',bigIdea:'MK',difficulty:'moderate',stem:"A president's use of social media to frame a policy debate most directly shows how modern presidents",choices:[{id:'A',text:'use new communication tools to shape public opinion and political agendas.'},{id:'B',text:'have replaced Congress as the branch that writes legislation.'},{id:'C',text:'can bypass elections by speaking directly to the public.'},{id:'D',text:'exercise judicial review when agencies ignore executive priorities.'}],correct:'A',explanation:'Modern presidents use television, speeches, and social media as tools for persuasion and agenda setting.'},
+        {id:'u2_mcq_020',topic:'2.8',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following best describes the role of the Supreme Court in the American political system?',choices:[{id:'A',text:'It is the highest court in the federal judiciary and has final appellate authority in many constitutional disputes.'},{id:'B',text:'It writes the federal budget and submits it to Congress for revision.'},{id:'C',text:'It enforces laws directly through national police agencies under Article III.'},{id:'D',text:'It approves cabinet appointments before the Senate may consider them.'}],correct:'A',explanation:'The Supreme Court is the highest federal court and plays a central role in interpreting the Constitution and federal law.'},
+        {id:'u2_mcq_021',topic:'2.8',bigIdea:'CON',difficulty:'moderate',stem:'Which of the following best explains the significance of judicial review?',choices:[{id:'A',text:'It allows courts to determine whether laws or government actions conflict with the Constitution.'},{id:'B',text:'It allows Congress to remove judges whenever a majority dislikes a decision.'},{id:'C',text:'It gives the president final authority to interpret statutes without court involvement.'},{id:'D',text:'It requires states to submit all criminal convictions to the Senate for approval.'}],correct:'A',explanation:'Judicial review is the power of courts to evaluate the constitutionality of laws and government actions.'},
+        {id:'u2_mcq_022',topic:'2.9',bigIdea:'CON',difficulty:'accessible',stem:'Marbury v. Madison (1803) established the principle that',choices:[{id:'A',text:'the Supreme Court can declare acts of Congress unconstitutional.'},{id:'B',text:'presidents may ignore Supreme Court rulings during wartime.'},{id:'C',text:'states may nullify federal court decisions they oppose.'},{id:'D',text:'Congress controls the final interpretation of the Constitution.'}],correct:'A',explanation:'Marbury v. Madison established judicial review and made the Court a central interpreter of the Constitution.'},
+        {id:'u2_mcq_023',topic:'2.9',bigIdea:'CON',difficulty:'moderate',stem:'The power established in Marbury v. Madison most directly strengthened the Supreme Court by',choices:[{id:'A',text:'giving it a key role in resolving constitutional disputes involving the other branches.'},{id:'B',text:'allowing it to appoint members of Congress when seats become vacant.'},{id:'C',text:'making it responsible for enforcing its rulings through a national police force.'},{id:'D',text:'permitting justices to serve limited elective terms instead of life tenure.'}],correct:'A',explanation:'Judicial review increased the Court's power by allowing it to rule on the constitutionality of laws and official actions.'},
+        {id:'u2_mcq_024',topic:'2.10',bigIdea:'CON',difficulty:'accessible',stem:'The Supreme Court is most likely to grant a writ of certiorari when',choices:[{id:'A',text:'a case presents an important constitutional question or lower courts have issued conflicting rulings.'},{id:'B',text:'a president asks the Court to hear a case involving a private dispute.'},{id:'C',text:'the House of Representatives formally requests judicial review of all pending legislation.'},{id:'D',text:'a state governor wants the Court to override a local school board decision immediately.'}],correct:'A',explanation:'The Court usually selects cases that raise important federal questions or resolve conflicts among lower courts.'},
+        {id:'u2_mcq_025',topic:'2.10',bigIdea:'CON',difficulty:'moderate',stem:'The fact that the Supreme Court hears only a small fraction of the cases appealed to it best demonstrates that',choices:[{id:'A',text:'the Court has substantial discretion over its agenda and focuses on selected cases of broad significance.'},{id:'B',text:'most appeals are automatically transferred to Congress for final resolution.'},{id:'C',text:'the president determines which constitutional cases the Court must hear each year.'},{id:'D',text:'state supreme courts are superior to the U.S. Supreme Court in federal constitutional matters.'}],correct:'A',explanation:"The Court's control over its docket lets it choose cases that are especially important or legally significant."},
+        {id:'u2_mcq_026',topic:'2.11',bigIdea:'CON',difficulty:'accessible',stem:'Which of the following is the best example of an independent regulatory commission?',choices:[{id:'A',text:'An agency created by Congress to regulate a specific area and insulated somewhat from direct presidential control'},{id:'B',text:"A White House task force that exists only at the president's discretion"},{id:'C',text:'A Senate committee responsible for confirming cabinet nominees'},{id:'D',text:'A state court assigned to hear disputes between local agencies'}],correct:'A',explanation:'Independent regulatory commissions are agencies created to regulate specific sectors and are less directly controlled by the president than cabinet departments.'},
+        {id:'u2_mcq_027',topic:'2.11',bigIdea:'CON',difficulty:'moderate',stem:'Federal bureaucratic agencies are important because they',choices:[{id:'A',text:'implement laws, make rules, and carry out much of the daily work of the national government.'},{id:'B',text:'replace Congress as the branch that formally passes statutes.'},{id:'C',text:'serve mainly to ratify treaties negotiated by the president.'},{id:'D',text:'exercise unlimited judicial power without review from the courts.'}],correct:'A',explanation:'The bureaucracy implements policy and administers government programs through rulemaking and enforcement.'},
+        {id:'u2_mcq_028',topic:'2.12',bigIdea:'CON',difficulty:'accessible',stem:'Congress exercises oversight of the bureaucracy primarily in order to',choices:[{id:'A',text:'monitor how agencies implement laws and ensure they remain accountable.'},{id:'B',text:'appoint all agency staff directly without presidential involvement.'},{id:'C',text:'replace judicial review in cases involving agency rules.'},{id:'D',text:'prevent the executive branch from enforcing any law passed after 1900.'}],correct:'A',explanation:'Congress oversees agencies through hearings, investigations, and budgetary tools to ensure faithful implementation of laws.'},
+        {id:'u2_mcq_029',topic:'2.12',bigIdea:'PMCD',difficulty:'moderate',stem:"Which of the following gives Congress one of its strongest practical tools for influencing bureaucratic behavior?",choices:[{id:'A',text:'Controlling agency funding through the appropriations process'},{id:'B',text:'Issuing executive agreements with foreign nations'},{id:'C',text:'Granting writs of certiorari to review agency decisions'},{id:'D',text:'Negotiating plea bargains in federal criminal cases'}],correct:'A',explanation:'Congress can shape agency priorities and behavior by determining how much money agencies receive and how it may be used.'},
+        {id:'u2_mcq_030',topic:'2.13',bigIdea:'PMCD',difficulty:'accessible',stem:'Iron triangles are best described as',choices:[{id:'A',text:'close working relationships among agencies, congressional committees, and interest groups in a policy area.'},{id:'B',text:'three-judge panels that hear constitutional disputes involving Congress.'},{id:'C',text:'temporary alliances among presidents, governors, and mayors during emergencies.'},{id:'D',text:'special election systems used to fill House vacancies in heavily partisan districts.'}],correct:'A',explanation:'Iron triangles refer to policy-making relationships among congressional committees, bureaucratic agencies, and interest groups.'},
+        {id:'u2_mcq_031',topic:'2.13',bigIdea:'PMCD',difficulty:'moderate',stem:'Issue networks differ from iron triangles because issue networks',choices:[{id:'A',text:'are generally larger, less stable, and include a wider range of participants in policymaking.'},{id:'B',text:'exist only within the judicial branch and exclude interest groups entirely.'},{id:'C',text:'are constitutionally required for all major domestic policy decisions.'},{id:'D',text:'give presidents direct authority to ignore congressional committees.'}],correct:'A',explanation:'Issue networks are more open and fluid than iron triangles, involving many actors and changing coalitions.'},
+        {id:'u2_mcq_032',topic:'2.14',bigIdea:'CON',difficulty:'accessible',stem:"One of the president's most important means of influencing the federal bureaucracy is the power to",choices:[{id:'A',text:'appoint many high-level executive officials.'},{id:'B',text:'rewrite statutory law without congressional approval.'},{id:'C',text:'remove federal judges who disagree with administrative policy.'},{id:'D',text:'ratify agency budgets independently of Congress.'}],correct:'A',explanation:'Presidents shape the bureaucracy through appointments to executive departments and agencies.'},
+        {id:'u2_mcq_033',topic:'2.14',bigIdea:'PMCD',difficulty:'moderate',stem:'An executive order is best understood as',choices:[{id:'A',text:'a directive issued by the president to manage operations within the executive branch.'},{id:'B',text:'a judicial opinion written to interpret an agency regulation.'},{id:'C',text:'a statute passed by both chambers of Congress and signed by committee chairs.'},{id:'D',text:'a treaty negotiated by the president and ratified by the House.'}],correct:'A',explanation:'Executive orders are presidential directives that shape how executive agencies carry out policy.'},
+        {id:'u2_mcq_034',topic:'2.15',bigIdea:'CON',difficulty:'accessible',stem:'The merit system in the federal bureaucracy is designed to promote',choices:[{id:'A',text:"hiring and promotion based on qualifications rather than partisan loyalty."},{id:'B',text:"automatic appointment of all agency officials by the president's party."},{id:'C',text:'life tenure for all executive branch employees similar to federal judges.'},{id:'D',text:'state control over the civil service through regional elections.'}],correct:'A',explanation:'The merit system aims to build a professional civil service based on competence and experience.'},
+        {id:'u2_mcq_035',topic:'2.15',bigIdea:'PMCD',difficulty:'challenging',stem:'Which of the following best explains why critics sometimes describe the federal bureaucracy as difficult to control?',choices:[{id:'A',text:'Its size, specialization, and rulemaking authority can make implementation complex and reduce direct political responsiveness.'},{id:'B',text:'The Constitution prohibits both Congress and the president from overseeing agencies.'},{id:'C',text:'Federal agencies are controlled almost entirely by state legislatures rather than national officials.'},{id:'D',text:'Most bureaucratic agencies have the power to overturn Supreme Court rulings when they conflict with administrative priorities.'}],correct:'A',explanation:'Because the bureaucracy is large and specialized, elected officials may find it challenging to direct every aspect of implementation closely.'}
       ]
     },
     {
@@ -763,81 +745,38 @@ const QUESTION_BANK = {
       desc:'Read a required foundational document excerpt, then answer questions about its argument, significance, and connection to course concepts.',
       sets:[
         {
-          id:'fed70_set', document:'Federalist No. 70', author:'Alexander Hamilton', year:1788,
-          excerpt:'Energy in the executive is a leading character in the definition of good government. It is essential to the protection of the community against foreign attacks; it is not less essential to the steady administration of the laws; to the protection of property against those irregular and high-handed combinations which sometimes interrupt the ordinary course of justice; to the security of liberty against the enterprises and assaults of ambition, of faction, and of anarchy. A feeble executive implies a feeble execution of the government. A feeble execution is but another phrase for a bad execution; and a government ill executed, whatever it may be in theory, must be, in practice, a bad government.',
-          source:'Federalist No. 70, Alexander Hamilton, 1788. Public domain.',
+          id:'constitution_art1_set', document:'Article I, Section 8 of the U.S. Constitution',
+          author:'Constitutional Convention', year:1787,
+          excerpt:'The Congress shall have Power To lay and collect Taxes, Duties, Imposts and Excises... To regulate Commerce with foreign Nations, and among the several States, and with the Indian Tribes... To make all Laws which shall be necessary and proper for carrying into Execution the foregoing Powers.',
+          source:'U.S. Constitution, Article I, Section 8, 1787. Public domain.',
           questions:[
-            {id:'u2_doc_f70_001',topic:'2.4',bigIdea:'CON',difficulty:'accessible',
-              stem:'Hamilton\'s main argument in this excerpt is that',
-              choices:[
-                {id:'A',text:'a strong, energetic executive is essential to effective and legitimate government.'},
-                {id:'B',text:'the president should be able to override Congress whenever efficiency requires it.'},
-                {id:'C',text:'a weak executive is preferable because it prevents tyranny and abuse of power.'},
-                {id:'D',text:'the executive branch should be led by a committee rather than a single president.'}
-              ],correct:'A',explanation:'Hamilton argues that "energy in the executive" — meaning a strong, decisive presidency — is essential for effective governance, national security, and the rule of law.'},
-            {id:'u2_doc_f70_002',topic:'2.5',bigIdea:'LOR',difficulty:'moderate',
-              stem:'Hamilton\'s argument in this excerpt most directly responds to which concern about executive power?',
-              choices:[
-                {id:'A',text:'That a strong executive would threaten liberty, by arguing that executive energy actually protects liberty from faction and anarchy.'},
-                {id:'B',text:'That the president would be too weak to negotiate treaties, by proposing that Congress share treaty power.'},
-                {id:'C',text:'That the executive branch would become corrupt, by calling for a rotating presidency among the states.'},
-                {id:'D',text:'That the courts would undermine presidential authority through excessive judicial review of executive actions.'}
-              ],correct:'A',explanation:'Hamilton addresses the Anti-Federalist fear that a powerful executive threatens liberty by arguing the opposite: executive energy is necessary to protect liberty from internal threats like faction and external threats like foreign attack.'},
-            {id:'u2_doc_f70_003',topic:'2.6',bigIdea:'CON',difficulty:'moderate',
-              stem:'Which modern development would most directly support Hamilton\'s argument about executive energy?',
-              choices:[
-                {id:'A',text:'Presidents using executive orders and emergency powers to respond rapidly to national crises without waiting for congressional action.'},
-                {id:'B',text:'Congress using the appropriations process to defund presidential initiatives it opposes.'},
-                {id:'C',text:'The Supreme Court striking down presidential executive orders as exceeding constitutional authority.'},
-                {id:'D',text:'The War Powers Resolution limiting the president\'s ability to deploy troops without congressional approval.'}
-              ],correct:'A',explanation:'The expansion of presidential emergency powers and executive orders reflects Hamilton\'s vision of an energetic executive capable of rapid, decisive action — the same quality Hamilton argued was essential in Federalist No. 70.'},
-            {id:'u2_doc_f70_004',topic:'2.4',bigIdea:'CON',difficulty:'challenging',
-              stem:'Which of the following would be the strongest counterargument to Hamilton\'s position in this excerpt?',
-              choices:[
-                {id:'A',text:'A feeble executive may be less efficient but better protects liberty because concentrated executive power has historically led to tyranny and abuse.'},
-                {id:'B',text:'Hamilton\'s argument is undermined because the Constitution already guarantees executive energy through the necessary and proper clause.'},
-                {id:'C',text:'Hamilton\'s view is incorrect because the Anti-Federalists ultimately supported ratification of the Constitution with a strong executive.'},
-                {id:'D',text:'A committee-style executive would be more energetic because it would draw on more expertise and diverse perspectives than a single leader.'}
-              ],correct:'A',explanation:'The strongest counterargument accepts Hamilton\'s efficiency logic but rejects his conclusion: history shows that concentrated executive power frequently leads to tyranny, suggesting that some feebleness is a worthwhile tradeoff for liberty. This mirrors the Anti-Federalist critique.'}
+            {id:'u2_doc_ai_001',topic:'2.2',bigIdea:'CON',difficulty:'accessible',stem:'Which argument is most clearly supported by this excerpt?',choices:[{id:'A',text:'Congress was designed to possess important enumerated powers connected to national policymaking.'},{id:'B',text:'The president was intended to control taxation and interstate commerce without legislative approval.'},{id:'C',text:'The states were given exclusive authority over the national economy.'},{id:'D',text:'The judiciary was expected to create new taxing laws when Congress failed to act.'}],correct:'A',explanation:'The excerpt lists several major congressional powers, including taxation and regulating interstate commerce.'},
+            {id:'u2_doc_ai_002',topic:'2.2',bigIdea:'CON',difficulty:'moderate',stem:'The necessary and proper clause in the excerpt is most often used to justify',choices:[{id:'A',text:'laws that help Congress carry out its enumerated powers.'},{id:'B',text:'state nullification of federal statutes.'},{id:'C',text:'presidential removal of Supreme Court justices.'},{id:'D',text:'judicial appointment of agency officials.'}],correct:'A',explanation:'The necessary and proper clause is the basis for implied powers that allow Congress to implement its enumerated responsibilities.'},
+            {id:'u2_doc_ai_003',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'Which current political debate is most directly connected to the powers listed in this excerpt?',choices:[{id:'A',text:'How far Congress may go in regulating the national economy and related activities'},{id:'B',text:'Whether the president should appoint members of the House of Representatives'},{id:'C',text:'Whether federal courts should write the text of appropriations bills'},{id:'D',text:'Whether state governors should ratify treaties negotiated by the Senate'}],correct:'A',explanation:'Debates over the commerce clause and the necessary and proper clause center on the scope of congressional power.'},
+            {id:'u2_doc_ai_004',topic:'2.4',bigIdea:'CON',difficulty:'challenging',stem:'Which conclusion about the constitutional structure is best supported by the excerpt?',choices:[{id:'A',text:'Congress was intended to be a central policymaking institution in the national government.'},{id:'B',text:'The presidency was intended to dominate domestic policy through unilateral action.'},{id:'C',text:'State legislatures were expected to control federal taxation policy directly.'},{id:'D',text:'The Supreme Court was designed to supervise all interstate commerce decisions before Congress could act.'}],correct:'A',explanation:'The breadth of Article I, Section 8 shows that Congress was designed to play a major role in national governance.'}
           ]
         },
         {
-          id:'fed78_set', document:'Federalist No. 78', author:'Alexander Hamilton', year:1788,
-          excerpt:'The complete independence of the courts of justice is peculiarly essential in a limited Constitution. By a limited Constitution, I understand one which contains certain specified exceptions to the legislative authority; such, for instance, as that it shall pass no bills of attainder, no ex post facto laws, and the like. Limitations of this kind can be preserved in practice no other way than through the medium of courts of justice, whose duty it must be to declare all acts contrary to the manifest tenor of the Constitution void. Without this, all the reservations of particular rights or privileges would amount to nothing.',
-          source:'Federalist No. 78, Alexander Hamilton, 1788. Public domain.',
+          id:'constitution_art2_set', document:'Article II, Section 2 of the U.S. Constitution',
+          author:'Constitutional Convention', year:1787,
+          excerpt:'The President shall be Commander in Chief of the Army and Navy of the United States... and he shall have Power, by and with the Advice and Consent of the Senate, to make Treaties... and he shall nominate, and by and with the Advice and Consent of the Senate, shall appoint Ambassadors, other public Ministers and Consuls, Judges of the supreme Court, and all other Officers of the United States.',
+          source:'U.S. Constitution, Article II, Section 2, 1787. Public domain.',
           questions:[
-            {id:'u2_doc_f78_001',topic:'2.11',bigIdea:'CON',difficulty:'accessible',
-              stem:'Hamilton\'s main argument in this excerpt is that',
-              choices:[
-                {id:'A',text:'an independent judiciary is essential to enforce the Constitution\'s limits on legislative power.'},
-                {id:'B',text:'Congress should have the final say on whether its own laws are constitutional.'},
-                {id:'C',text:'the president should appoint judges who reflect the will of the majority.'},
-                {id:'D',text:'constitutional rights can be protected effectively through elections alone.'}
-              ],correct:'A',explanation:'Hamilton argues that without an independent judiciary capable of striking down unconstitutional laws, the Constitution\'s limits on government power would be meaningless in practice.'},
-            {id:'u2_doc_f78_002',topic:'2.11',bigIdea:'CON',difficulty:'moderate',
-              stem:'Hamilton\'s argument in Federalist No. 78 most directly laid the groundwork for which landmark Supreme Court decision?',
-              choices:[
-                {id:'A',text:'Marbury v. Madison (1803), in which the Court claimed the power to strike down laws that violate the Constitution.'},
-                {id:'B',text:'Baker v. Carr (1962), in which the Court ruled that federal courts could hear cases about legislative apportionment.'},
-                {id:'C',text:'Shaw v. Reno (1993), in which the Court ruled that racial gerrymandering violates the Equal Protection Clause.'},
-                {id:'D',text:'McCulloch v. Maryland (1819), in which the Court upheld Congress\'s use of implied powers to create a national bank.'}
-              ],correct:'A',explanation:'Federalist No. 78 directly anticipated and justified the power of judicial review — the power Marshall formally claimed for the Court in Marbury v. Madison just 15 years later.'},
-            {id:'u2_doc_f78_003',topic:'2.12',bigIdea:'CON',difficulty:'moderate',
-              stem:'Which of the following is the most direct check Congress has on the independent judiciary Hamilton describes?',
-              choices:[
-                {id:'A',text:'The Senate\'s power to confirm or reject presidential nominees to the federal judiciary.'},
-                {id:'B',text:'Congress\'s authority to overturn Supreme Court decisions by a simple majority vote.'},
-                {id:'C',text:'The House\'s power to reassign cases from federal courts to state courts.'},
-                {id:'D',text:'Congress\'s authority to remove justices from office without following any set procedure.'}
-              ],correct:'A',explanation:'Although Hamilton argues for judicial independence, the Constitution\'s check on that independence is the Senate\'s confirmation power — Congress shapes the judiciary\'s composition through the appointments process even if it cannot easily remove sitting justices.'},
-            {id:'u2_doc_f78_004',topic:'2.11',bigIdea:'LOR',difficulty:'challenging',
-              stem:'A critic of judicial review might argue that Hamilton\'s position in Federalist No. 78 is fundamentally undemocratic because',
-              choices:[
-                {id:'A',text:'it gives unelected, life-tenured judges the power to override decisions made by elected representatives accountable to the people.'},
-                {id:'B',text:'it requires a unanimous Supreme Court before any law can be struck down as unconstitutional.'},
-                {id:'C',text:'it concentrates too much power in Congress, undermining the independence Hamilton claims to value.'},
-                {id:'D',text:'it was written before the Constitution was ratified and therefore has no legal or political standing.'}
-              ],correct:'A',explanation:'The democratic critique of judicial review is that it allows unelected justices with life tenure to nullify acts of elected legislatures — undermining popular sovereignty. Hamilton anticipated this objection and tried to answer it, but the tension between judicial independence and democratic accountability remains a live debate.'}
+            {id:'u2_doc_aii_001',topic:'2.4',bigIdea:'CON',difficulty:'accessible',stem:'Which argument is most clearly supported by this excerpt?',choices:[{id:'A',text:'The president has important formal powers, but some of them require Senate participation.'},{id:'B',text:'The president may make treaties and appointments without any outside approval.'},{id:'C',text:'The judiciary was intended to command the military during national emergencies.'},{id:'D',text:'Congress was denied any role in foreign policy or appointments.'}],correct:'A',explanation:'The excerpt shows both presidential authority and the Senate's checking role in appointments and treaties.'},
+            {id:'u2_doc_aii_002',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'The phrase "Advice and Consent of the Senate" best illustrates which constitutional principle?',choices:[{id:'A',text:'Checks and balances'},{id:'B',text:'Direct democracy'},{id:'C',text:'Judicial review'},{id:'D',text:'Reserved powers'}],correct:'A',explanation:"The Senate's role in confirming appointments and consenting to treaties is a legislative check on executive power."},
+            {id:'u2_doc_aii_003',topic:'2.7',bigIdea:'PMCD',difficulty:'moderate',stem:'Which current political conflict is most directly connected to the powers described in this excerpt?',choices:[{id:'A',text:'Disputes over whether the Senate should confirm or block presidential nominees'},{id:'B',text:'Disputes over whether the Supreme Court should draft agency regulations'},{id:'C',text:'Disputes over whether governors may impeach federal judges'},{id:'D',text:'Disputes over whether the House may negotiate treaties with foreign nations'}],correct:'A',explanation:'Modern confirmation battles are a direct outgrowth of the appointments process described in Article II.'},
+            {id:'u2_doc_aii_004',topic:'2.5',bigIdea:'CON',difficulty:'challenging',stem:'Which statement best explains how this excerpt structures executive power?',choices:[{id:'A',text:'It gives the president major responsibilities while ensuring that other institutions can limit unilateral action in key areas.'},{id:'B',text:'It places all military, diplomatic, and judicial power entirely in the executive branch.'},{id:'C',text:'It gives the states final authority over federal appointments and treaties.'},{id:'D',text:'It removes the Senate from any meaningful role in national governance.'}],correct:'A',explanation:'The excerpt demonstrates both formal executive authority and institutional constraints through Senate involvement.'}
+          ]
+        },
+        {
+          id:'fed70_set', document:'Federalist No. 70', author:'Alexander Hamilton', year:1788,
+          excerpt:'Energy in the executive is a leading character in the definition of good government. It is essential to the protection of the community against foreign attacks; it is not less essential to the steady administration of the laws; to the protection of property... A feeble Executive implies a feeble execution of the government. A feeble execution is but another phrase for a bad execution.',
+          source:'Federalist No. 70, Alexander Hamilton, 1788. Public domain.',
+          questions:[
+            {id:'u2_doc_f70_001',topic:'2.6',bigIdea:'CON',difficulty:'accessible',stem:"Which argument best captures Hamilton's position in this excerpt?",choices:[{id:'A',text:'An effective government requires a strong and energetic executive.'},{id:'B',text:'Congress should dominate foreign policy because executives are too dangerous.'},{id:'C',text:'The presidency should be replaced by a multi-person executive council.'},{id:'D',text:'Courts are better suited than presidents to administer the laws on a daily basis.'}],correct:'A',explanation:"Hamilton argues that a vigorous executive is necessary for security, administration, and effective governance."},
+            {id:'u2_doc_f70_002',topic:'2.6',bigIdea:'PMCD',difficulty:'moderate',stem:"Hamilton's reasoning in this excerpt is most often used today to defend which of the following?",choices:[{id:'A',text:'A broad understanding of presidential leadership during crises and national emergencies'},{id:'B',text:'The abolition of congressional oversight over executive agencies'},{id:'C',text:'The election of Supreme Court justices for two-year terms'},{id:'D',text:'The transfer of military command to the Speaker of the House'}],correct:'A',explanation:"Supporters of a stronger presidency often invoke Hamilton's argument that energetic executive leadership is necessary in moments requiring swift action."},
+            {id:'u2_doc_f70_003',topic:'2.7',bigIdea:'PMCD',difficulty:'moderate',stem:'Which modern political concept is most directly connected to the argument in this excerpt?',choices:[{id:'A',text:'Public expectations that the president should respond quickly to national problems'},{id:'B',text:'The requirement that tax bills begin in the House of Representatives'},{id:'C',text:'The use of census data to reapportion congressional seats'},{id:'D',text:'The practice of state legislatures drawing local school board districts'}],correct:'A',explanation:"Modern presidents are often expected to act decisively, reflecting Hamilton's emphasis on an energetic executive."},
+            {id:'u2_doc_f70_004',topic:'2.5',bigIdea:'CON',difficulty:'challenging',stem:"Which constitutional concern would critics of Hamilton's argument most likely emphasize?",choices:[{id:'A',text:"A more energetic executive can threaten the balance of powers if not constrained by other institutions."},{id:'B',text:'A strong executive makes it impossible for Congress to pass appropriations bills.'},{id:'C',text:'A powerful president automatically eliminates the role of political parties.'},{id:'D',text:'An energetic executive prevents federal courts from hearing constitutional cases.'}],correct:'A',explanation:"Critics would worry that increased executive energy can become excessive unless checked by Congress and the courts."}
           ]
         }
       ]
@@ -848,83 +787,30 @@ const QUESTION_BANK = {
       desc:'Analyze real political data and answer questions connecting the data to constitutional principles and course concepts.',
       sets:[
         {
-          id:'presidential_approval_set',
-          title:'Presidential Approval Ratings at Start of Term vs. End of Term (Selected Presidents)',
-          source:'Gallup Presidential Approval Center; Pew Research Center. Public data.',
-          chartType:'grouped_bar', chartLabel:'Approval Rating %',
-          data:{
-            labels:['Reagan','Clinton','G.W. Bush','Obama','Trump'],
-            federal:[51,58,57,67,45],
-            stateLocal:[49,37,34,59,34]
-          },
-          note:'Blue = Approval at start of first term · Teal = Approval at end of second term (or final term)',
+          id:'congress_approval_set',
+          title:'Selected National Approval Ratings: Congress vs. President',
+          source:'Pew Research Center and Gallup trend summaries on institutional approval. Public data.',
+          chartType:'grouped_bar', chartLabel:'Average Approval Rating %',
+          data:{labels:['Congress','President (avg)'],federal:[24,43],stateLocal:[0,0]},
+          note:'Blue bars show average approval. Congress consistently rates lower than the presidency as an institution.',
           questions:[
-            {id:'u2_data_pa_001',topic:'2.4',bigIdea:'MPA',difficulty:'accessible',
-              stem:'Based on the data, which president shown had the highest approval rating at the start of his first term?',
-              choices:[
-                {id:'A',text:'Barack Obama, with approximately 67% approval at the start of his first term.'},
-                {id:'B',text:'George W. Bush, with approximately 57% approval at the start of his first term.'},
-                {id:'C',text:'Bill Clinton, with approximately 58% approval at the start of his first term.'},
-                {id:'D',text:'Ronald Reagan, with approximately 51% approval at the start of his first term.'}
-              ],correct:'A',explanation:'The data shows Obama with the highest starting approval at approximately 67%, reflecting historically high public enthusiasm at the start of his presidency.'},
-            {id:'u2_data_pa_002',topic:'2.5',bigIdea:'MPA',difficulty:'moderate',
-              stem:'Which conclusion is best supported by comparing the starting and ending approval ratings in the data?',
-              choices:[
-                {id:'A',text:'Presidential approval tends to decline over time, suggesting that governing is generally harder than campaigning.'},
-                {id:'B',text:'Presidents who start with high approval always finish with higher approval than those who start lower.'},
-                {id:'C',text:'Approval ratings have no meaningful relationship to a president\'s ability to achieve legislative goals.'},
-                {id:'D',text:'All presidents shown experienced exactly the same pattern of approval change during their terms.'}
-              ],correct:'A',explanation:'The pattern of declining approval across most presidents shown suggests that the challenges and controversies of governing typically erode the goodwill presidents enjoy at the start of their terms.'},
-            {id:'u2_data_pa_003',topic:'2.4',bigIdea:'PMCD',difficulty:'moderate',
-              stem:'A political scientist studying presidential power would most likely argue that the approval rating trends shown in the data reflect which challenge?',
-              choices:[
-                {id:'A',text:'Presidents face competing demands from Congress, interest groups, and the public that make it nearly impossible to maintain broad approval while governing.'},
-                {id:'B',text:'Approval ratings are determined entirely by economic conditions and have no relationship to presidential decisions or leadership.'},
-                {id:'C',text:'The data prove that the president is constitutionally too powerful, since every president shown began with majority approval.'},
-                {id:'D',text:'Presidential approval is most strongly affected by the number of executive orders a president issues during their term.'}
-              ],correct:'A',explanation:'Political scientists view declining approval as reflecting the inherent difficulty of the presidency: every policy decision creates winners and losers, interest groups apply opposing pressures, and partisan opponents are energized — making sustained broad approval nearly impossible.'},
-            {id:'u2_data_pa_004',topic:'2.5',bigIdea:'MPA',difficulty:'challenging',
-              stem:'Which of the following is the most appropriate caution when using approval rating data to evaluate presidential effectiveness?',
-              choices:[
-                {id:'A',text:'Approval ratings measure public sentiment at a moment in time but do not directly measure policy outcomes, constitutional compliance, or historical significance.'},
-                {id:'B',text:'The data shown prove that all presidents are equally effective regardless of their approval ratings at any point in their terms.'},
-                {id:'C',text:'Approval ratings are the most reliable measure of presidential effectiveness because they reflect direct public judgment of performance.'},
-                {id:'D',text:'The data demonstrate that Congress is more popular than the president in all years shown.'}
-              ],correct:'A',explanation:'Approval ratings are a measure of public opinion, not of policy effectiveness or constitutional behavior. A president can have low approval and still accomplish significant policy goals (LBJ, Bush post-9/11) or high approval and accomplish little. Historical judgments of effectiveness often diverge sharply from contemporaneous approval ratings.'}
+            {id:'u2_data_ca_001',topic:'2.3',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which institution has the lower average approval rating?',choices:[{id:'A',text:'Congress, with approximately 24% average approval.'},{id:'B',text:'The presidency, with approximately 43% average approval.'},{id:'C',text:'Both institutions have the same approval rating.'},{id:'D',text:'The chart does not provide approval rating data.'}],correct:'A',explanation:'The chart shows Congress with the lower approval rating at approximately 24% vs. the presidency at approximately 43%.'},
+            {id:'u2_data_ca_002',topic:'2.7',bigIdea:'PMCD',difficulty:'moderate',stem:'Which inference is best supported by the comparison?',choices:[{id:'A',text:'Individual presidents may have an easier time appealing directly to the public than Congress as a whole does.'},{id:'B',text:'Congress has no constitutional role in national policymaking.'},{id:'C',text:'The judiciary is more popular than both institutions shown.'},{id:'D',text:'Presidents never face public criticism over policy failures.'}],correct:'A',explanation:'Because the presidency is a single visible office, presidents can sometimes communicate more effectively than a fragmented legislature.'},
+            {id:'u2_data_ca_003',topic:'2.3',bigIdea:'MK',difficulty:'moderate',stem:'A member of Congress trying to respond to the pattern shown in the data would be most likely to emphasize',choices:[{id:'A',text:'constituency service, district responsiveness, and credit claiming.'},{id:'B',text:'military command authority during international crises.'},{id:'C',text:'judicial independence from partisan elections.'},{id:'D',text:"the president's power to negotiate executive agreements."}],correct:'A',explanation:'Members of Congress often rely on casework and credit claiming to build support even when Congress as an institution is unpopular.'},
+            {id:'u2_data_ca_004',topic:'2.3',bigIdea:'MPA',difficulty:'challenging',stem:'Which is the best caution when interpreting the data alone?',choices:[{id:'A',text:'The figures show a difference in approval, but they do not by themselves explain why one institution is viewed more favorably.'},{id:'B',text:'The figures prove that approval ratings determine constitutional powers.'},{id:'C',text:'The figures demonstrate that elections no longer matter for either institution.'},{id:'D',text:'The figures show that congressional approval is identical across every state and district.'}],correct:'A',explanation:'Data can reveal a pattern without providing the full explanation for that pattern.'}
           ]
         },
         {
-          id:'bills_passed_set',
-          title:'Bills Introduced vs. Bills Enacted into Law (Selected Congresses)',
-          source:'Congress.gov; Congressional Research Service. Public data.',
-          chartType:'bar', chartLabel:'Number of Bills',
-          data:{labels:['104th','107th','110th','113th','116th','117th'],values:[88,383,460,296,344,365]},
-          note:'Bills enacted into law per Congress (2-year session). Source: Congress.gov.',
+          id:'bureaucracy_growth_set',
+          title:'Illustrative Growth in the Size of the Federal Civilian Workforce, Selected Years',
+          source:'Office of Personnel Management historical staffing tables; Congressional Research Service. Public data.',
+          chartType:'bar', chartLabel:'Approximate Federal Civilian Employees (millions)',
+          data:{labels:['1950','1980','2000','2020'],values:[1.8,2.1,2.7,4.2]},
           questions:[
-            {id:'u2_data_bl_001',topic:'2.2',bigIdea:'MPA',difficulty:'accessible',
-              stem:'Based on the data, which Congress shown enacted the fewest bills into law?',
-              choices:[
-                {id:'A',text:'The 104th Congress, which enacted approximately 88 bills into law.'},
-                {id:'B',text:'The 113th Congress, which enacted approximately 296 bills into law.'},
-                {id:'C',text:'The 107th Congress, which enacted approximately 383 bills into law.'},
-                {id:'D',text:'The 116th Congress, which enacted approximately 344 bills into law.'}
-              ],correct:'A',explanation:'The 104th Congress (1995-97, the "Republican Revolution" Congress) enacted the fewest bills at approximately 88 — reflecting both partisan conflict with President Clinton and an ideological preference for limiting government action.'},
-            {id:'u2_data_bl_002',topic:'2.3',bigIdea:'PMCD',difficulty:'moderate',
-              stem:'Which conclusion about the legislative process is best supported by the data?',
-              choices:[
-                {id:'A',text:'Congress enacts a very small fraction of the thousands of bills introduced each session, reflecting the many veto points in the legislative process.'},
-                {id:'B',text:'Congress enacts an increasing number of laws in every successive session, showing growing legislative productivity over time.'},
-                {id:'C',text:'The number of bills enacted is primarily determined by the size of the majority party\'s margin in the House.'},
-                {id:'D',text:'The data show that Congress enacted fewer bills after the 1990s due to constitutional amendments restricting legislative authority.'}
-              ],correct:'A',explanation:'The data show that even in productive Congresses, only hundreds of bills pass out of thousands introduced — reflecting the many veto points (committee action, floor votes, conference, presidential signature) that bills must survive in the American legislative process.'},
-            {id:'u2_data_bl_003',topic:'2.2',bigIdea:'CON',difficulty:'moderate',
-              stem:'The relatively low number of bills enacted, shown in the data, most directly reflects which feature of the American legislative process?',
-              choices:[
-                {id:'A',text:'The bicameral structure and multiple veto points built into the legislative process, which make passing legislation deliberately difficult.'},
-                {id:'B',text:'A constitutional prohibition on Congress passing more than 400 bills per two-year session.'},
-                {id:'C',text:'The president\'s authority to prevent all legislation from reaching the floor for a vote.'},
-                {id:'D',text:'The Supreme Court\'s power to block bills from becoming law before they are signed by the president.'}
-              ],correct:'A',explanation:'The Framers deliberately designed a legislative process with many steps and veto points — committee approval, floor votes in both chambers, conference, presidential signature — to make legislation difficult to pass. The data reflect this design: most bills die before becoming law.'}
+            {id:'u2_data_bg_001',topic:'2.15',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which statement is most accurate?',choices:[{id:'A',text:'The size of the federal civilian workforce increased over the periods shown.'},{id:'B',text:'The bureaucracy remained the same size throughout the period.'},{id:'C',text:'The federal workforce disappeared by 2020.'},{id:'D',text:'The chart shows that states control most federal agencies.'}],correct:'A',explanation:'The data show overall growth in the size of the federal bureaucracy across the selected years.'},
+            {id:'u2_data_bg_002',topic:'2.15',bigIdea:'CON',difficulty:'moderate',stem:'Which conclusion about governance is best supported by the trend shown in the data?',choices:[{id:'A',text:'As national responsibilities have expanded, presidents and Congress have relied more heavily on the bureaucracy to implement policy.'},{id:'B',text:'The judiciary has taken over most executive functions from the bureaucracy.'},{id:'C',text:'The bureaucracy now writes constitutional amendments without congressional approval.'},{id:'D',text:'Growth in bureaucracy means Congress no longer makes laws.'}],correct:'A',explanation:'A larger bureaucracy reflects the growing role of administrative agencies in carrying out federal laws and programs.'},
+            {id:'u2_data_bg_003',topic:'2.14',bigIdea:'PMCD',difficulty:'moderate',stem:'A president seeking to influence the trend shown in the data would most directly rely on which tool?',choices:[{id:'A',text:'Appointments and executive leadership over agencies'},{id:'B',text:'Judicial review of state criminal convictions'},{id:'C',text:"The House's sole power of impeachment"},{id:'D',text:'Ratification of treaties by state conventions'}],correct:'A',explanation:'Presidents influence the bureaucracy through appointments, management, agenda setting, and executive direction.'},
+            {id:'u2_data_bg_004',topic:'2.15',bigIdea:'MPA',difficulty:'challenging',stem:'Which limitation of the data should a careful student keep in mind?',choices:[{id:'A',text:'The chart shows growth in size, but it does not by itself indicate whether agencies became more effective or more accountable.'},{id:'B',text:'The chart proves that all bureaucratic agencies exercise judicial power.'},{id:'C',text:'The chart demonstrates that Congress no longer oversees executive departments.'},{id:'D',text:'The chart shows that every federal employee works directly in the White House.'}],correct:'A',explanation:'An increase in personnel or scope does not automatically reveal how well agencies perform.'}
           ]
         }
       ]
@@ -935,69 +821,27 @@ const QUESTION_BANK = {
       desc:'Analyze a political cartoon and answer questions about its argument, symbolism, and connection to constitutional principles.',
       sets:[
         {
-          id:'iron_triangle_cartoon',
-          title:'Political Cartoon: The Iron Triangle',
-          source:'Original classroom-safe scenario based on political science iron triangle model.',
-          description:'A political cartoon shows a solid steel triangle. At each corner sits a figure: one corner is labeled "Congress (Committees)," one is labeled "Federal Agencies (Bureaucracy)," and one is labeled "Interest Groups." Double-headed arrows connect each corner to the other two, showing relationships flowing both ways. Along the arrows are labels: "Funding & Oversight," "Regulations & Benefits," and "Campaign Support & Information." A smaller figure labeled "The Public" stands outside the triangle, pressing against it but unable to get in. The caption reads: "A Cozy Little Triangle."',
-          svgType:'iron_triangle',
+          id:'congress_cartoon_set',
+          title:'Political Cartoon: The Committee Maze',
+          source:'Original classroom-safe scenario inspired by public-domain congressional process cartoons.',
+          description:'A political cartoon shows a bill labeled "Education Reform" entering a giant maze called "Congress." Inside the maze are doors marked "Subcommittee," "Committee Chair," "Rules Committee," "Floor Debate," and "Conference Committee." Outside the maze, frustrated citizens hold signs reading "Do Something" while the bill circles back on itself. The caption reads, "The Long Road to Law."',
+          svgType:'committee_maze',
           questions:[
-            {id:'u2_vis_it_001',topic:'2.7',bigIdea:'PMCD',difficulty:'accessible',
-              stem:'The cartoonist\'s main argument is most likely that',
-              choices:[
-                {id:'A',text:'congressional committees, federal agencies, and interest groups form mutually beneficial relationships that may exclude broader public interests.'},
-                {id:'B',text:'the three branches of government — Congress, the president, and the courts — cooperate effectively to serve the public.'},
-                {id:'C',text:'interest groups always work against the preferences of Congress and federal agencies.'},
-                {id:'D',text:'the American public has more political influence than Congress, agencies, or interest groups combined.'}
-              ],correct:'A',explanation:'The iron triangle model describes the mutually reinforcing relationships among congressional committees (who fund agencies and write legislation), bureaucratic agencies (who regulate and provide benefits), and interest groups (who provide campaign support and expertise) — relationships that can become self-serving and difficult for outsiders to penetrate.'},
-            {id:'u2_vis_it_002',topic:'2.8',bigIdea:'PMCD',difficulty:'moderate',
-              stem:'The figure labeled "The Public" standing outside the triangle most directly symbolizes which concern about American government?',
-              choices:[
-                {id:'A',text:'That close relationships among policymaking insiders can reduce accountability to ordinary citizens and broader public interests.'},
-                {id:'B',text:'That citizens are constitutionally prohibited from participating in the federal regulatory process.'},
-                {id:'C',text:'That the public has deliberately chosen to remain uninvolved in bureaucratic policymaking.'},
-                {id:'D',text:'That the Supreme Court has ruled that citizens have no standing to challenge agency regulations.'}
-              ],correct:'A',explanation:'The excluded public figure represents the concern that iron triangle relationships — however efficient — can become insular and self-serving, with policy outcomes reflecting insider interests rather than the broader public good. This is a fundamental democratic accountability problem.'},
-            {id:'u2_vis_it_003',topic:'2.9',bigIdea:'CON',difficulty:'challenging',
-              stem:'Which of the following would most directly challenge the "cozy triangle" shown in the cartoon?',
-              choices:[
-                {id:'A',text:'A congressional oversight hearing investigating whether a federal agency has been captured by the industry it is supposed to regulate.'},
-                {id:'B',text:'A federal agency issuing new regulations that increase benefits for the interest group shown in the cartoon.'},
-                {id:'C',text:'An interest group donating to the campaigns of committee members who oversee the relevant agency.'},
-                {id:'D',text:'A congressional committee increasing the budget of the agency shown in the triangle.'}
-              ],correct:'A',explanation:'Congressional oversight — especially adversarial hearings investigating regulatory capture — is one of the primary mechanisms for disrupting iron triangle relationships. The other choices all reinforce rather than challenge the cozy triangle.'}
+            {id:'u2_vis_cong_001',topic:'2.2',bigIdea:'CON',difficulty:'accessible',stem:"The cartoonist's main argument is most likely that",choices:[{id:'A',text:'the legislative process is complex and contains many points where bills can be delayed or blocked.'},{id:'B',text:'presidents have exclusive authority to write education policy without Congress.'},{id:'C',text:'federal courts are responsible for drafting most legislation.'},{id:'D',text:'state governments control the rules of Congress.'}],correct:'A',explanation:'The maze symbolizes the many stages and obstacles involved in the legislative process.'},
+            {id:'u2_vis_cong_002',topic:'2.2',bigIdea:'CON',difficulty:'moderate',stem:'The label "Rules Committee" in the cartoon most directly refers to which feature of the House?',choices:[{id:'A',text:"The House's ability to control floor debate and amendments through a powerful procedural committee"},{id:'B',text:"The Senate's unique role in confirming judicial nominees"},{id:'C',text:"The president's authority to issue executive orders"},{id:'D',text:"The Supreme Court's power to review House ethics cases"}],correct:'A',explanation:'The Rules Committee is a powerful House institution that determines how legislation reaches and moves through the floor.'},
+            {id:'u2_vis_cong_003',topic:'2.3',bigIdea:'PMCD',difficulty:'challenging',stem:'Which contemporary criticism of Congress is best reflected in the cartoon?',choices:[{id:'A',text:'Congress can be slow and fragmented even when there is public demand for action.'},{id:'B',text:'Congress has no constitutional authority over domestic policymaking.'},{id:'C',text:'Congressional elections are conducted by the Supreme Court rather than the states.'},{id:'D',text:'Congress is too centralized because committees no longer matter.'}],correct:'A',explanation:'The cartoon highlights how congressional structure can produce delay, deadlock, and frustration.'}
           ]
         },
         {
-          id:'veto_override_cartoon',
-          title:'Political Cartoon: The Tug of War Over Legislation',
-          source:'Original classroom-safe scenario based on the presidential veto process.',
-          description:'A political cartoon shows a piece of paper labeled "THE BILL" being pulled in opposite directions. On the left, a figure labeled "CONGRESS" pulls with both hands. On the right, a figure labeled "PRESIDENT" pulls in the other direction and has stamped the bill with a large red "VETO." Above the tug of war, a scoreboard reads: "Override needed: 2/3 of both chambers." In the background, a figure labeled "SUPREME COURT" sits in a chair watching, holding a gavel labeled "JUDICIAL REVIEW."',
-          svgType:'veto_tug',
+          id:'presidency_court_cartoon_set',
+          title:'Political Cartoon: Orders and Obstacles',
+          source:'Original classroom-safe scenario inspired by public-domain separation-of-powers cartoons.',
+          description:'A political cartoon shows a president at a large desk signing a stack of papers labeled "Executive Orders." Across the room, a judge holds up a stop sign marked "Constitution," while members of Congress stand beside a locked cabinet labeled "Funding" and another file labeled "Oversight." The caption reads, "Not Alone in Washington."',
+          svgType:'orders_obstacles',
           questions:[
-            {id:'u2_vis_vt_001',topic:'2.5',bigIdea:'CON',difficulty:'accessible',
-              stem:'The cartoon most directly illustrates which constitutional mechanism?',
-              choices:[
-                {id:'A',text:'Checks and balances, showing Congress and the president exercising formal powers to limit each other over legislation.'},
-                {id:'B',text:'Federalism, showing the national government and state governments competing over policy authority.'},
-                {id:'C',text:'Judicial review, showing the Supreme Court\'s power to strike down legislation as unconstitutional.'},
-                {id:'D',text:'The commerce clause, showing Congress\'s authority to regulate economic activity across states.'}
-              ],correct:'A',explanation:'The veto-and-override dynamic shown is a classic illustration of checks and balances — the president checks Congress with the veto; Congress checks the president with the override power. The Supreme Court watching reflects its separate role in the broader system.'},
-            {id:'u2_vis_vt_002',topic:'2.5',bigIdea:'CON',difficulty:'moderate',
-              stem:'The scoreboard reading "Override needed: 2/3 of both chambers" suggests which conclusion about the veto power?',
-              choices:[
-                {id:'A',text:'The president\'s veto is a powerful check because the supermajority required for override is difficult to achieve in practice.'},
-                {id:'B',text:'Congress can always override a presidential veto as long as a simple majority votes to do so.'},
-                {id:'C',text:'The president can veto constitutional amendments passed by Congress.'},
-                {id:'D',text:'The Supreme Court must approve any congressional attempt to override a presidential veto.'}
-              ],correct:'A',explanation:'Requiring a two-thirds vote in both chambers to override makes the veto a powerful tool. In practice, less than 10% of presidential vetoes are overridden, meaning the veto often functions as an absolute barrier to legislation the president opposes.'},
-            {id:'u2_vis_vt_003',topic:'2.11',bigIdea:'CON',difficulty:'challenging',
-              stem:'The Supreme Court figure watching in the background most directly represents which constitutional principle?',
-              choices:[
-                {id:'A',text:'Even if Congress overrides a veto and enacts a law, the Court can still review and potentially invalidate that law under its power of judicial review.'},
-                {id:'B',text:'The Supreme Court must approve all bills before they can be signed into law by the president.'},
-                {id:'C',text:'The Court is passive in the American political system and never intervenes in disputes between Congress and the president.'},
-                {id:'D',text:'Congress can appeal to the Court to override a presidential veto when a two-thirds vote is not achievable.'}
-              ],correct:'A',explanation:'The Court\'s presence in the background — watching with its gavel of judicial review — represents the reality that even successfully enacted legislation faces a third check: the judiciary can still strike down laws that violate the Constitution, regardless of how they survived the legislative-executive process.'}
+            {id:'u2_vis_pc_001',topic:'2.5',bigIdea:'CON',difficulty:'accessible',stem:"The cartoonist's main point is that",choices:[{id:'A',text:'presidents can act forcefully, but other institutions can limit executive power.'},{id:'B',text:'presidents possess unlimited authority whenever Congress is unpopular.'},{id:'C',text:'judges are elected to write executive orders for the president.'},{id:'D',text:'Congress has no role in administrative or budgetary policy.'}],correct:'A',explanation:'The stop sign, funding cabinet, and oversight file all symbolize checks on unilateral presidential action.'},
+            {id:'u2_vis_pc_002',topic:'2.14',bigIdea:'PMCD',difficulty:'moderate',stem:'The locked cabinet labeled "Funding" most directly symbolizes which congressional power?',choices:[{id:'A',text:'The power of the purse, which allows Congress to shape policy implementation through appropriations'},{id:'B',text:'The power to issue executive orders during emergencies'},{id:'C',text:'The power to remove Supreme Court justices by simple majority vote'},{id:'D',text:'The power to negotiate treaties without presidential participation'}],correct:'A',explanation:'Congress can influence or constrain executive policy by controlling appropriations.'},
+            {id:'u2_vis_pc_003',topic:'2.5',bigIdea:'CON',difficulty:'challenging',stem:'Which foundational concept from Unit 2 is best represented by the judge's stop sign labeled "Constitution"?',choices:[{id:'A',text:'The judiciary can review executive actions and invalidate those that conflict with the Constitution.'},{id:'B',text:'The judiciary may command federal agencies directly without any legal case.'},{id:'C',text:'The judiciary has primary responsibility for writing appropriations bills.'},{id:'D',text:'The judiciary appoints cabinet secretaries whenever Congress and the president disagree.'}],correct:'A',explanation:"The judge's stop sign represents judicial review as a constitutional check on executive action."}
           ]
         }
       ]
@@ -1049,9 +893,153 @@ window.addEventListener('load', () => {
 });
 
 // ── HUB ───────────────────────────────────────────
+// ── ROUND PROGRESS STORAGE ──────────────────────────
+// Saved per round: { bestScore, bestPct, attempts, completedAt }
+function getRoundProgress(roundIdx) {
+  try {
+    const key = 'civitas_' + UNIT_ID + '_r' + roundIdx;
+    const d = localStorage.getItem(key);
+    return d ? JSON.parse(d) : null;
+  } catch(e) { return null; }
+}
+
+function saveRoundProgress(roundIdx, pct, correct, total) {
+  try {
+    const key = 'civitas_' + UNIT_ID + '_r' + roundIdx;
+    const prev = getRoundProgress(roundIdx) || { bestPct:0, attempts:0 };
+    const updated = {
+      bestPct: Math.max(prev.bestPct, pct),
+      bestCorrect: correct,
+      bestTotal: total,
+      attempts: (prev.attempts || 0) + 1,
+      completedAt: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(updated));
+    return updated;
+  } catch(e) { return null; }
+}
+
+function isRoundUnlocked(roundIdx) {
+  if (roundIdx === 0) return true; // Round 1 always unlocked
+  return getRoundProgress(roundIdx - 1) !== null; // Unlock if previous complete
+}
+
+function allRoundsComplete() {
+  return QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+}
+
+// ── HUB ───────────────────────────────────────────
 function showHub() {
   document.getElementById('hub').style.display = 'flex';
-  loadProgress();
+  renderRoundCards();
+}
+
+function renderRoundCards() {
+  const el = document.getElementById('round-cards');
+  if (!el) return;
+
+  const roundColors = ['var(--blue)','var(--amber)','var(--teal)','var(--purple)'];
+  const roundColorNames = ['blue2','amber','teal2','purple2'];
+
+  el.innerHTML = QUESTION_BANK.rounds.map((round, i) => {
+    const progress = getRoundProgress(i);
+    const unlocked = isRoundUnlocked(i);
+    const done = progress !== null;
+    const color = roundColors[i];
+    const colorName = roundColorNames[i];
+
+    const trophy = done ? getTrophyForAccuracy(progress.bestPct) : null;
+
+    return `<div style="background:var(--bg2);border:1px solid ${done ? color : unlocked ? 'var(--border2)' : 'var(--border)'};
+      border-left:4px solid ${done ? color : unlocked ? 'var(--border2)' : 'var(--border)'};
+      display:flex;align-items:center;gap:16px;padding:14px 18px;
+      transition:all .2s;${unlocked && !done ? 'cursor:pointer' : done ? 'cursor:pointer' : 'opacity:.45;cursor:not-allowed'}"
+      ${unlocked ? `onclick="startRound(${i})"
+        onmouseover="if(${unlocked})this.style.borderColor='${color}'"
+        onmouseout="this.style.borderColor='${done ? color : unlocked ? 'var(--border2)' : 'var(--border)'}'"` : ''}>
+
+      <!-- Round icon -->
+      <div style="font-size:28px;flex-shrink:0">${round.icon}</div>
+
+      <!-- Round info -->
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">
+          ROUND ${i + 1} OF ${QUESTION_BANK.rounds.length}
+        </div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">${round.label.replace(/^Round \d+ — /,'')}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${round.desc.split('.')[0]}.</div>
+      </div>
+
+      <!-- Status / score -->
+      <div style="flex-shrink:0;text-align:right">
+        ${done ? `
+          <div style="font-family:var(--bebas);font-size:28px;line-height:1;color:${trophy.color}">${progress.bestPct}%</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:6px">${trophy.label}</div>
+          <div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:3px 10px">↺ Replay</div>
+        ` : unlocked ? `
+          <div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:6px 16px">▶ Play</div>
+        ` : `
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete Round ${i} first</div>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update progress bar
+  const completed = QUESTION_BANK.rounds.filter((_, i) => getRoundProgress(i) !== null).length;
+  const total = QUESTION_BANK.rounds.length;
+  const pct = Math.round(completed / total * 100);
+  const progFill = document.getElementById('prog-fill');
+  const progPct = document.getElementById('prog-pct');
+  if (progFill) progFill.style.width = pct + '%';
+  if (progPct) progPct.textContent = `${completed} / ${total} rounds complete`;
+
+  // Show unit trophy if all done
+  if (allRoundsComplete()) renderUnitTrophyBanner();
+}
+
+function renderUnitTrophyBanner() {
+  // Calculate overall accuracy across all rounds
+  const scores = QUESTION_BANK.rounds.map((_, i) => getRoundProgress(i)?.bestPct || 0);
+  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const trophy = getTrophyForAccuracy(avg);
+
+  // Insert banner above round cards if not already there
+  if (document.getElementById('unit-trophy-banner')) return;
+  const el = document.getElementById('round-cards');
+  if (!el) return;
+  const banner = document.createElement('div');
+  banner.id = 'unit-trophy-banner';
+  banner.style.cssText = `background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(14,20,32,.98));
+    border:1px solid ${trophy.color};padding:16px 20px;display:flex;align-items:center;
+    gap:16px;margin-bottom:12px;animation:fadeIn .4s ease`;
+  banner.innerHTML = `
+    <div style="font-size:36px">${trophy.icon}</div>
+    <div style="flex:1">
+      <div style="font-family:var(--bebas);font-size:14px;color:${trophy.color};letter-spacing:3px">UNIT COMPLETE · ${trophy.label}</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;margin-top:3px">
+        Overall accuracy: ${avg}% · All 4 rounds completed. Replay any round to improve your score.
+      </div>
+    </div>`;
+  el.parentNode.insertBefore(banner, el);
+}
+
+function launchFlashcards() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = FLASHCARD_URL;
+}
+
+function launchBriefing() {
+  window.open(BRIEFING_URL, '_blank');
+}
+
+function startVocabQuiz() {
+  notify('Vocab Quiz coming soon! Complete the flashcards first to prepare.');
+}
+
+function returnToShell() {
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  window.location.href = CIVITAS_URL;
 }
 
 function switchTab(name, btn) {
@@ -1101,10 +1089,13 @@ function returnToShell() {
   window.location.href = CIVITAS_URL;
 }
 
-// ── GAME START ────────────────────────────────────
-function startGame() {
+function startRound(roundIdx) {
+  if (!isRoundUnlocked(roundIdx)) {
+    notify('🔒 Complete Round ' + roundIdx + ' first!');
+    return;
+  }
   G = {
-    roundIdx: 0,
+    roundIdx,
     questionIdx: 0,
     questions: [],
     currentSet: null,
@@ -1117,15 +1108,17 @@ function startGame() {
     timer: null,
     timeLeft: 0,
     introShown: false,
+    singleRound: true, // playing one round at a time
   };
   document.getElementById('hub').style.display = 'none';
   document.getElementById('game').style.display = 'flex';
   buildProgressPips();
+  updatePips();
   showRoundIntro();
 }
 
 function exitGame() {
-  if (G.sessionTotal > 0 && !confirm('Exit the game? Your progress for this attempt will be lost.')) return;
+  if (G.sessionTotal > 0 && !confirm('Exit? Your progress for this round will be lost.')) return;
   clearTimer();
   document.getElementById('game').style.display = 'none';
   document.getElementById('hub').style.display = 'flex';
@@ -1134,6 +1127,7 @@ function exitGame() {
   document.getElementById('unit-complete').style.display = 'none';
   document.getElementById('question-area').style.display = 'none';
   document.getElementById('btn-row').style.display = 'none';
+  renderRoundCards();
 }
 
 function buildProgressPips() {
@@ -1353,111 +1347,76 @@ function renderGroupedBar(container, set) {
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
   if (!set.svgType) return '';
-  if (set.svgType === 'iron_triangle') return ironTriangleSVG();
-  if (set.svgType === 'veto_tug') return vetoTugSVG();
+  if (set.svgType === 'committee_maze') return committeeMazeSVG();
+  if (set.svgType === 'orders_obstacles') return ordersObstaclesSVG();
   return '';
 }
 
-function ironTriangleSVG() {
+function committeeMazeSVG() {
   return `<svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="240" fill="rgba(14,20,32,.8)" rx="4"/>
-    <!-- Triangle lines -->
-    <polygon points="280,30 80,200 480,200" fill="none" stroke="#4a5a70" stroke-width="2"/>
-    <!-- Corner nodes -->
-    <!-- Congress top -->
-    <rect x="220" y="14" width="120" height="36" rx="4" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
-    <text x="280" y="28" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">CONGRESS</text>
-    <text x="280" y="42" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4878d0">(Committees)</text>
-    <!-- Interest Groups bottom-left -->
-    <rect x="28" y="186" width="120" height="36" rx="4" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
-    <text x="88" y="200" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#2aaa98" letter-spacing="1">INTEREST</text>
-    <text x="88" y="214" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">Groups</text>
-    <!-- Agencies bottom-right -->
-    <rect x="412" y="186" width="120" height="36" rx="4" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
-    <text x="472" y="200" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#9080f0" letter-spacing="1">FEDERAL</text>
-    <text x="472" y="214" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#9080f0">Agencies</text>
-    <!-- Arrow labels on edges -->
-    <text x="158" y="118" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8" transform="rotate(-57,158,118)">Funding &amp; Oversight</text>
-    <text x="402" y="118" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8" transform="rotate(57,402,118)">Regulations &amp; Benefits</text>
-    <text x="280" y="215" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8">Campaign Support &amp; Info</text>
-    <!-- Public figure outside -->
-    <circle cx="280" cy="175" r="14" fill="#0a1018" stroke="#e04040" stroke-width="1.5" stroke-dasharray="3 2"/>
-    <text x="280" y="173" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#e04040">PUBLIC</text>
-    <text x="280" y="183" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#e04040">excluded</text>
+    <!-- Maze outer walls -->
+    <rect x="140" y="20" width="280" height="180" fill="none" stroke="#4a5a70" stroke-width="2" rx="4"/>
+    <text x="280" y="16" text-anchor="middle" font-family="'Bebas Neue'" font-size="12" fill="#4878d0" letter-spacing="2">CONGRESS</text>
+    <!-- Maze internal doors -->
+    <rect x="158" y="55" width="90" height="24" rx="3" fill="#0e1420" stroke="#4878d0" stroke-width="1"/>
+    <text x="203" y="67" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#6898e8">Subcommittee</text>
+    <rect x="158" y="95" width="90" height="24" rx="3" fill="#0e1420" stroke="#4878d0" stroke-width="1"/>
+    <text x="203" y="107" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#6898e8">Committee Chair</text>
+    <rect x="310" y="55" width="90" height="24" rx="3" fill="#0e1420" stroke="#e8a020" stroke-width="1.5"/>
+    <text x="355" y="67" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e8a020">Rules Committee</text>
+    <rect x="310" y="95" width="90" height="24" rx="3" fill="#0e1420" stroke="#4878d0" stroke-width="1"/>
+    <text x="355" y="107" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#6898e8">Floor Debate</text>
+    <rect x="230" y="140" width="100" height="24" rx="3" fill="#0e1420" stroke="#4878d0" stroke-width="1"/>
+    <text x="280" y="152" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#6898e8">Conference Cmte</text>
+    <!-- Bill entering -->
+    <rect x="60" y="98" width="66" height="24" rx="3" fill="#1a3a1a" stroke="#2aaa98" stroke-width="1.5"/>
+    <text x="93" y="114" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#2aaa98">BILL →</text>
+    <text x="93" y="128" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">Education Reform</text>
+    <!-- Circular arrow inside maze -->
+    <path d="M248 75 Q280 60 312 75" fill="none" stroke="#4a5a70" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+    <path d="M312 115 Q280 130 248 115" fill="none" stroke="#4a5a70" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#arr2)"/>
+    <defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#4a5a70" stroke-width="1.5"/></marker></defs>
+    <!-- Citizens outside -->
+    <text x="480" y="90" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e04040">DO</text>
+    <text x="480" y="102" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e04040">SOMETHING</text>
+    <line x1="455" y1="95" x2="425" y2="110" stroke="#e04040" stroke-width="1" stroke-dasharray="2 2"/>
     <!-- Caption -->
-    <text x="280" y="232" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"A Cozy Little Triangle"</text>
+    <text x="280" y="224" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"The Long Road to Law"</text>
   </svg>`;
 }
 
-function vetoTugSVG() {
+function ordersObstaclesSVG() {
   return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="230" fill="rgba(14,20,32,.8)" rx="4"/>
-    <!-- Bill document center -->
-    <rect x="218" y="85" width="124" height="70" rx="3" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5"/>
-    <text x="280" y="108" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">THE BILL</text>
-    <!-- VETO stamp -->
-    <rect x="228" y="118" width="104" height="26" rx="2" fill="rgba(224,64,64,.15)" stroke="#e04040" stroke-width="1.5"/>
-    <text x="280" y="135" text-anchor="middle" font-family="'Bebas Neue'" font-size="16" fill="#e04040" letter-spacing="3">VETO</text>
-    <!-- Congress figure left -->
-    <circle cx="90" cy="100" r="24" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
-    <text x="90" y="97" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8">CONGRESS</text>
-    <text x="90" y="109" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4878d0">pulls →</text>
-    <line x1="114" y1="100" x2="218" y2="118" stroke="#4878d0" stroke-width="3" stroke-linecap="round"/>
-    <!-- President figure right -->
-    <circle cx="470" cy="100" r="24" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
-    <text x="470" y="97" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#2aaa98">PRESIDENT</text>
-    <text x="470" y="109" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">← pulls</text>
-    <line x1="446" y1="100" x2="342" y2="118" stroke="#2aaa98" stroke-width="3" stroke-linecap="round"/>
-    <!-- Scoreboard -->
-    <rect x="180" y="168" width="200" height="30" rx="3" fill="#0a1018" stroke="#4a5a70" stroke-width="1"/>
-    <text x="280" y="182" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#e8a020" letter-spacing="1">OVERRIDE NEEDED:</text>
-    <text x="280" y="193" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e8f0f8">2/3 of both chambers</text>
-    <!-- Supreme Court watcher -->
-    <circle cx="280" cy="42" r="18" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
-    <text x="280" y="38" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">SUPREME</text>
-    <text x="280" y="48" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">COURT</text>
-    <text x="280" y="68" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#8090a8">watching with judicial review</text>
+    <!-- President at desk -->
+    <rect x="30" y="80" width="130" height="80" rx="3" fill="#0e1420" stroke="#4a5a70" stroke-width="1"/>
+    <circle cx="95" cy="68" r="16" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+    <text x="95" y="72" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#6898e8">PRES</text>
+    <!-- Stack of executive orders -->
+    <rect x="50" y="90" width="70" height="8" rx="1" fill="#1a3060" stroke="#4878d0" stroke-width=".5"/>
+    <rect x="50" y="100" width="70" height="8" rx="1" fill="#1a3060" stroke="#4878d0" stroke-width=".5"/>
+    <rect x="50" y="110" width="70" height="8" rx="1" fill="#1a3060" stroke="#4878d0" stroke-width=".5"/>
+    <text x="85" y="136" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4878d0">Executive Orders</text>
+    <!-- Judge with stop sign -->
+    <circle cx="280" cy="68" r="16" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
+    <text x="280" y="72" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#9080f0">JUDGE</text>
+    <polygon points="280,90 260,110 300,110" fill="#e04040" stroke="#c03030" stroke-width="1"/>
+    <text x="280" y="106" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#fff">STOP</text>
+    <text x="280" y="124" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#9080f0">Constitution</text>
+    <!-- Congress with locked cabinet -->
+    <circle cx="450" cy="68" r="16" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+    <text x="450" y="72" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#6898e8">CONGRESS</text>
+    <rect x="415" y="90" width="70" height="50" rx="3" fill="#0e1420" stroke="#2aaa98" stroke-width="1.5"/>
+    <text x="450" y="108" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">FUNDING</text>
+    <text x="450" y="120" text-anchor="middle" font-family="'DM Sans'" font-size="8" fill="#e8a020">🔒</text>
+    <rect x="418" y="148" width="64" height="18" rx="2" fill="#0e1420" stroke="#4a5a70" stroke-width="1"/>
+    <text x="450" y="160" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#4a5a70">Oversight</text>
     <!-- Caption -->
-    <text x="280" y="220" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Wins the Tug of War?"</text>
-  </svg>`;
-}
-  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
-    <!-- Background -->
-    <rect width="560" height="220" fill="rgba(14,20,32,.8)" rx="4"/>
-    <!-- National Govt figure (left) -->
-    <g>
-      <circle cx="80" cy="80" r="22" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
-      <text x="80" y="84" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">NATIONAL</text>
-      <text x="80" y="96" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">GOVT</text>
-      <rect x="60" y="104" width="40" height="50" fill="#1e3a5a" stroke="#4878d0" stroke-width="1"/>
-      <line x1="60" y1="120" x2="42" y2="140" stroke="#4878d0" stroke-width="2.5"/>
-      <line x1="100" y1="120" x2="118" y2="105" stroke="#4878d0" stroke-width="2.5"/>
-    </g>
-    <!-- States figure (right) -->
-    <g>
-      <circle cx="480" cy="80" r="22" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1.5"/>
-      <text x="480" y="88" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#2aaa98" letter-spacing="1">STATES</text>
-      <rect x="460" y="104" width="40" height="50" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1"/>
-      <line x1="460" y1="120" x2="442" y2="105" stroke="#2aaa98" stroke-width="2.5"/>
-      <line x1="500" y1="120" x2="518" y2="140" stroke="#2aaa98" stroke-width="2.5"/>
-    </g>
-    <!-- Rope -->
-    <path d="M118 110 Q140 118 160 112 Q200 100 240 108 Q280 116 320 108 Q360 100 400 112 Q420 118 442 110" fill="none" stroke="#a07840" stroke-width="4" stroke-linecap="round"/>
-    <!-- Policy box -->
-    <rect x="220" y="128" width="120" height="66" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5" rx="3"/>
-    <text x="280" y="148" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">PUBLIC</text>
-    <text x="280" y="162" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">POLICY</text>
-    <!-- Labels on box -->
-    <text x="248" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Education</text>
-    <text x="280" y="186" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Health Care</text>
-    <text x="313" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Elections</text>
-    <!-- Caption -->
-    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Holds the Stronger Grip?"</text>
+    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Not Alone in Washington"</text>
   </svg>`;
 }
 
-
-// ── ANSWER HANDLING ────────────────────────────────
 function selectChoice(id) {
   if (G.answered) return;
   G.selectedChoice = id;
@@ -1527,29 +1486,63 @@ function showRoundComplete() {
   document.getElementById('btn-row').style.display = 'none';
   document.getElementById('round-complete').style.display = 'flex';
 
-  const rs = G.roundScores[G.roundScores.length - 1];
+  const rs = G.roundScores[G.roundScores.length - 1] || {correct:G.sessionCorrect,total:G.sessionTotal};
   const pct = rs.total > 0 ? Math.round(rs.correct / rs.total * 100) : 0;
   const round = QUESTION_BANK.rounds[G.roundIdx];
+  const trophy = getTrophyForAccuracy(pct);
 
-  document.getElementById('rc-icon').textContent = pct >= 80 ? '⭐' : pct >= 60 ? '✅' : '📋';
-  document.getElementById('rc-title').textContent = round.label + ' Complete';
+  // Save this round progress persistently
+  saveRoundProgress(G.roundIdx, pct, rs.correct, rs.total);
+
+  // Award gold based on accuracy
+  const goldEarned = Math.round(pct / 100 * 80);
+  if (goldEarned > 0) {
+    awardGoldToShell(goldEarned, round.label);
+    spawnGold('+' + goldEarned + ' \u{1F4B0}');
+  }
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = round.label.replace(/^Round \d+ \u2014 /,'') + ' \u2014 Complete!';
   document.getElementById('rc-score').textContent = rs.correct + '/' + rs.total;
-  document.getElementById('rc-score').style.color = pct >= 80 ? 'var(--green2)' : pct >= 60 ? 'var(--amber)' : 'var(--red2)';
-  document.getElementById('rc-sub').textContent = pct + '% ACCURACY';
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% \u00B7 ' + trophy.label;
 
-  const isLast = G.roundIdx >= QUESTION_BANK.rounds.length - 1;
+  document.getElementById('rc-stats').innerHTML =
+    '<div class="rc-stat"><div class="rc-stat-val" style="color:' + trophy.color + '">' + pct + '%</div><div class="rc-stat-lbl">Accuracy</div></div>' +
+    '<div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">' + goldEarned + '</div><div class="rc-stat-lbl">Gold Earned</div></div>' +
+    '<div class="rc-stat"><div class="rc-stat-val" style="color:var(--blue2)">' + rs.correct + '</div><div class="rc-stat-lbl">Correct</div></div>';
+
+  const nextIdx = G.roundIdx + 1;
+  const hasNext = nextIdx < QUESTION_BANK.rounds.length;
   const nextBtn = document.getElementById('rc-next-btn');
-  nextBtn.textContent = isLast ? 'See Final Score →' : 'Next Round →';
-  nextBtn.onclick = isLast ? showUnitComplete : nextRound;
+
+  if (hasNext) {
+    nextBtn.textContent = 'Continue to Round ' + (nextIdx + 1) + ' \u2192';
+    nextBtn.onclick = function() {
+      document.getElementById('round-complete').style.display = 'none';
+      G.roundIdx = nextIdx;
+      G.questionIdx = 0;
+      G.sessionCorrect = 0;
+      G.sessionTotal = 0;
+      G.roundScores = [];
+      G.selectedChoice = null;
+      G.answered = false;
+      document.getElementById('question-area').style.display = 'block';
+      document.getElementById('btn-row').style.display = 'flex';
+      updatePips();
+      showRoundIntro();
+    };
+  } else {
+    nextBtn.textContent = '\u2713 Back to Hub';
+    nextBtn.onclick = function() {
+      document.getElementById('round-complete').style.display = 'none';
+      document.getElementById('game').style.display = 'none';
+      document.getElementById('hub').style.display = 'flex';
+      renderRoundCards();
+    };
+  }
 }
 
-function nextRound() {
-  G.roundIdx++;
-  document.getElementById('round-complete').style.display = 'none';
-  document.getElementById('question-area').style.display = 'block';
-  document.getElementById('btn-row').style.display = 'flex';
-  showRoundIntro();
-}
 
 // ── UNIT COMPLETE ──────────────────────────────────
 function showUnitComplete() {
@@ -1616,7 +1609,9 @@ function awardGoldToShell(amount, source) {
 
 function playAgain() {
   document.getElementById('unit-complete').style.display = 'none';
-  startGame();
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  renderRoundCards();
 }
 
 // ── UTILS ──────────────────────────────────────────
