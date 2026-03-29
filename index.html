@@ -807,33 +807,42 @@ const COURSE_CATALOG=[
 // Course unit data — populated per course
 // Each course has its own UNIT_DATA array
 // For now AP Gov has real units; others are placeholders
+const CIVITAS_BASE = 'https://olsonjoshua-code.github.io/Civitas/';
+
 const COURSE_UNITS = {
   ap_gov: [
     {id:'apg_u1', num:'Unit 1', title:'Foundations of Democracy', icon:'📜', color:'#4878d0',
      desc:'The philosophical foundations of American democracy and the Constitutional framework.',
      topics:['Natural rights','Social contract','Articles of Confederation','Constitutional Convention','Federalism'],
-     hasFRQ:true},
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/unit1-foundations/'},
     {id:'apg_u2', num:'Unit 2', title:'Interactions Among Branches', icon:'⚖️', color:'#4878d0',
      desc:'How Congress, the Presidency, and the Courts interact through checks and balances.',
      topics:['Congress & lawmaking','Presidential powers','Judicial review','Bureaucracy','Iron triangles'],
-     hasFRQ:true},
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/unit2-branches/'},
     {id:'apg_u3', num:'Unit 3', title:'Civil Liberties & Civil Rights', icon:'🗽', color:'#4878d0',
      desc:'The Bill of Rights, incorporation, and the expansion of civil rights.',
      topics:['First Amendment','Due process','Equal protection','Civil Rights Movement','Affirmative action'],
-     hasFRQ:true},
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/unit3-civil-liberties/'},
     {id:'apg_u4', num:'Unit 4', title:'American Political Ideologies', icon:'🗳️', color:'#4878d0',
      desc:'Political beliefs, public opinion, and how ideology shapes policy.',
      topics:['Liberal vs. conservative','Public opinion','Political socialization','Media','Polling'],
-     hasFRQ:true},
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/unit4-ideology/'},
     {id:'apg_u5', num:'Unit 5', title:'Political Participation', icon:'✊', color:'#4878d0',
      desc:'How citizens connect to government through elections, parties, and movements.',
      topics:['Voting behavior','Political parties','Interest groups','Social movements','Media influence'],
-     hasFRQ:true},
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/unit5-participation/'},
+    {id:'apg_exam', num:'AP Exam', title:'AP Exam Practice', icon:'📝', color:'#4878d0',
+     desc:'Full AP exam practice — MCQ, stimulus-based questions, and all four FRQ types.',
+     topics:['All units','MCQ','Concept Application','Quantitative Analysis','SCOTUS Comparison','Argument Essay'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-gov/ap-exam/'},
+    {id:'apg_rpg', num:'Campaign', title:'Civitas RPG', icon:'⚔️', color:'#c8a020',
+     desc:'Battle through all 5 units in the Civitas RPG campaign. Unlock historical figures and earn the title of Master Citizen.',
+     topics:['All units','All FRQ types','AP Exam Final Challenge'],
+     hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/rpg/'},
   ],
   hs_ush: [
-    // Placeholder — real content lives in American Chronicles Shell
-    {id:'ush_placeholder', num:'Unit 1', title:'See American Chronicles', icon:'⚔️', color:'#c07818',
-     desc:'The full U.S. History course lives in American Chronicles. Click to launch.',
+    {id:'ush_placeholder', num:'Course', title:'American Chronicles', icon:'⚔️', color:'#c07818',
+     desc:'The full U.S. History course. Click to launch American Chronicles.',
      topics:[], hasFRQ:false, externalUrl:'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'}
   ]
 };
@@ -1753,18 +1762,32 @@ function renderCourseUnits(){
       <div class="ucg-body">
         <div class="ucg-num">${u.num}</div>
         <div class="ucg-title">${u.title}</div>
-        <div class="ucg-status ${done?'ucg-done':'ucg-play'}">${done?'✓ Completed':'▶ Play Now'}</div>
+        <div class="ucg-status ${done?'ucg-done':u.url?'ucg-play':'ucg-done'}">${done?'✓ Completed':u.url?'▶ Play Now':'🔜 Coming Soon'}</div>
       </div>
     </div>`;
   }).join('')}</div>`;
 }
 
-function openUnitPreview(courseId,unitId){
-  const cat=COURSE_CATALOG.find(c=>c.id===courseId);
-  const unit=(COURSE_UNITS[courseId]||[]).find(u=>u.id===unitId);
-  if(!cat||!unit)return;
-  // Simple modal for now — full preview panel can be added later
-  notify('📚 '+unit.title+' — launching…');
+function launchUnitGame(unit){
+  try{localStorage.setItem('civitas_shell_url', CIVITAS_BASE);}catch(e){}
+  try{localStorage.setItem('civitas_returning','1');}catch(e){}
+  try{sessionStorage.removeItem('civitas_shell_active');}catch(e){}
+  logSessionEnd().then(()=>{ window.location.href = unit.url; });
+}
+
+function openUnitPreview(courseId, unitId){
+  const units = COURSE_UNITS[courseId]||[];
+  const unit = units.find(u=>u.id===unitId);
+  if(!unit)return;
+  if(unit.externalUrl){
+    if(confirm('This opens in American Chronicles. Continue?')){
+      try{localStorage.setItem('civitas_returning','1');}catch(e){}
+      window.open(unit.externalUrl,'_blank');
+    }
+    return;
+  }
+  if(!unit.url){notify('This unit is coming soon!');return;}
+  launchUnitGame(unit);
 }
 
 // ══════════════════════════════════════════════════════
