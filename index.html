@@ -687,6 +687,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
       </div>
       <!-- Trophies view -->
       <div id="cv-trophies" class="course-view">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div style="font-family:var(--bebas);font-size:13px;color:var(--civitas2);letter-spacing:3px">Unit Trophies</div>
+          <button onclick="printCourseCert()" style="font-family:var(--bebas);font-size:11px;letter-spacing:1.5px;background:var(--bg3);border:1px solid var(--gc2);color:var(--gc);padding:6px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(245,200,66,.08)'" onmouseout="this.style.background='var(--bg3)'">🏛️ PRINT COURSE CERT</button>
+        </div>
         <div class="trophy-grid" id="cv-trophy-grid"></div>
         <div style="background:var(--bg2);border:1px solid var(--border2);padding:20px">
           <div class="sh" style="margin-bottom:12px">Class Leaderboard</div>
@@ -717,6 +721,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
   </div>
 
 </div><!-- shell -->
+
+<!-- COURSE CERT FLOATING BUTTON -->
+<button id="course-cert-btn" onclick="printCourseCert()" title="Print your Course Certificate" style="display:none;position:fixed;bottom:24px;right:20px;z-index:800;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:var(--bg2);border:1px solid var(--gc2);color:var(--gc);padding:7px 14px;cursor:pointer;transition:all .2s;align-items:center;gap:6px" onmouseover="this.style.borderColor='var(--gc)';this.style.background='rgba(245,200,66,.08)'" onmouseout="this.style.borderColor='var(--gc2)';this.style.background='var(--bg2)'">🏛️ COURSE CERT</button>
 
 <!-- COURSE SWITCHER OVERLAY -->
 <div id="course-switcher-overlay">
@@ -1567,8 +1574,8 @@ function enterShell(){
 
   // Auto-return to last active course if coming back from a game
   try{
-    const lastCourse = localStorage.getItem('civitas_last_course');
-    if(lastCourse){ localStorage.removeItem('civitas_last_course'); updateHUD(); buildCharGrid(); enterCourse(lastCourse); return; }
+    const lastCourse=localStorage.getItem('civitas_last_course');
+    if(lastCourse){localStorage.removeItem('civitas_last_course');updateHUD();buildCharGrid();enterCourse(lastCourse);return;}
   }catch(e){}
 
   if(IS_TEACHER){
@@ -1613,6 +1620,7 @@ function showDashboard(){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
+  try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   // Deactivate all main views
   document.querySelectorAll('#main-views .view').forEach(v=>v.classList.remove('active'));
@@ -1630,6 +1638,7 @@ function showMainView(v){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
+  try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   document.querySelectorAll('#main-views .view').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('view-'+v);
@@ -1664,6 +1673,8 @@ function enterCourse(courseId){
   }
 
   _activeCourseId=courseId;
+  // Show course cert button for AP Gov
+  try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display=courseId==='ap_gov'?'flex':'none';}catch(e){}
 
   // Show course hub, hide main views
   document.getElementById('main-views').style.display='none';
@@ -1840,24 +1851,169 @@ function openUnitPreview(courseId, unitId){
 //  COURSE TROPHIES
 // ══════════════════════════════════════════════════════
 function renderCourseTrophies(){
-  // Placeholder — full trophy system to be wired per course
   const el=document.getElementById('cv-trophy-grid');
   const units=COURSE_UNITS[_activeCourseId]||[];
-  el.innerHTML=units.map(u=>`
-    <div class="trophy-card">
-      <div class="trophy-era">${u.icon}
-        <div class="trophy-medallion">⬜</div>
+  const progress=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+  el.innerHTML=units.filter(u=>!u.isBigIdea).map(u=>{
+    const ud=progress[u.id.replace('apg_','apg_')];
+    const acc=ud?ud.bestAccuracy:null;
+    const trophy=acc===null?null:acc>=90?'🏆':acc>=75?'⭐':acc>=60?'🥉':'✅';
+    const tc=acc===null?'var(--border)':acc>=90?'var(--gold)':acc>=75?'#c8c8d8':acc>=60?'#cd7f32':'var(--green2)';
+    return `<div class="trophy-card" style="border-top:3px solid ${tc}">
+      <div class="trophy-era" style="font-size:32px">${u.icon}
+        <div class="trophy-medallion" style="background:${tc};color:#1a1208;font-size:16px">${trophy||'⬜'}</div>
       </div>
       <div class="trophy-body">
-        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">${u.num}</div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">${u.num||''}</div>
         <div style="font-family:var(--playfair);font-size:12px;color:var(--cream);margin-bottom:6px">${u.title}</div>
-        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);font-style:italic">Not yet played</div>
+        <div style="font-family:var(--dm);font-size:9px;color:${acc!==null?tc:'var(--text3)'}">
+          ${acc!==null?acc+'% accuracy':'Not yet played'}
+        </div>
       </div>
-    </div>`).join('');
-
-  // Leaderboard
+    </div>`;
+  }).join('');
   renderCourseLeaderboardInTrophies();
 }
+
+function printCourseCert(){
+  if(_activeCourseId!=='ap_gov'){notify('Course certificate only available for AP Gov.');return;}
+  const studentName=S.name||localStorage.getItem('civitas_student_name')||'Student';
+  const progress=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+  const units=COURSE_UNITS['ap_gov']||[];
+  const unitIds=['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
+  const themeIds=['apg_con','apg_lor','apg_pmcd','apg_mk','apg_mpa'];
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Unit accuracy
+  const unitRows=unitIds.map(id=>({id,data:progress[id]})).filter(r=>r.data);
+  const themeRows=themeIds.map(id=>({id,data:progress[id]})).filter(r=>r.data);
+  const unitAccSum=unitRows.reduce((a,r)=>a+(r.data.bestAccuracy||0),0);
+  const themeAccSum=themeRows.reduce((a,r)=>a+(r.data.bestAccuracy||0)*0.5,0);
+  const completedWeight=unitRows.length+(themeRows.length*0.5);
+  const totalWeight=5+5*0.5; // 7.5
+  const avgAcc=completedWeight>0?(unitAccSum+themeAccSum)/completedWeight:0;
+  const completionRate=completedWeight/totalWeight;
+  const unitScore=Math.round(avgAcc*completionRate);
+
+  // FRQ score from localStorage
+  const frqKeys=['civitas_frq_apg_u1_frq1','civitas_frq_apg_u1_frq2','civitas_frq_apg_u2_frq1','civitas_frq_apg_u2_frq2','civitas_frq_apg_u3_frq1','civitas_frq_apg_u3_frq2','civitas_frq_apg_u4_frq1','civitas_frq_apg_u4_frq2','civitas_frq_apg_u5_frq1','civitas_frq_apg_u5_frq2'];
+  const frqScores=frqKeys.map(k=>{const v=localStorage.getItem(k);return v?parseInt(v):null;}).filter(v=>v!==null);
+  const frqAvg=frqScores.length>0?Math.round(frqScores.reduce((a,v)=>a+v,0)/frqScores.length*100/6):0;
+  const frqAttempted=frqScores.length>0;
+
+  // Composite (units 70%, FRQ 30%)
+  const courseGrade=Math.round(unitScore*0.70+(frqAttempted?frqAvg*0.30:0));
+  const tc=courseGrade>=90?'#ffd700':courseGrade>=75?'#c8c8d8':courseGrade>=60?'#cd7f32':'#38a050';
+  const tier=courseGrade>=90?'🏆 Gold':courseGrade>=75?'⭐ Silver':courseGrade>=60?'🥉 Bronze':'✅ Completed';
+
+  if(unitRows.length===0){notify('Complete at least one unit to print your Course Certificate!');return;}
+
+  // Unit table rows
+  const unitTableRows=unitIds.map(id=>{
+    const u=units.find(x=>x.id===id);
+    const d=progress[id];
+    if(!u)return'';
+    const acc=d?d.bestAccuracy:null;
+    const t=acc===null?'—':acc>=90?'🏆':acc>=75?'⭐':acc>=60?'🥉':'✅';
+    const tc2=acc===null?'#a09080':acc>=90?'#b8860b':acc>=75?'#707080':acc>=60?'#7a5020':'#38a050';
+    return `<tr>
+      <td style="padding:3px 8px;font-size:9px;color:#5a4520">${u.num||id}</td>
+      <td style="padding:3px 8px;font-size:9px;color:#1a1208">${u.title}</td>
+      <td style="padding:3px 8px;font-size:10px;text-align:center">${t}</td>
+      <td style="padding:3px 8px;font-size:9px;font-weight:700;text-align:center;color:${tc2}">${acc!==null?acc+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const w=window.open('','_blank','width=940,height=780');
+  if(!w){notify('Allow popups to print your Course Certificate.');return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>AP Gov Course Certificate — ${studentName}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#faf7f0;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px}
+  .cert{width:880px;background:#faf7f0;border:3px solid ${tc};padding:38px 52px 30px;position:relative;text-align:center;
+    box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${tc},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
+  .cert::before,.cert::after{content:'⚖';position:absolute;font-size:22px;color:${tc};opacity:.4}
+  .cert::before{top:14px;left:14px} .cert::after{top:14px;right:14px}
+  .corner{position:absolute;font-size:16px;color:${tc};opacity:.4}
+  .eyebrow{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:5px}
+  .main-title{font-family:'Cinzel Decorative',serif;font-size:24px;font-weight:700;color:#1a1208;letter-spacing:.08em;margin:6px 0}
+  .divider{height:2px;background:linear-gradient(90deg,transparent,${tc},transparent);margin:12px auto;width:84%}
+  .student-name{font-family:'Cinzel Decorative',serif;font-size:30px;font-weight:700;color:#1a1208;margin:9px 0;letter-spacing:.04em}
+  .grade-wrap{display:inline-block;background:rgba(0,0,0,.03);border:2px solid ${tc}55;padding:10px 28px;margin:10px 0}
+  .grade-val{font-size:42px;font-weight:900;color:${tc};font-family:'Cinzel Decorative',serif;line-height:1}
+  .grade-lbl{font-size:8px;letter-spacing:.18em;color:#8a6a2a;margin-top:3px}
+  .section-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.2em;color:#8a6a2a;margin:10px 0 4px;text-align:left}
+  .unit-table{width:100%;border-collapse:collapse;text-align:left;margin-top:4px}
+  .unit-table th{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.12em;color:#8a6a2a;padding:4px 8px;border-bottom:1px solid rgba(0,0,0,.12)}
+  .unit-table tr:nth-child(even) td{background:rgba(0,0,0,.025)}
+  .comp-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:9px;border-bottom:1px solid rgba(0,0,0,.06)}
+  .sigs{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(0,0,0,.15)}
+  .sig-line{width:155px;height:1px;background:#8a6a2a;margin:0 auto 4px}
+  .sig-name{font-size:11px;color:#1a1208;font-weight:600;font-family:'Cinzel',serif}
+  .sig-title{font-size:8px;color:#8a6a2a;letter-spacing:.1em}
+  .school{font-size:9px;color:#8a6a2a;letter-spacing:.1em;margin-top:12px}
+  .print-btn{margin-top:18px;padding:9px 26px;background:#c9a84c;border:none;color:#1a1208;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;cursor:pointer}
+  .print-btn.close{background:#5a4520;color:#faf7f0;margin-left:10px}
+  @media print{body{padding:0;background:white}.cert{box-shadow:none}.no-print{display:none!important}}
+</style></head><body>
+<div>
+<div class="cert">
+  <span class="corner" style="bottom:14px;left:14px">⚖</span>
+  <span class="corner" style="bottom:14px;right:14px">⚖</span>
+  <div class="eyebrow">Civitas · AP U.S. Government & Politics</div>
+  <div style="font-size:48px;margin:6px 0;filter:drop-shadow(0 2px 8px rgba(201,168,76,.3))">🏛️</div>
+  <div class="main-title">Course Progress Certificate</div>
+  <div class="divider"></div>
+  <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.15em;color:#5a4520;margin:6px 0">This certifies that</div>
+  <div class="student-name">${studentName}</div>
+  <div style="font-family:'Crimson Text',serif;font-size:13px;color:#5a4520;font-style:italic;margin:6px 0;line-height:1.7">
+    has completed ${unitRows.length} of 5 units and ${themeRows.length} of 5 Big Idea theme games<br>
+    in AP U.S. Government & Politics through Civitas
+  </div>
+  <div class="grade-wrap">
+    <div class="grade-val">${courseGrade}%</div>
+    <div class="grade-lbl">COMPOSITE COURSE SCORE</div>
+  </div>
+  <div style="font-family:'Cinzel',serif;font-size:14px;color:${tc};letter-spacing:.1em;margin:6px 0">${tier} Achievement</div>
+  <div class="divider"></div>
+
+  <div style="display:flex;gap:20px;text-align:left">
+    <div style="flex:1">
+      <div class="section-label">Unit Game Results</div>
+      <table class="unit-table">
+        <tr><th>Unit</th><th>Title</th><th>Trophy</th><th>Accuracy</th></tr>
+        ${unitTableRows}
+      </table>
+    </div>
+    <div style="width:200px">
+      <div class="section-label">Score Breakdown</div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">Unit Games</span><span style="color:#8a4820;font-weight:700">${unitScore}% <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 70%</span></span></div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">FRQ Practice</span><span style="color:#8a4820;font-weight:700">${frqAttempted?frqAvg+'%':'—'} <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 30%</span></span></div>
+      <div class="comp-row" style="border-top:2px solid rgba(0,0,0,.15);margin-top:4px;padding-top:6px"><span style="color:#1a1208;font-weight:700;font-family:'Cinzel',serif;font-size:10px">COMPOSITE</span><span style="color:${tc};font-weight:700;font-size:13px">${courseGrade}%</span></div>
+      <div class="section-label" style="margin-top:12px">Big Idea Themes</div>
+      ${themeRows.length>0?themeRows.map(r=>`<div class="comp-row"><span style="color:#5a4520;font-size:8px">${r.id.replace('apg_','').toUpperCase()}</span><span style="color:#8a4820;font-size:8px">${r.data.bestAccuracy}%</span></div>`).join(''):'<div style="font-size:8px;color:#a09080;padding:4px 8px">None completed yet</div>'}
+    </div>
+  </div>
+
+  <div class="divider" style="margin-top:14px"></div>
+  <div class="sigs">
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${studentName}</div><div class="sig-title">STUDENT</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${date}</div><div class="sig-title">DATE PRINTED</div></div>
+  </div>
+  <div class="school">Civitas · AP U.S. Government & Politics · ${new Date().getFullYear()}</div>
+</div>
+<div style="text-align:center" class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>
+  <button class="print-btn close" onclick="window.close()">✕ CLOSE</button>
+</div>
+</div>
+</body></html>`);
+  w.document.close();
+}
+
 
 async function renderCourseLeaderboardInTrophies(){
   // Pull results for this course from Supabase
