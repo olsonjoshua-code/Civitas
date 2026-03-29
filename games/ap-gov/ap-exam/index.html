@@ -1,1 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Exam Practice — AP Gov · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0e1420;--bg3:#141c2a;--panel:#111828;
+  --border:#1e2a3e;--border2:#2a3a54;
+  --blue:#4878d0;--blue2:#6898e8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --acc:#c04828;--acc2:#e06030;--acc3:#f09060;
+  --text:#e8f0f8;--text2:#8090a8;--text3:#4a5a70;--cream:#f0e8d8;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(192,72,40,.1) 0%,transparent 55%),
+  radial-gradient(ellipse at 80% 100%,rgba(192,72,40,.06) 0%,transparent 55%)}
 
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(192,72,40,.2)}50%{box-shadow:0 0 40px rgba(224,96,48,.5)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-seal{width:80px;height:80px;border:2px solid var(--acc2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px;animation:glowPulse 2s infinite;background:radial-gradient(circle,rgba(192,72,40,.12),transparent 70%)}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--acc2);letter-spacing:5px;margin-bottom:2px}
+.ld-sub{font-family:var(--crimson);font-size:13px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s;width:0}
+
+/* Hub */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(192,72,40,.15) 0%,rgba(8,12,20,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(192,72,40,.015) 40px,rgba(192,72,40,.015) 80px)}
+.hub-hero-badge{width:72px;height:72px;border-radius:50%;border:2px solid var(--acc2);
+  display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;
+  background:radial-gradient(circle,rgba(192,72,40,.15),transparent 70%);
+  box-shadow:0 0 24px rgba(192,72,40,.3)}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--acc2);letter-spacing:3px;margin-bottom:4px;opacity:.7}
+.hub-badge-row{font-family:var(--bebas);font-size:11px;letter-spacing:3px;color:var(--acc3);
+  background:rgba(192,72,40,.1);border:1px solid var(--acc2);padding:2px 10px;display:inline-block;margin-bottom:6px}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,36px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:5px}
+.hub-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;max-width:560px}
+.hub-meta{display:flex;gap:18px;margin-top:10px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--acc2);font-weight:500}
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;
+  background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc2);color:var(--acc2)}
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--acc2)}
+.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc2)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s;border-radius:2px}
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--acc2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--acc2);display:block}
+.exam-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(192,72,40,.1);border:1px solid var(--acc);padding:4px 12px;margin-bottom:16px}
+.exam-badge-text{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2)}
+
+/* Game shell */
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,12,20,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc2);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--acc)}
+.gp-pip.active{background:var(--acc2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:520px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--acc2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc2);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc2);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.stimulus-box{background:rgba(192,72,40,.04);border:1px solid rgba(224,96,48,.18);
+  border-left:3px solid var(--acc2);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:12px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;font-style:italic}
+.stimulus-holding{font-family:var(--dm);font-size:11px;color:var(--acc2);background:rgba(192,72,40,.06);
+  border:1px solid rgba(192,72,40,.2);padding:8px 12px;margin-top:10px;margin-bottom:4px}
+/* Comparative side-by-side */
+.comparative-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.comp-panel{background:rgba(255,255,255,.02);border:1px solid var(--border2);padding:14px 16px}
+.comp-label{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--acc2);margin-bottom:6px}
+.comp-text{font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.75;font-style:italic}
+.comp-source{font-family:var(--dm);font-size:7px;color:var(--text3);margin-top:6px;font-style:italic}
+@media(max-width:600px){.comparative-wrap{grid-template-columns:1fr}}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.unit{border-color:var(--acc2);color:var(--acc2)}
+.q-tag.topic{border-color:var(--blue);color:var(--blue2)}
+.q-tag.bi{border-color:var(--purple);color:var(--purple2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(192,72,40,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--acc2);background:rgba(192,72,40,.07)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--acc2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc2);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc2);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* Round complete */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc2);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--acc2);color:#fff}
+
+/* FRQ Round */
+#frq-area{flex:1;overflow-y:auto;padding:20px 24px}
+.frq-selector{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.frq-card{background:var(--bg2);border:1px solid var(--border);padding:16px;cursor:pointer;transition:all .15s;text-align:left}
+.frq-card:hover,.frq-card.active{border-color:var(--acc2);background:rgba(192,72,40,.06)}
+.frq-card-type{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--acc2);margin-bottom:4px}
+.frq-card-title{font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:4px}
+.frq-card-pts{font-family:var(--dm);font-size:9px;color:var(--text3)}
+.frq-workspace{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--acc2);padding:20px 24px;display:none;animation:fadeIn .3s ease}
+.frq-scenario{font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;
+  background:rgba(192,72,40,.04);border:1px solid rgba(192,72,40,.15);padding:14px 18px;margin-bottom:18px}
+.frq-prompt-title{font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px}
+.frq-chart-wrap{margin-bottom:16px}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.frq-part-letter{font-family:var(--bebas);font-size:20px;color:var(--acc2);width:28px;flex-shrink:0}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:12px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border2);color:var(--text);
+  font-family:var(--crimson);font-size:15px;line-height:1.65;padding:12px;resize:vertical;min-height:100px;
+  transition:border-color .15s}
+.frq-textarea:focus{outline:none;border-color:var(--acc2)}
+.frq-textarea::placeholder{color:var(--text3)}
+.frq-submit-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--acc);
+  border:2px solid var(--acc2);color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;margin-top:16px;display:block}
+.frq-submit-btn:hover{background:var(--acc2)}
+.frq-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.frq-grading{display:none;animation:fadeIn .4s ease}
+.frq-score-banner{background:linear-gradient(135deg,rgba(192,72,40,.15),rgba(8,12,20,.95));
+  border:1px solid var(--acc);padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:20px}
+.frq-total-score{font-family:var(--bebas);font-size:56px;line-height:1;color:var(--acc2)}
+.frq-score-info{flex:1}
+.frq-score-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.frq-score-title{font-family:var(--playfair);font-size:18px;color:var(--cream)}
+.frq-part-result{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--border2);
+  padding:14px 16px;margin-bottom:10px}
+.frq-part-result.earned{border-left-color:var(--green)}
+.frq-part-result.missed{border-left-color:var(--red)}
+.frq-part-result-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.frq-part-result-letter{font-family:var(--bebas);font-size:16px;color:var(--text3)}
+.frq-part-result-pts{font-family:var(--bebas);font-size:14px}
+.frq-part-result-pts.earned{color:var(--green2)}
+.frq-part-result-pts.missed{color:var(--red2)}
+.frq-part-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.65}
+.frq-overall-feedback{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75;
+  background:rgba(255,255,255,.02);border:1px solid var(--border);padding:14px 18px;margin-top:12px;font-style:italic}
+.frq-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border2);
+  border-top-color:var(--acc2);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+
+/* FRQ non-required case */
+.scotus-compare-box{background:rgba(0,0,0,.2);border:1px solid var(--border2);border-left:3px solid var(--amber);
+  padding:14px 18px;margin-bottom:16px}
+.scotus-compare-label{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--amber);margin-bottom:6px}
+.scotus-compare-name{font-family:var(--playfair);font-size:14px;color:var(--cream);margin-bottom:4px}
+.scotus-compare-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7}
+
+/* Argument essay ref docs */
+.essay-docs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.essay-doc-tag{font-family:var(--dm);font-size:9px;padding:3px 10px;border:1px solid var(--purple);color:var(--purple2);background:rgba(112,96,208,.06)}
+
+/* Chart */
+.chart-source{font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:6px}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc2);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* FRQ nav */
+.frq-nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.frq-nav-btn{font-family:var(--bebas);font-size:10px;letter-spacing:1px;padding:5px 14px;
+  border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s}
+.frq-nav-btn:hover,.frq-nav-btn.active{border-color:var(--acc2);color:var(--acc2)}
+.frq-nav-btn.graded{border-color:var(--green);color:var(--green2)}
+
+@media(max-width:600px){
+  .hub-hero{padding:20px;flex-direction:column;text-align:center}
+  .hub-content{padding:16px 16px 60px}
+  #question-area{padding:14px}
+  .question-card{padding:16px}
+  .frq-selector{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-seal">🏛️</div>
+  <div class="ld-title">AP Exam Practice</div>
+  <div class="ld-sub">Full Exam Simulation · AP U.S. Government · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<div id="hub">
+  <div class="hub-hero">
+    <div class="hub-hero-badge">🏛️</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP U.S. GOVERNMENT · EXAM PRACTICE</div>
+      <div class="hub-badge-row">⚡ FULL EXAM SIMULATION — ALL 5 UNITS · ALL BIG IDEAS</div>
+      <div class="hub-title">AP Exam Practice</div>
+      <div class="hub-desc">A four-round simulation of the AP U.S. Government and Politics exam — standalone MCQ, stimulus sets, AI-graded FRQ practice, and SCOTUS & document deep dives. Content proportioned to the actual College Board exam.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📋 Round 1: <span>20 MCQ Standalone</span></div>
+        <div class="hub-meta-item">📄 Round 2: <span>Stimulus Sets (Doc, Data, Visual, Comparative)</span></div>
+        <div class="hub-meta-item">✍️ Round 3: <span>FRQ Practice — AI Graded</span></div>
+        <div class="hub-meta-item">⚖️ Round 4: <span>SCOTUS &amp; Documents</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to Civitas</button>
+  </div>
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" onclick="switchTab('about',this)">📋 About</button>
+  </div>
+  <div class="hub-content">
+    <div class="hub-panel active" id="tab-play">
+      <div class="prog-wrap">
+        <div class="prog-label"><span>PROGRESS</span><span id="prog-pct">0 / 4 rounds complete</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="sh">Game Rounds</div>
+      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
+    </div>
+    <div class="hub-panel" id="tab-about">
+      <div class="sh">About This Game</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc2);padding:22px 26px;margin-bottom:18px">
+        <div style="font-family:var(--bebas);font-size:15px;color:var(--acc2);letter-spacing:3px;margin-bottom:8px">AP EXAM SIMULATION — FULL COVERAGE</div>
+        <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8">
+          This game mirrors the actual AP U.S. Government and Politics exam format. Round 1 replicates Section I standalone MCQ. Round 2 practices stimulus-based question sets. Round 3 provides AI-graded FRQ practice with detailed scoring feedback. Round 4 focuses on the required SCOTUS cases and foundational documents that appear most heavily on the exam.
+        </div>
+      </div>
+      <div class="sh">Content Coverage</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px">
+        ${['Unit 1 — Foundations (~20%): Declaration, Articles, Federalist 10/51/70/78, Brutus 1, McCulloch, Lopez','Unit 2 — Branches (~25%): Congress, Presidency, Courts, Marbury, Baker, Shaw, bureaucracy','Unit 3 — Civil Liberties (~20%): Tinker, Schenck, NYT v. US, Gideon, McDonald, Engel, Dobbs, Roe','Unit 4 — Ideology & Opinion (~10%): Socialization, public opinion, polling methodology','Unit 5 — Participation (~25%): Voting, parties, interest groups, Citizens United, social movements'].map(t=>`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">${t}</div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Game shell -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div class="gp-pips" id="gp-pips"></div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📋</div>
+    <div class="ri-round" id="ri-round">ROUND 1 OF 4</div>
+    <div class="ri-title" id="ri-title">MCQ Standalone</div>
+    <div class="ri-desc" id="ri-desc"></div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- MCQ area -->
+  <div id="question-area" style="display:none"></div>
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- FRQ area -->
+  <div id="frq-area" style="display:none">
+    <div style="padding:16px 0 8px">
+      <div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px">SELECT AN FRQ TYPE TO PRACTICE</div>
+      <div class="frq-nav" id="frq-nav"></div>
+    </div>
+    <div id="frq-workspace"></div>
+  </div>
+
+  <!-- Round complete -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn">Next Round →</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+const UNIT_ID = 'apg_exam_practice';
+const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+
+// ─── Question Bank ────────────────────────────────────────────
+const QUESTION_BANK = {
+  unit:'ap_gov_exam',title:'AP Exam Practice',version:'1.0',
+  rounds:[
+    {
+      id:'round1_mcq',type:'mcq',label:'Round 1 — MCQ Standalone',
+      icon:'📋',color:'var(--acc2)',draw:20,
+      desc:'20 questions drawn from a bank of 40, spanning all five units proportionally as on the actual AP exam. No stimulus — pure content knowledge from foundations to participation.',
+      questions:[
+        {id:'exam_mcq_001',unit:'1',topic:'1.1',bigIdea:'CON',difficulty:'accessible',stem:'Which constitutional principle is most directly reflected in the statement that government derives its authority from the people?',choices:[{id:'A',text:'Popular sovereignty'},{id:'B',text:'Judicial review'},{id:'C',text:'Checks and balances'},{id:'D',text:'Bicameralism'}],correct:'A',explanation:'Popular sovereignty means the people are the ultimate source of political authority.'},
+        {id:'exam_mcq_002',unit:'1',topic:'1.2',bigIdea:'CON',difficulty:'moderate',stem:'The Declaration of Independence is most often used in AP U.S. Government and Politics to illustrate the idea that',choices:[{id:'A',text:'government should secure natural rights and may be altered when it fails to do so'},{id:'B',text:'state governments have final authority over national constitutional disputes'},{id:'C',text:'the judiciary was intended to be the strongest branch of national government'},{id:'D',text:'political parties are necessary for effective representation in a large republic'}],correct:'A',explanation:'The Declaration emphasizes natural rights, consent of the governed, and the right to alter or abolish destructive government.'},
+        {id:'exam_mcq_003',unit:'1',topic:'1.3',bigIdea:'CON',difficulty:'moderate',stem:'A major weakness of the Articles of Confederation was that the national government lacked the power to',choices:[{id:'A',text:'raise revenue directly through taxation'},{id:'B',text:'declare war against foreign nations'},{id:'C',text:'conduct diplomacy with European powers'},{id:'D',text:'admit new states to the union'}],correct:'A',explanation:'Under the Articles, Congress could request funds from the states but could not tax directly.'},
+        {id:'exam_mcq_004',unit:'1',topic:'1.4',bigIdea:'PMCD',difficulty:'challenging',stem:'The Great Compromise at the Constitutional Convention is best understood as an effort to resolve conflict over',choices:[{id:'A',text:'representation by balancing the interests of large and small states in Congress'},{id:'B',text:'the admission of free and slave states into the union after ratification'},{id:'C',text:'whether the president should be selected by popular vote or by state governors'},{id:'D',text:'whether the national judiciary should have the power to review state laws for constitutionality'}],correct:'A',explanation:'The Great Compromise created a bicameral legislature with proportional representation in the House and equal representation in the Senate.'},
+        {id:'exam_mcq_005',unit:'1',topic:'1.5',bigIdea:'PMCD',difficulty:'accessible',stem:'Federalist No. 10 is primarily concerned with the problem of',choices:[{id:'A',text:'faction'},{id:'B',text:'judicial restraint'},{id:'C',text:'executive privilege'},{id:'D',text:'bureaucratic discretion'}],correct:'A',explanation:'Madison argues that factions are inevitable and that the effects of faction must be controlled in a large republic.'},
+        {id:'exam_mcq_006',unit:'1',topic:'1.5',bigIdea:'PMCD',difficulty:'challenging',stem:'Brutus No. 1 most directly supports which criticism of the proposed Constitution?',choices:[{id:'A',text:'A large republic would place political power too far from the people and threaten state authority'},{id:'B',text:'The new Congress would be too weak to regulate interstate commerce effectively'},{id:'C',text:'The presidency would be unable to respond decisively in times of national crisis'},{id:'D',text:'The national government would have too little authority to enforce treaties and tax imports'}],correct:'A',explanation:'Brutus argued that the proposed national government was too powerful and that such a large republic would endanger liberty and state power.'},
+        {id:'exam_mcq_007',unit:'1',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'Federalist No. 51 is most commonly used to support the idea that liberty is best protected by',choices:[{id:'A',text:'dividing power among institutions that can check one another'},{id:'B',text:'allowing Congress to dominate national policymaking because it is closest to the people'},{id:'C',text:'ensuring that state governments can nullify federal law whenever conflicts arise'},{id:'D',text:'placing foreign policy almost entirely in the hands of the Senate rather than the president'}],correct:'A',explanation:'Federalist No. 51 argues for separation of powers and checks and balances to prevent concentration of power.'},
+        {id:'exam_mcq_008',unit:'1',topic:'1.8',bigIdea:'CON',difficulty:'accessible',stem:'The supremacy clause establishes that',choices:[{id:'A',text:'valid national laws and treaties generally take precedence over conflicting state laws'},{id:'B',text:'state constitutions are superior to federal statutes in matters of criminal law'},{id:'C',text:'the Supreme Court may hear only cases involving disputes between states'},{id:'D',text:'Congress may override any presidential veto with a simple majority vote in each chamber'}],correct:'A',explanation:'The supremacy clause makes the Constitution, federal laws, and treaties the supreme law of the land.'},
+        {id:'exam_mcq_009',unit:'2',topic:'2.1',bigIdea:'CON',difficulty:'accessible',stem:'The formal powers of the House of Representatives and the Senate differ in that only the House can',choices:[{id:'A',text:'initiate revenue bills'},{id:'B',text:'confirm executive branch appointments'},{id:'C',text:'ratify treaties'},{id:'D',text:'conduct impeachment trials'}],correct:'A',explanation:'The Constitution requires revenue bills to originate in the House.'},
+        {id:'exam_mcq_010',unit:'2',topic:'2.2',bigIdea:'MK',difficulty:'moderate',stem:'Members of the House of Representatives are generally more responsive to public opinion than senators because House members',choices:[{id:'A',text:'serve smaller constituencies and face reelection every two years'},{id:'B',text:'have exclusive authority over foreign policy and treaty ratification'},{id:'C',text:'serve six-year terms that allow them to ignore short-term political pressure'},{id:'D',text:'are selected through statewide elections rather than district-based elections'}],correct:'A',explanation:'House members represent smaller districts and must run more frequently, which often increases responsiveness.'},
+        {id:'exam_mcq_011',unit:'2',topic:'2.2',bigIdea:'PMCD',difficulty:'challenging',stem:'The committee system in Congress is significant because committees',choices:[{id:'A',text:'are the main venues where legislation is specialized, revised, and often stalled before floor consideration'},{id:'B',text:'replace party leadership as the only source of agenda control in both chambers'},{id:'C',text:'are the constitutionally mandated institutions that formally nominate candidates for national office'},{id:'D',text:'eliminate the influence of interest groups by shielding lawmakers from policy specialists and lobbyists'}],correct:'A',explanation:'Committees do much of the detailed legislative work and are major gatekeepers in the policy process.'},
+        {id:'exam_mcq_012',unit:'2',topic:'2.3',bigIdea:'CON',difficulty:'moderate',stem:'Federalist No. 70 is most often cited to support the claim that an effective executive should',choices:[{id:'A',text:'possess unity and energy in carrying out the laws'},{id:'B',text:'share all formal powers equally with the Senate and the House'},{id:'C',text:'serve for life in order to maintain independence from public opinion'},{id:'D',text:'be selected by Congress to ensure closer coordination with legislative priorities'}],correct:'A',explanation:'Hamilton argued in Federalist No. 70 that a single energetic executive promotes accountability and effective administration.'},
+        {id:'exam_mcq_013',unit:'2',topic:'2.4',bigIdea:'PMCD',difficulty:'moderate',stem:'One reason presidents rely on executive orders is that executive orders can',choices:[{id:'A',text:'direct how the executive branch will implement or administer policy without requiring a new statute'},{id:'B',text:'amend the Constitution when Congress is unable to act on urgent issues'},{id:'C',text:'override Supreme Court decisions involving disputes over executive power'},{id:'D',text:'create permanent appropriations without approval from either chamber of Congress'}],correct:'A',explanation:'Executive orders direct executive branch action, though they must remain within constitutional and statutory limits.'},
+        {id:'exam_mcq_014',unit:'2',topic:'2.5',bigIdea:'CON',difficulty:'accessible',stem:'The constitutional principle established by Marbury v. Madison is that',choices:[{id:'A',text:'the Supreme Court can declare laws or actions unconstitutional through judicial review'},{id:'B',text:'Congress may remove federal judges for issuing unpopular decisions'},{id:'C',text:'state courts have final authority over disputes involving federal constitutional rights'},{id:'D',text:'presidents may refuse to enforce statutes whenever they claim executive privilege'}],correct:'A',explanation:'Marbury v. Madison established the power of judicial review.'},
+        {id:'exam_mcq_015',unit:'2',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'Federalist No. 78 is commonly used to justify an independent judiciary because judges are expected to',choices:[{id:'A',text:'interpret the Constitution without immediate pressure from elections'},{id:'B',text:'write tax laws when Congress cannot agree on revenue policy'},{id:'C',text:'share the treaty power equally with the president and the Senate'},{id:'D',text:'reflect short-term shifts in public opinion more closely than elected officials'}],correct:'A',explanation:'Federalist No. 78 defends judicial independence as necessary for constitutional interpretation.'},
+        {id:'exam_mcq_016',unit:'2',topic:'2.6',bigIdea:'CON',difficulty:'challenging',stem:'Baker v. Carr and Shaw v. Reno are both important to AP U.S. Government and Politics because both cases address questions related to',choices:[{id:'A',text:'representation and the constitutional boundaries of districting'},{id:'B',text:'presidential war powers and the commander in chief clause'},{id:'C',text:'campaign finance and the protection of political speech'},{id:'D',text:'criminal procedure and the rights of defendants in state courts'}],correct:'A',explanation:'Baker v. Carr concerns reapportionment and equal representation, while Shaw v. Reno addresses racial gerrymandering.'},
+        {id:'exam_mcq_017',unit:'2',topic:'2.9',bigIdea:'PMCD',difficulty:'accessible',stem:'Divided government occurs when',choices:[{id:'A',text:'different political parties control the presidency and at least one chamber of Congress'},{id:'B',text:'the House and Senate disagree on the wording of a bill before conference committee'},{id:'C',text:'one party controls the presidency, House, and Senate at the same time'},{id:'D',text:'the Supreme Court strikes down a federal law passed by a unified Congress'}],correct:'A',explanation:'Divided government refers to party control being split between the executive and legislative branches.'},
+        {id:'exam_mcq_018',unit:'2',topic:'2.12',bigIdea:'PMCD',difficulty:'challenging',stem:'Issue networks differ from iron triangles because issue networks',choices:[{id:'A',text:'involve a broader and less stable set of actors competing to influence policy'},{id:'B',text:'exclude congressional committees from any meaningful role in policymaking'},{id:'C',text:'are constitutionally established to regulate the relationship between Congress and the bureaucracy'},{id:'D',text:'operate only during election years and do not affect the implementation of public policy'}],correct:'A',explanation:'Issue networks are broader and more fluid than iron triangles.'},
+        {id:'exam_mcq_019',unit:'3',topic:'3.1',bigIdea:'LOR',difficulty:'accessible',stem:'Civil liberties are best defined as',choices:[{id:'A',text:'protections against government action that infringes on individual freedoms'},{id:'B',text:'policies designed to guarantee equal outcomes across social groups'},{id:'C',text:'benefits granted by political parties to loyal voters during election campaigns'},{id:'D',text:'powers reserved to the states that allow them to regulate local elections and schools'}],correct:'A',explanation:'Civil liberties are constitutional protections from government interference.'},
+        {id:'exam_mcq_020',unit:'3',topic:'3.2',bigIdea:'CON',difficulty:'moderate',stem:'Selective incorporation is the process through which the Supreme Court has applied most provisions of the Bill of Rights to the states using the',choices:[{id:'A',text:'Fourteenth Amendment due process clause'},{id:'B',text:'Tenth Amendment reserved powers clause'},{id:'C',text:'Article IV full faith and credit clause'},{id:'D',text:'Seventeenth Amendment direct election requirement'}],correct:'A',explanation:'Selective incorporation uses the Fourteenth Amendment due process clause to apply most rights protections to the states.'},
+        {id:'exam_mcq_021',unit:'3',topic:'3.4',bigIdea:'LOR',difficulty:'challenging',stem:'Schenck v. United States and New York Times Co. v. United States both concern free expression, but the cases differ most in that New York Times Co. v. United States',choices:[{id:'A',text:'provided stronger protection against prior restraint on publication than Schenck provided for wartime speech'},{id:'B',text:'held that the First Amendment does not apply when national security issues are involved'},{id:'C',text:'gave schools broad authority to suppress symbolic student speech that might be controversial'},{id:'D',text:'allowed Congress to criminalize criticism of public officials when such criticism could undermine military recruitment'}],correct:'A',explanation:'New York Times Co. v. United States strongly limited prior restraint, while Schenck allowed more restriction in a wartime context.'},
+        {id:'exam_mcq_022',unit:'3',topic:'3.4',bigIdea:'LOR',difficulty:'accessible',stem:'The decision in Tinker v. Des Moines established that students',choices:[{id:'A',text:'retain free speech rights in school unless their expression causes substantial disruption'},{id:'B',text:'have no First Amendment protections on public school grounds'},{id:'C',text:'may be punished for any symbolic speech that school officials personally dislike'},{id:'D',text:'must obtain judicial approval before engaging in any political expression at school'}],correct:'A',explanation:'Tinker protects student speech unless it materially and substantially disrupts the school environment.'},
+        {id:'exam_mcq_023',unit:'3',topic:'3.5',bigIdea:'LOR',difficulty:'moderate',stem:'Gideon v. Wainwright expanded due process protections by requiring states to',choices:[{id:'A',text:'provide counsel to indigent defendants in felony cases'},{id:'B',text:'allow defendants to choose the judge in criminal trials involving serious charges'},{id:'C',text:'obtain congressional approval before prosecuting criminal defendants in state court'},{id:'D',text:'treat jury trials as unnecessary when prosecutors believe the evidence is conclusive'}],correct:'A',explanation:'Gideon requires states to provide attorneys to indigent defendants in felony cases.'},
+        {id:'exam_mcq_024',unit:'3',topic:'3.6',bigIdea:'LOR',difficulty:'challenging',stem:'McDonald v. Chicago is significant because the Court held that',choices:[{id:'A',text:'the Second Amendment applies to state and local governments through incorporation'},{id:'B',text:'the First Amendment protects campaign spending by corporations and unions'},{id:'C',text:'privacy rights recognized in Roe were never constitutionally protected'},{id:'D',text:'states may require school-sponsored prayer as long as participation is formally voluntary'}],correct:'A',explanation:'McDonald incorporated the Second Amendment against the states.'},
+        {id:'exam_mcq_025',unit:'3',topic:'3.8',bigIdea:'LOR',difficulty:'moderate',stem:'Dobbs v. Jackson Women\'s Health Organization is most significant because it',choices:[{id:'A',text:'returned primary authority over abortion regulation to elected institutions in the states and national government'},{id:'B',text:'expanded privacy protections by strengthening the constitutional reasoning of Roe v. Wade'},{id:'C',text:'held that campaign spending by organized groups is protected by the First Amendment'},{id:'D',text:'required all states to adopt identical standards for parental notification in medical procedures involving minors'}],correct:'A',explanation:'Dobbs overruled Roe and returned abortion policymaking largely to elected institutions.'},
+        {id:'exam_mcq_026',unit:'3',topic:'3.9',bigIdea:'LOR',difficulty:'accessible',stem:'Engel v. Vitale is an important establishment clause case because the Court held that',choices:[{id:'A',text:'school-sponsored prayer in public schools violates the First Amendment'},{id:'B',text:'students may not express religious beliefs on school grounds under any circumstances'},{id:'C',text:'public officials can mandate prayer as long as parents are given notice in advance'},{id:'D',text:'the free exercise clause protects only adults and not school-aged children'}],correct:'A',explanation:'Engel prohibits officially sponsored prayer in public schools.'},
+        {id:'exam_mcq_027',unit:'4',topic:'4.1',bigIdea:'MK',difficulty:'accessible',stem:'Political socialization refers to the process by which people',choices:[{id:'A',text:'develop political beliefs and values over time'},{id:'B',text:'formally register with a political party before voting in an election'},{id:'C',text:'choose whether to run for office at the local, state, or national level'},{id:'D',text:'convince public officials to adopt specific policy positions through lobbying'}],correct:'A',explanation:'Political socialization is the lifelong process of developing political attitudes and beliefs.'},
+        {id:'exam_mcq_028',unit:'4',topic:'4.2',bigIdea:'MK',difficulty:'moderate',stem:'Which agent of political socialization is often most influential during childhood?',choices:[{id:'A',text:'Family'},{id:'B',text:'Interest groups'},{id:'C',text:'Political action committees'},{id:'D',text:'Congressional caucuses'}],correct:'A',explanation:'Family is typically the earliest and strongest agent of political socialization.'},
+        {id:'exam_mcq_029',unit:'4',topic:'4.4',bigIdea:'PMCD',difficulty:'challenging',stem:'A person who favors lower taxes, reduced economic regulation, and a smaller national government is most likely expressing which ideological perspective?',choices:[{id:'A',text:'Conservative'},{id:'B',text:'Liberal'},{id:'C',text:'Libertarian socialist'},{id:'D',text:'Progressive nationalist'}],correct:'A',explanation:'Those policy preferences are generally associated with conservative ideology in AP Gov.'},
+        {id:'exam_mcq_030',unit:'4',topic:'4.7',bigIdea:'MPA',difficulty:'moderate',stem:'A valid public opinion poll should avoid which of the following?',choices:[{id:'A',text:'Leading questions that push respondents toward a preferred answer'},{id:'B',text:'Random sampling methods designed to represent the target population'},{id:'C',text:'Reporting a margin of error along with the poll results'},{id:'D',text:'Surveying respondents from more than one demographic category or region'}],correct:'A',explanation:'Leading wording introduces bias and undermines reliability.'},
+        {id:'exam_mcq_031',unit:'5',topic:'5.1',bigIdea:'MK',difficulty:'accessible',stem:'A major reason voter turnout is generally higher in presidential elections than in midterm elections is that presidential elections',choices:[{id:'A',text:'receive greater media attention and campaign mobilization'},{id:'B',text:'are administered directly by the national government rather than the states'},{id:'C',text:'allow citizens to vote for more offices on the same ballot than do midterms'},{id:'D',text:'occur less often, which means turnout laws do not apply in the same way'}],correct:'A',explanation:'Presidential elections typically generate more attention, stronger mobilization, and higher turnout.'},
+        {id:'exam_mcq_032',unit:'5',topic:'5.2',bigIdea:'MK',difficulty:'moderate',stem:'The Voting Rights Act of 1965 most directly increased political participation by',choices:[{id:'A',text:'targeting practices such as literacy tests that had restricted access to the ballot'},{id:'B',text:'requiring all states to adopt proportional representation in state legislatures'},{id:'C',text:'granting the Supreme Court direct oversight over every local election in the country'},{id:'D',text:'replacing state-based election administration with a single national elections agency'}],correct:'A',explanation:'The Voting Rights Act attacked discriminatory barriers to voting, especially in the South.'},
+        {id:'exam_mcq_033',unit:'5',topic:'5.3',bigIdea:'MK',difficulty:'challenging',stem:'Which policy change would most likely increase voter turnout among eligible voters who face logistical barriers to participation?',choices:[{id:'A',text:'Expanding early voting opportunities and making registration more accessible'},{id:'B',text:'Reducing the number of polling places in dense urban areas to concentrate election resources efficiently'},{id:'C',text:'Requiring all voters to register in person several months before Election Day without exceptions'},{id:'D',text:'Limiting campaign outreach to voters with a long history of participating in general elections'}],correct:'A',explanation:'Policies that reduce administrative and logistical barriers tend to increase participation.'},
+        {id:'exam_mcq_034',unit:'5',topic:'5.4',bigIdea:'MK',difficulty:'accessible',stem:'Political parties are considered linkage institutions because they',choices:[{id:'A',text:'connect citizens to government by organizing participation and competition for office'},{id:'B',text:'exercise judicial review over election laws and campaign finance disputes'},{id:'C',text:'replace Congress as the main institutions through which federal law is made'},{id:'D',text:'conduct the decennial census and determine congressional apportionment'}],correct:'A',explanation:'Political parties connect citizens and government by organizing elections, campaigns, and governing coalitions.'},
+        {id:'exam_mcq_035',unit:'5',topic:'5.5',bigIdea:'MK',difficulty:'moderate',stem:'Interest groups primarily seek to influence government by',choices:[{id:'A',text:'lobbying policymakers and mobilizing supporters around specific issues'},{id:'B',text:'nominating candidates directly to run under the group\'s constitutional authority'},{id:'C',text:'replacing courts as the main interpreters of constitutional disputes'},{id:'D',text:'administering national elections through the Federal Election Commission'}],correct:'A',explanation:'Interest groups influence public policy through lobbying, advocacy, litigation, and mobilization.'},
+        {id:'exam_mcq_036',unit:'5',topic:'5.6',bigIdea:'MK',difficulty:'moderate',stem:'Social movements are especially important in AP U.S. Government and Politics because they often',choices:[{id:'A',text:'shape public agendas and pressure institutions to respond to unmet demands'},{id:'B',text:'exercise formal constitutional powers reserved to political parties and elected officials'},{id:'C',text:'replace the need for elections by directly enacting policy without legislative approval'},{id:'D',text:'guarantee that courts will adopt the goals of movement activists in constitutional cases'}],correct:'A',explanation:'Social movements can influence public opinion, policy agendas, and institutional responses.'},
+        {id:'exam_mcq_037',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'challenging',stem:'Citizens United v. FEC is most relevant to campaign finance debates because the ruling',choices:[{id:'A',text:'expanded constitutional protection for certain independent political expenditures by corporations and unions'},{id:'B',text:'allowed Congress to ban most political spending by organized groups during election years'},{id:'C',text:'required the federal government to publicly finance all congressional and presidential campaigns'},{id:'D',text:'held that direct contributions to candidates by corporations are constitutionally protected without limit'}],correct:'A',explanation:'Citizens United protected independent expenditures, intensifying debates about money and influence in politics.'},
+        {id:'exam_mcq_038',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'challenging',stem:'One common criticism of Super PACs is that they',choices:[{id:'A',text:'may amplify the political influence of groups and individuals with greater financial resources'},{id:'B',text:'are constitutionally barred from spending money on independent political communication'},{id:'C',text:'allow officeholders to appoint private donors directly to congressional committees after elections'},{id:'D',text:'replace voter mobilization with judicial selection and therefore weaken separation of powers'}],correct:'A',explanation:'A major criticism is that resource-rich donors and groups can gain disproportionate influence.'},
+        {id:'exam_mcq_039',unit:'5',topic:'5.8',bigIdea:'MK',difficulty:'accessible',stem:'Political efficacy is best defined as the belief that',choices:[{id:'A',text:"one's political participation can make a difference"},{id:'B',text:'courts are more important than elections in a democracy'},{id:'C',text:'government should be smaller and taxes should be lower'},{id:'D',text:'public opinion polls are always more reliable than election results'}],correct:'A',explanation:'Political efficacy refers to the belief that political action matters and can influence government.'},
+        {id:'exam_mcq_040',unit:'5',topic:'5.8',bigIdea:'MK',difficulty:'moderate',stem:"Which of the following would be the strongest evidence that a campaign's voter outreach strategy was effective?",choices:[{id:'A',text:'Turnout increased noticeably among the targeted group compared with similar past elections'},{id:'B',text:'The campaign spent more money than its opponents on television advertising'},{id:'C',text:'The candidate received a formal endorsement from a well-known interest group before the primary'},{id:'D',text:'The party leadership stated publicly that turnout would improve if volunteers remained optimistic'}],correct:'A',explanation:'A measurable increase in turnout among the targeted group is the strongest evidence of effective mobilization.'},
+      ]
+    },
+    {
+      id:'round2_stimulus',type:'stimulus_mixed',label:'Round 2 — Stimulus Questions',
+      icon:'📄',color:'var(--blue)',draw:1,
+      desc:'One of four stimulus sets drawn at random — document, data, visual, or comparative. Each set has 4 questions requiring both source skills and broader course connections.',
+      sets:[
+        {
+          id:'exam_doc_set',type:'document_stimulus',
+          document:'Federalist No. 51',author:'James Madison',year:1788,
+          excerpt:"Madison argues that because human nature makes the abuse of power possible, government must be structured so that power checks power. He explains that separating authority across branches and giving each branch constitutional means to resist encroachment helps preserve liberty. The passage presents institutional design, rather than trust in officeholders alone, as the key protection against tyranny.",
+          source:'Paraphrase of themes from Federalist No. 51, James Madison (1788), used for classroom analysis.',
+          questions:[
+            {id:'exam_doc_q_001',unit:'1',topic:'1.6',bigIdea:'CON',difficulty:'moderate',stem:'The passage is most directly related to which constitutional principle?',choices:[{id:'A',text:'Checks and balances among the branches of government'},{id:'B',text:'Direct democracy through national referenda'},{id:'C',text:'State supremacy over the national judiciary'},{id:'D',text:'Legislative dominance over executive administration'}],correct:'A',explanation:'Federalist No. 51 is most closely tied to checks and balances and the idea that each branch should limit the others.'},
+            {id:'exam_doc_q_002',unit:'1',topic:'1.6',bigIdea:'CON',difficulty:'challenging',stem:"Which statement best captures Madison's reasoning in the passage?",choices:[{id:'A',text:'Liberty is protected when government is designed to control itself through divided institutional power.'},{id:'B',text:'Liberty is safest when one elected branch is made clearly stronger than all others.'},{id:'C',text:'The best protection for liberty is to rely on the virtue and goodwill of national leaders.'},{id:'D',text:'State governments should be allowed to ignore national constitutional decisions they oppose.'}],correct:'A',explanation:"Madison's point is that good institutional design, not trust alone, protects liberty by making ambition counteract ambition."},
+            {id:'exam_doc_q_003',unit:'2',topic:'2.5',bigIdea:'CON',difficulty:'moderate',stem:'Which modern example best reflects the constitutional idea described in the passage?',choices:[{id:'A',text:'A president vetoes legislation passed by Congress, and Congress attempts to override the veto.'},{id:'B',text:'A polling organization releases a survey about public trust in government.'},{id:'C',text:'A state adopts a new voter registration website before an election.'},{id:'D',text:'An interest group endorses candidates who support its preferred policies.'}],correct:'A',explanation:'The veto and override process is a direct example of one branch checking another through constitutional powers.'},
+            {id:'exam_doc_q_004',unit:'2',topic:'2.5',bigIdea:'CON',difficulty:'challenging',stem:'A student argues that the passage suggests constitutional structure matters more than individual intentions. Which evidence best supports that interpretation?',choices:[{id:'A',text:'The passage emphasizes that institutions should be given constitutional tools to resist encroachment regardless of who holds office.'},{id:'B',text:'The passage argues that government works best when officials are trusted not to misuse authority.'},{id:'C',text:'The passage claims that elections alone are enough to prevent any abuse of national power.'},{id:'D',text:'The passage treats separation of powers as unnecessary once a bill of rights is adopted.'}],correct:'A',explanation:'Madison focuses on structural safeguards, showing that constitutional design matters even when officeholders may not be virtuous.'},
+          ]
+        },
+        {
+          id:'exam_data_set',type:'data_stimulus',
+          title:'Voter Turnout by Age Group in a National Election',
+          source:'U.S. Census Bureau, Voting and Registration in the Election of 2020; classroom-adapted summary for instructional use.',
+          chartType:'bar',chartLabel:'Illustrative Voter Turnout by Age',
+          data:{labels:['18-29','30-44','45-64','65+'],values:[51,61,69,74]},
+          questions:[
+            {id:'exam_data_q_001',unit:'5',topic:'5.1',bigIdea:'MK',difficulty:'accessible',stem:'Which pattern is most clearly shown in the data?',choices:[{id:'A',text:'Voter turnout tends to increase as age increases.'},{id:'B',text:'Younger voters consistently participate at the highest rate.'},{id:'C',text:'Turnout declines sharply among voters over age sixty-five.'},{id:'D',text:'All age groups participate at nearly identical rates in national elections.'}],correct:'A',explanation:'The bar chart shows turnout rising across each older age category.'},
+            {id:'exam_data_q_002',unit:'5',topic:'5.3',bigIdea:'MK',difficulty:'moderate',stem:'Which conclusion is best supported by the data?',choices:[{id:'A',text:'Campaigns seeking to raise turnout may have the greatest room for growth among younger eligible voters.'},{id:'B',text:'Older voters are the least reliable voting bloc in national elections.'},{id:'C',text:'Age no longer appears to influence patterns of political participation.'},{id:'D',text:'Voter registration laws affect only citizens under age thirty.'}],correct:'A',explanation:'Because the youngest group has the lowest turnout, campaigns and civic groups may see them as a major target for mobilization.'},
+            {id:'exam_data_q_003',unit:'4',topic:'4.10',bigIdea:'MK',difficulty:'challenging',stem:'Which explanation best connects the data to a broader concept in AP U.S. Government and Politics?',choices:[{id:'A',text:'Differences in political efficacy, mobilization, and life-cycle habits can help explain why participation varies across age groups.'},{id:'B',text:'The Constitution assigns more voting power to older citizens than to younger citizens in federal elections.'},{id:'C',text:'Judicial review requires campaigns to focus on older voters rather than persuading younger ones.'},{id:'D',text:'The data prove that political parties no longer matter in encouraging turnout among any age group.'}],correct:'A',explanation:'AP Gov often connects turnout differences to factors such as efficacy, civic habits, and mobilization by campaigns and organizations.'},
+            {id:'exam_data_q_004',unit:'5',topic:'5.1',bigIdea:'MPA',difficulty:'challenging',stem:'A student claims the chart proves that age alone determines whether someone will vote. Which response best reflects sound political analysis?',choices:[{id:'A',text:'The chart shows a relationship between age and turnout, but other factors such as education, competitiveness, and mobilization may also matter.'},{id:'B',text:'The chart proves causation because all bar charts show why one variable directly determines another.'},{id:'C',text:'The chart is not useful because turnout data can never reveal demographic patterns in participation.'},{id:'D',text:'The chart should be ignored because age is not a recognized demographic category in political research.'}],correct:'A',explanation:'The data show correlation, but careful analysis avoids claiming that one variable alone fully explains turnout.'},
+          ]
+        },
+        {
+          id:'exam_visual_set',type:'visual_stimulus',
+          title:'Money and Political Voice',
+          source:'Original classroom-safe political cartoon scenario inspired by campaign finance and participation debates.',
+          svgType:'money_voice',
+          description:"A political cartoon shows several citizens standing on a public stage labeled 'Democracy.' Each person is trying to speak into a microphone. One microphone is very large and attached to a giant money bag labeled 'major donors and outside spending.' Other citizens hold much smaller microphones labeled 'grassroots volunteers,' 'small donors,' and 'local activists.' In the audience, elected officials are leaning toward the loudest microphone while taking notes. A banner overhead reads 'Who gets heard?'",
+          questions:[
+            {id:'exam_visual_q_001',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'accessible',stem:'The central message of the cartoon is that',choices:[{id:'A',text:'some political actors may have more influence than others because they possess greater financial resources.'},{id:'B',text:'campaign spending has no meaningful effect on elections or policymaking.'},{id:'C',text:'the Constitution requires all political voices to receive identical levels of attention from officials.'},{id:'D',text:'interest groups are illegal participants in democratic politics.'}],correct:'A',explanation:'The oversized microphone attached to money suggests that financial resources can amplify some voices more than others.'},
+            {id:'exam_visual_q_002',unit:'5',topic:'5.5',bigIdea:'MK',difficulty:'moderate',stem:"The smaller microphones labeled 'grassroots volunteers,' 'small donors,' and 'local activists' most directly represent",choices:[{id:'A',text:'alternative forms of civic participation that can still influence government even if they have fewer resources.'},{id:'B',text:'formal branches of government established in the Constitution.'},{id:'C',text:'judicial methods for reviewing campaign finance laws.'},{id:'D',text:'constitutional amendments that regulate the Electoral College.'}],correct:'A',explanation:'Those labels point to ordinary participation through volunteering, donating, and activism, even when those forms may be less amplified.'},
+            {id:'exam_visual_q_003',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'challenging',stem:'Which AP U.S. Government and Politics controversy is most directly reflected in the cartoon?',choices:[{id:'A',text:'Whether campaign finance rules should be tighter because unequal spending may create unequal political influence.'},{id:'B',text:'Whether states should have equal representation in the Senate regardless of population.'},{id:'C',text:'Whether federal courts should hear cases involving school prayer and religious liberty.'},{id:'D',text:'Whether Congress should have the power to declare war without presidential approval.'}],correct:'A',explanation:'The cartoon highlights the debate over money in politics and whether greater resources produce disproportionate influence.'},
+            {id:'exam_visual_q_004',unit:'5',topic:'5.7',bigIdea:'MPA',difficulty:'challenging',stem:'A student argues that the cartoon suggests unequal political attention is not the same thing as formal unequal rights. Which interpretation best supports that claim?',choices:[{id:'A',text:'The image implies that many people may have the right to participate, but some are more effective because their resources amplify their message.'},{id:'B',text:'The image shows that only wealthy groups are constitutionally allowed to speak in politics.'},{id:'C',text:'The image demonstrates that voting has been replaced entirely by campaign spending in modern elections.'},{id:'D',text:'The image proves that ordinary citizens no longer participate through parties, groups, or social movements.'}],correct:'A',explanation:'The cartoon distinguishes between formal opportunity to participate and the practical reality that some voices may carry farther than others.'},
+          ]
+        },
+        {
+          id:'exam_comparative_set',type:'comparative_stimulus',
+          title:'Competing Views of Representation and Power',
+          source:'Paraphrased classroom comparison of Federalist and Anti-Federalist arguments.',
+          excerptA:{label:'Excerpt A — Federalist No. 10 (Madison, 1787)',text:"This passage argues that a large republic can better protect liberty because many interests and viewpoints will compete with one another, making it harder for any single faction to dominate. Representation is presented as a way to refine public opinion while still grounding government in the people.",source:'Paraphrase of themes from Federalist No. 10, James Madison (1787).'},
+          excerptB:{label:'Excerpt B — Brutus No. 1 (1787)',text:"This passage argues that a very large republic will place power too far from ordinary citizens and make genuine representation difficult. It warns that distant national institutions may become less responsive and more likely to threaten liberty than smaller, more local governments.",source:'Paraphrase of themes from Brutus No. 1 (1787).'},
+          questions:[
+            {id:'exam_comp_q_001',unit:'1',topic:'1.5',bigIdea:'PMCD',difficulty:'moderate',stem:'Which of the following best identifies the central disagreement between the two excerpts?',choices:[{id:'A',text:'Whether a large republic improves or weakens representation and liberty.'},{id:'B',text:'Whether Congress should have the power to regulate interstate commerce.'},{id:'C',text:'Whether presidents should be selected by the Electoral College.'},{id:'D',text:'Whether federal courts should have the power of judicial review.'}],correct:'A',explanation:'Excerpt A supports a large republic as protection against faction, while Excerpt B argues that a large republic threatens responsive representation.'},
+            {id:'exam_comp_q_002',unit:'1',topic:'1.5',bigIdea:'CON',difficulty:'challenging',stem:'Which statement best reflects the reasoning in Excerpt A?',choices:[{id:'A',text:'A broader republic can dilute the power of factions by making it harder for one interest to dominate the political system.'},{id:'B',text:'A smaller republic is always better because citizens can directly participate in every national policy decision.'},{id:'C',text:'National institutions should be weaker than state governments in order to preserve liberty.'},{id:'D',text:'Representation is dangerous because elected officials should mirror public opinion without refinement or deliberation.'}],correct:'A',explanation:"Excerpt A reflects Madison's argument that a large republic helps manage faction by multiplying interests."},
+            {id:'exam_comp_q_003',unit:'1',topic:'1.5',bigIdea:'CON',difficulty:'challenging',stem:'Which modern development would Excerpt B most likely view with the greatest concern?',choices:[{id:'A',text:'A growing concentration of political decision-making in distant national institutions.'},{id:'B',text:'An increase in local town hall meetings between representatives and constituents.'},{id:'C',text:'A state legislature debating how to revise district boundaries after the census.'},{id:'D',text:'A campaign encouraging turnout in local municipal elections.'}],correct:'A',explanation:'Excerpt B warns that distant national power can weaken representation and threaten liberty.'},
+            {id:'exam_comp_q_004',unit:'1',topic:'1.6',bigIdea:'MPA',difficulty:'moderate',stem:'Why is comparing these two excerpts a useful method of political analysis in AP U.S. Government and Politics?',choices:[{id:'A',text:'It helps students evaluate competing constitutional arguments and understand how different perspectives shaped the founding debate.'},{id:'B',text:'It proves that one founding text must always be accepted as fully correct and the other ignored.'},{id:'C',text:'It replaces the need to study the Constitution itself because the debate ended before ratification.'},{id:'D',text:'It shows that political conflict over representation disappeared after the founding period.'}],correct:'A',explanation:'Comparative document analysis helps students examine contrasting arguments, a key skill in AP Gov.'},
+          ]
+        }
+      ]
+    },
+    {
+      id:'round3_frq',type:'frq',label:'Round 3 — FRQ Practice',
+      icon:'✍️',color:'var(--green)',
+      desc:'AI-graded free response practice. Choose any of the four FRQ types, write your response, and receive detailed point-by-point feedback scored against College Board rubric criteria.',
+      frqs:[
+        {
+          id:'exam_frq1',type:'concept_application',
+          title:'Concept Application — Federalism and Education Policy',maxScore:3,
+          scenario:"A state legislature passes a law requiring all public high schools in the state to include a yearlong civics course focused on state and local government. Soon after, Congress passes a national education law offering federal funding to states that adopt a different civics curriculum aligned to national benchmarks. Some state officials want the state to reject the federal funding and keep its own program, while others argue the federal funding should be accepted because education policy often depends on cooperation between state and national governments.",
+          parts:[
+            {part:'A',points:1,prompt:'Identify the constitutional principle reflected in the scenario.'},
+            {part:'B',points:1,prompt:'Explain how the scenario illustrates that principle.'},
+            {part:'C',points:1,prompt:'Describe one action the national government can take to influence state policy in the scenario without directly taking control of the schools.'}
+          ],
+          rubric:{
+            A:{point:1,criteria:'Earn 1 point for correctly identifying federalism or the division of power between national and state governments.',notes:['Accept references to shared powers or intergovernmental relations if clearly tied to federalism.','Do not accept checks and balances, separation of powers, or popular sovereignty unless the response clearly explains national-state power sharing.']},
+            B:{point:1,criteria:'Earn 1 point for explaining that both the state and national government are attempting to shape education policy, showing overlapping authority or influence.',notes:['Responses must connect the facts of the scenario to national-state interaction.','General statements about education being important without mentioning divided authority do not earn the point.']},
+            C:{point:1,criteria:'Earn 1 point for describing a valid national government action such as using grants-in-aid, conditional funding, or incentives tied to federal money.',notes:['Accept conditional grants, categorical grants, or federal funding incentives.','Do not accept answers claiming the national government can simply command the state to adopt the curriculum without constitutional or statutory basis.']}
+          }
+        },
+        {
+          id:'exam_frq2',type:'quantitative_analysis',
+          title:'Quantitative Analysis — Voter Turnout by Age',maxScore:4,
+          chartType:'bar',chartLabel:'Illustrative Voter Turnout by Age in a National Election',
+          data:{labels:['18-29','30-44','45-64','65+'],values:[51,61,69,74]},
+          source:'U.S. Census Bureau, classroom-adapted summary for instructional use.',
+          parts:[
+            {part:'A',points:1,prompt:'Describe a pattern or trend shown in the data.'},
+            {part:'B',points:1,prompt:'Draw a conclusion supported by the data.'},
+            {part:'C',points:2,prompt:'Explain how the data connect to a constitutional principle or political process related to participation in representative democracy.'}
+          ],
+          rubric:{
+            A:{point:1,criteria:'Earn 1 point for accurately describing a pattern such as turnout increasing with age or older groups voting at higher rates than younger groups.',notes:['Responses must describe the trend correctly using the data.','A vague statement such as "the bars are different" does not earn the point.']},
+            B:{point:1,criteria:'Earn 1 point for drawing a supported conclusion, such as campaigns or parties may have more room to mobilize younger voters because their turnout is lower.',notes:['The conclusion must be supported by the data.','Conclusions that contradict the chart do not earn the point.']},
+            C:{point:2,criteria:'Earn 1 point for explaining that participation is uneven across demographic groups and 1 point for connecting that pattern to a political process or principle such as representative democracy, voter mobilization, political efficacy, or linkage institutions.',notes:['To earn both points, the response must both explain the uneven participation and connect it to a process or principle.','Accept explanations involving campaigns, parties, interest groups, or mobilization efforts.','Do not award the second point for merely naming a concept without explanation.']}
+          }
+        },
+        {
+          id:'exam_frq3',type:'scotus_comparison',
+          title:'SCOTUS Comparison — Tinker v. Des Moines and Mahanoy Area School District v. B.L.',maxScore:4,
+          requiredCase:'Tinker v. Des Moines Independent Community School District (1969)',
+          nonRequiredCase:{name:'Mahanoy Area School District v. B.L.',year:2021,description:"A public high school suspended a student from the cheerleading squad after the student posted a profane message on social media off campus criticizing the school and the team. The Court ruled in favor of the student, holding that although schools may have some authority over off-campus speech in limited circumstances, the school had violated the student's First Amendment rights in this case."},
+          parts:[
+            {part:'A',points:1,prompt:'Identify the constitutional principle at issue in both cases.'},
+            {part:'B',points:1,prompt:'Explain the holding of Tinker v. Des Moines Independent Community School District.'},
+            {part:'C',points:2,prompt:'Explain how the reasoning in Tinker v. Des Moines Independent Community School District applies to Mahanoy Area School District v. B.L.'}
+          ],
+          rubric:{
+            A:{point:1,criteria:'Earn 1 point for identifying freedom of speech or First Amendment expressive rights as the constitutional principle in both cases.',notes:['Accept student free speech rights or First Amendment free expression.','Do not accept due process, equal protection, or freedom of religion.']},
+            B:{point:1,criteria:'Earn 1 point for explaining that Tinker held students retain First Amendment rights at school unless their speech causes or is reasonably forecast to cause a material and substantial disruption.',notes:['Responses must mention both protection for student speech and the substantial disruption standard.','Answers that say schools can ban any speech they dislike do not earn the point.']},
+            C:{point:2,criteria:'Earn 1 point for explaining that Tinker provides a framework protecting student expression and 1 point for applying that reasoning to Mahanoy by explaining that the school could not punish the off-campus speech absent sufficient disruption or justification.',notes:['To earn both points, the response must both identify the reasoning and apply it to the new case.','Accept responses noting that Mahanoy recognized some school authority but found the punishment unconstitutional in this instance.','Do not award full credit for merely saying both cases are about speech.']}
+          }
+        },
+        {
+          id:'exam_frq4',type:'argument_essay',
+          title:'Argument Essay — Limiting Government Power',maxScore:6,
+          prompt:'Develop an argument about whether the most effective protection against abuse of power in the United States is the constitutional structure of separated institutions sharing power. Use at least one piece of evidence from one of the required foundational documents and one additional piece of relevant evidence from the AP U.S. Government and Politics course.',
+          requiredDocuments:['Federalist No. 51'],
+          rubric:{
+            A:{points:1,criteria:'Responds to the prompt with a defensible claim or thesis that establishes a line of reasoning about whether separated institutions sharing power are the most effective protection against abuse of power.',notes:['The thesis must make a clear argument, not merely restate the prompt.','The thesis may agree, disagree, or qualify.']},
+            B:{points:2,criteria:'Supports the claim with at least TWO pieces of accurate and relevant evidence.',notes:['One piece of evidence must come from Federalist No. 51.','A second piece may come from another foundational document, a constitutional provision, a required SCOTUS case, or another accurate course concept.','To earn both points, the response must use the evidence in support of the argument, not just mention it.']},
+            C:{points:2,criteria:'Uses reasoning to explain why the evidence supports the claim and demonstrates an understanding of the relationship among institutions, constitutional structure, and limits on power.',notes:['Strong responses explain how checks and balances, separation of powers, or related structures prevent concentration of authority.','Reasoning must connect evidence to the thesis.']},
+            D:{points:1,criteria:'Responds to an alternative or opposing perspective by refuting, conceding, or rebutting it.',notes:['Examples of alternative claims could include arguments that elections, federalism, or civil liberties protections are more effective checks than separated institutions sharing power.','The response must do more than briefly mention the other side.']}
+          }
+        }
+      ]
+    },
+    {
+      id:'round4_scotus_docs',type:'scotus_document_stimulus',label:'Round 4 — SCOTUS & Documents',
+      icon:'⚖️',color:'var(--amber)',draw:1,
+      desc:'One of three required case or document sets drawn at random — 4 questions combining interpretation, application, and comparison. Essential review for the most heavily tested cases and documents.',
+      sets:[
+        {
+          id:'exam_scotus_001',type:'scotus',
+          case:'Tinker v. Des Moines Independent Community School District (1969)',
+          holding:'The Supreme Court held that public school students retain First Amendment rights at school unless their expression causes or is reasonably forecast to cause a material and substantial disruption.',
+          excerpt:"In this classroom-adapted summary, the Court explains that students do not lose their constitutional rights at the schoolhouse gate. At the same time, school officials may regulate student expression when they can show that the speech would materially interfere with the work of the school. The case therefore balances student liberty with the school's interest in maintaining order.",
+          source:'Paraphrase of themes from Tinker v. Des Moines Independent Community School District (1969), used for classroom analysis.',
+          questions:[
+            {id:'exam_scotus_q_001',unit:'3',topic:'3.4',bigIdea:'LOR',difficulty:'accessible',stem:'The case is most directly connected to which constitutional principle?',choices:[{id:'A',text:'Freedom of speech protected by the First Amendment'},{id:'B',text:'The right to bear arms under the Second Amendment'},{id:'C',text:'Equal state representation in the Senate'},{id:'D',text:'Executive privilege in national security disputes'}],correct:'A',explanation:'Tinker is a landmark First Amendment case involving student speech in public schools.'},
+            {id:'exam_scotus_q_002',unit:'3',topic:'3.4',bigIdea:'LOR',difficulty:'moderate',stem:"Which statement best reflects the Court's reasoning in the case?",choices:[{id:'A',text:'Student expression is protected unless school officials can demonstrate a substantial disruption to the educational environment.'},{id:'B',text:'Schools may suppress any student speech they find controversial because students have no constitutional rights on campus.'},{id:'C',text:'The First Amendment protects student speech only when it occurs off campus and outside school-sponsored activities.'},{id:'D',text:'Public schools must permit every form of expression regardless of its effect on safety, discipline, or instruction.'}],correct:'A',explanation:'Tinker protects student speech but allows regulation when there is a material and substantial disruption.'},
+            {id:'exam_scotus_q_003',unit:'3',topic:'3.4',bigIdea:'MK',difficulty:'challenging',stem:'Which modern scenario would most likely be protected under the reasoning of Tinker?',choices:[{id:'A',text:'Students wear silent symbolic messages expressing a political opinion, and the school cannot show that the messages disrupt instruction.'},{id:'B',text:'Students block classroom doors during a protest, preventing classes from meeting on time and disrupting normal operations.'},{id:'C',text:'Students threaten classmates online using violent language that school officials reasonably believe could lead to safety risks.'},{id:'D',text:'Students repeatedly interrupt a school assembly by shouting over invited speakers after being warned to stop.'}],correct:'A',explanation:'Tinker protects peaceful, non-disruptive symbolic speech.'},
+            {id:'exam_scotus_q_004',unit:'3',topic:'3.4',bigIdea:'MPA',difficulty:'challenging',stem:'A student argues that the case shows rights questions are often resolved through balancing tests rather than absolute rules. Which interpretation best supports that claim?',choices:[{id:'A',text:'The Court protected student speech while still allowing school officials some authority when they can show a substantial disruption.'},{id:'B',text:'The Court held that public schools are completely exempt from the First Amendment when student discipline is involved.'},{id:'C',text:'The Court ruled that schools must always treat political speech more harshly than all other forms of student expression.'},{id:'D',text:'The Court decided that courts should avoid student speech cases because elected school boards have final constitutional authority.'}],correct:'A',explanation:'Tinker is a classic example of balancing liberty with institutional order.'},
+          ]
+        },
+        {
+          id:'exam_doc_fed10',type:'document',
+          document:'Federalist No. 10',author:'James Madison',year:1787,
+          excerpt:"This classroom-adapted summary explains that factions are inevitable because people hold different interests and opinions. Madison argues that the effects of faction can best be controlled in a large republic where many competing interests make domination by any one group less likely. Representation is presented as a mechanism that can refine public views while preserving republican government.",
+          source:'Paraphrase of themes from Federalist No. 10, James Madison (1787), used for classroom analysis.',
+          questions:[
+            {id:'exam_docf10_q_001',unit:'1',topic:'1.5',bigIdea:'PMCD',difficulty:'accessible',stem:'The document is most directly concerned with the problem of',choices:[{id:'A',text:'faction and its effects on republican government'},{id:'B',text:'the need for a bill of rights before ratification'},{id:'C',text:'the expansion of judicial review in state courts'},{id:'D',text:'the dangers of allowing the executive branch to veto legislation'}],correct:'A',explanation:'Federalist No. 10 focuses on factions and how a republic can limit their harmful effects.'},
+            {id:'exam_docf10_q_002',unit:'1',topic:'1.5',bigIdea:'CON',difficulty:'moderate',stem:"Which claim best reflects Madison's argument in the document?",choices:[{id:'A',text:'A large republic can better control the effects of faction because many interests compete with one another.'},{id:'B',text:'A small republic is always safer because direct democracy eliminates factional conflict.'},{id:'C',text:'The causes of faction should be removed by restricting liberty and limiting political disagreement.'},{id:'D',text:'State legislatures should hold final authority over all matters of national policy in order to reduce faction.'}],correct:'A',explanation:'Madison argues that a large republic disperses factional power by multiplying interests.'},
+            {id:'exam_docf10_q_003',unit:'5',topic:'5.5',bigIdea:'PMCD',difficulty:'challenging',stem:'Which modern example best illustrates the constitutional idea in the document?',choices:[{id:'A',text:'Multiple interest groups with competing goals lobby Congress on the same issue, making compromise necessary.'},{id:'B',text:'A state court publishes a routine procedural order involving filing deadlines.'},{id:'C',text:'The Census Bureau reports updated population totals after the decennial census.'},{id:'D',text:'A president hosts a ceremonial signing for a bipartisan infrastructure bill that has already become law.'}],correct:'A',explanation:"Competing organized interests in modern policymaking reflect Madison's idea that conflict among factions is normal and must be managed."},
+            {id:'exam_docf10_q_004',unit:'1',topic:'1.6',bigIdea:'MPA',difficulty:'challenging',stem:'A student says the document does not claim faction can be eliminated, only managed. Which evidence best supports that interpretation?',choices:[{id:'A',text:'The summary explains that factions are inevitable because they arise from human differences in interests and opinions.'},{id:'B',text:'The summary argues that the national government should ban organized groups from influencing elected officials.'},{id:'C',text:'The summary insists that liberty can be preserved only if all citizens come to agree on the same political goals.'},{id:'D',text:'The summary states that small republics naturally eliminate conflict through direct participation.'}],correct:'A',explanation:"Madison's argument is that the causes of faction are built into free society, so the task is to control effects rather than erase disagreement."},
+          ]
+        },
+        {
+          id:'exam_scotus_002',type:'scotus',
+          case:'Citizens United v. FEC (2010)',
+          holding:'The Supreme Court held that the government may not suppress independent political expenditures by corporations and unions under the First Amendment, though disclosure requirements may still be permitted.',
+          excerpt:"In this classroom-adapted summary, the Court reasons that political spending can function as protected political expression. Critics argue that allowing more independent expenditures may amplify the influence of wealthy actors and organized groups. The case therefore highlights a tension between protecting speech and preventing unequal influence in democratic politics.",
+          source:'Paraphrase of themes from Citizens United v. FEC (2010), used for classroom analysis.',
+          questions:[
+            {id:'exam_scotus_q_005',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'accessible',stem:'The case is most directly related to which constitutional principle?',choices:[{id:'A',text:'Freedom of political expression under the First Amendment'},{id:'B',text:'The right against unreasonable searches and seizures'},{id:'C',text:'The equal protection clause as applied to legislative districting'},{id:'D',text:'The reserved powers of the states under the Tenth Amendment'}],correct:'A',explanation:'Citizens United is a First Amendment campaign finance case focused on political expression.'},
+            {id:'exam_scotus_q_006',unit:'5',topic:'5.7',bigIdea:'PMCD',difficulty:'moderate',stem:'Which statement best reflects the controversy created by the case?',choices:[{id:'A',text:'It intensified debate over whether protecting political spending also increases the influence of wealthy interests and outside groups.'},{id:'B',text:'It settled campaign finance questions by prohibiting almost all independent political expenditures.'},{id:'C',text:'It removed First Amendment protections from election-related speech by corporations and unions.'},{id:'D',text:'It established that direct contributions to candidates can never be regulated by Congress or the states.'}],correct:'A',explanation:'The case is debated because it protects some political spending while raising concerns about unequal influence.'},
+            {id:'exam_scotus_q_007',unit:'5',topic:'5.7',bigIdea:'MK',difficulty:'challenging',stem:'Which modern development is most directly connected to the reasoning in the case?',choices:[{id:'A',text:'The growth of outside groups and Super PACs spending heavily to shape elections and public agendas'},{id:'B',text:'The adoption of same-day voter registration rules in some states'},{id:'C',text:'The expansion of judicial review in redistricting disputes'},{id:'D',text:'The increased use of executive agreements in foreign affairs'}],correct:'A',explanation:'Citizens United is closely associated with increased outside independent spending in elections.'},
+            {id:'exam_scotus_q_008',unit:'5',topic:'5.7',bigIdea:'MPA',difficulty:'challenging',stem:'A student argues that the case illustrates a tradeoff between liberty and political equality. Which interpretation best supports that claim?',choices:[{id:'A',text:'The ruling protects expression through spending, but critics argue that unequal resources may lead to unequal practical influence.'},{id:'B',text:'The ruling eliminates all limits on campaign finance and guarantees identical influence for all participants.'},{id:'C',text:'The ruling shows that political speech and campaign spending are completely unrelated in democratic politics.'},{id:'D',text:'The ruling proves that courts should avoid all election-related constitutional disputes because legislatures are more democratic.'}],correct:'A',explanation:'The case is often framed as a conflict between protecting speech and preventing disproportionate political influence.'},
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+// ─── State ────────────────────────────────────────────────────
+let G = {};
+let FRQ_GRADES = {};
+
+// ─── Boot ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const fill = document.getElementById('ld-fill'); let p=0;
+  const tick = setInterval(()=>{
+    p += Math.random()*18+5; if(p>=100){p=100;clearInterval(tick);}
+    fill.style.width=p+'%';
+    if(p>=100){setTimeout(()=>{document.getElementById('loading').style.opacity='0';setTimeout(()=>{document.getElementById('loading').style.display='none';showHub();},500);},300);}
+  },100);
+});
+
+// ─── Persistence ──────────────────────────────────────────────
+function getRoundProgress(i){try{const d=localStorage.getItem('civitas_'+UNIT_ID+'_r'+i);return d?JSON.parse(d):null;}catch(e){return null;}}
+function saveRoundProgress(i,pct,correct,total){try{const key='civitas_'+UNIT_ID+'_r'+i;const prev=getRoundProgress(i)||{bestPct:0,attempts:0};const u={bestPct:Math.max(prev.bestPct,pct),bestCorrect:correct,bestTotal:total,attempts:(prev.attempts||0)+1,completedAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify(u));return u;}catch(e){return null;}}
+function saveRoundComplete(i){try{const key='civitas_'+UNIT_ID+'_r'+i;const prev=getRoundProgress(i)||{bestPct:0,attempts:0};const u={...prev,completedAt:new Date().toISOString(),completed:true,attempts:(prev.attempts||0)+1};localStorage.setItem(key,JSON.stringify(u));return u;}catch(e){return null;}}
+function isRoundUnlocked(i){return i===0||getRoundProgress(i-1)!==null;}
+function allRoundsComplete(){return QUESTION_BANK.rounds.every((_,i)=>getRoundProgress(i)!==null);}
+
+// ─── Hub ──────────────────────────────────────────────────────
+function showHub(){document.getElementById('hub').style.display='flex';renderRoundCards();}
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');}catch(e){}window.location.href=CIVITAS_URL;}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');}
+
+function renderRoundCards(){
+  const el=document.getElementById('round-cards');if(!el)return;
+  const colors=['var(--acc2)','var(--blue2)','var(--green2)','var(--amber2)'];
+  el.innerHTML=QUESTION_BANK.rounds.map((round,i)=>{
+    const progress=getRoundProgress(i);const unlocked=isRoundUnlocked(i);const done=progress!==null;const color=colors[i];
+    const trophy=done?getTrophyForAccuracy(progress.bestPct||80):null;
+    const pctDisplay=done?(round.type==='frq'?'✓ Practiced':`${progress.bestPct}%`):null;
+    return`<div style="background:var(--bg2);border:1px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};border-left:4px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${unlocked?'cursor:pointer':'opacity:.45;cursor:not-allowed'}"
+      ${unlocked?`onclick="startRound(${i})" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='${done?color:unlocked?'var(--border2)':'var(--border)'}'"`:''}>
+      <div style="font-size:28px;flex-shrink:0">${round.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${i+1} OF ${QUESTION_BANK.rounds.length}</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">${round.label.replace(/^Round \d+ — /,'')}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${round.desc.split('.')[0]}.</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        ${done?`<div style="font-family:var(--bebas);font-size:22px;line-height:1;color:${color}">${pctDisplay}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:6px">${trophy?trophy.label:''}</div><div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:3px 10px">↺ Replay</div>`
+        :unlocked?`<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:6px 16px">▶ Play</div>`
+        :`<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete Round ${i} first</div>`}
+      </div></div>`;
+  }).join('');
+  const completed=QUESTION_BANK.rounds.filter((_,i)=>getRoundProgress(i)!==null).length;
+  const pct=Math.round(completed/QUESTION_BANK.rounds.length*100);
+  const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
+  if(pf)pf.style.width=pct+'%';if(pp)pp.textContent=`${completed} / ${QUESTION_BANK.rounds.length} rounds complete`;
+}
+
+// ─── Game Start / Exit ────────────────────────────────────────
+function startRound(roundIdx){
+  if(!isRoundUnlocked(roundIdx)){notify('🔒 Complete the previous round first!');return;}
+  G={roundIdx,questionIdx:0,questions:[],currentSet:null,selectedChoice:null,answered:false,roundScores:[],totalGold:0,sessionCorrect:0,sessionTotal:0};
+  document.getElementById('hub').style.display='none';
+  document.getElementById('game').style.display='flex';
+  buildProgressPips();updatePips();showRoundIntro();
+}
+function exitGame(){
+  if(G.sessionTotal>0&&!confirm('Exit? Progress for this round will be lost.'))return;
+  document.getElementById('game').style.display='none';
+  document.getElementById('hub').style.display='flex';
+  ['round-intro','round-complete','question-area','btn-row','frq-area'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  renderRoundCards();
+}
+function buildProgressPips(){document.getElementById('gp-pips').innerHTML=QUESTION_BANK.rounds.map((_,i)=>`<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');}
+function updatePips(){QUESTION_BANK.rounds.forEach((_,i)=>{const pip=document.getElementById('pip-'+i);if(!pip)return;pip.classList.remove('done','active');if(i<G.roundIdx)pip.classList.add('done');else if(i===G.roundIdx)pip.classList.add('active');});}
+
+// ─── Round Intro ──────────────────────────────────────────────
+function showRoundIntro(){
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  document.getElementById('round-intro').style.display='flex';
+  document.getElementById('question-area').style.display='none';
+  document.getElementById('btn-row').style.display='none';
+  document.getElementById('round-complete').style.display='none';
+  document.getElementById('frq-area').style.display='none';
+  document.getElementById('ri-icon').textContent=round.icon;
+  document.getElementById('ri-round').textContent=`ROUND ${G.roundIdx+1} OF ${QUESTION_BANK.rounds.length}`;
+  document.getElementById('ri-title').textContent=round.label;
+  document.getElementById('ri-desc').textContent=round.desc;
+  document.getElementById('game-round-label').textContent=round.label.toUpperCase();
+  document.getElementById('game-round-label').style.color=round.color;
+  const docsEl=document.getElementById('ri-docs');
+  if(round.type==='stimulus_mixed')docsEl.textContent='📄 Set A: Document · 📊 Set B: Data · 🖼️ Set C: Visual · 📑 Set D: Comparative';
+  else if(round.type==='frq')docsEl.textContent='✍️ Concept App · 📊 Quantitative · ⚖️ SCOTUS Comparison · 📜 Argument Essay';
+  else if(round.type==='scotus_document_stimulus')docsEl.textContent='⚖️ '+round.sets.map(s=>s.case||s.document).join(' · ');
+  else docsEl.textContent='';
+  updatePips();
+}
+function dismissIntro(){
+  document.getElementById('round-intro').style.display='none';
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  if(round.type==='frq'){initFRQRound();return;}
+  document.getElementById('question-area').style.display='block';
+  document.getElementById('btn-row').style.display='flex';
+  prepareRound();
+}
+
+// ─── MCQ Rounds (1, 2, 4) ────────────────────────────────────
+function prepareRound(){
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  if(round.type==='mcq'){
+    G.questions=[...round.questions].sort(()=>Math.random()-.5).slice(0,Math.min(round.draw,round.questions.length));
+    G.currentSet=null;
+  } else if(round.type==='stimulus_mixed'||round.type==='scotus_document_stimulus'){
+    G.currentSet=round.sets[Math.floor(Math.random()*round.sets.length)];
+    G.questions=[...G.currentSet.questions];
+  }
+  G.questions=G.questions.map(q=>({...q,choices:[...q.choices].sort(()=>Math.random()-.5)}));
+  G.questionIdx=0;G.selectedChoice=null;G.answered=false;G.roundScores.push({correct:0,total:0});
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  const q=G.questions[G.questionIdx];
+  const el=document.getElementById('question-area');
+  G.selectedChoice=null;G.answered=false;
+  document.getElementById('btn-submit').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  let html='';
+  if(G.questionIdx===0&&G.currentSet)html+=renderStimulus(round,G.currentSet);
+  let meta=`<div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>`;
+  if(q.unit)meta+=`<div class="q-tag unit">UNIT ${q.unit}</div>`;
+  if(q.topic)meta+=`<div class="q-tag topic">${q.topic}</div>`;
+  if(q.bigIdea)meta+=`<div class="q-tag bi">${q.bigIdea}</div>`;
+  meta+=`<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  html+=`<div class="question-card" id="qcard"><div class="q-meta">${meta}</div><div class="q-stem">${q.stem}</div><div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div></div>`;
+  el.innerHTML=html;
+  if(G.currentSet?.chartType&&G.questionIdx===0)renderBarChart(G.currentSet);
+  if(G.currentSet?.svgType&&G.questionIdx===0)renderCartoonSVG_inline(G.currentSet);
+  el.scrollTop=0;
+}
+
+function renderStimulus(round,set){
+  if(!set)return'';
+  const t=set.type;
+  if(t==='document_stimulus')return`<div class="stimulus-box"><div class="stimulus-label">📄 FOUNDATIONAL DOCUMENT</div><div class="stimulus-title">${set.document}${set.author?' — '+set.author:''} (${set.year})</div><div class="stimulus-source">${set.source}</div><div class="stimulus-text">"${set.excerpt}"</div></div>`;
+  if(t==='data_stimulus')return`<div class="stimulus-box"><div class="stimulus-label">📊 DATA STIMULUS</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div><div id="chart-container"></div></div>`;
+  if(t==='visual_stimulus')return`<div class="stimulus-box"><div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div>${moneyVoiceSVG()}<div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div></div>`;
+  if(t==='comparative_stimulus')return`<div class="stimulus-box"><div class="stimulus-label">📑 COMPARATIVE TEXT STIMULUS</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div><div class="comparative-wrap"><div class="comp-panel"><div class="comp-label">${set.excerptA.label}</div><div class="comp-text">"${set.excerptA.text}"</div><div class="comp-source">${set.excerptA.source}</div></div><div class="comp-panel"><div class="comp-label">${set.excerptB.label}</div><div class="comp-text">"${set.excerptB.text}"</div><div class="comp-source">${set.excerptB.source}</div></div></div></div>`;
+  if(t==='scotus')return`<div class="stimulus-box"><div class="stimulus-label">⚖️ REQUIRED SCOTUS CASE</div><div class="stimulus-title">${set.case}</div><div class="stimulus-holding"><strong>Holding:</strong> ${set.holding}</div><div class="stimulus-source">${set.source}</div><div class="stimulus-text">"${set.excerpt}"</div></div>`;
+  if(t==='document')return`<div class="stimulus-box"><div class="stimulus-label">📜 REQUIRED FOUNDATIONAL DOCUMENT</div><div class="stimulus-title">${set.document} — ${set.author} (${set.year})</div><div class="stimulus-source">${set.source}</div><div class="stimulus-text">"${set.excerpt}"</div></div>`;
+  return'';
+}
+
+function renderCartoonSVG_inline(set){
+  if(set.svgType==='money_voice'){
+    const c=document.querySelector('.stimulus-box');
+    if(!c)return;
+    const existing=c.querySelector('svg');
+    if(existing)return;
+    const svgEl=document.createElement('div');
+    svgEl.innerHTML=moneyVoiceSVG();
+    const descEl=c.querySelector('.stimulus-desc');
+    if(descEl)c.insertBefore(svgEl.firstChild,descEl);
+  }
+}
+
+function renderBarChart(set){
+  const container=document.getElementById('chart-container');if(!container||!set.data)return;
+  const{labels,values}=set.data;const max=Math.max(...values);
+  let html=`<div style="margin-top:14px"><div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-bottom:10px">${set.chartLabel||''}</div><div style="display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)">`;
+  labels.forEach((lbl,i)=>{const pct=Math.round((values[i]/max)*100);html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${pct}%" title="${values[i]}%"></div></div>`;});
+  html+=`</div><div style="display:flex;gap:4px;margin-top:4px">`;
+  labels.forEach(lbl=>{html+=`<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center">${lbl}</div>`;});
+  html+=`</div><div class="chart-source">${set.source||''}</div></div>`;
+  container.innerHTML=html;
+  setTimeout(()=>{container.querySelectorAll('[data-target]').forEach(b=>{b.style.height=b.dataset.target;});},100);
+}
+
+function moneyVoiceSVG(){
+  return`<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+    <rect width="560" height="220" fill="rgba(14,20,32,.85)" rx="4"/>
+    <!-- Banner -->
+    <rect x="30" y="12" width="500" height="20" rx="3" fill="#0a1018" stroke="#4878d0" stroke-width="1"/>
+    <text x="280" y="26" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="3">WHO GETS HEARD?  · DEMOCRACY</text>
+    <!-- Stage -->
+    <rect x="20" y="45" width="340" height="120" rx="3" fill="#0a0e18" stroke="#2a3a54" stroke-width="1"/>
+    <!-- Big mic: money -->
+    <rect x="120" y="60" width="10" height="60" rx="2" fill="#1e2a1e" stroke="#e8a020" stroke-width="1.5"/>
+    <ellipse cx="125" cy="58" rx="14" ry="10" fill="#1e2a1e" stroke="#e8a020" stroke-width="2"/>
+    <circle cx="145" cy="90" r="18" fill="#1a1200" stroke="#f8c850" stroke-width="1.5"/>
+    <text x="145" y="94" text-anchor="middle" font-family="'DM Sans'" font-size="11" fill="#f8c850">💰</text>
+    <rect x="90" y="123" width="70" height="14" rx="2" fill="#0a0800" stroke="#e8a020" stroke-width=".8"/>
+    <text x="125" y="133" text-anchor="middle" font-family="'DM Sans'" font-size="6.5" fill="#e8a020">major donors &amp; outside spending</text>
+    <!-- People at big mic -->
+    <text x="110" y="120" font-family="'DM Sans'" font-size="10" fill="#e8a020">👤</text>
+    <!-- Small mic 1: grassroots -->
+    <rect x="42" y="95" width="5" height="30" rx="1" fill="#1e3a1e" stroke="#2aaa50" stroke-width="1"/>
+    <ellipse cx="44" cy="94" rx="6" ry="4" fill="#1e3a1e" stroke="#2aaa50" stroke-width="1"/>
+    <text x="40" y="90" font-family="'DM Sans'" font-size="9" fill="#8090a8">👤</text>
+    <rect x="28" y="130" width="56" height="12" rx="1" fill="#0a0a0a" stroke="#2aaa50" stroke-width=".7"/>
+    <text x="56" y="139" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#2aaa50">grassroots volunteers</text>
+    <!-- Small mic 2: small donors -->
+    <rect x="200" y="100" width="5" height="25" rx="1" fill="#1e1e3a" stroke="#4878d0" stroke-width="1"/>
+    <ellipse cx="202" cy="99" rx="6" ry="4" fill="#1e1e3a" stroke="#4878d0" stroke-width="1"/>
+    <text x="196" y="95" font-family="'DM Sans'" font-size="9" fill="#8090a8">👤</text>
+    <rect x="180" y="130" width="50" height="12" rx="1" fill="#0a0a0a" stroke="#4878d0" stroke-width=".7"/>
+    <text x="205" y="139" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4878d0">small donors</text>
+    <!-- Small mic 3: activists -->
+    <rect x="280" y="100" width="5" height="25" rx="1" fill="#1e1a30" stroke="#7060d0" stroke-width="1"/>
+    <ellipse cx="282" cy="99" rx="6" ry="4" fill="#1e1a30" stroke="#7060d0" stroke-width="1"/>
+    <text x="276" y="95" font-family="'DM Sans'" font-size="9" fill="#8090a8">👤</text>
+    <rect x="258" y="130" width="50" height="12" rx="1" fill="#0a0a0a" stroke="#7060d0" stroke-width=".7"/>
+    <text x="283" y="139" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#9080f0">local activists</text>
+    <!-- Audience: officials -->
+    <rect x="370" y="65" width="170" height="100" rx="3" fill="#0a0a14" stroke="#2a3a54" stroke-width="1"/>
+    <text x="455" y="85" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#4a5a70" letter-spacing="2">ELECTED OFFICIALS</text>
+    <text x="390" y="112" font-family="'DM Sans'" font-size="10" fill="#6898e8">📋</text>
+    <text x="415" y="112" font-family="'DM Sans'" font-size="10" fill="#6898e8">📋</text>
+    <text x="440" y="112" font-family="'DM Sans'" font-size="10" fill="#6898e8">📋</text>
+    <!-- Lean arrow toward big mic -->
+    <line x1="395" y1="105" x2="155" y2="90" stroke="#e8a020" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrM)"/>
+    <defs><marker id="arrM" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8a020"/></marker></defs>
+    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"Money and Political Voice"</text>
+  </svg>`;
+}
+
+function selectChoice(id){if(G.answered)return;G.selectedChoice=id;submitAnswer();}
+function submitAnswer(){
+  if(!G.selectedChoice||G.answered)return;G.answered=true;
+  const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;
+  G.sessionTotal++;G.roundScores[G.roundScores.length-1].total++;
+  if(correct){G.sessionCorrect++;G.roundScores[G.roundScores.length-1].correct++;G.totalGold+=10;spawnGold('+10 🪙');}
+  document.querySelectorAll('.choice').forEach(c=>{
+    c.classList.add('answered');const cId=c.id.replace('choice-','');
+    if(cId===q.correct)c.classList.add('correct');
+    else if(cId===G.selectedChoice)c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+  const qcard=document.getElementById('qcard');
+  if(qcard&&q.explanation){const d=document.createElement('div');d.className='explanation';d.innerHTML=`<strong>${correct?'✓ Correct.':'✗ Incorrect.'}</strong> ${q.explanation}`;qcard.appendChild(d);}
+  document.getElementById('game-gold-disp').textContent='🪙 '+G.totalGold;
+  document.getElementById('btn-next').style.display='inline-block';
+  setTimeout(()=>{document.getElementById('question-area').scrollTop=99999;},200);
+}
+function nextQuestion(){
+  G.questionIdx++;
+  if(G.questionIdx>=G.questions.length)showRoundComplete();
+  else{renderQuestion();document.getElementById('question-area').scrollTop=0;}
+}
+
+// ─── Round Complete ───────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display='none';
+  document.getElementById('btn-row').style.display='none';
+  document.getElementById('frq-area').style.display='none';
+  document.getElementById('round-complete').style.display='flex';
+  const rs=G.roundScores[G.roundScores.length-1]||{correct:G.sessionCorrect,total:G.sessionTotal};
+  const pct=rs.total>0?Math.round(rs.correct/rs.total*100):80;
+  const round=QUESTION_BANK.rounds[G.roundIdx];const trophy=getTrophyForAccuracy(pct);
+  saveRoundProgress(G.roundIdx,pct,rs.correct,rs.total);
+  const goldEarned=Math.round(pct/100*80);if(goldEarned>0)awardGoldToShell(goldEarned,round.label);
+  document.getElementById('rc-icon').textContent=trophy.icon;
+  document.getElementById('rc-title').textContent=round.label.replace(/^Round \d+ — /,'')+' — Complete!';
+  document.getElementById('rc-score').textContent=rs.correct+'/'+rs.total;document.getElementById('rc-score').style.color=trophy.color;
+  document.getElementById('rc-sub').textContent=pct+'% · '+trophy.label;
+  document.getElementById('rc-stats').innerHTML=
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>`+
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${goldEarned}</div><div class="rc-stat-lbl">Gold Earned</div></div>`+
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:var(--acc2)">${rs.correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+  const nextIdx=G.roundIdx+1;const hasNext=nextIdx<QUESTION_BANK.rounds.length;
+  const nextBtn=document.getElementById('rc-next-btn');
+  if(hasNext){nextBtn.textContent='Continue to Round '+(nextIdx+1)+' →';nextBtn.onclick=function(){document.getElementById('round-complete').style.display='none';G.roundIdx=nextIdx;G.questionIdx=0;G.sessionCorrect=0;G.sessionTotal=0;G.roundScores=[];G.selectedChoice=null;G.answered=false;updatePips();showRoundIntro();};}
+  else{nextBtn.textContent='✓ Back to Hub';nextBtn.onclick=function(){document.getElementById('round-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';renderRoundCards();};}
+}
+
+// ─── FRQ Round ────────────────────────────────────────────────
+function initFRQRound(){
+  FRQ_GRADES={};
+  const frqs=QUESTION_BANK.rounds[G.roundIdx].frqs;
+  document.getElementById('frq-area').style.display='block';
+  // Build nav
+  const nav=document.getElementById('frq-nav');
+  nav.innerHTML=frqs.map((f,i)=>{
+    const typeLabel={concept_application:'Concept App',quantitative_analysis:'Quant Analysis',scotus_comparison:'SCOTUS Compare',argument_essay:'Arg Essay'}[f.type]||f.type;
+    return`<button class="frq-nav-btn ${i===0?'active':''}" id="frq-nav-${i}" onclick="selectFRQ(${i})">${typeLabel} (${f.maxScore} pts)</button>`;
+  }).join('');
+  selectFRQ(0);
+}
+
+let currentFRQIdx = 0;
+function selectFRQ(idx){
+  currentFRQIdx=idx;
+  document.querySelectorAll('.frq-nav-btn').forEach((b,i)=>{b.classList.toggle('active',i===idx);});
+  renderFRQWorkspace(QUESTION_BANK.rounds[G.roundIdx].frqs[idx],idx);
+}
+
+function renderFRQWorkspace(frq,idx){
+  const ws=document.getElementById('frq-workspace');
+  ws.style.display='block';
+  const isGraded=FRQ_GRADES[frq.id];
+  const typeIcons={concept_application:'📋',quantitative_analysis:'📊',scotus_comparison:'⚖️',argument_essay:'📜'};
+  const typeLabels={concept_application:'Concept Application',quantitative_analysis:'Quantitative Analysis',scotus_comparison:'SCOTUS Comparison',argument_essay:'Argument Essay'};
+
+  let stimulusHtml='';
+  if(frq.type==='quantitative_analysis'&&frq.data){
+    stimulusHtml=`<div id="frq-chart-container-${idx}"></div>`;
+  }
+  if(frq.type==='scotus_comparison'&&frq.nonRequiredCase){
+    stimulusHtml+=`<div class="scotus-compare-box"><div class="scotus-compare-label">⚖️ REQUIRED CASE</div><div class="scotus-compare-name">${frq.requiredCase}</div></div>
+    <div class="scotus-compare-box" style="border-left-color:var(--teal2)"><div class="scotus-compare-label" style="color:var(--teal2)">📄 NON-REQUIRED CASE — ${frq.nonRequiredCase.name} (${frq.nonRequiredCase.year})</div><div class="scotus-compare-desc">${frq.nonRequiredCase.description}</div></div>`;
+  }
+  if(frq.type==='argument_essay'&&frq.requiredDocuments){
+    stimulusHtml+=`<div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-bottom:6px">REQUIRED FOUNDATIONAL DOCUMENTS</div><div class="essay-docs">${frq.requiredDocuments.map(d=>`<span class="essay-doc-tag">📜 ${d}</span>`).join('')}</div></div>`;
+  }
+
+  ws.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <span style="font-size:24px">${typeIcons[frq.type]||'📋'}</span>
+      <div>
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--acc2);letter-spacing:2px">${typeLabels[frq.type]||frq.type} · ${frq.maxScore} POINTS</div>
+        <div class="frq-prompt-title">${frq.title}</div>
+      </div>
+    </div>
+    ${frq.scenario?`<div class="frq-scenario">${frq.scenario}</div>`:''}
+    ${frq.prompt&&frq.type==='argument_essay'?`<div class="frq-scenario" style="font-style:italic">${frq.prompt}</div>`:''}
+    ${stimulusHtml}
+    ${frq.parts.map((p,pi)=>`<div class="frq-part" id="frq-part-${idx}-${pi}">
+      <div class="frq-part-header">
+        <div class="frq-part-letter">Part ${p.part}</div>
+        <div class="frq-part-pts">${p.points} POINT${p.points>1?'S':''}</div>
+      </div>
+      <div class="frq-part-prompt">${p.prompt}</div>
+      <textarea class="frq-textarea" id="frq-ans-${idx}-${pi}" placeholder="Write your response here..." ${isGraded?'disabled':''}>${isGraded&&FRQ_GRADES[frq.id]?.answers?.[pi]||''}</textarea>
+    </div>`).join('')}
+    <button class="frq-submit-btn" id="frq-submit-${idx}" onclick="submitFRQ(${idx})" ${isGraded?'disabled':''}>
+      ${isGraded?'✓ Already Graded':'🤖 Submit for AI Grading'}
+    </button>
+    <div id="frq-grading-${idx}" class="frq-grading" style="${isGraded?'display:block':'display:none'}">
+      ${isGraded?renderGradingResult(frq,FRQ_GRADES[frq.id]):''}
+    </div>`;
+
+  // Render FRQ chart if needed
+  if(frq.type==='quantitative_analysis'&&frq.data){
+    setTimeout(()=>renderFRQChart(frq,idx),50);
+  }
+}
+
+function renderFRQChart(frq,idx){
+  const container=document.getElementById(`frq-chart-container-${idx}`);if(!container)return;
+  const{labels,values}=frq.data;const max=Math.max(...values);
+  let html=`<div style="margin-bottom:16px;background:rgba(0,0,0,.2);border:1px solid var(--border);padding:14px">
+    <div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-bottom:10px">${frq.chartLabel||''}</div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)">`;
+  labels.forEach((lbl,i)=>{const pct=Math.round((values[i]/max)*100);html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:2px 2px 0 0;height:${pct}%" title="${values[i]}%"></div></div>`;});
+  html+=`</div><div style="display:flex;gap:4px;margin-top:4px">`;
+  labels.forEach(lbl=>{html+=`<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center">${lbl}</div>`;});
+  html+=`</div><div class="chart-source">${frq.source||''}</div></div>`;
+  container.innerHTML=html;
+}
+
+async function submitFRQ(idx){
+  const frq=QUESTION_BANK.rounds[G.roundIdx].frqs[idx];
+  const answers=frq.parts.map((_,pi)=>document.getElementById(`frq-ans-${idx}-${pi}`)?.value||'');
+  const totalChars=answers.join('').length;
+  if(totalChars<30){notify('Please write responses before submitting.');return;}
+
+  const btn=document.getElementById(`frq-submit-${idx}`);
+  const gradingDiv=document.getElementById(`frq-grading-${idx}`);
+  if(!btn||!gradingDiv)return;
+  btn.disabled=true;
+  btn.innerHTML='<span class="frq-spinner"></span> Grading with AI...';
+  gradingDiv.style.display='none';
+
+  const rubricText=JSON.stringify(frq.rubric,null,2);
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part} (${p.points} pt${p.points>1?'s':''}): ${p.prompt}\nStudent answer: ${answers[i]||'[no response]'}`).join('\n\n');
+  const contextText=frq.scenario?`Scenario: ${frq.scenario}\n\n`:(frq.nonRequiredCase?`Non-required case: ${frq.nonRequiredCase.name} — ${frq.nonRequiredCase.description}\n\n`:(frq.prompt?`Prompt: ${frq.prompt}\n\n`:''));
+
+  const systemPrompt=`You are an expert AP U.S. Government and Politics FRQ grader. Score the student response strictly using the provided rubric. Return ONLY valid JSON, no other text.`;
+  const userPrompt=`FRQ Type: ${frq.type}\nTitle: ${frq.title}\nMax Points: ${frq.maxScore}\n\n${contextText}Parts and Student Answers:\n${partsText}\n\nRubric:\n${rubricText}\n\nScore each part. Return JSON exactly like this:\n{"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0_or_1,"feedback":"..."},...],"overallFeedback":"...","improveHint":"..."}`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:userPrompt}],system:systemPrompt})
+    });
+    const data=await resp.json();
+    const text=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const grade=JSON.parse(text);
+    grade.answers=answers;
+    FRQ_GRADES[frq.id]=grade;
+    gradingDiv.innerHTML=renderGradingResult(frq,grade);
+    gradingDiv.style.display='block';
+    btn.innerHTML='✓ Graded';
+    frq.parts.forEach((_,pi)=>{const ta=document.getElementById(`frq-ans-${idx}-${pi}`);if(ta)ta.disabled=true;});
+    // Update nav btn
+    const navBtn=document.getElementById(`frq-nav-${idx}`);
+    if(navBtn)navBtn.classList.add('graded');
+    // Check if all FRQs graded → mark round complete
+    const allGraded=QUESTION_BANK.rounds[G.roundIdx].frqs.every(f=>FRQ_GRADES[f.id]);
+    if(allGraded){
+      saveRoundComplete(G.roundIdx);
+      awardGoldToShell(40,'FRQ Practice Round');
+      document.getElementById('round-complete').style.display='flex';
+      document.getElementById('frq-area').style.display='none';
+      const rs={correct:0,total:0};
+      document.getElementById('rc-icon').textContent='✍️';
+      document.getElementById('rc-title').textContent='FRQ Practice — Complete!';
+      document.getElementById('rc-score').textContent='All 4 FRQs';
+      document.getElementById('rc-score').style.color='var(--green2)';
+      document.getElementById('rc-sub').textContent='SUBMITTED & AI GRADED';
+      document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">40</div><div class="rc-stat-lbl">Gold Earned</div></div>`;
+      const nextIdx=G.roundIdx+1;const hasNext=nextIdx<QUESTION_BANK.rounds.length;
+      const nextBtn=document.getElementById('rc-next-btn');
+      if(hasNext){nextBtn.textContent='Continue to Round '+(nextIdx+1)+' →';nextBtn.onclick=function(){document.getElementById('round-complete').style.display='none';G.roundIdx=nextIdx;G.questionIdx=0;G.sessionCorrect=0;G.sessionTotal=0;G.roundScores=[];G.selectedChoice=null;G.answered=false;updatePips();showRoundIntro();};}
+      else{nextBtn.textContent='✓ Back to Hub';nextBtn.onclick=function(){document.getElementById('round-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';renderRoundCards();};}
+    }
+  }catch(e){
+    btn.innerHTML='⚠ Error — Try Again';
+    btn.disabled=false;
+    notify('Grading error. Check your connection and try again.');
+    console.error(e);
+  }
+}
+
+function renderGradingResult(frq,grade){
+  if(!grade)return'';
+  const pct=Math.round((grade.totalScore/grade.maxScore)*100);
+  const scoreColor=pct>=75?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
+  const rubricParts=Array.isArray(frq.parts)?frq.parts:[];
+  return`<div class="frq-score-banner">
+    <div class="frq-total-score" style="color:${scoreColor}">${grade.totalScore}/${grade.maxScore}</div>
+    <div class="frq-score-info">
+      <div class="frq-score-label">AI SCORE · ${pct}%</div>
+      <div class="frq-score-title">${frq.title}</div>
+    </div>
+  </div>
+  ${(grade.parts||[]).map((p,i)=>{
+    const earned=p.earned>0;
+    const rubPart=Object.values(frq.rubric||{})[i]||{};
+    return`<div class="frq-part-result ${earned?'earned':'missed'}">
+      <div class="frq-part-result-header">
+        <div class="frq-part-result-letter">Part ${p.part}</div>
+        <div class="frq-part-result-pts ${earned?'earned':'missed'}">${earned?`✓ +${p.earned} pt${p.earned!==1?'s':''}`:'✗ 0 pts'}</div>
+      </div>
+      <div class="frq-part-feedback">${p.feedback||''}</div>
+    </div>`;
+  }).join('')}
+  <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+  ${grade.improveHint?`<div style="background:rgba(72,120,208,.06);border:1px solid rgba(72,120,208,.2);border-left:3px solid var(--blue);padding:12px 16px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--blue2);line-height:1.65"><strong>💡 How to Improve:</strong> ${grade.improveHint}</div>`:''}`;
+}
+
+// ─── Utilities ────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if(pct===100)return{label:'Historian',icon:'🏛️',color:'var(--purple2)'};
+  if(pct>=90)return{label:'Gold Trophy',icon:'🥇',color:'var(--gold)'};
+  if(pct>=80)return{label:'Silver Trophy',icon:'🥈',color:'var(--text)'};
+  if(pct>=70)return{label:'Bronze Trophy',icon:'🥉',color:'#cd7f32'};
+  if(pct>=60)return{label:'Completed',icon:'✅',color:'var(--green2)'};
+  return{label:'Keep Trying',icon:'📋',color:'var(--text3)'};
+}
+function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',c+amount);localStorage.setItem('civitas_gold_pending',JSON.stringify({amount,source}));}catch(e){}}
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3200);}
+(function(){function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});document.addEventListener('keydown',e=>{if(isInput(e.target))return;const ctrl=e.ctrlKey||e.metaKey;if(ctrl&&['u','s'].includes(e.key.toLowerCase()))e.preventDefault();});document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});})();
+</script>
+</body>
+</html>
