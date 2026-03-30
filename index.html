@@ -1787,15 +1787,23 @@ function renderCourseUnits(){
     return;
   }
 
-  el.innerHTML=`<div class="unit-grid">${units.map(u=>{
+  // ── Split units into tiers ──
+  const coreUnits   = units.filter(u=>!u.isBigIdea&&!u.isCampaign&&u.num&&u.num.startsWith('Unit'));
+  const capstone    = units.filter(u=>!u.isBigIdea&&!u.isCampaign&&(!u.num||!u.num.startsWith('Unit')));
+  const bigIdeas    = units.filter(u=>u.isBigIdea);
+  const campaigns   = units.filter(u=>u.isCampaign);
+  const capstoneFull= [...capstone,...campaigns];
+
+  function unitCard(u, size='normal'){
     const done=(cp.unitsCompleted||[]).includes(u.id);
     const isBigIdea=!!u.isBigIdea;
     const cardColor=isBigIdea?'var(--civitas)':u.color;
-
+    const isCapstone=size==='wide';
     if(u.externalUrl){
-      return`<div class="unit-card-grid" onclick="window.open('${u.externalUrl}','_blank')" style="border-top:3px solid ${u.color}">
-        <div class="ucg-art">${u.icon}
-          <div style="position:absolute;bottom:4px;right:6px;font-family:var(--bebas);font-size:9px;color:rgba(255,255,255,.35)">EXTERNAL</div>
+      return`<div class="unit-card-grid" onclick="window.open('${u.externalUrl}','_blank')"
+        style="border-top:3px solid ${u.color};${isCapstone?'display:flex;align-items:center;gap:16px;padding:0':''}">
+        <div class="ucg-art" style="${isCapstone?'height:100%;width:90px;flex-shrink:0;border-radius:0':''}">
+          <span style="font-size:${isCapstone?'40':size==='large'?'42':size==='small'?'26':'36'}px">${u.icon}</span>
         </div>
         <div class="ucg-body">
           <div class="ucg-num">${u.num}</div>
@@ -1804,25 +1812,61 @@ function renderCourseUnits(){
         </div>
       </div>`;
     }
-
     return`<div class="unit-card-grid ${done?'done':''} ${isBigIdea?'big-idea-card':''}"
       onclick="openUnitPreview('${_activeCourseId}','${u.id}')"
-      style="border-top:3px solid ${cardColor};${isBigIdea?'background:linear-gradient(135deg,rgba(112,96,208,.08),var(--bg2))':''}">
-      <div class="ucg-art" style="${isBigIdea?'background:rgba(112,96,208,.06)':''}">
-        <span style="font-size:36px">${u.icon}</span>
+      style="border-top:3px solid ${cardColor};${isBigIdea?'background:linear-gradient(135deg,rgba(112,96,208,.08),var(--bg2))':''}${isCapstone?';display:flex;align-items:center;gap:16px':''}">
+      <div class="ucg-art" style="${isBigIdea?'background:rgba(112,96,208,.06)':''}${isCapstone?';height:100%;width:90px;flex-shrink:0;border-radius:0':''}${size==='large'?';height:100px':''}${size==='small'?';height:52px':''}">
+        <span style="font-size:${isCapstone?'40':size==='large'?'42':size==='small'?'26':'36'}px">${u.icon}</span>
         ${done?`<div style="position:absolute;top:6px;right:6px;font-size:14px">✅</div>`:''}
         ${isBigIdea?`<div style="position:absolute;top:6px;left:6px;font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--civitas2);background:rgba(112,96,208,.15);border:1px solid var(--civitas);padding:2px 6px">BIG IDEA · ${u.bigIdea}</div>`:''}
       </div>
-      <div class="ucg-body">
-        <div class="ucg-num" style="${isBigIdea?'color:var(--civitas2)':''}">${u.num}</div>
-        <div class="ucg-title">${u.title}</div>
+      <div class="ucg-body" style="${size==='small'?'padding:6px 8px':''}${size==='large'?'padding:12px 14px':''}">
+        <div class="ucg-num" style="${isBigIdea?'color:var(--civitas2)':''}${size==='small'?';font-size:7px':''}">${u.num}</div>
+        <div class="ucg-title" style="${isCapstone?'font-size:15px':size==='large'?'font-size:14px':size==='small'?'font-size:11px':''}">${u.title}</div>
+        ${isCapstone&&u.desc?`<div style="font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;margin:4px 0 6px;line-height:1.5">${u.desc.slice(0,90)}…</div>`:''}
         <div class="ucg-status ${done?'ucg-done':u.url?'ucg-play':'ucg-done'}"
           style="${isBigIdea&&!done?'border-color:var(--civitas);color:var(--civitas2)':''}">
           ${done?'✓ Completed':u.url?'▶ Play Now':'🔜 Coming Soon'}
         </div>
       </div>
     </div>`;
-  }).join('')}</div>`;
+  }
+
+  function sectionHeader(label, sub=''){
+    return`<div style="display:flex;align-items:baseline;gap:12px;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border2)">
+      <div style="width:3px;height:16px;background:var(--civitas);flex-shrink:0"></div>
+      <div style="font-family:var(--bebas);font-size:13px;color:var(--civitas2);letter-spacing:3px">${label}</div>
+      ${sub?`<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${sub}</div>`:''}
+    </div>`;
+  }
+
+  let html='';
+
+  // ── TIER 1: Core Units ──
+  if(coreUnits.length){
+    html+=sectionHeader('Core Units','Master each unit to unlock the next');
+    html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(coreUnits.length,5)},1fr);gap:10px;margin-bottom:8px">
+      ${coreUnits.map(u=>unitCard(u,'large')).join('')}
+    </div>`;
+  }
+
+  // ── TIER 2: Capstone Experiences ──
+  if(capstoneFull.length){
+    html+=sectionHeader('Capstone Experiences','Comprehensive practice spanning all units');
+    html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(capstoneFull.length,3)},1fr);gap:10px;margin-bottom:8px">
+      ${capstoneFull.map(u=>unitCard(u,'wide')).join('')}
+    </div>`;
+  }
+
+  // ── TIER 3: Big Idea Reviews ──
+  if(bigIdeas.length){
+    html+=sectionHeader('Big Idea Review Games','Cross-unit review by AP Gov theme — play after completing the core units');
+    html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(bigIdeas.length,5)},1fr);gap:10px;margin-bottom:8px">
+      ${bigIdeas.map(u=>unitCard(u,'small')).join('')}
+    </div>`;
+  }
+
+  el.innerHTML=html;
 }
 
 function launchUnitGame(unit){
