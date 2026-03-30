@@ -2060,18 +2060,114 @@ function printCourseCert(){
 
 
 async function renderCourseLeaderboardInTrophies(){
-  // Pull results for this course from Supabase
   const el=document.getElementById('cv-lb-content');
   if(!el)return;
-  el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3)">Loading…</div>';
-  // Will be implemented with course-specific Supabase table
-  el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">Leaderboard syncs after playing unit games.</div>';
+  renderLeaderboardInto(el,'compact');
 }
 
 async function renderCourseLeaderboard(){
   renderCourseLeaderboardInTrophies();
   const el2=document.getElementById('cv-lb-content2');
-  if(el2)el2.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">Leaderboard syncs after playing unit games.</div>';
+  if(el2)renderLeaderboardInto(el2,'full');
+}
+
+async function renderLeaderboardInto(el,mode){
+  el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px">Loading…</div>';
+  try{
+    const profiles=await sfetch('/rest/v1/civitas_profiles?select=*&order=updated_at.desc&limit=200');
+    if(!profiles||!profiles.length){
+      el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">No leaderboard data yet — complete a unit to appear here.</div>';
+      return;
+    }
+    const units=COURSE_UNITS[_activeCourseId]||[];
+    const coreUnits=units.filter(u=>!u.isBigIdea&&!u.isCampaign&&u.num&&u.num.startsWith('Unit'));
+    const rows=profiles.map(p=>{
+      let unitProgress={};
+      try{unitProgress=JSON.parse(p.unit_progress||'{}');}catch(e){}
+      const unitsCompleted=Object.keys(unitProgress).filter(k=>unitProgress[k]?.completedAt);
+      const totalAccuracy=unitsCompleted.length>0
+        ?Math.round(unitsCompleted.reduce((sum,k)=>sum+(unitProgress[k]?.bestAccuracy||0),0)/unitsCompleted.length)
+        :0;
+      return{
+        name:p.display_name||p.full_name||'Student',
+        fullName:p.full_name||'',
+        period:p.period||'',
+        unitsCompleted:unitsCompleted.length,
+        totalUnits:coreUnits.length,
+        accuracy:totalAccuracy,
+        gold:p.gold||0,
+        unitProgress,
+        char:p.character||'🏛️'
+      };
+    }).filter(r=>r.unitsCompleted>0||r.gold>0);
+    rows.sort((a,b)=>b.unitsCompleted-a.unitsCompleted||b.accuracy-a.accuracy||b.gold-a.gold);
+    if(!rows.length){
+      el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">No leaderboard data yet — complete a unit to appear here.</div>';
+      return;
+    }
+    const periods=[...new Set(rows.map(r=>r.period).filter(Boolean))].sort();
+    const isMe=r=>r.fullName&&S.fullName&&r.fullName.trim().toLowerCase()===S.fullName.trim().toLowerCase();
+
+    function buildTable(filterPeriod){
+      const filtered=filterPeriod==='all'?rows:rows.filter(r=>r.period===filterPeriod);
+      if(!filtered.length)return'<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:12px">No students in this period yet.</div>';
+      return`<table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:11px">
+        <thead><tr style="border-bottom:1px solid var(--border2)">
+          <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">#</th>
+          <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">STUDENT</th>
+          ${mode==='full'?'<th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">PERIOD</th>':''}
+          <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">UNITS</th>
+          <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">AVG %</th>
+          <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">GOLD</th>
+          ${mode==='full'?'<th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">PROGRESS</th>':''}
+        </tr></thead>
+        <tbody>${filtered.map((r,i)=>{
+          const me=isMe(r);
+          const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+          const accColor=r.accuracy>=90?'var(--gold)':r.accuracy>=75?'var(--green2)':r.accuracy>=60?'var(--amber)':'var(--text2)';
+          const unitBar=mode==='full'?`<td style="padding:6px 8px"><div style="display:flex;gap:3px">
+            ${Array.from({length:r.totalUnits},(_,idx2)=>{
+              const uid=(COURSE_UNITS[_activeCourseId]||[]).filter(u=>!u.isBigIdea&&!u.isCampaign&&u.num?.startsWith('Unit'))[idx2]?.id;
+              const done=uid&&r.unitProgress[uid]?.completedAt;
+              const acc=uid&&r.unitProgress[uid]?.bestAccuracy||0;
+              const col=!done?'var(--border2)':acc>=90?'var(--gold)':acc>=75?'var(--green)':acc>=60?'var(--amber)':'var(--red)';
+              return`<div title="${uid||''}: ${acc}%" style="width:18px;height:8px;background:${col};border-radius:2px"></div>`;
+            }).join('')}
+          </div></td>`:'';
+          return`<tr style="border-bottom:1px solid var(--border);${me?'background:rgba(72,120,208,.08)':''}">
+            <td style="padding:6px 8px;color:var(--text3)">${medal||i+1}</td>
+            <td style="padding:6px 8px;color:${me?'var(--blue2)':'var(--cream)'};font-weight:${me?'600':'400'}">${r.char} ${r.name}${me?' (you)':''}</td>
+            ${mode==='full'?`<td style="padding:6px 8px;text-align:center;color:var(--text3)">${r.period||'—'}</td>`:''}
+            <td style="padding:6px 8px;text-align:center;color:var(--text2)">${r.unitsCompleted}/${r.totalUnits}</td>
+            <td style="padding:6px 8px;text-align:center;color:${accColor};font-weight:600">${r.accuracy?r.accuracy+'%':'—'}</td>
+            <td style="padding:6px 8px;text-align:center;color:var(--gc)">🪙${r.gold}</td>
+            ${unitBar}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    }
+
+    const tabHtml=periods.length>1?`<div style="display:flex;gap:0;border:1px solid var(--border2);margin-bottom:12px;flex-wrap:wrap">
+      <button onclick="switchLBPeriod('all','${mode}')" id="lb-tab-all-${mode}"
+        style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:var(--civitas);border:none;color:#fff;cursor:pointer">ALL</button>
+      ${periods.map(p=>`<button onclick="switchLBPeriod('${p}','${mode}')" id="lb-tab-${p}-${mode}"
+        style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;border:none;border-left:1px solid var(--border2);color:var(--text3);cursor:pointer">PERIOD ${p}</button>`).join('')}
+    </div>`:'';
+
+    el.innerHTML=tabHtml+`<div id="lb-table-${mode}">${buildTable('all')}</div>`;
+    el._lbBuildTable=buildTable;
+  }catch(e){
+    el.innerHTML=`<div style="font-family:var(--dm);font-size:10px;color:var(--red2);padding:8px">Error loading leaderboard: ${e.message}</div>`;
+  }
+}
+
+function switchLBPeriod(period,mode){
+  const el=mode==='full'?document.getElementById('cv-lb-content2'):document.getElementById('cv-lb-content');
+  if(!el||!el._lbBuildTable)return;
+  document.querySelectorAll(`[id^="lb-tab-"][id$="-${mode}"]`).forEach(btn=>{btn.style.background='transparent';btn.style.color='var(--text3)';});
+  const activeTab=document.getElementById(`lb-tab-${period}-${mode}`);
+  if(activeTab){activeTab.style.background='var(--civitas)';activeTab.style.color='#fff';}
+  document.getElementById(`lb-table-${mode}`).innerHTML=el._lbBuildTable(period);
 }
 
 // ══════════════════════════════════════════════════════
