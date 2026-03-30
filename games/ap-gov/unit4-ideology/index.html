@@ -509,7 +509,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 <!-- GAME ENGINE -->
 <div id="game">
   <div id="game-header">
-    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <button id="game-back" onclick="exitGame()">← Hub</button>
     <div id="game-round-label">ROUND 1 — KNOWLEDGE CHECK</div>
     <div id="game-progress-wrap">
       <div class="gp-pips" id="gp-pips"></div>
@@ -773,6 +773,7 @@ function saveRoundProgress(roundIdx, pct, correct, total) {
 
 function isRoundUnlocked(roundIdx) {
   if (roundIdx === 0) return true;
+  try { if (localStorage.getItem('civitas_is_teacher') === '1') return true; } catch(e) {}
   return getRoundProgress(roundIdx - 1) !== null;
 }
 
@@ -1196,7 +1197,6 @@ function startRound(roundIdx) {
 }
 
 function exitGame() {
-  if (G.sessionTotal > 0 && !confirm('Exit? Your progress for this round will be lost.')) return;
   clearTimer();
   document.getElementById('game').style.display = 'none';
   document.getElementById('hub').style.display = 'flex';
@@ -1295,7 +1295,7 @@ function renderQuestion() {
   document.getElementById('btn-next').style.display = 'none';
 
   let html = '';
-  if (G.questionIdx === 0 && G.currentSet) {
+  if (G.currentSet) {
     html += renderStimulus(round, G.currentSet);
   }
   html += `<div class="question-card" id="qcard">
@@ -1317,7 +1317,7 @@ function renderQuestion() {
 
   el.innerHTML = html;
 
-  if (G.currentSet?.chartType && G.questionIdx === 0) {
+  if (G.currentSet?.chartType) {
     renderChart(G.currentSet);
   }
   el.scrollTop = 0;
@@ -1360,16 +1360,24 @@ function renderChart(set) {
 function renderSimpleBar(container, set) {
   const { labels, values } = set.data;
   const max = Math.max(...values);
-  let html = `<div class="chart-wrap"><div class="chart-title">${set.chartLabel||''}</div><div class="chart-bars">`;
+  const barColor = 'var(--blue)';
+  let html = `<div style="background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
+    <div style="font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:14px">${set.chartLabel||set.title||'DATA'}</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:140px;border-bottom:2px solid var(--border2);margin-bottom:8px;padding-bottom:4px">`;
   labels.forEach((lbl, i) => {
     const pct = Math.round((values[i] / max) * 100);
-    html += `<div class="chart-bar-wrap"><div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div></div>`;
+    const val = values[i];
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px">
+      <div style="font-family:var(--bebas);font-size:13px;color:var(--cream)">${val}%</div>
+      <div style="width:100%;background:${barColor};height:${pct}%;min-height:4px;border-radius:2px 2px 0 0;transition:height .5s"></div>
+    </div>`;
   });
-  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
-  labels.forEach(lbl => { html += `<div class="chart-label" style="flex:1">${lbl}</div>`; });
-  html += `</div><div class="chart-source">${set.source}</div></div>`;
+  html += `</div><div style="display:flex;gap:8px">`;
+  labels.forEach(lbl => {
+    html += `<div style="flex:1;font-family:var(--dm);font-size:10px;color:var(--text2);text-align:center;line-height:1.3">${lbl}</div>`;
+  });
+  html += `</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:8px;font-style:italic">Source: ${set.source||''}</div></div>`;
   container.innerHTML = html;
-  setTimeout(() => { container.querySelectorAll('.chart-bar').forEach(b => { b.style.height = b.dataset.target; }); }, 100);
 }
 
 // ── SVG CARTOONS ─────────────────────────────────────────────────────────────
