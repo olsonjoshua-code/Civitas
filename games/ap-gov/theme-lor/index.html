@@ -574,7 +574,7 @@ function saveRoundProgress(i, pct, correct, total) {
     localStorage.setItem(key, JSON.stringify(u)); return u;
   } catch(e) { return null; }
 }
-function isRoundUnlocked(i) { return i === 0 || getRoundProgress(i-1) !== null; }
+function isRoundUnlocked(i) { try { if (localStorage.getItem('civitas_is_teacher') === '1') return true; } catch(e) {} return i === 0 || getRoundProgress(i-1) !== null; }
 function allRoundsComplete() { return QUESTION_BANK.rounds.every((_,i) => getRoundProgress(i) !== null); }
 
 function showHub() { document.getElementById('hub').style.display = 'flex'; renderRoundCards(); }
