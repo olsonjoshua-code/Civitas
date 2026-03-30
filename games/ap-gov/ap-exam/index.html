@@ -375,6 +375,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
     <div class="rc-stats" id="rc-stats"></div>
     <button class="rc-next-btn" id="rc-next-btn">Next Round →</button>
+    <button id="rc-cert-btn" onclick="printExamCert()" style="display:none;font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--gold);color:var(--gc);padding:10px 28px;cursor:pointer;margin-top:10px">🖨️ Print Certificate</button>
   </div>
 </div>
 
@@ -630,6 +631,84 @@ function allRoundsComplete(){return QUESTION_BANK.rounds.every((_,i)=>getRoundPr
 
 // ─── Hub ──────────────────────────────────────────────────────
 function showHub(){document.getElementById('hub').style.display='flex';renderRoundCards();}
+
+// ── EXAM PRACTICE CERTIFICATE ────────────────────────────
+function printExamCert() {
+  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  // Get scores from localStorage
+  const rounds = ['round1_mcq','round2_stimulus','round3_frq','round4_scotus_docs'];
+  let totalCorrect = 0, totalQ = 0;
+  rounds.forEach((rid, i) => {
+    try {
+      const r = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_r' + i) || 'null');
+      if (r) { totalCorrect += r.correct || 0; totalQ += r.total || 0; }
+    } catch(e) {}
+  });
+  const accuracy = totalQ > 0 ? Math.round(totalCorrect / totalQ * 100) : 0;
+  const trophy = accuracy >= 90 ? '🏆 Gold' : accuracy >= 75 ? '⭐ Silver' : accuracy >= 60 ? '🥉 Bronze' : '✅ Completed';
+  const tc = accuracy >= 90 ? '#ffd700' : accuracy >= 75 ? '#c8c8d8' : accuracy >= 60 ? '#cd7f32' : '#38a050';
+
+  const w = window.open('', '_blank', 'width=860,height=580');
+  if (!w) { notify && notify('Allow popups to print.'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AP Exam Practice Certificate</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&family=DM+Sans:wght@400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.cert{width:780px;background:#faf7f0;border:3px solid ${tc};padding:36px 48px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${tc},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
+.cert::before,.cert::after{content:'⚖';position:absolute;font-size:20px;color:${tc};opacity:.4}.cert::before{top:12px;left:12px}.cert::after{top:12px;right:12px}
+.corner{position:absolute;font-size:14px;color:${tc};opacity:.4}
+.eyebrow{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:5px}
+.main-title{font-family:'Cinzel Decorative',serif;font-size:22px;font-weight:700;color:#1a1208;margin:5px 0}
+.divider{height:2px;background:linear-gradient(90deg,transparent,${tc},transparent);margin:11px auto;width:80%}
+.student-name{font-family:'Cinzel Decorative',serif;font-size:30px;font-weight:700;color:#1a1208;margin:8px 0}
+.badge{display:inline-block;border:1px solid ${tc}88;padding:5px 16px;margin:6px 0;font-family:'Cinzel',serif;font-size:9px;color:#8a6a2a;letter-spacing:.18em}
+.stats{display:flex;justify-content:center;gap:28px;margin:13px 0;padding:10px 18px;background:rgba(0,0,0,.03);border:1px solid ${tc}44}
+.stat-val{font-size:20px;font-weight:700;color:#8a4820;font-family:'Cinzel Decorative',serif}.stat-lbl{font-size:7px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px}
+.sigs{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(0,0,0,.12)}
+.sig-line{width:140px;height:1px;background:#8a6a2a;margin:0 auto 3px}.sig-name{font-size:10px;color:#1a1208;font-weight:600;font-family:'Cinzel',serif}.sig-title{font-size:7px;color:#8a6a2a;letter-spacing:.1em}
+.school{font-size:8px;color:#8a6a2a;letter-spacing:.1em;margin-top:10px}
+.print-btn{margin-top:16px;padding:8px 24px;background:#c9a84c;border:none;color:#1a1208;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;cursor:pointer}
+.print-btn.close{background:#5a4520;color:#faf7f0;margin-left:8px}
+@media print{body{padding:0}.cert{box-shadow:none}.no-print{display:none!important}}</style></head><body><div>
+<div class="cert">
+  <span class="corner" style="bottom:12px;left:12px">⚖</span><span class="corner" style="bottom:12px;right:12px">⚖</span>
+  <div class="eyebrow">AP U.S. Government & Politics · Civitas</div>
+  <div style="font-size:44px;margin:6px 0">📝</div>
+  <div class="main-title">AP Exam Practice Certificate</div>
+  <div class="divider"></div>
+  <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.15em;color:#5a4520;margin:6px 0">This certifies that</div>
+  <div class="student-name">${studentName}</div>
+  <div style="font-family:'Crimson Text',serif;font-size:12px;color:#5a4520;font-style:italic;margin:5px 0">has completed the full AP Exam Practice simulation</div>
+  <div class="badge">AP U.S. GOVERNMENT & POLITICS · ALL 4 ROUNDS</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-val">${accuracy}%</div><div class="stat-lbl">ACCURACY</div></div>
+    <div class="stat"><div class="stat-val">${totalCorrect}/${totalQ}</div><div class="stat-lbl">CORRECT</div></div>
+    <div class="stat"><div class="stat-val">${trophy.split(' ')[0]}</div><div class="stat-lbl">TROPHY</div></div>
+  </div>
+  <div style="font-family:'Cinzel',serif;font-size:13px;color:${tc};letter-spacing:.1em;margin:6px 0">${trophy} Achievement</div>
+  <div class="divider"></div>
+  <div class="sigs">
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${studentName}</div><div class="sig-title">STUDENT</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>
+    <div class="sig"><div class="sig-line"></div><div class="sig-name">${date}</div><div class="sig-title">DATE COMPLETED</div></div>
+  </div>
+  <div class="school">Civitas · AP U.S. Government & Politics · ${new Date().getFullYear()}</div>
+</div>
+<div style="text-align:center" class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>
+  <button class="print-btn close" onclick="window.close()">✕ CLOSE</button>
+</div></div></body></html>`);
+  w.document.close();
+}
+
+// Show cert button when all rounds done
+function checkShowCertBtn() {
+  if (allRoundsComplete()) {
+    const btn = document.getElementById('rc-cert-btn');
+    if (btn) btn.style.display = 'block';
+  }
+}
+
 function returnToShell(){
   try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_gov');}catch(e){}
   window.location.href=CIVITAS_URL;
@@ -857,7 +936,7 @@ function nextQuestion(){
 }
 
 // ─── Round Complete ───────────────────────────────────────────
-function showRoundComplete(){
+function showRoundComplete_orig(){
   document.getElementById('question-area').style.display='none';
   document.getElementById('btn-row').style.display='none';
   document.getElementById('frq-area').style.display='none';
@@ -1073,3 +1152,8 @@ function notify(msg){const n=document.createElement('div');n.className='notif';n
 </script>
 </body>
 </html>
+
+function showRoundComplete(correct, total, roundIdx) {
+  showRoundComplete_orig(correct, total, roundIdx);
+  checkShowCertBtn();
+}
