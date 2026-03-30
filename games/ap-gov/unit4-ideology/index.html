@@ -1160,17 +1160,6 @@ function renderVocabQuizComplete() {
 }
 
 
-// Populate FRQ prompts
-(function() {
-  const p1 = document.getElementById('frq1-prompt');
-  const p2 = document.getElementById('frq2-prompt');
-  if (p1 && FRQ_RUBRICS && FRQ_RUBRICS.frq1) {
-    p1.innerHTML = FRQ_RUBRICS.frq1.prompt || '';
-  }
-  if (p2 && FRQ_RUBRICS && FRQ_RUBRICS.frq2) {
-    p2.innerHTML = FRQ_RUBRICS.frq2.prompt || '';
-  }
-})();
 
 function returnToShell() {
   try {
@@ -1636,9 +1625,31 @@ function saveProgress(pct) {
   try {
     const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
     if (!progress[UNIT_ID] || pct > (progress[UNIT_ID].bestAccuracy || 0)) {
-      progress[UNIT_ID] = { bestAccuracy:pct, completedAt: new Date().toISOString() };
+      progress[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
       localStorage.setItem('civitas_unit_progress', JSON.stringify(progress));
     }
+    syncProgressToCloud(progress, pct);
+  } catch(e) {}
+}
+async function syncProgressToCloud(progress, pct) {
+  try {
+    const studentName = localStorage.getItem('civitas_student_name') || '';
+    const fullName = localStorage.getItem('civitas_full_name') || studentName;
+    const period = localStorage.getItem('civitas_period') || '';
+    const gold = parseInt(localStorage.getItem('civitas_gold') || '0');
+    if (!fullName) return;
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        full_name: fullName,
+        display_name: studentName,
+        period: period,
+        gold: gold,
+        unit_progress: JSON.stringify(progress),
+        updated_at: new Date().toISOString()
+      })
+    });
   } catch(e) {}
 }
 
@@ -1777,32 +1788,8 @@ STUDENT RESPONSE:
 ${response}
 
 ` + (rubricData.maxScore === 3 ?
-`This is a 3-POINT CONCEPT APPLICATION FRQ. Return ONLY this JSON:
-{
-  "totalScore": <0-3>,
-  "tasks": {
-    "A": {"earned": <0|1>, "feedback": "<specific feedback on Part A>"},
-    "B": {"earned": <0|1>, "feedback": "<specific feedback on Part B>"},
-    "C": {"earned": <0|1>, "feedback": "<specific feedback on Part C>"}
-  },
-  "overallFeedback": "<2-3 sentence summary>",
-  "improveHint": "<one specific actionable improvement>"
-}`
-:
-`This is a 6-POINT ARGUMENT ESSAY FRQ. Return ONLY this JSON:
-{
-  "totalScore": <0-6>,
-  "tasks": {
-    "A": {"earned": <0|1>, "feedback": "<did student write a defensible thesis with a line of reasoning?>"},
-    "B1": {"earned": <0|1>, "feedback": "<one accurate piece of evidence linked to the topic?>"},
-    "B2": {"earned": <0|1>, "feedback": "<second piece of evidence, or two total pieces?>"},
-    "B3": {"earned": <0|1>, "feedback": "<two pieces including one required foundational document?>"},
-    "C": {"earned": <0|1>, "feedback": "<does student explain HOW or WHY evidence supports the claim?>"},
-    "D": {"earned": <0|1>, "feedback": "<does student describe an opposing view AND rebut or refute it?>"}
-  },
-  "overallFeedback": "<2-3 sentence summary of performance>",
-  "improveHint": "<one specific actionable improvement>"
-}`)
+'\n\nThis is a 3-POINT CONCEPT APPLICATION FRQ. Score Part A, B, C each as 0 or 1. Return ONLY this JSON with no other text, replacing 0s with actual scores and strings with actual feedback: {"totalScore":0,"tasks":{"A":{"earned":0,"feedback":"feedback"},"B":{"earned":0,"feedback":"feedback"},"C":{"earned":0,"feedback":"feedback"}},"overallFeedback":"summary","improveHint":"tip"}' :
+'\n\nThis is a 6-POINT ARGUMENT ESSAY FRQ. Score Tasks A, B1, B2, B3, C, D each as 0 or 1. Return ONLY this JSON with no other text, replacing 0s with actual scores and strings with actual feedback: {"totalScore":0,"tasks":{"A":{"earned":0,"feedback":"feedback"},"B1":{"earned":0,"feedback":"feedback"},"B2":{"earned":0,"feedback":"feedback"},"B3":{"earned":0,"feedback":"feedback"},"C":{"earned":0,"feedback":"feedback"},"D":{"earned":0,"feedback":"feedback"}},"overallFeedback":"summary","improveHint":"tip"}')
         }]
       })
     });
