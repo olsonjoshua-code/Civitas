@@ -587,7 +587,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 <!-- ══ GAME ENGINE ══ -->
 <div id="game">
   <div id="game-header">
-    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <button id="game-back" onclick="exitGame()">← Hub</button>
     <div id="game-round-label">ROUND 1 — KNOWLEDGE CHECK</div>
     <div id="game-progress-wrap">
       <div class="gp-pips" id="gp-pips"></div>
@@ -882,8 +882,10 @@ function saveRoundProgress(roundIdx, pct, correct, total) {
 }
 
 function isRoundUnlocked(roundIdx) {
-  if (roundIdx === 0) return true; // Round 1 always unlocked
-  return getRoundProgress(roundIdx - 1) !== null; // Unlock if previous complete
+  if (roundIdx === 0) return true;
+  // Teacher mode — all rounds unlocked
+  try { if (localStorage.getItem('civitas_is_teacher') === '1') return true; } catch(e) {}
+  return getRoundProgress(roundIdx - 1) !== null;
 }
 
 function allRoundsComplete() {
@@ -1333,7 +1335,6 @@ function startRound(roundIdx) {
 }
 
 function exitGame() {
-  if (G.sessionTotal > 0 && !confirm('Exit? Your progress for this round will be lost.')) return;
   clearTimer();
   document.getElementById('game').style.display = 'none';
   document.getElementById('hub').style.display = 'flex';
@@ -1443,8 +1444,8 @@ function renderQuestion() {
 
   let html = '';
 
-  // Render stimulus on first question of stimulus rounds
-  if (G.questionIdx === 0 && G.currentSet) {
+  // Render stimulus on every question in stimulus rounds
+  if (G.currentSet) {
     html += renderStimulus(round, G.currentSet);
   }
 
@@ -1469,7 +1470,7 @@ function renderQuestion() {
   el.innerHTML = html;
 
   // Render chart if data round
-  if (G.currentSet?.chartType && G.questionIdx === 0) {
+  if (G.currentSet?.chartType) {
     renderChart(G.currentSet);
   }
 
@@ -1519,44 +1520,58 @@ function renderChart(set) {
 function renderSimpleBar(container, set) {
   const { labels, values } = set.data;
   const max = Math.max(...values);
-  let html = `<div class="chart-wrap"><div class="chart-title">${set.chartLabel||''}</div><div class="chart-bars">`;
+  const barColor = 'var(--blue)';
+  let html = `<div style="background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
+    <div style="font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:14px">${set.chartLabel||set.title||'DATA'}</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:140px;border-bottom:2px solid var(--border2);margin-bottom:8px;padding-bottom:4px">`;
   labels.forEach((lbl, i) => {
     const pct = Math.round((values[i] / max) * 100);
-    html += `<div class="chart-bar-wrap"><div class="chart-bar" style="height:0%" data-val="${values[i]}%" data-target="${pct}%"></div></div>`;
+    const val = values[i];
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px">
+      <div style="font-family:var(--bebas);font-size:13px;color:var(--cream)">${val}%</div>
+      <div style="width:100%;background:${barColor};height:${pct}%;min-height:4px;border-radius:2px 2px 0 0;transition:height .5s"></div>
+    </div>`;
   });
-  html += `</div><div style="display:flex;gap:4px;margin-top:4px">`;
-  labels.forEach(lbl => { html += `<div class="chart-label" style="flex:1">${lbl}</div>`; });
-  html += `</div><div class="chart-source">${set.source}</div></div>`;
+  html += `</div><div style="display:flex;gap:8px">`;
+  labels.forEach(lbl => {
+    html += `<div style="flex:1;font-family:var(--dm);font-size:10px;color:var(--text2);text-align:center;line-height:1.3">${lbl}</div>`;
+  });
+  html += `</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:8px;font-style:italic">Source: ${set.source||''}</div></div>`;
   container.innerHTML = html;
-  setTimeout(() => { container.querySelectorAll('.chart-bar').forEach(b => { b.style.height = b.dataset.target; }); }, 100);
 }
 
 function renderGroupedBar(container, set) {
   const { labels, federal, stateLocal } = set.data;
   const max = 100;
-  let html = `<div class="chart-wrap">
-    <div style="display:flex;gap:14px;margin-bottom:8px;font-family:var(--dm);font-size:9px">
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--blue);display:inline-block"></span>Federal</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--teal);display:inline-block"></span>State & Local</span>
+  let html = `<div style="background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
+    <div style="font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:10px">${set.title||'DATA'}</div>
+    <div style="display:flex;gap:16px;margin-bottom:12px;font-family:var(--dm);font-size:10px;color:var(--text2)">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:var(--blue);display:inline-block;border-radius:2px"></span>Federal</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:var(--teal);display:inline-block;border-radius:2px"></span>State & Local</span>
     </div>
-    <div style="display:flex;gap:16px;align-items:flex-end;height:120px;border-bottom:1px solid var(--border2)">`;
+    <div style="display:flex;gap:12px;align-items:flex-end;height:160px;border-bottom:2px solid var(--border2);margin-bottom:8px">`;
   labels.forEach((lbl, i) => {
     const fp = Math.round((federal[i] / max) * 100);
     const sp = Math.round((stateLocal[i] / max) * 100);
-    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-      <div style="display:flex;align-items:flex-end;gap:2px;height:100px;width:100%">
-        <div style="flex:1;background:var(--blue);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${fp}%" title="Federal: ${federal[i]}%"></div>
-        <div style="flex:1;background:var(--teal);border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${sp}%" title="State/Local: ${stateLocal[i]}%"></div>
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0">
+      <div style="display:flex;align-items:flex-end;gap:3px;height:140px;width:100%">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
+          <div style="font-family:var(--bebas);font-size:11px;color:var(--cream);margin-bottom:2px">${federal[i]}%</div>
+          <div style="width:100%;background:var(--blue);border-radius:2px 2px 0 0;height:${fp}%;min-height:4px"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
+          <div style="font-family:var(--bebas);font-size:11px;color:var(--cream);margin-bottom:2px">${stateLocal[i]}%</div>
+          <div style="width:100%;background:var(--teal);border-radius:2px 2px 0 0;height:${sp}%;min-height:4px"></div>
+        </div>
       </div>
     </div>`;
   });
-  html += `</div><div style="display:flex;gap:16px;margin-top:4px">`;
-  labels.forEach(lbl => { html += `<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;line-height:1.3">${lbl}</div>`; });
-  html += `</div><div class="chart-source" style="margin-top:8px">${set.source}</div></div>`;
+  html += `</div><div style="display:flex;gap:12px">`;
+  labels.forEach(lbl => {
+    html += `<div style="flex:1;font-family:var(--dm);font-size:10px;color:var(--text2);text-align:center;line-height:1.3">${lbl}</div>`;
+  });
+  html += `</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:8px;font-style:italic">Source: ${set.source||''}</div></div>`;
   container.innerHTML = html;
-  setTimeout(() => {
-    container.querySelectorAll('[data-target]').forEach(b => { b.style.height = b.dataset.target; });
-  }, 100);
 }
 
 // SVG Cartoon renderer
