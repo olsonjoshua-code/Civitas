@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function getRoundProgress(i){try{const d=localStorage.getItem('civitas_'+UNIT_ID+'_r'+i);return d?JSON.parse(d):null;}catch(e){return null;}}
 function saveRoundProgress(i,pct,correct,total){try{const key='civitas_'+UNIT_ID+'_r'+i;const prev=getRoundProgress(i)||{bestPct:0,attempts:0};const u={bestPct:Math.max(prev.bestPct,pct),bestCorrect:correct,bestTotal:total,attempts:(prev.attempts||0)+1,completedAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify(u));return u;}catch(e){return null;}}
-function isRoundUnlocked(i){return i===0||getRoundProgress(i-1)!==null;}
+function isRoundUnlocked(i){try{if(localStorage.getItem('civitas_is_teacher')==='1')return true;}catch(e){}return i===0||getRoundProgress(i-1)!==null;}
 function allRoundsComplete(){return QUESTION_BANK.rounds.every((_,i)=>getRoundProgress(i)!==null);}
 function showHub(){document.getElementById('hub').style.display='flex';renderRoundCards();}
 
