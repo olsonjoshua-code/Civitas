@@ -504,7 +504,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 <!-- GAME ENGINE -->
 <div id="game">
   <div id="game-header">
-    <button id="game-back" onclick="exitGame()">✕ Exit</button>
+    <button id="game-back" onclick="exitGame()">← Hub</button>
     <div id="game-round-label">ROUND 1 — KNOWLEDGE CHECK</div>
     <div id="game-progress-wrap">
       <div class="gp-pips" id="gp-pips"></div>
@@ -752,7 +752,7 @@ function saveRoundProgress(i, pct, correct, total) {
     localStorage.setItem(key, JSON.stringify(u)); return u;
   } catch(e) { return null; }
 }
-function isRoundUnlocked(i) { return i === 0 || getRoundProgress(i-1) !== null; }
+function isRoundUnlocked(i) { try { if (localStorage.getItem('civitas_is_teacher') === '1') return true; } catch(e) {} return i === 0 || getRoundProgress(i-1) !== null; }
 function allRoundsComplete() { return QUESTION_BANK.rounds.every((_,i) => getRoundProgress(i) !== null); }
 
 // ── HUB ───────────────────────────────────────────────────────────────────────
@@ -1158,7 +1158,6 @@ function startRound(roundIdx) {
 }
 
 function exitGame() {
-  if (G.sessionTotal > 0 && !confirm('Exit? Your progress for this round will be lost.')) return;
   clearTimer();
   document.getElementById('game').style.display = 'none';
   document.getElementById('hub').style.display = 'flex';
@@ -1234,7 +1233,7 @@ function renderQuestion() {
   document.getElementById('btn-next').style.display = 'none';
 
   let html = '';
-  if (G.questionIdx === 0 && G.currentSet) html += renderStimulus(round, G.currentSet);
+  if (G.currentSet) html += renderStimulus(round, G.currentSet);
   html += `<div class="question-card" id="qcard">
     <div class="q-meta">
       <div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>
@@ -1251,7 +1250,7 @@ function renderQuestion() {
     </div>
   </div>`;
   el.innerHTML = html;
-  if (G.currentSet?.chartType && G.questionIdx === 0) renderChart(G.currentSet);
+  if (G.currentSet?.chartType) renderChart(G.currentSet);
   el.scrollTop = 0;
 }
 
