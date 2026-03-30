@@ -45,7 +45,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);line-height:1.
 
 /* ── NAV ── */
 .briefing-nav{background:var(--bg2);border-bottom:1px solid var(--border);
-  display:flex;gap:0;overflow-x:auto;position:fixed;top:97px;left:0;right:0;z-index:99}
+  display:flex;gap:0;overflow-x:auto;position:fixed;top:0;left:0;right:0;z-index:99;transform:translateY(97px)}
 .briefing-nav::-webkit-scrollbar{height:2px}
 .briefing-nav::-webkit-scrollbar-thumb{background:var(--border2)}
 .nav-item{font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:12px 18px;
@@ -842,8 +842,24 @@ const observer = new IntersectionObserver(entries => {
 
 document.querySelectorAll('.section').forEach(s => observer.observe(s));
 
+// Position nav under header dynamically
+function positionNav() {
+  const header = document.querySelector('.briefing-header');
+  const nav = document.getElementById('briefing-nav');
+  const body = document.querySelector('.briefing-body');
+  if (!header || !nav) return;
+  const h = header.offsetHeight;
+  nav.style.transform = 'translateY(' + h + 'px)';
+  const navH = nav.offsetHeight;
+  if (body) body.style.marginTop = (h + navH) + 'px';
+}
+
+window.addEventListener('load', positionNav);
+window.addEventListener('resize', positionNav);
+
 // Init
 init();
+positionNav();
 </script>
 </body>
 </html>
