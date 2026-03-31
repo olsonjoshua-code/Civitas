@@ -1032,6 +1032,11 @@ function getAllUnitsCompleted(){
 }
 
 function getTotalUnits(){
+  try {
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const unitIds = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
+    return unitIds.filter(id => prog[id] && prog[id].bestAccuracy >= 0).length;
+  } catch(e) {}
   return getAllUnitsCompleted().length;
 }
 
@@ -1622,6 +1627,26 @@ function enterShell(){
 }
 
 
+
+function syncGoldFromStorage() {
+  try {
+    const stored = parseInt(localStorage.getItem('civitas_gold') || '0');
+    if (stored > (S.gold || 0)) {
+      S.gold = stored;
+      S.goldEarned = Math.max(S.goldEarned || 0, stored);
+      saveS();
+    }
+    // Handle pending gold notification
+    const pending = localStorage.getItem('civitas_gold_pending');
+    if (pending) {
+      localStorage.removeItem('civitas_gold_pending');
+      const d = JSON.parse(pending);
+      if (d && d.amount > 0) spawnGold && spawnGold('+' + d.amount + ' 🪙');
+    }
+  } catch(e) {}
+  updateHUD();
+}
+
 function countAllTrophies() {
   let count = 0;
   try {
@@ -1641,6 +1666,12 @@ function countAllTrophies() {
   } catch(e) {}
   return count;
 }
+
+
+window.addEventListener('focus', syncGoldFromStorage);
+window.addEventListener('visibilitychange', function() {
+  if (!document.hidden) syncGoldFromStorage();
+});
 
 function updateHUD(){
   const ch=getChar(S.avatar);
