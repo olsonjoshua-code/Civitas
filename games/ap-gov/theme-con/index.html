@@ -715,8 +715,9 @@ async function syncProgressToCloud() {
     if (!fullName) return;
     // Merge existing unit_progress with this game's completion
     const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-    if (!progress[UNIT_ID]) {
-      progress[UNIT_ID] = { bestAccuracy: 0, completedAt: new Date().toISOString() };
+    const pct = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+    if (!progress[UNIT_ID] || pct > (progress[UNIT_ID].bestAccuracy || 0)) {
+      progress[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
       localStorage.setItem('civitas_unit_progress', JSON.stringify(progress));
     }
     await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
