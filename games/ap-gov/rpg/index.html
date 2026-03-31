@@ -5376,24 +5376,29 @@ document.addEventListener('DOMContentLoaded',()=>{
       window._isTeacher=false;
       // Try derived save key first
       const ex=localStorage.getItem(sk);
-      if(ex){const d=JSON.parse(ex);if(d&&d.name){G=d;G.period=civPeriod;launchGame();return;}}
+      if(ex){const d=JSON.parse(ex);if(d&&d.name){
+        G=Object.assign(defaultState(),d);G.period=civPeriod;launchGame();return;
+      }}
       // Try last used key (in case they played before under a different key)
       const lastKey=localStorage.getItem('apgov_last_key');
       if(lastKey&&lastKey!==sk){
         const exLast=localStorage.getItem(lastKey);
         if(exLast){const dLast=JSON.parse(exLast);if(dLast&&dLast.name){
-          G=dLast;G.period=civPeriod;
-          // Migrate to new key
-          localStorage.setItem(sk,exLast);
+          G=Object.assign(defaultState(),dLast);G.period=civPeriod;
+          localStorage.setItem(sk,JSON.stringify(G));
           localStorage.setItem('apgov_last_key',sk);
           launchGame();return;
         }}
       }
-      // First time — go straight to avatar creator, no login form needed
-      const freshSave={name:window._loginFirst+' '+window._loginLast,period:civPeriod,level:1,xp:0,score:0,hp:100,maxHp:100,gold:0,packs:0,episodes:{},collection:[],avatarId:'scholar'};
-      localStorage.setItem(sk,JSON.stringify(freshSave));
+      // First time — build a proper state using defaultState()
+      G=defaultState();
+      G.name=window._loginFirst+' '+window._loginLast;
+      G.firstName=window._loginFirst;
+      G.lastName=window._loginLast;
+      G.period=civPeriod;
+      localStorage.setItem(sk,JSON.stringify(G));
       localStorage.setItem('apgov_last_key',sk);
-      G=freshSave;goToAvatarCreator();return;
+      goToAvatarCreator();return;
     }
   }catch(e){}
   // No civitas_student_name — show simple login form
