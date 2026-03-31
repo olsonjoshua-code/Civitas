@@ -5353,14 +5353,13 @@ const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonj
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('login-screen').classList.add('active');
   // Start title music on first user interaction
   document.addEventListener('click',function startTitle(){
     SFX.playTitle();
     document.removeEventListener('click',startTitle);
   },{once:true});
 
-  // ── Auto-login from Civitas shell — runs FIRST before continue banner ──
+  // ── Auto-login from Civitas shell — check BEFORE showing any screen ──
   try{
     const civName=localStorage.getItem('civitas_student_name');
     const civPeriod=localStorage.getItem('civitas_student_period')||'guest';
@@ -5377,12 +5376,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       window._isTeacher=false;
       const ex=localStorage.getItem(sk);
       if(ex){const d=JSON.parse(ex);if(d&&d.name){G=d;G.period=civPeriod;launchGame();return;}}
+      // First time — go straight to avatar creator, no login form needed
       const freshSave={name:window._loginFirst+' '+window._loginLast,period:civPeriod,level:1,xp:0,score:0,hp:100,maxHp:100,gold:0,packs:0,episodes:{},collection:[],avatarId:'scholar'};
       localStorage.setItem(sk,JSON.stringify(freshSave));
       localStorage.setItem('apgov_last_key',sk);
       G=freshSave;goToAvatarCreator();return;
     }
   }catch(e){}
+  // No civitas_student_name — show simple login form
+  document.getElementById('login-screen').classList.add('active');
 
   // Check for existing save (shown only when NOT coming from Civitas)
   try{
