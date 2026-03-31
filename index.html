@@ -1621,6 +1621,27 @@ function enterShell(){
   logSessionStart();
 }
 
+
+function countAllTrophies() {
+  let count = 0;
+  try {
+    // Unit trophies (60%+ accuracy)
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const units = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
+    units.forEach(id => { if (prog[id] && prog[id].bestAccuracy >= 60) count++; });
+    // Big Idea trophies
+    const bi = ['apg_bi_con','apg_bi_lor','apg_bi_pmcd','apg_bi_mk','apg_bi_mpa'];
+    bi.forEach(id => { if (prog[id] && prog[id].completedAt) count++; });
+    // Vocab medals (80%+)
+    const vunits = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
+    vunits.forEach(id => {
+      const s = parseInt(localStorage.getItem('civitas_vocab_' + id) || '0');
+      if (s >= 80) count++;
+    });
+  } catch(e) {}
+  return count;
+}
+
 function updateHUD(){
   const ch=getChar(S.avatar);
   document.getElementById('hud-avatar').innerHTML=ch.svg().replace(/width="\d+"/,'width="44"').replace(/height="\d+"/,'height="44"');
@@ -1630,7 +1651,7 @@ function updateHUD(){
   document.getElementById('hud-bar-fill').style.width=pct+'%';
   document.getElementById('hstat-courses').textContent=S.courses.length;
   document.getElementById('hstat-units').textContent=getTotalUnits();
-  document.getElementById('hstat-trophies').textContent=S.badgesEarned.length;
+  document.getElementById('hstat-trophies').textContent=countAllTrophies();
   document.getElementById('hstat-gold').textContent=(S.gold||0).toLocaleString();
 }
 
@@ -2232,26 +2253,38 @@ function renderBigIdeaTrophies() {
   var el = document.getElementById('big-idea-trophies');
   if (!el) return;
   var BIG_IDEAS = [
-    { id:'apg_bi_con',  label:'CON',  name:'Constitutionalism',  color:'var(--blue)',   icon:'⚖️' },
-    { id:'apg_bi_lor',  label:'LOR',  name:'Liberty & Order',     color:'var(--teal)',   icon:'🗽' },
-    { id:'apg_bi_pmcd', label:'PMCD', name:'Competing Interests', color:'var(--amber)',  icon:'🤝' },
-    { id:'apg_bi_mk',   label:'MK',   name:'Civic Participation', color:'var(--green)',  icon:'✊' },
-    { id:'apg_bi_mpa',  label:'MPA',  name:'Political Analysis',  color:'var(--purple)', icon:'📊' },
+    { id:'apg_bi_con',  label:'CON',  name:'Constitutionalism',  color:'#8080f0', icon:'⚖️' },
+    { id:'apg_bi_lor',  label:'LOR',  name:'Liberty & Order',     color:'#40c0b0', icon:'🗽' },
+    { id:'apg_bi_pmcd', label:'PMCD', name:'Competing Interests', color:'#c0a030', icon:'🤝' },
+    { id:'apg_bi_mk',   label:'MK',   name:'Civic Participation', color:'#50b060', icon:'✊' },
+    { id:'apg_bi_mpa',  label:'MPA',  name:'Political Analysis',  color:'#a060c0', icon:'📊' },
   ];
-  var progress = {};
-  try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
-  el.innerHTML = BIG_IDEAS.map(function(bi) {
-    var p = progress[bi.id];
-    var done = p && p.completedAt;
-    var pct = p ? p.bestAccuracy : null;
-    return '<div style="background:var(--bg2);border:1px solid ' + (done ? bi.color : 'var(--border)') + ';border-left:3px solid ' + (done ? bi.color : 'var(--border)') + ';padding:10px 12px;display:flex;align-items:center;gap:12px">'
-      + '<div style="font-size:22px">' + bi.icon + '</div>'
-      + '<div style="flex:1"><div style="font-family:var(--bebas);font-size:12px;color:' + (done ? bi.color : 'var(--text3)') + ';letter-spacing:2px">' + bi.label + '</div>'
-      + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">' + bi.name + '</div></div>'
-      + (done ? '<div style="text-align:right"><div style="font-family:var(--bebas);font-size:18px;color:' + bi.color + '">✓</div>' + (pct ? '<div style="font-family:var(--dm);font-size:8px;color:var(--text3)">' + pct + '%</div>' : '') + '</div>'
-              : '<div style="font-family:var(--dm);font-size:8px;color:var(--text3)">Not completed</div>')
-      + '</div>';
-  }).join('');
+  function biTier(pct) {
+    if (pct === 100) return { icon:'🏛️', label:'Historian', color:'#c090ff' };
+    if (pct >= 90)  return { icon:'🥇',  label:'Gold',      color:'#ffd700' };
+    if (pct >= 75)  return { icon:'🥈',  label:'Silver',    color:'#c8c8d8' };
+    if (pct >= 60)  return { icon:'🥉',  label:'Bronze',    color:'#cd7f32' };
+    return               { icon:'✅',  label:'Completed', color:'#50b060' };
+  }
+  var prog = {};
+  try { prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+  el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">'
+    + BIG_IDEAS.map(function(bi) {
+      var p = prog[bi.id];
+      var done = p && p.completedAt;
+      var pct = done ? (p.bestAccuracy || 0) : null;
+      var t = done ? biTier(pct) : null;
+      return '<div style="background:var(--bg2);border:1px solid ' + (done ? bi.color+'88' : 'var(--border)') + ';border-top:3px solid ' + (done ? bi.color : 'var(--border)') + ';padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">'
+        + '<div style="font-size:28px">' + (done ? t.icon : bi.icon) + '</div>'
+        + '<div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:' + (done ? bi.color : 'var(--text3)') + '">' + bi.label + '</div>'
+        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">' + bi.name + '</div>'
+        + (done
+          ? '<div style="font-family:var(--bebas);font-size:11px;color:' + t.color + ';letter-spacing:1px;margin-top:2px">' + t.label + '</div>'
+            + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">' + pct + '% accuracy</div>'
+          : '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">Not yet completed</div>')
+        + '</div>';
+    }).join('')
+    + '</div>';
 }
 
 function printVocabCert(unitId, unitLabel, unitSub, score) {
