@@ -2860,10 +2860,7 @@ function buildCharGrid(){
   const el=document.getElementById('char-grid');
   if(!el)return;
   const unlocked=Array.isArray(S.unlocked)?S.unlocked:[];
-  const freeIds=CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id);
-
-  // Group chars
-  const cats = [
+  const cats=[
     {key:'starter',   label:'Starter Characters'},
     {key:'founder',   label:'Founders & Framers'},
     {key:'justice',   label:'Supreme Court Justices'},
@@ -2872,37 +2869,32 @@ function buildCharGrid(){
     {key:'archetype', label:'Archetypes'},
     {key:'legendary', label:'Legendary'},
   ];
-
-  let html = '';
-  cats.forEach(cat => {
-    const inCat = CHARS.filter(c => c.cat === cat.key);
-    if (!inCat.length) return;
-    html += `<div style="margin-bottom:14px">
-      <div style="font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${cat.label}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">`;
-    inCat.forEach(ch => {
-      const isEquipped = S.avatar === ch.id;
-      const isUnlocked = ch.unlockMethod === 'free' || unlocked.includes(ch.id);
-      const svgHtml = ch.svg().replace(/width="\d+"/,'width="56"').replace(/height="\d+"/,'height="56"');
-      if (isUnlocked) {
-        html += `<div title="${ch.label}" onclick="equipChar('${ch.id}')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;background:${isEquipped?'rgba(201,168,76,.12)':'var(--bg2)'};border:1px solid ${isEquipped?'var(--gold)':'var(--border)'};min-width:72px;max-width:72px;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='${isEquipped?'var(--gold)':'var(--border)'}'">
-          ${svgHtml}
-          <div style="font-family:var(--dm);font-size:7px;color:${isEquipped?'var(--gold)':'var(--text2)'};text-align:center;line-height:1.2;max-width:64px">${ch.label}</div>
-          ${isEquipped?'<div style="font-family:var(--bebas);font-size:7px;color:var(--gold);letter-spacing:1px">EQUIPPED</div>':''}
-        </div>`;
-      } else {
-        html += `<div title="${ch.unlockHint||'Unlock in Constitutional Chronicles RPG'}" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;background:var(--bg2);border:1px solid var(--border);min-width:72px;max-width:72px;opacity:.4;cursor:default">
-          <div style="position:relative">${svgHtml}<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px">🔒</div></div>
-          <div style="font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;line-height:1.2;max-width:64px">${ch.label}</div>
-          <div style="font-family:var(--dm);font-size:6px;color:var(--text3);text-align:center;line-height:1.2;max-width:64px;font-style:italic">${ch.unlockHint||'RPG'}</div>
-        </div>`;
+  let html='';
+  cats.forEach(cat=>{
+    const inCat=CHARS.filter(c=>c.cat===cat.key);
+    if(!inCat.length)return;
+    html+='<div style="margin-bottom:16px"><div style="font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)">'+cat.label+'</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
+    inCat.forEach(ch=>{
+      const isEquipped=S.avatar===ch.id;
+      const isUnlocked=ch.unlockMethod==='free'||unlocked.includes(ch.id);
+      let svgHtml='';
+      try{svgHtml=ch.svg().replace(/width="\d+"/g,'width="56"').replace(/height="\d+"/g,'height="56"');}
+      catch(e){svgHtml='<div style="width:56px;height:56px;background:var(--bg3);border-radius:50%"></div>';}
+      if(isUnlocked){
+        const bg=isEquipped?'rgba(201,168,76,.12)':'var(--bg2)';
+        const bc=isEquipped?'var(--gold)':'var(--border)';
+        const lc=isEquipped?'var(--gold)':'var(--text2)';
+        html+='<div onclick="equipChar(this.dataset.id)" data-id="'+ch.id+'" title="'+ch.label+'" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;background:'+bg+';border:1px solid '+bc+';min-width:72px;max-width:72px;box-sizing:border-box">'+svgHtml+'<div style="font-family:var(--dm);font-size:7px;color:'+lc+';text-align:center;line-height:1.2;max-width:64px">'+ch.label+'</div>'+(isEquipped?'<div style="font-family:var(--bebas);font-size:7px;color:var(--gold);letter-spacing:1px">EQUIPPED</div>':'')+'</div>';
+      }else{
+        const hint=ch.unlockHint||'Unlock in RPG';
+        html+='<div title="'+hint+'" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;background:var(--bg2);border:1px solid var(--border);min-width:72px;max-width:72px;box-sizing:border-box;opacity:.4"><div style="position:relative;width:56px;height:56px">'+svgHtml+'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px">🔒</div></div><div style="font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;line-height:1.2;max-width:64px">'+ch.label+'</div><div style="font-family:var(--dm);font-size:6px;color:var(--text3);text-align:center;font-style:italic;max-width:64px">'+hint+'</div></div>';
       }
     });
-    html += '</div></div>';
+    html+='</div></div>';
   });
-  el.innerHTML = html;
+  el.innerHTML=html;
 }
+
 function equipChar(id){
   S.avatar=id;saveS();updateHUD();buildCharGrid();refreshProfile();
   notify('Equipped: '+getChar(id).label+'!');
