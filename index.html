@@ -1918,8 +1918,9 @@ function renderCourseTrophies(){
   el.innerHTML=units.filter(u=>!u.isBigIdea).map(u=>{
     const ud=progress[u.id.replace('apg_','apg_')];
     const acc=ud?ud.bestAccuracy:null;
-    const trophy=acc===null?null:acc>=90?'🏆':acc>=75?'⭐':acc>=60?'🥉':'✅';
-    const tc=acc===null?'var(--border)':acc>=90?'var(--gold)':acc>=75?'#c8c8d8':acc>=60?'#cd7f32':'var(--green2)';
+    const trophy=acc===null?null:acc===100?'🏛️':acc>=90?'🏆':acc>=75?'⭐':acc>=60?'🥉':'✅';
+    const trophyLabel=acc===null?'':acc===100?'Historian':acc>=90?'Gold':acc>=75?'Silver':acc>=60?'Bronze':'Completed';
+    const tc=acc===null?'var(--border)':acc===100?'var(--purple2)':acc>=90?'var(--gold)':acc>=75?'#c8c8d8':acc>=60?'#cd7f32':'var(--green2)';
     return `<div class="trophy-card" style="border-top:3px solid ${tc}">
       <div class="trophy-era" style="font-size:32px">${u.icon}
         <div class="trophy-medallion" style="background:${tc};color:#1a1208;font-size:16px">${trophy||'⬜'}</div>
@@ -1928,7 +1929,7 @@ function renderCourseTrophies(){
         <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">${u.num||''}</div>
         <div style="font-family:var(--playfair);font-size:12px;color:var(--cream);margin-bottom:6px">${u.title}</div>
         <div style="font-family:var(--dm);font-size:9px;color:${acc!==null?tc:'var(--text3)'}">
-          ${acc!==null?acc+'% accuracy':'Not yet played'}
+          ${acc!==null?(trophyLabel ? '<span style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:'+tc+'">'+trophyLabel+'</span> · ':'') + acc+'% accuracy':'Not yet played'}
         </div>
         ${acc!==null?`<button onclick="printUnitTrophyCert('${u.id}')" style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid ${tc};color:${tc};padding:3px 8px;cursor:pointer;margin-top:6px;transition:all .15s" onmouseover="this.style.background='${tc}';this.style.color='#1a1208'" onmouseout="this.style.background='transparent';this.style.color='${tc}'">🖨️ CERT</button>`:''}
       </div>
