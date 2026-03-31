@@ -656,6 +656,27 @@ async function syncProgressToCloud() {
   } catch(e) {}
 }
 
+
+function showThemeComplete(pct) {
+  const trophy = pct === 100 ? {label:'Historian', icon:'🏛️', color:'var(--purple2)'}
+               : pct >= 90  ? {label:'Gold',      icon:'🥇',  color:'var(--gold)'}
+               : pct >= 75  ? {label:'Silver',    icon:'🥈',  color:'var(--text)'}
+               : pct >= 60  ? {label:'Bronze',    icon:'🥉',  color:'#cd7f32'}
+               :               {label:'Completed', icon:'✅',  color:'var(--green2)'};
+  // Show a completion banner on the hub
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(135deg,rgba(30,20,60,.98),rgba(10,8,20,.98));border-bottom:2px solid var(--purple);padding:18px 28px;display:flex;align-items:center;gap:16px;animation:fadeIn .4s ease';
+  banner.innerHTML = `
+    <div style="font-size:40px">${trophy.icon}</div>
+    <div>
+      <div style="font-family:var(--bebas);font-size:16px;color:${trophy.color};letter-spacing:3px">${UNIT_TITLE ? UNIT_TITLE.toUpperCase() : 'BIG IDEA'} COMPLETE · ${trophy.label}</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic">Overall accuracy: ${pct}% · All 4 rounds done. Replay any round to improve.</div>
+    </div>
+    <button onclick="this.parentElement.remove();renderRoundCards();" style="margin-left:auto;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer">CONTINUE</button>`;
+  document.body.appendChild(banner);
+  renderRoundCards();
+}
+
 function returnToShell() { try { localStorage.setItem('civitas_last_course','ap_gov');localStorage.setItem('civitas_returning','1'); } catch(e) {} window.location.href = CIVITAS_URL; }
 function switchTab(name, btn) {
   document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));
@@ -960,12 +981,26 @@ function showRoundComplete() {
       updatePips(); showRoundIntro();
     };
   } else {
-    nextBtn.textContent = '✓ Back to Hub';
+    nextBtn.textContent = '✓ View Results';
     nextBtn.onclick = function() {
       document.getElementById('round-complete').style.display = 'none';
       document.getElementById('game').style.display = 'none';
       document.getElementById('hub').style.display = 'flex';
-      renderRoundCards();
+      // Save actual accuracy
+      const pct = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+      try {
+        const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+        if (!prog[UNIT_ID] || pct > (prog[UNIT_ID].bestAccuracy || 0)) {
+          prog[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
+          localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+        }
+      } catch(e) {}
+      syncProgressToCloud();
+      if (allRoundsComplete()) {
+        showThemeComplete(pct);
+      } else {
+        renderRoundCards();
+      }
     };
   }
 }
