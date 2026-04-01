@@ -3050,7 +3050,17 @@ function manualSave(){
 }
 function save(){
   if(!G)return;G.savedAt=Date.now();
-  try{const k=window._loginSaveKey||'apgov_v1_save';localStorage.setItem(k,JSON.stringify(G));localStorage.setItem('apgov_last_key',k);}catch(e){}
+  try{
+    const k=window._loginSaveKey||'apgov_v1_save';
+    localStorage.setItem(k,JSON.stringify(G));
+    localStorage.setItem('apgov_last_key',k);
+    // Sync gold back to Civitas shell
+    const prevGold=parseInt(localStorage.getItem('civitas_gold')||'0');
+    if((G.gold||0)>prevGold){
+      localStorage.setItem('civitas_gold',G.gold);
+      localStorage.setItem('civitas_gold_pending',JSON.stringify({amount:(G.gold-prevGold),source:'RPG'}));
+    }
+  }catch(e){}
 }
 function loadSave(){
   try{
