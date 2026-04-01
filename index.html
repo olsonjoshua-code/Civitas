@@ -3735,6 +3735,7 @@ function selectAddPeriod(p,el){
 
 function confirmAddCourse(){
   if(!_addCourseSelected){notify('Select a course first.');return;}
+  if(IS_TEACHER)_addCoursePeriod='teacher';
   if(!_addCoursePeriod){notify('Select your period.');return;}
   // Check not already enrolled
   if(S.courses.find(c=>c.id===_addCourseSelected)){notify('Already enrolled in this course.');return;}
@@ -3763,15 +3764,36 @@ function toggleTeacherBox(){
   if(open)document.getElementById('teacher-input').focus();
 }
 
-function submitTeacher(){
+async function submitTeacher(){
   const inp=document.getElementById('teacher-input'),err=document.getElementById('teacher-err');
-  if(inp.value.trim().toLowerCase()===TEACHER_PWD){
-    IS_TEACHER=true;S.isTeacher=true;S.name='Mr. Olson';S.setupDone=true;
-    try{localStorage.setItem('civitas_is_teacher','1');}catch(e){}
-    saveS();inp.value='';
-    document.getElementById('teacher-box').style.display='none';
-    enterShell();
-  }else{err.textContent='Incorrect code.';inp.value='';}
+  const code=inp.value.trim().toLowerCase();
+  if(!code){err.textContent='Enter your teacher code.';return;}
+  err.textContent='Checking...';
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/ac_teachers?code=eq.'+encodeURIComponent(code),{headers:SUPA_H});
+    const teachers=await res.json();
+    if(teachers&&teachers.length){
+      const teacher=teachers[0];
+      IS_TEACHER=true;S.isTeacher=true;
+      S.name=teacher.display_name;
+      S.teacherCode=code;
+      S.teacherPeriods=teacher.periods||[1,2,3,4,5,6,7];
+      S.setupDone=true;
+      try{localStorage.setItem('civitas_is_teacher','1');localStorage.setItem('civitas_teacher_name',teacher.display_name);}catch(e){}
+      saveS();inp.value='';
+      document.getElementById('teacher-box').style.display='none';
+      enterShell();
+    }else{err.textContent='Incorrect code.';inp.value='';}
+  }catch(e){
+    // Fallback to hardcoded if Supabase fails
+    if(code===TEACHER_PWD){
+      IS_TEACHER=true;S.isTeacher=true;S.name='Mr. Olson';S.setupDone=true;
+      try{localStorage.setItem('civitas_is_teacher','1');}catch(e){}
+      saveS();inp.value='';
+      document.getElementById('teacher-box').style.display='none';
+      enterShell();
+    }else{err.textContent='Incorrect code.';inp.value='';}
+  }
 }
 
 function teacherLogout(){
