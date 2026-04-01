@@ -402,7 +402,7 @@ option{background:var(--bg2)}
 </div>
 
 <!-- LOGIN -->
-<div id="login-screen" class="screen active">
+<div id="login-screen" class="screen">
   <div style="padding:2rem 0 1rem;text-align:center">
     <div style="font-size:52px;margin-bottom:12px;filter:drop-shadow(0 0 24px rgba(201,168,76,.3))">🏛️</div>
     <div class="main-title" style="font-size:20px">Constitutional Chronicles</div>
@@ -5377,14 +5377,18 @@ document.addEventListener('DOMContentLoaded',()=>{
       // Try derived save key first
       const ex=localStorage.getItem(sk);
       if(ex){const d=JSON.parse(ex);if(d&&d.name){
-        G=Object.assign(defaultState(),d);G.period=civPeriod;launchGame();return;
+        const base1=defaultState();
+        Object.keys(d).forEach(k=>{if(d[k]!==null&&d[k]!==undefined)base1[k]=d[k];});
+        G=base1;G.period=civPeriod;launchGame();return;
       }}
       // Try last used key (in case they played before under a different key)
       const lastKey=localStorage.getItem('apgov_last_key');
       if(lastKey&&lastKey!==sk){
         const exLast=localStorage.getItem(lastKey);
         if(exLast){const dLast=JSON.parse(exLast);if(dLast&&dLast.name){
-          G=Object.assign(defaultState(),dLast);G.period=civPeriod;
+          const base2=defaultState();
+          Object.keys(dLast).forEach(k=>{if(dLast[k]!==null&&dLast[k]!==undefined)base2[k]=dLast[k];});
+          G=base2;G.period=civPeriod;
           localStorage.setItem(sk,JSON.stringify(G));
           localStorage.setItem('apgov_last_key',sk);
           launchGame();return;
@@ -5400,7 +5404,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       localStorage.setItem('apgov_last_key',sk);
       goToAvatarCreator();return;
     }
-  }catch(e){}
+  }catch(e){console.error('RPG auto-login error:',e);}
   // No civitas_student_name — show simple login form
   document.getElementById('login-screen').classList.add('active');
 
