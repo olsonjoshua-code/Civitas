@@ -2355,7 +2355,8 @@ function enterShell(){
   // Auto-return to last active course if coming back from a game
   try{
     const lastCourse=localStorage.getItem('civitas_last_course');
-    if(lastCourse){localStorage.removeItem('civitas_last_course');updateHUD();buildCharGrid();enterCourse(lastCourse);return;}
+    if(lastCourse&&lastCourse!=='us_history'){localStorage.removeItem('civitas_last_course');updateHUD();buildCharGrid();enterCourse(lastCourse);return;}
+    localStorage.removeItem('civitas_last_course');
   }catch(e){}
 
   if(IS_TEACHER){
@@ -2487,7 +2488,6 @@ function enterCourse(courseId){
 
   // External course handler
   if(courseId==='us_history'){
-    try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','us_history');}catch(e){}
     window.location.href='/Civitas/games/us-history/';
     return;
   }
