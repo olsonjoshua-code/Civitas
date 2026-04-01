@@ -2213,7 +2213,7 @@ function liveFormatName(el){
 
 function buildCourseSelector(){
   const el=document.getElementById('course-selector');
-  const groups=['Middle School','High School','AP Courses'];
+  const groups=['Middle School','High School','AP Courses','History'];
   el.innerHTML=groups.map(group=>{
     const courses=COURSE_CATALOG.filter(c=>c.group===group);
     return`<div class="course-group">
@@ -2491,11 +2491,8 @@ function enterCourse(courseId){
     window.location.href=cat.url;
     return;
   }
-  if(cat.url&&courseId==='hs_ush'){
-    if(confirm('U.S. History lives in American Chronicles. Open it now?')){
-      try{localStorage.setItem('civitas_returning','1');}catch(e){}
-      window.open(cat.url,'_blank');
-    }
+  if(courseId==='hs_ush'){
+    notify('📚 U.S. History is available — enroll in U.S. History from Add a Course!');
     return;
   }
 
@@ -3686,9 +3683,9 @@ function openAddCourse(){
   const pw=document.getElementById('add-course-period-wrap');
   if(pw)pw.style.display='none';
 
-  const groups=['Middle School','High School','AP Courses'];
+  const groups=['Middle School','High School','AP Courses','History'];
   el.innerHTML=groups.map(group=>{
-    const courses=COURSE_CATALOG.filter(c=>c.group===group&&!enrolledIds.includes(c.id));
+    const courses=COURSE_CATALOG.filter(c=>c.group===group&&!enrolledIds.includes(c.id)&&!c.hidden);
     if(!courses.length)return'';
     return`<div class="course-group">
       <div class="course-group-label">${group}</div>
