@@ -809,7 +809,32 @@ async function sfetch(path,opts={}){
 // ══════════════════════════════════════════════════════
 //  COURSE CATALOG
 // ══════════════════════════════════════════════════════
-const COURSE_CATALOG=[
+// ── Teacher-Course assignments ────────────────────────────────────────────
+var COURSE_TEACHERS = {
+  'ap_gov':     ['olson219'],
+  'ap_cmp':     ['olson219'],
+  'ap_sem':     ['olson219'],
+  'us_history': ['olson219','smith225'],
+  'hs_ush':     ['olson219','smith225'],
+  'ms_ush':     ['olson219','smith225'],
+  'ms_wh':      ['olson219','smith225'],
+  'ms_geo':     ['olson219','smith225'],
+};
+
+async function getTeachersForCourse(courseId) {
+  const codes = COURSE_TEACHERS[courseId] || ['olson219'];
+  try {
+    var codesStr = codes.map(c => '"' + c + '"').join(',');
+    const res = await fetch(SUPA_URL + '/rest/v1/ac_teachers?code=in.(' + codesStr + ')', {headers: SUPA_H});
+    const teachers = await res.json();
+    return teachers || [];
+  } catch(e) {
+    return [{id:'fallback', display_name:'Mr. Olson', code:'olson219', periods:[1,2,3,4,5,6,7]}];
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────
+
+COURSE_CATALOG=[
   // MIDDLE SCHOOL
   {id:'ms_geo',     name:'World Geography',              grade:'6th Grade',   group:'Middle School', icon:'🌍', color:'var(--c-wg)',   hasFRQ:false, hasTimeline:true,  comingSoon:true},
   {id:'ms_wh',      name:'World History: Ancient–Medieval', grade:'7th Grade', group:'Middle School', icon:'🏺', color:'var(--c-wh)',   hasFRQ:false, hasTimeline:true,  comingSoon:true},
@@ -824,6 +849,7 @@ const COURSE_CATALOG=[
   {id:'us_history',  name:'U.S. History',                  grade:'AP/Standard', group:'History',    icon:'🏛️', color:'#c8a020', hasFRQ:false, hasTimeline:true,  comingSoon:false, url:'games/us-history/'},
   {id:'ap_gov',     name:'AP U.S. Government',           grade:'AP',          group:'AP Courses',    icon:'⚖️', color:'var(--c-apgov)',hasFRQ:true,  hasTimeline:false, comingSoon:false},
   {id:'ap_cmp',     name:'AP Comparative Government',    grade:'AP',          group:'AP Courses',    icon:'🌎', color:'var(--c-apcmp)',hasFRQ:true,  hasTimeline:false, comingSoon:true},
+  {id:'ap_sem',     name:'AP Seminar',                    grade:'AP',          group:'AP Courses',    icon:'💬', color:'#6090c0',       hasFRQ:true,  hasTimeline:false, comingSoon:true},
   {id:'ap_wh',      name:'AP World History',             grade:'AP',          group:'AP Courses',    icon:'🗺️', color:'var(--c-apwh)', hasFRQ:true,  hasTimeline:true,  comingSoon:true},
   {id:'ap_hg',      name:'AP Human Geography',           grade:'AP',          group:'AP Courses',    icon:'🧭', color:'var(--c-aphg)', hasFRQ:true,  hasTimeline:false, comingSoon:true},
   {id:'ap_eco',     name:'AP Economics',                 grade:'AP',          group:'AP Courses',    icon:'💹', color:'var(--c-apeco)',hasFRQ:true,  hasTimeline:false, comingSoon:true},
@@ -3734,13 +3760,24 @@ function selectAddPeriod(p,el){
   el.classList.add('selected');
 }
 
+
+let _addCourseTeacher = null;
+function selectAddTeacher(code, name, el) {
+  _addCourseTeacher = {code, name};
+  document.querySelectorAll('#teacher-picker-btns .period-btn').forEach(b => {
+    b.style.background='transparent'; b.style.color='var(--text3)'; b.style.borderColor='var(--border2)';
+  });
+  el.style.background='var(--civitas)'; el.style.color='#fff'; el.style.borderColor='var(--civitas)';
+}
+
 function confirmAddCourse(){
   if(!_addCourseSelected){notify('Select a course first.');return;}
   if(IS_TEACHER)_addCoursePeriod='teacher';
+  if(!IS_TEACHER && !_addCourseTeacher){notify('Select your teacher first.');return;}
   if(!_addCoursePeriod){notify('Select your period.');return;}
   // Check not already enrolled
   if(S.courses.find(c=>c.id===_addCourseSelected)){notify('Already enrolled in this course.');return;}
-  S.courses.push({id:_addCourseSelected,period:_addCoursePeriod,enrolledAt:new Date().toISOString()});
+  S.courses.push({id:_addCourseSelected,period:_addCoursePeriod,teacherCode:_addCourseTeacher?.code||'olson219',teacherName:_addCourseTeacher?.name||'Mr. Olson',enrolledAt:new Date().toISOString()});
   saveS();
   closeAddCourse();
   renderDashboard();
