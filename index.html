@@ -820,6 +820,7 @@ const COURSE_CATALOG=[
   {id:'hs_eco',     name:'Economics',                    grade:'12th Grade',  group:'High School',   icon:'📈', color:'var(--c-eco)',  hasFRQ:false, hasTimeline:false, comingSoon:true},
   // AP
   {id:'ap_ush',     name:'AP U.S. History',              grade:'AP',          group:'AP Courses',    icon:'📜', color:'var(--c-apush)',hasFRQ:true,  hasTimeline:true,  comingSoon:true},
+  {id:'us_history',  name:'U.S. History',                  grade:'AP/Standard', group:'History',    icon:'🏛️', color:'#c8a020', hasFRQ:false, hasTimeline:true,  comingSoon:false, url:CIVITAS_BASE+'games/us-history/'},
   {id:'ap_gov',     name:'AP U.S. Government',           grade:'AP',          group:'AP Courses',    icon:'⚖️', color:'var(--c-apgov)',hasFRQ:true,  hasTimeline:false, comingSoon:false},
   {id:'ap_cmp',     name:'AP Comparative Government',    grade:'AP',          group:'AP Courses',    icon:'🌎', color:'var(--c-apcmp)',hasFRQ:true,  hasTimeline:false, comingSoon:true},
   {id:'ap_wh',      name:'AP World History',             grade:'AP',          group:'AP Courses',    icon:'🗺️', color:'var(--c-apwh)', hasFRQ:true,  hasTimeline:true,  comingSoon:true},
@@ -834,6 +835,26 @@ const COURSE_CATALOG=[
 const CIVITAS_BASE = 'https://olsonjoshua-code.github.io/Civitas/';
 
 const COURSE_UNITS = {
+  us_history: [
+    {id:'ush_u1', num:'Unit 1', title:'A House Divided', icon:'⚔️', color:'#c8a020',
+     desc:'Civil War and Reconstruction — causes, conflict, and the struggle for equality.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+    {id:'ush_u2a', num:'Unit 2A', title:'Boomtown Nation', icon:'🏭', color:'#c8a020',
+     desc:'Industrialization, immigration, and the Gilded Age.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+    {id:'ush_u2b', num:'Unit 2B', title:'Age of Reform', icon:'✊', color:'#c8a020',
+     desc:'Progressivism and the push for social change.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+    {id:'ush_u3a', num:'Unit 3A', title:'Empire Rising', icon:'🌐', color:'#c8a020',
+     desc:'American imperialism and the rise of global power.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+    {id:'ush_u3b', num:'Unit 3B', title:'The Great Wars', icon:'🎖️', color:'#c8a020',
+     desc:'WWI, WWII, and America\'s role on the world stage.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+    {id:'ush_u4', num:'Unit 4', title:'Cold War America', icon:'☢️', color:'#c8a020',
+     desc:'Cold War, Civil Rights, and the postwar transformation.',
+     hasFRQ:false, url:CIVITAS_BASE+'games/us-history/'},
+  ],
   ap_gov: [
     {id:'apg_u1', num:'Unit 1', title:'Foundations of Democracy', icon:'📜', color:'#4878d0',
      desc:'The philosophical foundations of American democracy and the Constitutional framework.',
@@ -960,8 +981,40 @@ function defaultState(){
 
 let S = defaultState();
 
+
+// ── SHARED CHARACTER UNLOCKS (cross-course, cross-game) ──────────────────
+const SHARED_UNLOCK_KEY = 'civitas_unlocked_chars';
+
+function syncUnlocksToShared() {
+  // Write S.unlocked to shared localStorage so other games can read it
+  try {
+    const current = getSharedUnlocks();
+    const merged = [...new Set([...current, ...(S.unlocked||[])])];
+    localStorage.setItem(SHARED_UNLOCK_KEY, JSON.stringify(merged));
+  } catch(e) {}
+}
+
+function getSharedUnlocks() {
+  try {
+    const raw = localStorage.getItem(SHARED_UNLOCK_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function mergeSharedUnlocks() {
+  // Pull in any chars unlocked in other games
+  const shared = getSharedUnlocks();
+  if (!Array.isArray(S.unlocked)) S.unlocked = [];
+  const merged = [...new Set([...S.unlocked, ...shared])];
+  if (merged.length !== S.unlocked.length) {
+    S.unlocked = merged;
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 function saveS(){
   try{localStorage.setItem(SHELL_KEY,JSON.stringify(S));}catch(e){}
+  syncUnlocksToShared();
   if(!saveS._t) saveS._t=setTimeout(()=>{saveS._t=null;saveProfileByName();},2000);
 }
 
@@ -975,6 +1028,7 @@ function loadS(){
       if(!S.courseProgress)S.courseProgress={};
       if(!S.goldLedger)S.goldLedger=[];
       if(!S.unlocked||!S.unlocked.length)S.unlocked=CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id);
+      mergeSharedUnlocks();
       S.isTeacher=false;
     }
   }catch(e){}
@@ -2431,7 +2485,12 @@ function enterCourse(courseId){
   const cat=COURSE_CATALOG.find(c=>c.id===courseId);
   if(!cat)return;
 
-  // If this course has an external URL (like US History → American Chronicles)
+  // External course handler
+  if(cat.url&&courseId==='us_history'){
+    try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','us_history');}catch(e){}
+    window.location.href=cat.url;
+    return;
+  }
   if(cat.url&&courseId==='hs_ush'){
     if(confirm('U.S. History lives in American Chronicles. Open it now?')){
       try{localStorage.setItem('civitas_returning','1');}catch(e){}
