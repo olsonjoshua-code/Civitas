@@ -809,30 +809,6 @@ async function sfetch(path,opts={}){
 // ══════════════════════════════════════════════════════
 //  COURSE CATALOG
 // ══════════════════════════════════════════════════════
-// ── Teacher-Course assignments ────────────────────────────────────────────
-var COURSE_TEACHERS = {
-  'ap_gov':     ['olson219'],
-  'ap_cmp':     ['olson219'],
-  'ap_sem':     ['olson219'],
-  'us_history': ['olson219','smith225'],
-  'hs_ush':     ['olson219','smith225'],
-  'ms_ush':     ['olson219','smith225'],
-  'ms_wh':      ['olson219','smith225'],
-  'ms_geo':     ['olson219','smith225'],
-};
-
-async function getTeachersForCourse(courseId) {
-  const codes = COURSE_TEACHERS[courseId] || ['olson219'];
-  try {
-    var codesStr = codes.map(c => '"' + c + '"').join(',');
-    const res = await fetch(SUPA_URL + '/rest/v1/ac_teachers?code=in.(' + codesStr + ')', {headers: SUPA_H});
-    const teachers = await res.json();
-    return teachers || [];
-  } catch(e) {
-    return [{id:'fallback', display_name:'Mr. Olson', code:'olson219', periods:[1,2,3,4,5,6,7]}];
-  }
-}
-// ─────────────────────────────────────────────────────────────────────────
 
 COURSE_CATALOG=[
   // MIDDLE SCHOOL
@@ -974,6 +950,32 @@ MAX: 6 points.`,
     }
   ]
 };
+
+// ── Teacher-Course assignments ────────────────────────────────────────────
+var COURSE_TEACHERS = {
+  'ap_gov':     ['olson219'],
+  'ap_cmp':     ['olson219'],
+  'ap_sem':     ['olson219'],
+  'us_history': ['olson219','smith225'],
+  'hs_ush':     ['olson219','smith225'],
+  'ms_ush':     ['olson219','smith225'],
+  'ms_wh':      ['olson219','smith225'],
+  'ms_geo':     ['olson219','smith225'],
+};
+
+async function getTeachersForCourse(courseId) {
+  const codes = COURSE_TEACHERS[courseId] || ['olson219'];
+  try {
+    var codesStr = codes.map(c => '"' + c + '"').join(',');
+    const res = await fetch(SUPA_URL + '/rest/v1/ac_teachers?code=in.(' + codesStr + ')', {headers: SUPA_H});
+    const teachers = await res.json();
+    return teachers || [];
+  } catch(e) {
+    return [{id:'fallback', display_name:'Mr. Olson', code:'olson219', periods:[1,2,3,4,5,6,7]}];
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 
 // ══════════════════════════════════════════════════════
 //  STATE
