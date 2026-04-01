@@ -2052,18 +2052,19 @@ async function boot(){
   // ── Civitas Shell Integration ─────────────────────────────────────────
   try {
     const civState = JSON.parse(localStorage.getItem('civitas_state')||'{}');
-    const civName = civState.name || localStorage.getItem('civitas_student_name');
-    const civPeriod = civState.courses?.[0]?.period || 'guest';
-    if (civName && !S.setupDone) {
-      // Auto-populate from Civitas identity
+    const civName = civState.name;
+    const civIsTeacher = civState.isTeacher || localStorage.getItem('civitas_is_teacher') === '1';
+    const civPeriod = civIsTeacher ? 'teacher' : (civState.courses?.[0]?.period || 'guest');
+    if (civName) {
       S.name = civName;
+      S.fullName = civState.fullName || civName;
       S.period = civPeriod;
-      S.isGuest = civPeriod === 'guest';
+      S.isGuest = false;
+      S.isTeacher = civIsTeacher;
       S.setupDone = true;
-      // Merge any gold already earned in Civitas
-      const civGold = parseInt(localStorage.getItem('civitas_gold') || '0');
+      if(civIsTeacher) IS_TEACHER = true;
+      const civGold = parseInt(civState.gold || '0');
       if (civGold > (S.gold || 0)) S.gold = civGold;
-      // Merge shared unlocked characters
       try {
         const shared = JSON.parse(localStorage.getItem('civitas_unlocked_chars') || '[]');
         if (!Array.isArray(S.unlocked)) S.unlocked = [];
@@ -2075,7 +2076,6 @@ async function boot(){
   // ─────────────────────────────────────────────────────────────────────
 
   if(S.setupDone && !S.isGuest && S.name){
-    // Always go straight to shell — no confirmation needed on return
     enterShell();
   } else {
     document.getElementById('title-screen').style.display='flex';
