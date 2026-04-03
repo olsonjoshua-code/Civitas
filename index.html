@@ -1088,6 +1088,7 @@ async function saveProfileByName(){
     flashcards_studied:JSON.stringify(S.flashcardsStudied||{}),
     courses:JSON.stringify(S.courses||[]),
     course_progress:JSON.stringify(S.courseProgress||{}),
+    unit_progress:(()=>{try{return localStorage.getItem('civitas_unit_progress')||'{}';}catch(e){return '{}';}})(),
     updated_at:new Date().toISOString()
   };
   try{
@@ -2023,6 +2024,17 @@ function applyProfile(p){
   try{S.vocabPassed=JSON.parse(p.vocab_passed||'{}');}catch(e){}
   try{S.vocabBestScore=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
   try{S.flashcardsStudied=JSON.parse(p.flashcards_studied||'{}');}catch(e){}
+  // Restore unit_progress to localStorage so the leaderboard and progress bars work
+  try{if(p.unit_progress&&p.unit_progress!=='{}'){
+    const existing=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    const fromDB=JSON.parse(p.unit_progress);
+    // Merge — keep whichever has more recent completedAt per unit
+    Object.keys(fromDB).forEach(k=>{
+      if(!existing[k]||!existing[k].completedAt||(fromDB[k].completedAt>existing[k].completedAt))
+        existing[k]=fromDB[k];
+    });
+    localStorage.setItem('civitas_unit_progress',JSON.stringify(existing));
+  }}catch(e){}
   S.setupDone=true;S.isGuest=false;
 }
 
