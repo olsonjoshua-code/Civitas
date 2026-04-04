@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 3: Mexico — AP Comparative · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080e0a;--bg2:#0f1a12;--bg3:#162018;--panel:#111d14;
+  --border:#1a3020;--border2:#244030;
+  --acc:#38a050;--acc2:#5dba7a;--acc3:#90d4a8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --text:#e0f0e4;--text2:#7a9888;--text3:#3a5848;--cream:#f0ede4;
+  --bebas:'Bebas Neue',sans-serif;--playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;--dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(56,160,80,.08) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(40,120,60,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--acc2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s;width:0}
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(56,160,80,.12) 0%,rgba(8,14,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(56,160,80,.02) 40px,rgba(56,160,80,.02) 80px)}
+.hub-flag{width:80px;height:auto;border-radius:4px;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--acc2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:560px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--acc2);font-weight:500}
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--acc2)}
+.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s;border-radius:2px}
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--acc2);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--acc);display:block}
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,14,10,.97);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--acc)}
+.gp-pip.active{background:var(--acc2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.stimulus-box{background:rgba(56,160,80,.05);border:1px solid rgba(56,160,80,.18);border-left:3px solid var(--acc);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:12px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;font-style:italic}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.topic{border-color:var(--acc);color:var(--acc2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(56,160,80,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--acc);background:rgba(56,160,80,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--acc2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(24px,5vw,36px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--acc);border:2px solid var(--acc);color:#fff}
+.uc-btn.primary:hover{background:var(--acc2);border-color:var(--acc2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.uc-btn.secondary:hover{border-color:var(--acc);color:var(--acc2)}
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+.frq-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all .2s}
+.frq-card:hover{border-color:var(--acc2);transform:translateY(-2px)}
+.frq-badge{font-family:var(--bebas);font-size:10px;padding:2px 8px;border:1px solid var(--acc);color:var(--acc2);display:none;margin-top:8px}
+.frq-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;margin-bottom:16px;font-style:italic;background:rgba(56,160,80,.04);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:14px 18px}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.frq-part-letter{font-family:var(--bebas);font-size:20px;color:var(--acc2);width:28px}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:10px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px 14px;resize:vertical;min-height:100px;outline:none}
+.frq-textarea:focus{border-color:var(--acc2)}
+.frq-submit-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--acc);border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;margin-top:12px}
+.frq-submit-btn:hover{background:var(--acc2)}
+.frq-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.frq-grading{display:none;animation:fadeIn .4s ease}
+.frq-score-banner{background:linear-gradient(135deg,rgba(56,160,80,.12),rgba(8,14,10,.95));border:1px solid var(--border2);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.frq-total-score{font-family:var(--bebas);font-size:52px;line-height:1;color:var(--acc2)}
+.frq-overall-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;background:rgba(56,160,80,.04);border:1px solid var(--border);padding:14px;margin-top:10px}
+@media(max-width:600px){.hub-hero{padding:20px;flex-direction:column;text-align:center}.hub-content{padding:16px 16px 60px}.activity-grid{grid-template-columns:1fr}#question-area{padding:14px}.question-card{padding:16px}}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-icon">🇲🇽</div>
+  <div class="ld-title">Unit 3: Mexico</div>
+  <div class="ld-sub">AP Comparative Government · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<div id="hub">
+  <div class="hub-hero">
+    <img class="hub-flag" src="https://flagcdn.com/w160/mx.png" alt="Mexico flag">
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP COMPARATIVE GOVERNMENT · UNIT 3</div>
+      <div class="hub-title">Mexico</div>
+      <div class="hub-desc">From 71 years of PRI dominance to competitive multiparty democracy — Mexico's gradual democratic transition, federal presidential system, and ongoing battles with corruption, inequality, and organized crime.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">🏛️ Regime: <span>Presidential Democracy (transitional)</span></div>
+        <div class="hub-meta-item">📋 Constitution: <span>1917 (Revolutionary)</span></div>
+        <div class="hub-meta-item">🗺️ System: <span>Federal · 31 States + CDMX</span></div>
+        <div class="hub-meta-item">🗳️ Elections: <span>Mixed · FPTP + PR</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to AP Comparative</button>
+  </div>
+
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📋 Overview</button>
+  </div>
+
+  <div class="hub-content">
+    <div id="tab-play" class="hub-panel active">
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-text">0 / 4 Rounds Complete</span></div>
+        <div class="prog-bar"><div id="prog-fill" class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="activity-grid" id="round-cards"></div>
+    </div>
+
+    <div id="tab-frq" class="hub-panel">
+      <div style="margin-bottom:20px">
+        <div class="sh">FRQ Practice — Mexico</div>
+        <p style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7;margin-bottom:16px">Practice all four AP Comparative FRQ types with Mexico-focused prompts. AI-graded against official rubrics.</p>
+      </div>
+      <div id="frq-list"></div>
+      <div id="frq-workspace-area"></div>
+    </div>
+
+    <div id="tab-overview" class="hub-panel">
+      <div class="sh">Key Institutions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px">
+        ${[
+          {icon:'🏛️',title:'President',sub:'Head of State & Government',desc:'Directly elected for a single 6-year term (sexenio) with no reelection allowed. Commands armed forces, appoints cabinet, controls foreign policy. During PRI era had extra-constitutional power (dedazo). Since 2000, more constrained by real checks and balances. Currently Claudia Sheinbaum (MORENA, 2024).'},
+          {icon:'📜',title:'Congress of the Union',sub:'Bicameral Legislature',desc:'Chamber of Deputies (500 seats): 300 elected by FPTP in single-member districts, 200 by proportional representation. Senate (128 seats): 3 per state + 32 PR seats. Mixed system balances local and national representation.'},
+          {icon:'⚖️',title:'Supreme Court (SCJN)',sub:'Suprema Corte de Justicia',desc:'11 justices appointed by the president with Senate approval. Strengthened independence since 2000. Can review constitutionality of laws (judicial review). Historically weak under PRI — real independence is recent and still contested.'},
+          {icon:'🗳️',title:'INE (Electoral Institute)',sub:'Instituto Nacional Electoral',desc:'Independent body overseeing all federal elections. Created in 1996 as IFE — key institution in Mexico\'s democratic transition. Organizes elections, certifies results, regulates campaign finance. AMLO controversially tried to weaken it in 2022.'},
+          {icon:'🏛️',title:'PRI (Partido Revolucionario Institucional)',sub:'The "Perfect Dictatorship"',desc:'Dominated Mexican politics 1929–2000. Used corporatism, patron-client networks, electoral fraud, and revolutionary legitimacy to maintain power. Lost presidency in 2000 to PAN. Briefly returned 2012–2018 under Peña Nieto. Now a minor party.'},
+          {icon:'🌹',title:'MORENA',sub:'Movimiento Regeneración Nacional',desc:'Founded by AMLO in 2014. Won 2018 landslide. Left-populist party critical of neoliberal economic policies and traditional party corruption. Now dominant, with Claudia Sheinbaum continuing AMLO\'s "Fourth Transformation" agenda.'}
+        ].map(i=>`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">${i.icon}</span>
+            <div><div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">${i.title}</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">${i.sub}</div></div>
+          </div>
+          <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">${i.desc}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="sh">Key Vocabulary</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:24px">
+        ${['Sexenio','Dedazo','PRI','PAN','PRD','MORENA','Corporatism','Patron-client networks','Electoral alchemy','Hegemonic party system','INE/IFE','NAFTA/USMCA','Zapatistas (EZLN)','Democratic consolidation','Cartel violence'].map(t=>
+          `<div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">${t}</div>`
+        ).join('')}
+      </div>
+
+      <div class="sh">Mexico's Democratic Transition Timeline</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+        ${[
+          {year:'1910–20',event:'Mexican Revolution — overthrow of Díaz dictatorship; revolutionary ideology shapes 1917 Constitution'},
+          {year:'1929',event:'PRI (originally PNR) founded — begins 71-year dominance of Mexican politics'},
+          {year:'1968',event:'Tlatelolco Massacre — government kills student protesters; crisis of revolutionary legitimacy'},
+          {year:'1985',event:'Mexico City earthquake — civil society organizes independently of PRI for first time'},
+          {year:'1988',event:'Disputed presidential election — Cuauhtémoc Cárdenas likely won but PRI\'s Salinas declared victor (computer failure)'},
+          {year:'1994',event:'NAFTA takes effect; Zapatista uprising in Chiapas; Colosio assassination'},
+          {year:'1996',event:'IFE (electoral institute) reformed to become truly independent — key democratization step'},
+          {year:'1997',event:'PRI loses majority in Chamber of Deputies for first time'},
+          {year:'2000',event:'Vicente Fox (PAN) wins presidency — first non-PRI president in 71 years'},
+          {year:'2006',event:'Disputed election — Calderón (PAN) wins by 0.6% over AMLO; AMLO claims fraud'},
+          {year:'2006–12',event:'Calderón\'s drug war — 70,000+ deaths, cartel power entrenched'},
+          {year:'2012',event:'PRI returns under Peña Nieto — but as one party among several, not hegemonic'},
+          {year:'2018',event:'AMLO (MORENA) wins landslide — declares "Fourth Transformation" of Mexico'},
+          {year:'2024',event:'Claudia Sheinbaum (MORENA) wins presidency — first woman president of Mexico'}
+        ].map(e=>`<div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;gap:14px;align-items:flex-start">
+          <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;min-width:52px;flex-shrink:0">${e.year}</div>
+          <div style="font-family:var(--dm);font-size:10px;color:var(--text2)">${e.event}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div class="gp-pips" id="game-pips"></div>
+      <div id="game-gold-disp">🪙 0</div>
+    </div>
+  </div>
+  <div id="round-intro">
+    <div class="ri-icon" id="ri-icon">🇲🇽</div>
+    <div class="ri-round" id="ri-round">ROUND 1</div>
+    <div class="ri-title" id="ri-title">Mexico Country Profile</div>
+    <div class="ri-desc" id="ri-desc">Test your knowledge.</div>
+    <button class="ri-btn" onclick="beginRound()"><span>▶ Begin</span></button>
+  </div>
+  <div id="question-area" style="display:none"></div>
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">⭐</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score"></div>
+    <div class="rc-sub" id="rc-sub"></div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn">Continue →</button>
+  </div>
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal">🇲🇽</div>
+    <div class="uc-title">UNIT COMPLETE</div>
+    <div class="uc-name">Mexico</div>
+    <div class="uc-score" id="uc-score" style="color:var(--acc2)">A</div>
+    <div class="uc-grade" id="uc-grade">EXCELLENT</div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="returnToShell()">✓ Back to AP Comparative</button>
+      <button class="uc-btn secondary" onclick="replayUnit()">↺ Play Again</button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+</div>
+
+<script>
+const UNIT_ID='apcmp_u3';
+const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
+
+const QUESTION_BANK={
+  rounds:[
+    {
+      id:'r1',label:'Round 1 — Mexico Country Profile',type:'knowledge',icon:'🇲🇽',
+      desc:'The foundations of Mexican politics — the PRI era, the 1917 Constitution, presidential system, federal structure, and the path to democratic transition.',
+      questions:[
+        {id:'r1_01',topic:'3.1',difficulty:'accessible',
+          stem:'Mexico\'s 1917 Constitution is significant in comparative politics primarily because:',
+          choices:[{id:'A',text:'It was the first constitution in the world to guarantee universal suffrage for all citizens'},{id:'B',text:'It emerged from a social revolution and incorporated economic and social rights alongside political rights'},{id:'C',text:'It established a parliamentary system that was later changed to a presidential one in 1934'},{id:'D',text:'It created a unitary system modeled on the French Fifth Republic'}],
+          correct:'B',explanation:'Mexico\'s 1917 Constitution — born from the Mexican Revolution (1910–1920) — was a landmark document that went beyond political rights to include social and economic rights: the right to land (ejido system), labor rights, and restrictions on the Catholic Church. It predated the Weimar Constitution\'s social rights provisions and influenced later constitutions worldwide. Its revolutionary origins gave the PRI its "legitimate" founding mythology.'},
+        {id:'r1_02',topic:'3.1',difficulty:'accessible',
+          stem:'The PRI (Partido Revolucionario Institucional) maintained power in Mexico for approximately how long before losing the presidency?',
+          choices:[{id:'A',text:'About 20 years (1940–1960)'},{id:'B',text:'About 40 years (1960–2000)'},{id:'C',text:'About 71 years (1929–2000)'},{id:'D',text:'About 90 years (1910–2000)'}],
+          correct:'C',explanation:'The PRI (founded as PNR in 1929, renamed PRI in 1946) dominated Mexican politics for 71 years until Vicente Fox\'s 2000 election. Mario Vargas Llosa famously called it "the perfect dictatorship" — it held regular elections and had formal democratic institutions, but used them to maintain dominance rather than allow genuine competition. It\'s a classic case study in hegemonic party systems.'},
+        {id:'r1_03',topic:'3.2',difficulty:'accessible',
+          stem:'Mexico\'s president is limited to a single six-year term. This restriction is known as:',
+          choices:[{id:'A',text:'Federalismo'},{id:'B',text:'Sexenio'},{id:'C',text:'No reelección'},{id:'D',text:'Dedazo'}],
+          correct:'C',explanation:'"No reelección" (no reelection) was the rallying cry of Francisco Madero that launched the Mexican Revolution against Díaz, who had ruled for 34 years. It became a constitutional principle: the president serves one 6-year term (sexenio) with absolutely no reelection. This was a direct response to the Díaz dictatorship and remains one of Mexico\'s most important institutional safeguards against authoritarianism.'},
+        {id:'r1_04',topic:'3.2',difficulty:'moderate',
+          stem:'The "dedazo" (fingertip) in Mexican political tradition referred to:',
+          choices:[{id:'A',text:'The practice of ballot stuffing where election officials stuffed ballot boxes with pre-marked ballots'},{id:'B',text:'The incumbent president\'s informal power to select ("point at") the next PRI presidential candidate and thus his successor'},{id:'C',text:'The voting method used in Mexico\'s Chamber of Deputies where members vote by raising their finger'},{id:'D',text:'The constitutional provision giving the president power to appoint Supreme Court justices'}],
+          correct:'B',explanation:'The dedazo was the PRI\'s informal succession mechanism — the outgoing president would privately select (literally "point to") his preferred successor among PRI leaders, who would then be guaranteed the presidency through the controlled electoral process. This made the presidency an office filled by executive appointment rather than genuine electoral competition, while maintaining the facade of elections. It ended when Fox won in 2000.'},
+        {id:'r1_05',topic:'3.1',difficulty:'moderate',
+          stem:'Mexico\'s PRI maintained its 71-year political dominance primarily through which combination of strategies?',
+          choices:[{id:'A',text:'Military force — the army prevented opposition parties from organizing or campaigning'},{id:'B',text:'Corporatism (incorporating unions, peasants, business into party structures), patron-client networks, controlled media, and selective electoral fraud'},{id:'C',text:'Ideological appeal — Marxist policies made the PRI genuinely popular with all sectors of Mexican society'},{id:'D',text:'Economic success — consistent high growth rates made citizens unwilling to risk change'}],
+          correct:'B',explanation:'The PRI\'s hegemony was multidimensional. Corporatism organized labor (CTM), peasants (CNC), and popular sectors into PRI-affiliated organizations that delivered votes. Patron-client networks distributed goods and favors for political loyalty. State-owned media heavily favored the PRI. Electoral fraud ("electoral alchemy") was used selectively when needed. This combined approach is a model of soft authoritarian maintenance — coercion was a last resort, not the primary tool.'},
+        {id:'r1_06',topic:'3.1',difficulty:'moderate',
+          stem:'Mexico\'s governmental structure is best described as:',
+          choices:[{id:'A',text:'A parliamentary system with a PM accountable to the Congress'},{id:'B',text:'A presidential federal republic with a directly elected president, bicameral Congress, and 31 states plus Mexico City'},{id:'C',text:'A semi-presidential system with both an elected president and a PM accountable to the legislature'},{id:'D',text:'A unitary state with centralized control exercised through appointed state governors'}],
+          correct:'B',explanation:'Mexico has a presidential system modeled partly on the United States — directly elected president (head of state AND government), bicameral Congress (Senate and Chamber of Deputies), federal structure (31 states + Mexico City). Key differences from the US: single term only, mixed electoral system for Congress, and historically far greater informal presidential power (especially during PRI era).'},
+        {id:'r1_07',topic:'3.2',difficulty:'moderate',
+          stem:'Mexico\'s Chamber of Deputies uses a mixed electoral system. What does this mean?',
+          choices:[{id:'A',text:'Some deputies are elected, while others are appointed by the president'},{id:'B',text:'300 seats are filled by FPTP in single-member districts, while 200 seats are distributed by proportional representation'},{id:'C',text:'The Chamber alternates between FPTP and proportional representation in alternate elections'},{id:'D',text:'Seats are divided equally between the three major parties regardless of vote totals'}],
+          correct:'B',explanation:'Mexico\'s mixed system combines FPTP (300 district seats) and PR (200 seats distributed to parties based on national vote share). This balances local representation (district seats let voters hold specific representatives accountable) with proportional fairness (PR seats prevent the largest party from monopolizing all seats). No party can win more than 300 total seats or have more than 8% seat-vote gap, preventing return to PRI-style dominance.'},
+        {id:'r1_08',topic:'3.3',difficulty:'moderate',
+          stem:'The Zapatista uprising in Chiapas (1994) was significant in Mexico\'s democratic transition because:',
+          choices:[{id:'A',text:'It overthrew the PRI government and led directly to free elections'},{id:'B',text:'It exposed the limits of PRI legitimacy by highlighting indigenous rights, poverty, and NAFTA\'s impact on rural communities, strengthening civil society opposition'},{id:'C',text:'It led to a US military intervention that forced Mexico to democratize'},{id:'D',text:'The EZLN negotiated a peace agreement that gave Chiapas independence from Mexico'}],
+          correct:'B',explanation:'The EZLN (Zapatistas) timed their uprising to January 1, 1994 — the day NAFTA took effect — deliberately linking their rebellion to the economic model the PRI was embracing. Their demands (land reform, indigenous rights, democracy) embarrassed the PRI internationally and domestically, exposed the limits of "revolutionary" legitimacy, and energized civil society. They didn\'t overthrow the government but helped delegitimize PRI rule.'},
+        {id:'r1_09',topic:'3.3',difficulty:'moderate',
+          stem:'The creation of an independent IFE (Federal Electoral Institute) in 1996 was critical to Mexico\'s democratization because:',
+          choices:[{id:'A',text:'It gave the PRI a new institutional mechanism to manage elections more efficiently'},{id:'B',text:'It removed electoral administration from Interior Ministry (PRI) control, making genuine competition possible for the first time'},{id:'C',text:'It established a system of proportional representation that gave smaller parties equal representation'},{id:'D',text:'It was required by NAFTA as a condition of Mexico joining the free trade agreement'}],
+          correct:'B',explanation:'Before the IFE reform, Mexico\'s Interior Ministry (a PRI cabinet office) ran all elections — like having the ruling party count its own votes. The 1996 reform created a genuinely independent electoral authority, widely regarded as the single most important institutional change enabling Mexico\'s 2000 transition. Vicente Fox\'s victory was only credible because the IFE could certify it as legitimate. This is a key example of how institutional reform enables democratization.'},
+        {id:'r1_10',topic:'3.3',difficulty:'accessible',
+          stem:'Vicente Fox\'s 2000 presidential election victory was historically significant because:',
+          choices:[{id:'A',text:'It was the first Mexican election to use electronic voting machines nationwide'},{id:'B',text:'Fox was a former PRI member who led an internal party revolt'},{id:'C',text:'It ended 71 years of PRI dominance and marked Mexico\'s democratic transition through an electoral route'},{id:'D',text:'Fox won with 70% of the vote, giving him an unprecedented mandate for reform'}],
+          correct:'C',explanation:'Fox (PAN — National Action Party, center-right) won approximately 42% of votes to the PRI\'s 36% — a peaceful electoral transfer of power after 71 years. This was Mexico\'s "transition by electoral defeat" — arguably the most important moment in modern Mexican political history. Fox won without revolution, military intervention, or PRI collapse — purely through the ballot box, made possible by the strengthened IFE.'},
+        {id:'r1_11',topic:'3.4',difficulty:'challenging',
+          stem:'AMLO\'s (Andrés Manuel López Obrador) landslide 2018 election victory represented which development in Mexican democracy?',
+          choices:[{id:'A',text:'A return to PRI-style authoritarianism through a different party'},{id:'B',text:'The consolidation of multiparty competition — a left-populist outsider winning through legitimate electoral means, showing Mexican democracy had deepened since 2000'},{id:'C',text:'An externally imposed regime change driven by US pressure on NAFTA negotiations'},{id:'D',text:'Mexico\'s first competitive election since the PRI era ended in 2000'}],
+          correct:'B',explanation:'AMLO\'s 2018 victory (53% of votes — largest margin since democratization) demonstrated democratic deepening: a left-populist candidate who had lost two previous elections (2006, 2012 — the latter with accusations of fraud) won decisively through the ballot. His "Fourth Transformation" rhetoric and MORENA party represent a populist left alternative to both PRI and PAN, confirming that Mexican democracy had produced genuine multiparty competition.'},
+        {id:'r1_12',topic:'3.2',difficulty:'moderate',
+          stem:'Mexico\'s formal federalism is described by political scientists as historically "centralized" primarily because:',
+          choices:[{id:'A',text:'Mexico\'s constitution explicitly grants the federal government power to override state laws on all matters'},{id:'B',text:'Under the PRI, the president informally controlled governor selections (dedazo) and state budgets, making formal federal autonomy meaningless in practice'},{id:'C',text:'Mexico City controls 90% of federal tax revenue and distributes it to states as conditional grants'},{id:'D',text:'The Supreme Court consistently ruled in favor of federal over state authority in all jurisdictions'}],
+          correct:'B',explanation:'This is a classic formal vs. actual power distinction. Mexico\'s constitution formally creates a federal system, but under PRI hegemony the president selected governors (dedazo applied at state level too), PRI dominated all state legislatures, and federal fiscal control meant states were financially dependent on Mexico City. True Mexican federalism only emerged after 2000 when opposition governors could no longer be controlled by the federal executive.'},
+        {id:'r1_13',topic:'3.4',difficulty:'moderate',
+          stem:'Mexico\'s INE (National Electoral Institute) was threatened by AMLO\'s 2022 electoral reform because:',
+          choices:[{id:'A',text:'AMLO wanted to completely abolish elections and rule by referendum'},{id:'B',text:'The reform proposed making INE councilors popularly elected, which critics argued would politicize and weaken the independent institution central to Mexican democracy'},{id:'C',text:'AMLO wanted to merge the INE with the Supreme Court to create a single constitutional body'},{id:'D',text:'The reform was required to comply with new USMCA provisions on electoral transparency'}],
+          correct:'B',explanation:'AMLO\'s "Plan B" electoral reform proposed replacing INE councilors (appointed through merit-based processes by Congress) with popularly elected ones. Critics argued this would allow MORENA (dominant party) to capture the electoral institute through partisan elections — recreating the pre-1996 problem where the ruling party controlled electoral administration. The Supreme Court struck down major parts of the reform. This shows democratization is an ongoing process, not a one-time achievement.'},
+        {id:'r1_14',topic:'3.1',difficulty:'moderate',
+          stem:'NAFTA\'s (North American Free Trade Agreement) political significance for Mexico beyond trade was:',
+          choices:[{id:'A',text:'It required Mexico to adopt a parliamentary system as a condition of membership'},{id:'B',text:'It locked in Mexico\'s economic liberalization and created international pressure for democratic governance to attract foreign investment'},{id:'C',text:'It transferred judicial authority over trade disputes to a supranational court that overruled Mexican law'},{id:'D',text:'It gave the United States the right to intervene militarily in Mexico to protect American businesses'}],
+          correct:'B',explanation:'NAFTA had political spillovers: it required Mexico to maintain credible rule of law and property rights protection to attract FDI; it integrated Mexico economically with established democracies (US, Canada), increasing international scrutiny; and business elites became more demanding of institutional quality independent of PRI patronage. "Lock-in" arguments suggest that trade agreements can reinforce democratic governance by raising the cost of backsliding.'},
+        {id:'r1_15',topic:'3.4',difficulty:'challenging',
+          stem:'In 2024, Claudia Sheinbaum became Mexico\'s first female president. This is significant in comparative politics because:',
+          choices:[{id:'A',text:'Mexico\'s constitution was amended to require gender-equal representation in all elected offices before her election'},{id:'B',text:'It represents democratic deepening — a woman winning the highest office through a competitive electoral process in a historically machismo political culture'},{id:'C',text:'Sheinbaum was appointed by AMLO rather than winning an election, showing Mexico had not fully consolidated democracy'},{id:'D',text:'Mexico became the first country in the Americas to have a female head of state'}],
+          correct:'B',explanation:'Sheinbaum\'s 2024 election (winning ~59% of votes — the largest majority in modern Mexican history) demonstrates democratic deepening in multiple dimensions: genuine electoral competition, peaceful transfer of power, and a woman winning the presidency of a country with deep machismo political traditions. She won through a competitive primary and general election — not appointment. It represents normalized democratic practice, not just a glass ceiling moment.'}
+      ]
+    },
+    {
+      id:'r2',label:'Round 2 — Government in Action',type:'knowledge',icon:'🏛️',
+      desc:'How Mexican government actually functions — presidential power, federalism in practice, political parties, corruption, cartel violence, and the ongoing challenges of democratic consolidation.',
+      questions:[
+        {id:'r2_01',topic:'3.2',difficulty:'moderate',
+          stem:'Which of the following best illustrates why Mexico\'s presidential system is described as "hyperpresidential" during the PRI era?',
+          choices:[{id:'A',text:'The Mexican president could declare war without congressional approval'},{id:'B',text:'The combination of dedazo, party discipline, and federal control over state politics gave the president power beyond formal constitutional authority'},{id:'C',text:'The constitution gave Mexico\'s president absolute veto power over all legislation without any override possibility'},{id:'D',text:'Mexico\'s president served a 12-year term, giving him more time to consolidate power than most democratic leaders'}],
+          correct:'B',explanation:'Hyperpresidentialism wasn\'t a constitutional feature but an informal reality: the dedazo meant the president chose his successor; PRI dominance meant Congress rubber-stamped executive decisions; appointment of governors meant states were extensions of presidential power; control of state-owned enterprises provided patronage resources. This informal power disappeared after 2000 — Mexico now has genuine separation of powers for the first time in its modern history.'},
+        {id:'r2_02',topic:'3.4',difficulty:'moderate',
+          stem:'Corruption in Mexico is best understood as a systemic problem because:',
+          choices:[{id:'A',text:'Mexican cultural values uniquely favor corruption over rule of law'},{id:'B',text:'Patron-client networks institutionalized under the PRI created expectations of corruption as normal political exchange, which persisted after democratization'},{id:'C',text:'Mexico\'s geographic proximity to the United States created corruption through drug trafficking demand'},{id:'D',text:'Mexico\'s 1917 Constitution explicitly permits officials to accept gifts in exchange for services'}],
+          correct:'B',explanation:'Mexican corruption isn\'t cultural — it\'s institutional. PRI corporatism created systems where political loyalty was exchanged for material benefits (jobs, contracts, permits), normalizing transactional relationships. After 2000, these networks persisted even as the PRI lost power — the cartel-politician nexus, police extortion, and bureaucratic bribery reflected embedded informal institutions. Democratization changed who held formal power but did not immediately dismantle informal corruption networks.'},
+        {id:'r2_03',topic:'3.4',difficulty:'moderate',
+          stem:'President Calderón\'s military-led war on drug cartels (2006–2012) is considered a policy failure primarily because:',
+          choices:[{id:'A',text:'The United States refused to support Mexico\'s anti-drug efforts'},{id:'B',text:'It produced over 70,000 deaths without dismantling cartel structures, and in some cases fragmented cartels into more numerous and violent splinter groups'},{id:'C',text:'Calderón\'s military forces were defeated by cartel armies in open battle'},{id:'D',text:'The strategy was declared unconstitutional by Mexico\'s Supreme Court in 2010'}],
+          correct:'B',explanation:'The Calderón strategy ("kingpin" decapitation of cartel leaders) produced massive violence (estimates range from 60,000 to 80,000+ deaths) without fundamentally disrupting drug trafficking. Killing or capturing top cartel leaders often fragmented organizations into competing factions that fought each other and the state simultaneously. This is a case study in how security strategies can inadvertently increase violence — a key AP Comparative example of state capacity challenges.'},
+        {id:'r2_04',topic:'3.3',difficulty:'moderate',
+          stem:'Mexico\'s civil society strengthening during the 1980s and 1990s contributed to democratization primarily by:',
+          choices:[{id:'A',text:'Organizing a revolution that forcibly removed the PRI from power'},{id:'B',text:'Building independent organizations, media outlets, and advocacy groups that created accountability outside PRI-controlled institutions'},{id:'C',text:'Receiving US government funding to build democratic institutions'},{id:'D',text:'Unifying all opposition parties under a single coalition that could defeat the PRI electorally'}],
+          correct:'B',explanation:'The 1985 earthquake was a turning point — when the PRI government responded slowly, citizens organized themselves independently for the first time at scale. This "democratization from below" built civic capacity: independent unions, human rights organizations, opposition media, election monitoring groups (like Alianza Cívica). Civil society created accountability pressure that the PRI couldn\'t fully co-opt or suppress, gradually eroding its legitimacy and making the 2000 transition possible.'},
+        {id:'r2_05',topic:'3.2',difficulty:'moderate',
+          stem:'Mexico\'s Supreme Court (SCJN) has become increasingly assertive since 2000. Which of the following best explains this change?',
+          choices:[{id:'A',text:'Mexico adopted a new constitution in 2001 that explicitly expanded judicial powers'},{id:'B',text:'With the PRI no longer dominating, justices are no longer under informal pressure to defer to the executive, allowing constitutional review to become genuine'},{id:'C',text:'The United States pressured Mexico to strengthen its judiciary as part of USMCA negotiations'},{id:'D',text:'Mexico joined the Inter-American Court of Human Rights, which required strengthening domestic courts'}],
+          correct:'B',explanation:'Under PRI hegemony, "phone justice" (llamada telefénica) reportedly allowed the executive to influence judicial decisions. Post-2000 governments lack PRI\'s informal control mechanisms, and genuinely contested politics means courts face real disputes between branches rather than rubber-stamp requests. The Supreme Court\'s 2021–2022 rulings against AMLO\'s electoral reform and energy policies show genuine judicial independence — unthinkable during PRI dominance.'},
+        {id:'r2_06',topic:'3.4',difficulty:'challenging',
+          stem:'AMLO\'s "Fourth Transformation" (4T) governing philosophy is most accurately described as:',
+          choices:[{id:'A',text:'A neoliberal economic program focused on privatization and free trade expansion'},{id:'B',text:'A left-populist approach emphasizing social programs, austerity in government bureaucracy, energy renationalization, and skepticism of autonomous state institutions'},{id:'C',text:'A centrist technocratic approach maintaining NAFTA\'s economic framework while improving social services'},{id:'D',text:'A conservative program focused on strengthening the military and reducing social spending'}],
+          correct:'B',explanation:'AMLO\'s 4T combined heterodox elements: expanding social transfers (cash programs for elderly, youth apprenticeships) while cutting bureaucratic budgets; trying to strengthen Pemex (state oil company) against private competition; attacking "neoliberalism" while maintaining USMCA; and centralizing power through "mañaneras" (daily press conferences). His attacks on the INE, judiciary, and autonomous agencies raised concerns about democratic backsliding even as he maintained genuine popular support.'},
+        {id:'r2_07',topic:'3.3',difficulty:'moderate',
+          stem:'Social cleavages in Mexico include all of the following EXCEPT:',
+          choices:[{id:'A',text:'Class — significant income inequality with a small elite and large poor majority'},{id:'B',text:'Regional — north (industrialized, US-integrated) vs. south (agricultural, indigenous, poorer)'},{id:'C',text:'Religious — deep Catholic-Protestant conflict similar to that in Northern Ireland'},{id:'D',text:'Ethnic — indigenous communities (approximately 15-20% of population) face discrimination and marginalization'}],
+          correct:'C',explanation:'Mexico is overwhelmingly Catholic (approximately 77-80%) with a growing Evangelical Protestant minority, but religion is not a major political cleavage in the Northern Ireland sense — parties don\'t organize along religious lines and religious conflict is not a primary driver of political violence. The significant Mexican cleavages are class (Gini ~45), regional (north vs. south), ethnic (mestizo vs. indigenous), and urban-rural.'},
+        {id:'r2_08',topic:'3.4',difficulty:'moderate',
+          stem:'Which of the following best describes the relationship between the Mexican state and organized crime (cartels)?',
+          choices:[{id:'A',text:'The Mexican state has successfully eliminated major cartel organizations through military operations'},{id:'B',text:'Cartels challenge state sovereignty in parts of Mexico — controlling territory, taxing local populations, and corrupting officials — creating zones of limited statehood'},{id:'C',text:'Cartels and the state have a formal agreement that limits violence in exchange for non-interference in trafficking'},{id:'D',text:'The cartel problem is limited to the US-Mexico border region and does not affect most of Mexico'}],
+          correct:'B',explanation:'This tests Weberian state theory directly. Where cartels control territory, collect "taxes," and provide some public goods (roads, food during disasters), they perform state-like functions — challenging the Weberian monopoly on legitimate force. Scholars speak of "ungoverned spaces" or "brown zones" where state writ is weak. This is a key example of state capacity failure and is directly relevant to AP Comparative questions about sovereignty and legitimacy.'},
+        {id:'r2_09',topic:'3.2',difficulty:'accessible',
+          stem:'Mexico\'s single-term presidential limit (no reelection) is best understood as:',
+          choices:[{id:'A',text:'A sign of democratic weakness — strong democracies allow voters to reelect effective leaders'},{id:'B',text:'An institutional safeguard against executive entrenchment, born from the Díaz experience'},{id:'C',text:'A requirement of Mexico\'s USMCA obligations with the United States and Canada'},{id:'D',text:'A temporary measure that AMLO attempted to change through constitutional amendment'}],
+          correct:'B',explanation:'"Sufragio efectivo, no reelección" (Effective suffrage, no reelection) was the slogan of the Mexican Revolution. After 34 years of Díaz\'s dictatorship, term limits were written into the constitution as a structural protection against authoritarian entrenchment. Unlike term limits in many countries, Mexico\'s is absolute — not just a two-term limit but a lifetime ban on the same person serving as president again. This is one of Mexico\'s most robust democratic safeguards.'},
+        {id:'r2_10',topic:'3.3',difficulty:'moderate',
+          stem:'Mexico\'s USMCA (replacing NAFTA in 2020) included new labor provisions requiring Mexico to:',
+          choices:[{id:'A',text:'Adopt the United States\' minimum wage law'},{id:'B',text:'Allow independent labor unions free from government or employer control, with genuine collective bargaining rights'},{id:'C',text:'Transfer management of Mexican state-owned enterprises to American companies'},{id:'D',text:'Eliminate all tariffs on agricultural products within 5 years'}],
+          correct:'B',explanation:'A key USMCA innovation was Chapter 23 on labor rights: Mexico committed to allowing genuinely independent unions (not PRI-affiliated protection unions), eliminating "ghost unions" that existed only on paper, and permitting workers to ratify contracts in secret ballot votes. This was a direct attack on the corporatist legacy — a trade agreement mechanism for domestic institutional reform. US labor unions pushed for these provisions to prevent wage arbitrage.'},
+        {id:'r2_11',topic:'3.2',difficulty:'moderate',
+          stem:'The PAN (National Action Party) is ideologically best described as:',
+          choices:[{id:'A',text:'A left-wing socialist party that represented industrial workers and peasants'},{id:'B',text:'A center-right party with roots in Catholic social teaching, business conservatism, and opposition to PRI statism'},{id:'C',text:'A centrist technocratic party with no clear ideological identity'},{id:'D',text:'A far-right nationalist party advocating for Mexican economic independence from the United States'}],
+          correct:'B',explanation:'PAN was founded in 1939 by Catholic businessmen and intellectuals opposed to the PRI\'s anti-clerical, statist policies. It combined Catholic social teaching, economic conservatism (pro-market, pro-business), and democratic opposition to PRI dominance. Vicente Fox (2000) and Felipe Calderón (2006) were PAN presidents. Today, PAN is center-right and pro-USMCA, positioning itself against both PRI corruption and MORENA\'s left-populism.'},
+        {id:'r2_12',topic:'3.4',difficulty:'challenging',
+          stem:'A political scientist argues that Mexico is experiencing "democratic backsliding" under AMLO/Sheinbaum. Which evidence would best support this claim?',
+          choices:[{id:'A',text:'MORENA won the 2024 election with a large majority, suggesting voters rejected democratic norms'},{id:'B',text:'Attacks on independent institutions (INE, Supreme Court, autonomous agencies), concentration of power in the executive, and weakening of checks and balances through constitutional amendments'},{id:'C',text:'Mexico\'s GDP growth slowed under AMLO, causing economic dissatisfaction that weakened democracy'},{id:'D',text:'AMLO\'s refusal to recognize the 2024 election result demonstrated backsliding'}],
+          correct:'B',explanation:'Democratic backsliding is about institutional erosion, not electoral outcomes. The evidence would focus on: AMLO\'s attacks on the INE (trying to make it elected, cutting its budget); 2024 constitutional amendments that allowed MORENA to pack the Supreme Court with loyal judges; militarization of civilian functions; undermining of independent regulatory agencies; and concentration of infrastructure spending in presidency\'s direct control. Elections continued, but institutional checks weakened — the classic backsliding pattern.'},
+        {id:'r2_13',topic:'3.1',difficulty:'accessible',
+          stem:'Mexico\'s transition from a corporatist to a more pluralist interest group system reflects which broader change?',
+          choices:[{id:'A',text:'Mexico\'s transition from a military to a civilian government'},{id:'B',text:'Mexico\'s democratic transition — as PRI lost power, the corporatist organizations it controlled lost their monopoly and genuine independent interest groups emerged'},{id:'C',text:'Mexico\'s adoption of American-style lobbying regulations under NAFTA'},{id:'D',text:'The Catholic Church\'s decision to withdraw from Mexican politics following the 1917 Constitution'}],
+          correct:'B',explanation:'PRI corporatism organized interests into state-controlled peak associations (CTM for unions, CNC for peasants, CNOP for popular sectors). With democratization, these organizations lost their guaranteed access; independent unions, business associations, NGOs, and advocacy groups gained legitimacy. This shift from corporatism (government-controlled monopoly representation) to pluralism (competing independent groups) mirrors the broader political transition — interest group politics reflects regime type.'},
+        {id:'r2_14',topic:'3.3',difficulty:'moderate',
+          stem:'Mexico\'s high level of income inequality (Gini coefficient ~45) primarily affects democratic consolidation because:',
+          choices:[{id:'A',text:'Poor voters always vote for socialist parties, making democracy unstable'},{id:'B',text:'High inequality creates conditions for clientelism — poor voters accept material goods in exchange for votes, undermining accountability-based democracy'},{id:'C',text:'International organizations refuse to recognize democracies with Gini coefficients above 40'},{id:'D',text:'Wealthy elites always oppose democracy because it threatens their economic interests'}],
+          correct:'B',explanation:'The inequality-democracy linkage is through clientelism: when voters are poor and public goods (health, education, security) are unreliable, material exchanges (food, cash, bags of cement) become rational voting incentives. This is "demand-side" corruption — voters participate in it because the payoff is real. Clientelism undermines programmatic politics (voting for policies) and accountability (holding officials responsible for governance quality), weakening democratic consolidation.'},
+        {id:'r2_15',topic:'3.4',difficulty:'moderate',
+          stem:'Which of the following correctly compares Mexico\'s and Nigeria\'s democratic challenges?',
+          choices:[{id:'A',text:'Both countries face similar levels of ethnic conflict as the primary driver of political instability'},{id:'B',text:'Both face corruption, weak state capacity, and criminal/insurgent violence, but Mexico has a more institutionalized federal structure while Nigeria\'s challenges are compounded by deeper ethnic and religious cleavages'},{id:'C',text:'Nigeria is a consolidated democracy while Mexico is still in democratic transition'},{id:'D',text:'Mexico\'s cartel problem is identical to Nigeria\'s Boko Haram challenge in its political causes and effects'}],
+          correct:'B',explanation:'This comparison tests cross-country application. Both face corruption, violence (cartels/Boko Haram), weak rule of law, and inequality. Key differences: Mexico\'s party system is more institutionalized (PRI-PAN-MORENA competition vs. Nigeria\'s more personalistic parties); Mexico\'s ethnic composition (60% mestizo) is less fragmented than Nigeria\'s (250+ ethnic groups); and Mexico\'s federal structure, though imperfect, has stronger institutional foundations than Nigeria\'s. Both are partially free democracies but for different structural reasons.'}
+      ]
+    },
+    {
+      id:'r3',label:'Round 3 — Mexico Data & Comparison',type:'data_stimulus',icon:'📊',
+      desc:'Analyze data on Mexico\'s democratization, electoral system, and comparative development indicators.',
+      sets:[
+        {
+          id:'mexico_democracy',
+          title:'Mexico\'s Democratization Indicators Over Time',
+          source:'Freedom House, V-Dem, World Bank — selected years',
+          chartType:'table',
+          tableData:{
+            headers:['Year','Freedom House Score','Dominant Party','Presidential Power','Key Development'],
+            rows:[
+              ['1970','Not free (score ~20)','PRI (hegemonic)','Hyperpresidential','PRI controls all institutions'],
+              ['1988','Partly Free (~35)','PRI (challenged)','Strong but declining','Disputed election; civil society grows'],
+              ['1996','Partly Free (~45)','PRI (majority)','Constrained','IFE reformed; PRI loses Congress majority 1997'],
+              ['2000','Free (~55)','PAN (Fox wins)','Genuinely limited','First non-PRI president in 71 years'],
+              ['2012','Free (~60)','PRI returns','Constrained','PRI wins without hegemony; true multiparty'],
+              ['2023','Partly Free (60)','MORENA dominant','Strong populist','Democratic concerns under AMLO; INE threatened']
+            ]
+          },
+          questions:[
+            {id:'r3_01',topic:'3.3',difficulty:'moderate',
+              stem:'Based on the data, which of the following best describes the overall trend in Mexico\'s democratization from 1970 to 2023?',
+              choices:[{id:'A',text:'A steady linear improvement in democratic indicators with no reversals'},{id:'B',text:'A general improvement from authoritarian single-party dominance to competitive multiparty democracy, with recent concerns about potential backsliding under MORENA'},{id:'C',text:'A decline in democratic quality as Mexico became more authoritarian after 2000'},{id:'D',text:'No significant change — Mexico has always been classified as Partly Free by Freedom House'}],
+              correct:'B',
+              explanation:'The data shows gradual improvement (1970 ~20 → 2000 ~55) followed by further progress (2000–2018) but recent concerns (2023 score declining to 60 from higher values, plus democratic concerns noted). This matches the comparative politics concept of "democratic consolidation" — not a linear process but one with advances, setbacks, and ongoing challenges. Mexico is a classic case of incomplete consolidation.'},
+            {id:'r3_02',topic:'3.3',difficulty:'challenging',
+              stem:'The data shows Mexico returned to Partly Free status by 2023 after being classified as Free. This is most consistent with which comparative politics concept?',
+              choices:[{id:'A',text:'Democratic consolidation — Mexico\'s democracy became fully consolidated by 2023'},{id:'B',text:'Democratic backsliding — gradual erosion of democratic institutions while elections continue'},{id:'C',text:'Democratic transition — Mexico is still in the initial stages of transitioning from authoritarianism'},{id:'D',text:'Path dependency — Mexico\'s PRI-era institutional choices locked in authoritarian practices permanently'}],
+              correct:'B',
+              explanation:'Democratic backsliding (or deconsolidation) occurs when a democracy that has achieved competitive elections begins eroding democratic norms and institutions — not through a coup but through gradual institutional weakening. Mexico\'s score decline reflects: AMLO\'s attacks on the INE, 2024 judicial reform that packed the Supreme Court, militarization of civilian functions, and weakening of independent regulatory agencies. Elections continue but the quality of institutional checks is declining.'}
+          ]
+        },
+        {
+          id:'mexico_vs_others',
+          title:'Mexico vs. Other AP Comparative Countries — Key Indicators (2023)',
+          source:'Freedom House 2023; World Bank; Transparency International CPI 2023',
+          chartType:'bar',
+          data:[
+            {label:'UK\n(score 93)',value:93,color:'#5dba7a'},
+            {label:'Mexico\n(score 60)',value:60,color:'#5dba7a'},
+            {label:'Nigeria\n(score 44)',value:44,color:'#e8a020'},
+            {label:'Russia\n(score 16)',value:16,color:'#e04040'},
+            {label:'Iran\n(score 14)',value:14,color:'#e04040'},
+            {label:'China\n(score 9)',value:9,color:'#e04040'}
+          ],
+          questions:[
+            {id:'r3_03',topic:'3.4',difficulty:'moderate',
+              stem:'Mexico\'s Freedom House score (60) places it in the same category as Nigeria (44) but far above Russia (16). Which of the following most accurately describes what this comparison suggests?',
+              choices:[{id:'A',text:'Mexico and Nigeria have virtually identical political systems'},{id:'B',text:'Both Mexico and Nigeria are Partly Free democracies with competitive elections but significant governance challenges, while Russia\'s authoritarian consolidation places it in a different category'},{id:'C',text:'Mexico is more democratic than Nigeria in every dimension'},{id:'D',text:'Mexico\'s score shows it is nearing authoritarian status similar to Russia'}],
+              correct:'B',
+              explanation:'Both Mexico (60) and Nigeria (44) fall in Freedom House\'s "Partly Free" range — they have competitive multiparty elections, some civil liberties, and genuine political competition, but face significant challenges (corruption, violence, institutional weakness). Russia (16) reflects a qualitatively different system where elections occur but genuine competition is systematically prevented. The Mexico-Nigeria comparison illustrates variation within the "partly free" category, while the Russia contrast shows the democratic-authoritarian divide.'},
+            {id:'r3_04',topic:'3.3',difficulty:'challenging',
+              stem:'A student argues that Mexico\'s score (60) should be higher because it has had peaceful transfers of power since 2000. Which of the following is the best counterargument?',
+              choices:[{id:'A',text:'Peaceful transfers of power are irrelevant to democracy — only economic development matters'},{id:'B',text:'Freedom House measures multiple dimensions including civil liberties, press freedom, and rule of law, not just electoral transfer of power — Mexico scores lower on these institutional dimensions than on its electoral record'},{id:'C',text:'Mexico\'s score should be lower because its elections are not actually competitive'},{id:'D',text:'The student is correct — peaceful transfers of power are the only valid measure of democracy'}],
+              correct:'B',
+              explanation:'This tests understanding of multidimensional democracy measurement. Peaceful electoral transfers are necessary but not sufficient for full democracy. Freedom House also measures: press freedom (Mexico ranks ~147th in the world due to journalist murders); civil society freedoms (threats against activists); judicial independence; government corruption; and rule of law. Mexico\'s electoral dimension is strong; its civil liberties and institutional dimensions drag its score down. This is why electoral democracy (60) doesn\'t equal liberal democracy.'}
+          ]
+        }
+      ]
+    },
+    {
+      id:'r4',label:'Round 4 — Mexico Documents & Sources',type:'document_stimulus',icon:'📜',
+      desc:'Analyze primary sources central to understanding Mexican politics — from the 1917 Constitution to NAFTA and Zapatista declarations.',
+      sets:[
+        {
+          id:'constitution_1917',
+          document:'Constitution of the United Mexican States, Article 27',
+          author:'Constitutional Convention, Querétaro',
+          year:'1917',
+          source:'Mexican Revolutionary Constitution — foundational document of the modern Mexican state',
+          excerpt:'"The ownership of the lands and waters within the boundaries of national territory is vested originally in the Nation, which has had, and has, the right to transmit title thereof to private persons... The Nation shall have at all times the right to impose on private property such limitations as the public interest may demand..."',
+          questions:[
+            {id:'r4_01',topic:'3.1',difficulty:'moderate',
+              stem:'Article 27 of Mexico\'s 1917 Constitution is significant in comparative politics primarily because:',
+              choices:[{id:'A',text:'It establishes Mexico as a federal state with sovereign authority over its territory'},{id:'B',text:'It represents the revolutionary social contract — the nation holds ultimate ownership of land and resources, enabling land reform and nationalizations that distinguished Mexico\'s constitution from liberal constitutions'},{id:'C',text:'It gives the Catholic Church authority over rural land distribution'},{id:'D',text:'It established the system of ejido land grants that was later abolished by NAFTA'}],
+              correct:'B',
+              explanation:'Article 27 embedded the revolution\'s social agenda into fundamental law: by vesting original ownership in the Nation (not individuals), it enabled land reform (redistributing hacienda lands to ejidos), oil nationalization (1938 — the state-owned Pemex), and restrictions on foreign investment. This "social constitutionalism" distinguished Mexico\'s 1917 Constitution from liberal constitutions (like the US) that protect property rights absolutely — and provided the PRI with legal tools for state-directed development.'},
+            {id:'r4_02',topic:'3.4',difficulty:'challenging',
+              stem:'NAFTA\'s modification of Article 27 in 1992 — allowing ejido land to be sold — is best understood as:',
+              choices:[{id:'A',text:'A democratic reform that gave peasants property rights they had been denied'},{id:'B',text:'A neoliberal restructuring that commodified communal land to attract investment, which the Zapatistas argued threatened indigenous communities\' survival'},{id:'C',text:'A necessary reform required by the World Bank as a condition of loans'},{id:'D',text:'An unconstitutional change that the Supreme Court struck down in 1994'}],
+              correct:'B',
+              explanation:'The 1992 Article 27 reform (under Salinas, as part of NAFTA preparation) ended the land distribution program and allowed ejido land to be privatized. The Zapatistas\' 1994 uprising was explicitly timed to NAFTA\'s start date in protest — they argued this would destroy indigenous communities\' communal land base and accelerate displacement. This illustrates how market-oriented reforms can threaten traditional community structures, a recurring tension in development economics.'}
+          ]
+        },
+        {
+          id:'zapatista_declaration',
+          document:'First Declaration from the Lacandón Jungle (EZLN)',
+          author:'Subcomandante Marcos / EZLN',
+          year:'January 1, 1994',
+          source:'Zapatista Army of National Liberation — declared on the day NAFTA took effect',
+          excerpt:'"We are a product of 500 years of struggle: first against slavery, then during the War of Independence against Spain... We have nothing, absolutely nothing, not even a roof over our heads, no land, no work, no health care, no food, no education... We have been denied the most elemental preparation so that they can use us as cannon fodder and pillage the wealth of our country."',
+          questions:[
+            {id:'r4_03',topic:'3.3',difficulty:'moderate',
+              stem:'Based on this excerpt, the Zapatistas\' rebellion was primarily motivated by:',
+              choices:[{id:'A',text:'A desire to secede from Mexico and form an independent Mayan nation in Chiapas'},{id:'B',text:'Economic and social marginalization — lack of land, work, healthcare, food, and education — experienced by indigenous communities despite the PRI\'s revolutionary claims'},{id:'C',text:'Opposition to Mexico joining NAFTA on the grounds that free trade would harm US workers'},{id:'D',text:'Religious persecution by the PRI government against indigenous spiritual practices'}],
+              correct:'B',
+              explanation:'The Zapatistas grounded their uprising in the unfulfilled promises of the Mexican Revolution — the same revolution the PRI claimed as its legitimizing founding myth. By invoking "500 years of struggle" and cataloguing material deprivations (no land, work, healthcare, education), they challenged the PRI\'s claim to revolutionary legitimacy. They chose January 1, 1994 to dramatize the contradiction: NAFTA was about to benefit wealthy elites while indigenous communities remained impoverished.'},
+            {id:'r4_04',topic:'3.1',difficulty:'challenging',
+              stem:'The Zapatista declaration\'s timing on January 1, 1994 (NAFTA\'s effective date) is most significant because it:',
+              choices:[{id:'A',text:'Required the rebellion to start on a date when Mexican security forces were celebrating New Year\'s'},{id:'B',text:'Strategically linked opposition to neoliberal economic policy (NAFTA) with demands for social rights and democracy, drawing international media attention at the moment of Mexico\'s "modernization" showcase'},{id:'C',text:'Was required by EZLN military planning that needed cold January weather for troop movements'},{id:'D',text:'Coincided with the 500th anniversary of Columbus\'s arrival in the Americas'}],
+              correct:'B',
+              explanation:'The timing was brilliantly strategic. NAFTA\'s start date was Mexico\'s "coming out party" as a modern, democratic, free-market economy — the PRI wanted to celebrate Mexico\'s integration with North America. The Zapatista uprising on that exact day forced international media (all in Mexico to cover NAFTA\'s launch) to also cover indigenous poverty and state violence in Chiapas. This "global media moment" gave the EZLN disproportionate international attention that protected them from military annihilation.'}
+          ]
+        },
+        {
+          id:'fox_speech',
+          document:'Vicente Fox, Victory Speech',
+          author:'Vicente Fox Quesada',
+          year:'July 2, 2000',
+          source:'Mexico City — night of Mexico\'s historic presidential election',
+          excerpt:'"Mexico has spoken — now it\'s time to listen. Today, for the first time in over 70 years, citizens have elected a president of the republic from a party other than the PRI. This is not a victory for a single party — it is the victory of all Mexicans and a message to the entire world: Mexico is a democracy."',
+          questions:[
+            {id:'r4_05',topic:'3.3',difficulty:'accessible',
+              stem:'Based on this excerpt, Vicente Fox\'s framing of his electoral victory as "the victory of all Mexicans" rather than a PAN victory reflects which political science concept?',
+              choices:[{id:'A',text:'Charismatic legitimacy — Fox\'s personal appeal transcended party politics'},{id:'B',text:'Democratic legitimacy — he was claiming that democratic transition itself (not partisan victory) was the meaningful achievement for Mexican society'},{id:'C',text:'Performance legitimacy — Fox was claiming credit for Mexico\'s economic growth'},{id:'D',text:'Traditional legitimacy — Fox was connecting his victory to Mexico\'s revolutionary heritage'}],
+              correct:'B',
+              explanation:'Fox\'s framing was politically astute and analytically significant: he positioned the election as the fulfillment of democratic aspiration rather than a partisan triumph, because legitimizing the transition required broad acceptance beyond PAN supporters. By calling it "the victory of all Mexicans," he appealed to procedural legitimacy — the democratic process itself, not any particular outcome, was the source of authority. This framing was also crucial for getting the PRI to accept defeat gracefully.'},
+            {id:'r4_06',topic:'3.3',difficulty:'moderate',
+              stem:'Fox\'s statement "Today, for the first time in over 70 years, citizens have elected a president from a party other than the PRI" most directly illustrates which characteristic of Mexico\'s pre-2000 political system?',
+              choices:[{id:'A',text:'Mexico had a totalitarian system in which no elections were held'},{id:'B',text:'Mexico was a hegemonic party system — elections existed but were structured to prevent genuine competition for the highest office'},{id:'C',text:'Mexico had a two-party system in which PRI and PAN alternated in power every 12 years'},{id:'D',text:'Mexico\'s constitution prohibited opposition parties until 1994'}],
+              correct:'B',
+              explanation:'This is the definitional heart of Mexico\'s pre-2000 system. Elections were held regularly (every 6 years), opposition parties existed (PAN from 1939, PRD from 1989), but through dedazo, electoral fraud, corporate control, and media dominance, the PRI ensured the presidency was never genuinely at risk. This is a "hegemonic party system" (Sartori\'s term) — not a one-party state like China, but a system where elections existed without genuine competition at the presidential level.'}
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const UNIT_FRQS=[
+  {
+    id:'apcmp_u3_ca1',type:'CA',label:'Conceptual Analysis',
+    title:'Corporatism and Democratic Transition',
+    maxScore:4,
+    prompt:'Corporatism is a system of interest representation in which the state organizes major social groups (labor, business, agriculture) into officially recognized associations that participate in policymaking.',
+    parts:[
+      {part:'A',points:1,prompt:'Define corporatism in the context of Mexico\'s PRI political system.'},
+      {part:'B',points:1,prompt:'Explain how Mexico\'s corporatist system helped the PRI maintain political control for 71 years.'},
+      {part:'C',points:1,prompt:'Describe how Mexico\'s democratic transition after 2000 changed the corporatist interest group system.'},
+      {part:'D',points:1,prompt:'Using a specific example, explain one way Mexico\'s shift away from corporatism toward pluralism created new political challenges.'}
+    ],
+    rubric:{
+      A:'1 pt: Must define corporatism as a system where the state organizes or officially recognizes peak associations representing major social sectors (CTM for workers, CNC for peasants, CNOP for popular sectors) that participate in policymaking in exchange for political support. Must capture the exchange relationship between state recognition and political loyalty.',
+      B:'1 pt: Must explain a specific mechanism: PRI-affiliated peak organizations delivered bloc votes; union leaders were rewarded with PRI legislative seats; workers\' job security tied to CTM loyalty; patronage flowed through corporate channels; no independent organizing permitted outside PRI structures. Must explain HOW this maintained control, not just state it.',
+      C:'1 pt: Must describe a specific change: PRI-affiliated organizations lost government backing and had to compete with independent unions; genuine collective bargaining became possible; civil society organizations no longer needed PRI affiliation for legitimacy; USMCA labor provisions required independent unions. Must explain the change in direction, not just say "it changed."',
+      D:'1 pt: Must identify a specific example AND explain the challenge: independent unions fragmented labor movement making collective wage agreements harder; loss of corporate discipline allowed multiple competing interest groups with no coordination mechanism; cartel infiltration of some former PRI-affiliated unions as they lost state protection. Must connect example to a democratic challenge.'
+    }
+  },
+  {
+    id:'apcmp_u3_qa1',type:'QA',label:'Quantitative Analysis',
+    title:'Mexico\'s Democratization: Freedom House Scores Over Time',
+    maxScore:5,
+    prompt:'Mexico\'s Freedom House scores (scale 0-100): 1970: ~20 (Not Free) | 1988: ~35 (Partly Free) | 1996: ~45 (Partly Free) | 2000: ~55 (Free) | 2006: ~64 (Free) | 2012: ~66 (Free) | 2018: ~65 (Free) | 2023: ~60 (Partly Free)',
+    svgChart:`<svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px">
+      <rect width="480" height="160" fill="#0f1a12" rx="4"/>
+      <text x="240" y="14" font-family="sans-serif" font-size="9" fill="#5dba7a" text-anchor="middle" letter-spacing="2">MEXICO FREEDOM HOUSE SCORE OVER TIME</text>
+      ${[{y:1970,v:20},{y:1988,v:35},{y:1996,v:45},{y:2000,v:55},{y:2006,v:64},{y:2012,v:66},{y:2018,v:65},{y:2023,v:60}].map((d,i,arr)=>{
+        const x=30+i*60;const cy=130-Math.round(d.v*.9);
+        const col=d.v>=60?'#5dba7a':d.v>=40?'#e8a020':'#e04040';
+        const next=arr[i+1];
+        const nx=next?30+(i+1)*60:null;const ncy=next?130-Math.round(next.v*.9):null;
+        return `${nx?`<line x1="${x}" y1="${cy}" x2="${nx}" y2="${ncy}" stroke="#3a5848" stroke-width="1.5"/>`:''}
+        <circle cx="${x}" cy="${cy}" r="5" fill="${col}"/>
+        <text x="${x}" y="${cy-10}" font-family="sans-serif" font-size="7" fill="${col}" text-anchor="middle">${d.v}</text>
+        <text x="${x}" y="148" font-family="sans-serif" font-size="7" fill="#3a5848" text-anchor="middle">${d.y}</text>`;
+      }).join('')}
+      <line x1="18" y1="130" x2="465" y2="130" stroke="#244030" stroke-width="1"/>
+      <text x="12" y="132" font-family="sans-serif" font-size="6" fill="#3a5848">0</text>
+      <text x="12" y="87" font-family="sans-serif" font-size="6" fill="#3a5848">50</text>
+      <text x="12" y="40" font-family="sans-serif" font-size="6" fill="#3a5848">100</text>
+      <line x1="18" y1="87" x2="465" y2="87" stroke="#244030" stroke-width=".5" stroke-dasharray="3,3"/>
+      <text x="468" y="87" font-family="sans-serif" font-size="6" fill="#5dba7a">Free</text>
+    </svg>`,
+    parts:[
+      {part:'A',points:1,prompt:'Identify one trend shown by the data about Mexico\'s democratization from 1970 to 2018.'},
+      {part:'B',points:1,prompt:'Using the data, explain what happened to Mexico\'s Freedom House score between 2018 and 2023 and identify one possible cause.'},
+      {part:'C',points:1,prompt:'Based on the data, explain why Mexico\'s democratization is best described as a "gradual" rather than "sudden" transition.'},
+      {part:'D',points:1,prompt:'Using the data, explain how Mexico\'s 2000 election is reflected in the trend and why it is considered a critical juncture.'},
+      {part:'E',points:1,prompt:'Based on the data, develop an argument about whether Mexico has achieved democratic consolidation.'}
+    ],
+    rubric:{
+      A:'1 pt: Must identify a specific trend from the data: general upward movement from 20 (1970) to 65-66 (2012-2018); dramatic improvement after 2000; scores crossed the "Free" threshold around 2000. Must reference specific data points.',
+      B:'1 pt: Must note the decline from ~65 (2018) to ~60 (2023) — movement from Free back to Partly Free — AND identify a specific cause: AMLO\'s attacks on INE, judicial independence concerns, militarization, or weakening of autonomous institutions. Must use the data.',
+      C:'1 pt: Must explain gradualism with reference to the data: the score rose from 20 to 60 over 50+ years with multiple stages (PRI hegemony → partial opening → IFE reform → 2000 transition → consolidation attempts). Not a sudden jump. Must connect to the data showing incremental change.',
+      D:'1 pt: Must explain the 2000 data point (score jumps from ~45 to ~55) AND explain why it\'s a critical juncture: first transfer of power outside PRI, established electoral democracy as legitimate, created path for genuine multiparty competition. Must reference the data.',
+      E:'1 pt: Must develop a logical argument either direction with evidence from the data. For "not consolidated": declining 2023 score, backsliding concerns, still Partly Free. For "partially consolidated": 20+ years of competitive elections, peaceful transfers of power, Freedom House score well above authoritarian regimes. Must use the data and define consolidation.'
+    }
+  },
+  {
+    id:'apcmp_u3_comp1',type:'COMP',label:'Comparative Analysis',
+    title:'Mexico and Russia: Contrasting Paths from Authoritarianism',
+    maxScore:5,
+    prompt:'Both Mexico and Russia transitioned from authoritarian single-party or dominant-party rule in the 1990s, but with very different outcomes.',
+    parts:[
+      {part:'A',points:1,prompt:'Define democratic consolidation and explain one indicator that a democracy has been consolidated.'},
+      {part:'B',points:2,prompt:'Compare Mexico\'s and Russia\'s experiences with democratic transition. Describe one similarity AND one difference in their paths from authoritarian rule.'},
+      {part:'C',points:2,prompt:'Using specific evidence from both countries, explain why Mexico\'s transition produced a more genuinely competitive democracy than Russia\'s, despite both holding regular elections.'}
+    ],
+    rubric:{
+      A:'1 pt: Must define democratic consolidation as the stage at which democracy becomes "the only game in town" — all major political actors accept democratic rules; no significant group seeks extra-constitutional power. Indicator: peaceful transfers of power between competing parties; military staying out of politics; courts ruling against the government; opposition parties winning elections. Both definition and indicator required.',
+      B_sim:'1 pt (of 2): Must identify a genuine similarity: both had single/dominant party rule that collapsed in the 1990s; both held elections during and after transition; both experienced economic crises that pressured regime change (Mexico 1994 peso crisis; Russia 1998 ruble crisis); both formally adopted democratic constitutions. Must explain how the similarity applies to BOTH.',
+      B_diff:'1 pt (of 2): Must identify a genuine difference: Mexico\'s PRI lost power through genuine elections in 2000 while Russia\'s transition produced Yeltsin/Putin consolidating power rather than competitive democracy; Mexico\'s IFE provided an independent electoral body while Russia\'s elections remained under executive influence; Mexico developed genuine multiparty competition while Russia moved toward competitive authoritarianism. Must explain the difference clearly.',
+      C:'2 pts: Must use specific evidence from BOTH countries. Mexico: IFE independence (Fox victory certified); genuine multiparty competition (PAN won twice, then MORENA); Supreme Court ruled against AMLO reforms; peaceful transfers of power 2000, 2006, 2012, 2018, 2024. Russia: United Russia dominates through Kremlin resources; opposition candidates jailed/poisoned (Navalny); Putin\'s term reset through constitutional manipulation; no genuine independent electoral commission. 1 pt for one country with evidence; 2 pts for both with clear explanation.'
+    }
+  },
+  {
+    id:'apcmp_u3_ae1',type:'AE',label:'Argument Essay',
+    title:'Electoral Institutions and Democratic Transition',
+    maxScore:5,
+    prompt:'Some political scientists argue that independent electoral institutions (like Mexico\'s IFE/INE) are the most important factor in enabling democratic transitions. Others argue that economic development, civil society pressure, or international factors matter more.\n\nDevelop an argument about which factor is most important for successful democratic transition. Use evidence from at least two AP Comparative countries.',
+    parts:[
+      {part:'Essay',points:5,prompt:'Write your complete argument essay. Address all four required elements: defensible claim, evidence from two countries, reasoning, and counterargument.'}
+    ],
+    rubric:{
+      Essay:'RUBRIC (5 pts):\n\n1 pt — CLAIM: A defensible thesis identifying which factor most enables democratic transition and WHY. Must go beyond the prompt. E.g., "While economic development creates conditions favorable to democracy, independent electoral institutions are the decisive proximate cause of successful transitions because they transform economic and social pressures into actual electoral outcomes — as Mexico\'s IFE reform demonstrates."\n\n2 pts — EVIDENCE (1 pt per country): Must be specific and tied to the argument. Mexico: IFE reform (1996) directly enabled Fox victory (2000) by removing PRI control of elections; without independent electoral administration, civil society pressure and economic development alone could not have produced a credible PRI defeat. Russia: Absence of independent electoral institutions after 1991 meant economic collapse and civil society pressure did not produce competitive democracy — Yeltsin manipulated 1996 elections; Putin captured electoral administration and used it to maintain power. OR other country pairs: Nigeria (INEC imperfect but functional enabling democratic transfers); UK (strong institutions enabling stable democracy).\n\n1 pt — REASONING: Explains the mechanism — HOW the evidence supports the claim. E.g., "This shows that without a credible, independent body to administer and certify elections, opposition victories cannot be accepted as legitimate, making all other democratizing pressures insufficient."\n\n1 pt — COUNTERARGUMENT: Acknowledges the opposing view and responds. E.g., "Critics might argue that civil society pressure was more important — the 1985 earthquake built independent civic capacity that eventually pressured the PRI to reform. However, this civil society pressure had existed for decades without producing electoral change until institutional reform (IFE) provided the mechanism to translate civic pressure into electoral outcomes."'
+    }
+  }
+];
+
+// ── ENGINE ────────────────────────────────────────────────────────────────────
+let G={gold:parseInt(localStorage.getItem('civitas_gold')||'0'),roundIdx:0,questionIdx:0,questions:[],selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+let FRQ_GRADES={};
+
+window.addEventListener('load',()=>{
+  const fill=document.getElementById('ld-fill');let p=0;
+  const iv=setInterval(()=>{p+=Math.random()*25;if(p>=100){p=100;clearInterval(iv);setTimeout(doneLoading,300);}fill.style.width=p+'%';},120);
+});
+
+function doneLoading(){
+  document.getElementById('loading').style.opacity='0';
+  setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);
+  buildRoundCards();buildFRQList();loadSavedProgress();
+}
+
+function loadSavedProgress(){
+  try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    if(prog[UNIT_ID]){updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}}catch(e){}
+  loadFRQScores();
+}
+
+function loadFRQScores(){UNIT_FRQS.forEach(frq=>{const v=localStorage.getItem('civitas_frq_'+UNIT_ID+'_'+frq.id);if(v){const b=document.getElementById('frq-badge-'+frq.id);if(b){b.textContent=v+'/'+frq.maxScore;b.style.display='block';}}});}
+function isRoundComplete(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null')!==null;}catch(e){return false;}}
+function getRoundProgress(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null');}catch(e){return null;}}
+function updateProgressBar(done,total){document.getElementById('prog-fill').style.width=Math.round(done/total*100)+'%';document.getElementById('prog-text').textContent=done+' / '+total+' Rounds Complete';}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')loadFRQScores();}
+
+function buildRoundCards(){
+  const grid=document.getElementById('round-cards');
+  grid.innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
+    const prog=getRoundProgress(i);const done=prog!==null;const locked=i>0&&!isRoundComplete(i-1);
+    const acc=done?prog.accuracy:null;const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+    return`<div class="activity-card${locked?' locked':''}" onclick="${locked?'notify(\'Complete Round '+i+' first!\')':'startRound('+i+')'}">
+      <div class="activity-card-strip" style="background:${done?'var(--green)':locked?'var(--border2)':'var(--acc)'}"></div>
+      <div class="activity-card-body">
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${i+1} · ${r.type.replace('_',' ').toUpperCase()}</div>
+        <div class="activity-card-title">${r.label}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action" style="color:${done?'var(--green2)':locked?'var(--text3)':'var(--acc2)'}">
+          ${locked?'🔒 Locked':done?'✓ Complete — '+acc+'% accuracy':'▶ Play Now'}
+        </div>
+        ${done?`<div class="activity-card-badge" style="border-color:${sc};color:${sc}">${acc}%</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildFRQList(){
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+  document.getElementById('frq-list').innerHTML=UNIT_FRQS.map(frq=>`<div class="frq-card" id="frq-card-${frq.id}" onclick="openFRQ('${frq.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${cols[frq.type]||'var(--acc)'};margin-bottom:4px">${frq.label} · ${frq.maxScore} pts</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:4px">${frq.title}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${frq.parts.length} parts · AI-graded</div></div>
+      <div class="frq-badge" id="frq-badge-${frq.id}"></div>
+    </div>
+  </div>`).join('');
+}
+
+function openFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};const col=cols[frq.type]||'var(--acc)';
+  const svgHtml=frq.svgChart?`<div style="margin-bottom:16px;padding:16px;background:var(--bg2);border:1px solid var(--border)">${frq.svgChart}</div>`:'';
+  document.getElementById('frq-workspace-area').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button onclick="closeFRQ()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 10px;cursor:pointer">← Back</button>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:${col}">${frq.label.toUpperCase()} · ${frq.maxScore} POINTS</div>
+    </div>
+    <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px">${frq.title}</div>
+    <div class="frq-prompt">${frq.prompt}</div>${svgHtml}
+    ${frq.parts.map((p,pi)=>`<div class="frq-part">
+      <div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div>
+      <div class="frq-part-prompt">${p.prompt}</div>
+      <textarea class="frq-textarea" id="frq-ans-${frq.id}-${pi}" placeholder="Write your response here..."></textarea>
+    </div>`).join('')}
+    <button class="frq-submit-btn" id="frq-submit-${frqId}" onclick="submitUnitFRQ('${frqId}')">⚡ Submit for AI Grading</button>
+    <div class="frq-grading" id="frq-grade-${frqId}" style="margin-top:16px"></div>`;
+  document.getElementById('frq-workspace-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeFRQ(){document.getElementById('frq-workspace-area').innerHTML='';}
+
+async function submitUnitFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');
+  if(answers.join('').length<30){notify('Please write responses first.');return;}
+  const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);
+  btn.disabled=true;btn.innerHTML='⏳ Grading...';
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part} (${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');
+  try{
+    const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,
+        messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\nContext: ${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0_or_1,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],
+        system:'You are an expert AP Comparative Government FRQ grader. Grade strictly. Return ONLY valid JSON.'})});
+    const data=await resp.json();
+    const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    const score=grade.totalScore||0;
+    try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);
+      const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};
+      if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};
+      const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};
+      ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;
+      ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}
+    const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
+    btn.innerHTML='✓ Graded';
+    const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
+    gradeDiv.style.display='block';
+    gradeDiv.innerHTML=`<div class="frq-score-banner">
+      <div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div>
+      <div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE · ${pct}%</div>
+      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">
+      ${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          <span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span>
+          <span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'✓ +'+p.earned:'✗ 0'}</span>
+        </div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div>
+      </div>`;}).join('')}
+    </div>
+    <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+    ${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>💡 Improve:</strong> ${grade.improveHint}</div>`:''}`;
+  }catch(e){btn.innerHTML='⚠ Error';btn.disabled=false;notify('Grading error.');}
+}
+
+function startRound(idx){
+  if(!isRoundComplete(idx-1)&&idx>0){notify('Complete Round '+idx+' first!');return;}
+  G={...G,roundIdx:idx,questionIdx:0,selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+  const round=QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display='none';
+  document.getElementById('game').style.display='flex';
+  document.getElementById('round-intro').style.display='flex';
+  document.getElementById('question-area').style.display='none';
+  document.getElementById('round-complete').style.display='none';
+  document.getElementById('unit-complete').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('ri-icon').textContent=round.icon;
+  document.getElementById('ri-round').textContent='ROUND '+(idx+1)+' OF '+QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent=round.label;
+  document.getElementById('ri-desc').textContent=round.desc;
+  document.getElementById('game-pips').innerHTML=QUESTION_BANK.rounds.map((_,i)=>`<div class="gp-pip ${i<idx?'done':i===idx?'active':''}"></div>`).join('');
+  updateGoldDisplay();
+}
+
+function beginRound(){
+  document.getElementById('round-intro').style.display='none';
+  document.getElementById('question-area').style.display='flex';
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  if(round.type==='knowledge'){G.questions=shuffle([...round.questions]);}
+  else{G.questions=[];(round.sets||[]).forEach(s=>s.questions.forEach(q=>G.questions.push({...q,_set:s})));G.questions=shuffle(G.questions);}
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=G.questions[G.questionIdx];const el=document.getElementById('question-area');
+  G.selectedChoice=null;G.answered=false;document.getElementById('btn-next').style.display='none';
+  document.getElementById('game-round-label').textContent='ROUND '+(G.roundIdx+1)+' · Q '+(G.questionIdx+1)+'/'+G.questions.length;
+  let html='';const set=q._set;
+  if(set){
+    if(set.chartType==='bar'){
+      const max=Math.max(...set.data.map(d=>d.value));
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📊 DATA STIMULUS</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:120px;border-bottom:1px solid var(--border2);margin-top:12px;overflow-x:auto">
+          ${set.data.map(d=>`<div style="flex:1;min-width:40px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <div style="width:100%;background:${d.color||'var(--acc)'};height:${Math.round(d.value/max*100)}px;border-radius:2px 2px 0 0"></div>
+            <div style="font-family:var(--bebas);font-size:7px;color:${d.color||'var(--acc2)'};text-align:center">${d.value}</div>
+            <div style="font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;white-space:pre-wrap;max-width:55px">${d.label}</div>
+          </div>`).join('')}
+        </div></div>`;
+    }else if(set.chartType==='table'){
+      const td=set.tableData;
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📋 DATA TABLE</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div>
+        <div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:9px">
+          <tr>${td.headers.map(h=>`<th style="border-bottom:1px solid var(--border2);padding:5px 8px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px">${h}</th>`).join('')}</tr>
+          ${td.rows.map((row,ri)=>`<tr style="background:${ri%2?'rgba(56,160,80,.03)':'transparent'}">${row.map(cell=>`<td style="padding:5px 8px;color:var(--text2);border-bottom:1px solid var(--border);font-size:9px">${cell}</td>`).join('')}</tr>`).join('')}
+        </table></div></div>`;
+    }else if(set.document){
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📜 DOCUMENT STIMULUS</div><div class="stimulus-title">${set.document}</div>
+        <div class="stimulus-source">${set.author} (${set.year}) — ${set.source}</div>
+        <div class="stimulus-text">"${set.excerpt}"</div></div>`;
+    }
+  }
+  html+=`<div class="question-card" id="qcard">
+    <div class="q-meta"><div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>
+      ${q.topic?`<div class="q-tag topic">TOPIC ${q.topic}</div>`:''}
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div></div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+      <div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div>
+    <div style="text-align:right;margin-top:8px">
+      <button onclick="submitQuestionReport('${q.stem.replace(/'/g,"\\'").substring(0,80)}','${q.id||''}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report</button>
+    </div></div>`;
+  el.innerHTML=html;el.scrollTop=0;
+}
+
+function selectChoice(id){
+  if(G.answered)return;G.selectedChoice=id;
+  document.querySelectorAll('.choice').forEach(c=>{c.classList.remove('selected');if(c.id==='choice-'+id)c.classList.add('selected');});
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if(!G.selectedChoice||G.answered)return;G.answered=true;
+  const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;
+  G.sessionTotal++;
+  if(correct){G.sessionCorrect++;const gold=5+(q.difficulty==='challenging'?5:q.difficulty==='moderate'?3:1);G.gold+=gold;spawnGold('+'+gold+' 🪙');awardGoldToShell(gold,'AP Comp Unit 3');}
+  document.querySelectorAll('.choice').forEach(c=>{
+    c.classList.add('answered');const cid=c.id.replace('choice-','');
+    if(cid===q.correct)c.classList.add('correct');
+    else if(cid===G.selectedChoice&&!correct)c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+  if(q.explanation){const qcard=document.getElementById('qcard');if(qcard)qcard.insertAdjacentHTML('beforeend',`<div class="explanation"><strong>${correct?'✓ Correct!':'✗ Incorrect.'}</strong> ${q.explanation}</div>`);}
+  document.getElementById('btn-next').style.display='block';updateGoldDisplay();
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if(G.questionIdx>=G.questions.length)finishRound();
+  else{renderQuestion();document.getElementById('question-area').scrollTop=0;}
+}
+
+function finishRound(){
+  const acc=G.sessionTotal>0?Math.round(G.sessionCorrect/G.sessionTotal*100):0;
+  try{localStorage.setItem('civitas_'+UNIT_ID+'_r'+G.roundIdx,JSON.stringify({accuracy:acc,correct:G.sessionCorrect,total:G.sessionTotal,completedAt:new Date().toISOString()}));syncProgressToShell(acc);}catch(e){}
+  const icon=acc>=80?'⭐':acc>=60?'✅':'📋';const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('question-area').style.display='none';document.getElementById('btn-next').style.display='none';
+  const rc=document.getElementById('round-complete');rc.style.display='flex';
+  document.getElementById('rc-icon').textContent=icon;
+  document.getElementById('rc-title').textContent=QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent=acc+'%';document.getElementById('rc-score').style.color=sc;
+  document.getElementById('rc-sub').textContent=G.sessionCorrect+' / '+G.sessionTotal+' CORRECT';
+  document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:${sc}">${acc}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+    <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+  const ni=G.roundIdx+1;const hn=ni<QUESTION_BANK.rounds.length;
+  const nb=document.getElementById('rc-next-btn');
+  if(hn){nb.textContent='Continue to Round '+(ni+1)+' →';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}
+  else{nb.textContent='🏆 Complete Unit';nb.onclick=showUnitComplete;}
+}
+
+function syncProgressToShell(acc){
+  try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    const prev=prog[UNIT_ID]||{bestAccuracy:0};
+    prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};
+    localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+}
+
+function showUnitComplete(){
+  const tc=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.correct:0);},0);
+  const tq=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.total:0);},0);
+  const ov=tq>0?Math.round(tc/tq*100):0;
+  const grade=ov>=90?'A+':ov>=80?'A':ov>=70?'B':ov>=60?'C':'D';
+  const gc=ov>=80?'var(--green2)':ov>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('round-complete').style.display='none';
+  document.getElementById('unit-complete').style.display='flex';
+  document.getElementById('uc-score').textContent=grade;document.getElementById('uc-score').style.color=gc;
+  document.getElementById('uc-grade').textContent=ov+'% Overall · Unit Complete';
+  awardGoldToShell(50,'Unit 3 - Mexico Completion');spawnGold('+50 🪙 Completion Bonus');syncProgressToShell(ov);
+}
+
+function replayUnit(){
+  QUESTION_BANK.rounds.forEach((_,i)=>{try{localStorage.removeItem('civitas_'+UNIT_ID+'_r'+i);}catch(e){}});
+  document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';
+  document.getElementById('hub').style.display='flex';buildRoundCards();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';
+  buildRoundCards();loadFRQScores();
+  updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
+function updateGoldDisplay(){document.getElementById('game-gold-disp').textContent='🪙 '+G.gold;}
+function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',c+amount);localStorage.setItem('civitas_gold_pending',JSON.stringify({amount,source}));}catch(e){}}
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+async function submitQuestionReport(stem,qId){
+  const sn=localStorage.getItem('civitas_student_name')||'Unknown';
+  try{await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},
+    body:JSON.stringify({student_name:sn,course_id:'ap_cmp',item_type:'question',item_id:qId||UNIT_ID,item_title:'AP Comp Unit 3 - Mexico',issue_type:'question_error',note:(stem||'').slice(0,300),unit_id:UNIT_ID,submitted_at:new Date().toISOString()})});
+    notify('✓ Reported!');}catch(e){notify('Report failed.');}
+}
+</script>
+</body>
+</html>
