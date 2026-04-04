@@ -3541,7 +3541,22 @@ async function boot(){
   loadS();
 
   if(returningFromGame||wasActive){
-    if(S.name&&!S.isGuest){enterShell();return;}
+    if(S.name&&!S.isGuest){
+      // Handle RPG character unlock
+      try{
+        const rpgUnlock=JSON.parse(localStorage.getItem('civitas_rpg_unlock')||'null');
+        if(rpgUnlock&&rpgUnlock.charId&&rpgUnlock.ts&&(Date.now()-rpgUnlock.ts)<300000){
+          if(!S.unlocked)S.unlocked=[];
+          if(!S.unlocked.includes(rpgUnlock.charId)){
+            S.unlocked.push(rpgUnlock.charId);
+            saveS();
+            setTimeout(()=>notify('🎉 New character unlocked: '+(rpgUnlock.charName||rpgUnlock.charId)+'!'),1000);
+          }
+          localStorage.removeItem('civitas_rpg_unlock');
+        }
+      }catch(e){}
+      enterShell();return;
+    }
     // Restore teacher session if returning from a unit game
     const savedName=localStorage.getItem('civitas_student_name');
     const savedFull=localStorage.getItem('civitas_full_name');
