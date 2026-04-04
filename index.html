@@ -3913,7 +3913,7 @@ function buildCharGrid(){
 
 function equipChar(id){
   S.avatar=id;
-  saveState();
+  saveS();
   updateHUD();
   buildCharGrid();
 }
@@ -3925,7 +3925,7 @@ function buyChar(id){
   S.gold=(S.gold||0)-c.cost;
   if(!S.unlocked)S.unlocked=[];
   if(!S.unlocked.includes(id))S.unlocked.push(id);
-  saveState();
+  saveS();
   updateHUD();
   buildCharGrid();
   notify('🎉 Unlocked '+c.label+'!');
@@ -4353,11 +4353,44 @@ function enrollCourse(courseId){
   if(period===null)return; // cancelled
   if(!S.courses)S.courses=[];
   S.courses.push({id:courseId,period:period||'',enrolledAt:new Date().toISOString()});
-  saveState();
+  saveS();
   updateHUD();
   const modal=document.getElementById('add-course-modal');if(modal)modal.remove();
   renderDashboard();
   notify('✅ Enrolled in '+cat.name+'!');
+}
+
+function openCourseSwitcher(){
+  const overlay=document.getElementById('course-switcher-overlay');
+  if(!overlay)return;
+  const list=document.getElementById('course-switcher-list');
+  if(list){
+    list.innerHTML=(S.courses||[]).map(c=>{
+      const cat=COURSE_CATALOG.find(x=>x.id===c.id);
+      if(!cat)return '';
+      const active=_activeCourseId===c.id;
+      return `<div onclick="closeCourseSwitcher();enterCourse('${c.id}')"
+        style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;
+        background:${active?'rgba(112,96,208,.1)':'transparent'};
+        border:1px solid ${active?'var(--civitas)':'transparent'};margin-bottom:6px;transition:all .15s"
+        onmouseover="this.style.background='rgba(112,96,208,.08)'"
+        onmouseout="this.style.background='${active?'rgba(112,96,208,.1)':'transparent'}'">
+        <div style="font-size:22px">${cat.icon}</div>
+        <div>
+          <div style="font-family:var(--bebas);font-size:13px;letter-spacing:1px;color:${active?'var(--civitas2)':'var(--cream)'}">${cat.name}</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${cat.grade}${c.period&&c.period!=='teacher'?' · Period '+c.period:''}</div>
+        </div>
+        ${active?'<div style="font-family:var(--bebas);font-size:9px;color:var(--civitas2);margin-left:auto">ACTIVE</div>':''}
+      </div>`;
+    }).join('')||'<div style="font-family:var(--dm);font-size:11px;color:var(--text3);padding:8px">No courses enrolled.</div>';
+  }
+  overlay.classList.add('open');
+  overlay.onclick=function(e){if(e.target===overlay)closeCourseSwitcher();};
+}
+
+function closeCourseSwitcher(){
+  const overlay=document.getElementById('course-switcher-overlay');
+  if(overlay)overlay.classList.remove('open');
 }
 
 function renderDashboard(){
