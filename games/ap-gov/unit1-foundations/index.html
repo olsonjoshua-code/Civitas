@@ -2196,18 +2196,52 @@ MAX: 6 points.`,
 ];
 
 function getUnitFRQs(){
-  try{const b=JSON.parse(localStorage.getItem('civitas_frq_bank')||'null');if(b&&b.length)return b;}catch(e){}
-  const types=['CA','QA','SC','AE'];
-  const sk='civitas_frq_seed_'+UNIT_ID;
-  let seed;try{seed=sessionStorage.getItem(sk);}catch(e){}
-  if(!seed){seed=String(Date.now());try{sessionStorage.setItem(sk,seed);}catch(e){}}
-  const sn=parseInt(seed.slice(-4))||1234;
-  const picked=[];
-  types.forEach((type,ti)=>{
-    const pool=UNIT_FRQS.filter(f=>f.type===type);
-    if(pool.length)picked.push(pool[(sn+ti*7)%pool.length]);
+  // Each student gets one FRQ per type (CA, QA, SC, AE).
+  // The selection is randomized on each new visit, BUT any type that already
+  // has a completed (scored) submission stays locked to that same question.
+  const SEL_KEY = 'civitas_frq_sel_' + UNIT_ID;
+  const types = ['CA','QA','SC','AE'];
+
+  function _bestScore(id){
+    try{
+      const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const sub = s&&s.courseProgress&&s.courseProgress.ap_gov&&s.courseProgress.ap_gov.frqSubmissions||{};
+      return (sub[id]&&sub[id].bestScore>0) ? sub[id].bestScore : null;
+    }catch(e){return null;}
+  }
+
+  // Load previously saved selection (array of 4 FRQ ids, one per type)
+  let savedIds = null;
+  try{savedIds = JSON.parse(localStorage.getItem(SEL_KEY)||'null');}catch(e){}
+
+  const result = [];
+  const newIds = [];
+
+  types.forEach(function(type, ti){
+    const pool = UNIT_FRQS.filter(function(f){return f.type===type;});
+    if(!pool.length) return;
+
+    const savedId = savedIds && savedIds[ti];
+    const savedFRQ = savedId ? pool.find(function(f){return f.id===savedId;}) : null;
+
+    // If this type already has a completed score, keep it locked
+    if(savedFRQ && _bestScore(savedId) !== null){
+      result.push(savedFRQ);
+      newIds.push(savedFRQ.id);
+      return;
+    }
+
+    // Otherwise pick a fresh random one for this type
+    const seed = (Date.now() + ti * 999983) % pool.length;
+    const chosen = pool[Math.floor(seed) % pool.length];
+    result.push(chosen);
+    newIds.push(chosen.id);
   });
-  return picked.length?picked:UNIT_FRQS;
+
+  // Persist so it survives refreshes within the same session
+  try{localStorage.setItem(SEL_KEY, JSON.stringify(newIds));}catch(e){}
+
+  return result.length ? result : UNIT_FRQS;
 }
 function getFRQDraft(id){try{return sessionStorage.getItem('civitas_frq_draft_'+id)||'';}catch(e){return '';}}
 function saveFRQDraft(id,t){try{sessionStorage.setItem('civitas_frq_draft_'+id,t);}catch(e){}}
@@ -2337,6 +2371,7 @@ function renderFRQTab(){
       ta.addEventListener('blur',function(){this.style.borderColor='var(--border2)';});
     }
   });
+}
 }
 
 async function submitUnitFRQ(frqId){
