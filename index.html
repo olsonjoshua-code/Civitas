@@ -555,7 +555,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
         <button class="nav-btn" id="nav-profile" onclick="showMainView('profile')">👤 Profile</button>
         <button class="nav-btn" id="nav-characters" onclick="showMainView('characters')">🎭 Characters</button>
         <button class="nav-btn" id="nav-wallet" onclick="showMainView('wallet')">🪙 Gold</button>
-        <button class="nav-btn" id="nav-teacher" onclick="showMainView('teacher')" style="display:none;color:var(--teal2);border:1px solid var(--teal2);padding:6px 12px">📊 Teacher Dashboard</button>
+        <button class="nav-btn" id="nav-teacher" onclick="showMainView('teacher')" style="color:var(--teal2);border:1px solid var(--teal2);padding:6px 12px;display:none">📊 Teacher Dashboard</button>
       </div>
     </div>
     <!-- Course sub-nav (shown when inside a course) -->
@@ -4119,9 +4119,15 @@ function enterShell(){
 
   // Populate AP score in HUD as soon as shell loads
   if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
+
+  const seen=localStorage.getItem(OB_KEY);
   if(!seen&&!IS_TEACHER&&!S.isGuest){
     setTimeout(()=>openOnboarding(),800);
   }
+
+  // Force teacher button visibility after all nav resets
+  const tcBtn=document.getElementById('nav-teacher');
+  if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   // Session tracking
   _sessionStart2=Date.now();
