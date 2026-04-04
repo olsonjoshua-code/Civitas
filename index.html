@@ -4508,8 +4508,8 @@ function renderDashboard(){
     if(!cat)return null;
     const units=COURSE_UNITS[c.id]||[];
     const total=units.length||8;
-    // Count completed units from localStorage (primary) OR S.courseProgress (fallback)
-    const doneFromLS=units.filter(u=>unitProg[u.id]&&unitProg[u.id].completed).length;
+    // Unit is "done" if it has a bestAccuracy recorded (any score counts)
+    const doneFromLS=units.filter(u=>unitProg[u.id]&&unitProg[u.id].bestAccuracy!=null).length;
     const cp=getCourseProgress(c.id);
     const doneFromState=(cp.unitsCompleted||[]).length;
     const done=Math.max(doneFromLS,doneFromState);
@@ -4528,12 +4528,12 @@ function renderDashboard(){
         <div class="course-card-name">${c.name}</div>
         <div class="course-card-stats">
           <div class="course-card-stat">
-            <div class="course-card-stat-val" style="color:${c.color}">${c.done}</div>
+            <div class="course-card-stat-val" style="color:${c.color}">${c.done}/${c.total}</div>
             <div class="course-card-stat-lbl">Units Done</div>
           </div>
           <div class="course-card-stat">
-            <div class="course-card-stat-val" style="color:var(--gc)">${S.gold||0}</div>
-            <div class="course-card-stat-lbl">Gold</div>
+            <div class="course-card-stat-val" style="color:${c.pct>=80?'var(--green2)':c.pct>=40?'var(--amber)':'var(--text3)'}">${c.pct}%</div>
+            <div class="course-card-stat-lbl">Complete</div>
           </div>
         </div>
         <div class="course-card-bar">
