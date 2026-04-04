@@ -796,8 +796,32 @@ body::before{content:'';position:fixed;inset:0;
         <div id="teacher-units"></div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
-        <div class="sh" style="font-size:14px;margin-bottom:10px">Class Results</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div class="sh" style="font-size:14px;margin-bottom:0">Class Results</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn sm green" onclick="exportCSV()"><span>⬇ Research Export (All Students)</span></button>
+          </div>
+        </div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:12px;letter-spacing:.3px">
+          Export includes all students across all periods — game scores, test scores, engagement data, vocab, sessions. Includes blank EOC column for your manual entry after state testing.
+        </div>
         <div id="teacher-results"></div>
+      </div>
+      <!-- Test Score Entry -->
+      <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
+        <div class="sh" style="font-size:14px;margin-bottom:4px">Unit Test Scores</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:14px;letter-spacing:.5px">Enter student test scores as a percentage. Scores post to the leaderboard automatically.</div>
+        <!-- Unit selector + entry form -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end">
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:4px">UNIT</div>
+            <select id="test-unit-select" style="font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:7px 10px;outline:none;cursor:pointer;min-width:220px">
+              <option value="">— Select a unit —</option>
+            </select>
+          </div>
+          <button class="btn sm teal" onclick="loadTestScoreEntry()"><span>Load Students</span></button>
+        </div>
+        <div id="test-score-entry"></div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px">
         <div class="sh" style="font-size:14px;margin-bottom:10px">Roster Notes</div>
@@ -1133,12 +1157,52 @@ function applyProfileFromDB(profile){
 let _teacherList = []; // [{id, display_name, periods}]
 let _selectedTeacherId = null; // which teacher is being logged into
 const SHELL_KEY='ac_shell_state';
+let _hubSessionStart=Date.now();let _acEngQueue=[];
+
+// ── ENGAGEMENT TRACKING FUNCTIONS ────────────────────
+function acLogEvent(eventType, unitId, deckId, data, durationSeconds){
+  if(!S||!S.name||S.isGuest)return;
+  _acEngQueue.push({
+    student_name:     S.name,
+    period:           S.period||'',
+    event_type:       eventType,
+    unit_id:          unitId||null,
+    deck_id:          deckId||null,
+    data:             data||null,
+    duration_seconds: durationSeconds||null,
+    created_at:       new Date().toISOString()
+  });
+}
+
+async function acFlushEngagement(){
+  if(!_acEngQueue.length)return;
+  const batch=_acEngQueue.splice(0);
+  try{
+    await fetch(SUPA_URL+'/rest/v1/ac_engagement',{
+      method:'POST',
+      headers:{...SUPA_H,'Prefer':'return=minimal'},
+      body:JSON.stringify(batch)
+    });
+  }catch(e){ console.log('Engagement flush failed',e); }
+}
+
+setInterval(acFlushEngagement,15000);
+
+window.addEventListener('beforeunload',()=>{
+  const hubSecs=Math.round((Date.now()-_hubSessionStart)/1000);
+  acLogEvent('hub_session_end','shell',null,{view:'shell'},hubSecs);
+  if(!_acEngQueue.length)return;
+  navigator.sendBeacon(SUPA_URL+'/rest/v1/ac_engagement',
+    new Blob([JSON.stringify(_acEngQueue)],{type:'application/json'}));
+});
+// ─────────────────────────────────────────────────────
 let IS_TEACHER=false;
 let _currentTeacher=null; // {id, name, periods} set on teacher login
 let _teacherDashPeriod='all'; // current period filter in teacher dashboard
 let _trophyData=[];
 let _charCat='all';
 let _lbPeriod='all';
+let _lbSts=[];
 
 // ── TIER SYSTEM ───────────────────────────────────────
 function calcTier(acc){if(acc===100)return'historian';if(acc>=90)return'gold';if(acc>=80)return'silver';if(acc>=70)return'bronze';if(acc>=60)return'completed';return'tryagain';}
@@ -1986,28 +2050,8 @@ const BADGES=[
 let S={name:'',avatar:'scholar_f',period:'',isGuest:false,isTeacher:false,
   unitsCompleted:[],badgesEarned:[],unlocked:CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id),setupDone:false,
   gold:0,xp:0,vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{}};
-
-function returnToCivitas() {
-  saveS();
-  try { localStorage.setItem('civitas_returning', '1'); localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
-  window.location.href = '/Civitas/';
-}
-
 function saveS(){
   try{localStorage.setItem(SHELL_KEY,JSON.stringify(S));}catch(e){}
-  // Sync gold and unlocks back to Civitas
-  try{
-    const prev=parseInt(localStorage.getItem('civitas_gold')||'0');
-    if((S.gold||0)>prev){
-      localStorage.setItem('civitas_gold',S.gold);
-      localStorage.setItem('civitas_gold_pending',JSON.stringify({amount:S.gold-prev,source:'US History'}));
-    }
-    if(Array.isArray(S.unlocked)&&S.unlocked.length){
-      const shared=JSON.parse(localStorage.getItem('civitas_unlocked_chars')||'[]');
-      const merged=[...new Set([...shared,...S.unlocked])];
-      localStorage.setItem('civitas_unlocked_chars',JSON.stringify(merged));
-    }
-  }catch(e){}
   // Debounced DB push — don't hammer Supabase on every state change
   if(!saveS._t) saveS._t=setTimeout(()=>{saveS._t=null;saveProfileToDB();if(S.name&&!S.isGuest)saveProfileByName();},2000);
 }
@@ -2049,33 +2093,8 @@ async function boot(){
 
   loadS();
 
-  // ── Civitas Shell Integration ─────────────────────────────────────────
-  try {
-    const civState = JSON.parse(localStorage.getItem('civitas_state')||'{}');
-    const civName = civState.name;
-    const civIsTeacher = civState.isTeacher || localStorage.getItem('civitas_is_teacher') === '1';
-    const civPeriod = civIsTeacher ? 'teacher' : (civState.courses?.[0]?.period || 'guest');
-    if (civName) {
-      S.name = civName;
-      S.fullName = civState.fullName || civName;
-      S.period = civPeriod;
-      S.isGuest = false;
-      S.isTeacher = civIsTeacher;
-      S.setupDone = true;
-      if(civIsTeacher) IS_TEACHER = true;
-      const civGold = parseInt(civState.gold || '0');
-      if (civGold > (S.gold || 0)) S.gold = civGold;
-      try {
-        const shared = JSON.parse(localStorage.getItem('civitas_unlocked_chars') || '[]');
-        if (!Array.isArray(S.unlocked)) S.unlocked = [];
-        S.unlocked = [...new Set([...S.unlocked, ...shared])];
-      } catch(e) {}
-      saveS();
-    }
-  } catch(e) {}
-  // ─────────────────────────────────────────────────────────────────────
-
   if(S.setupDone && !S.isGuest && S.name){
+    // Always go straight to shell — no confirmation needed on return
     enterShell();
   } else {
     document.getElementById('title-screen').style.display='flex';
@@ -2376,6 +2395,10 @@ async function logSessionEnd(exitTo=''){
 window.addEventListener('beforeunload',()=>{ if(_sessionStart)logSessionEnd('unload'); });
 
 function enterShell(){
+  if(typeof _hubSessionStart !== 'undefined') _hubSessionStart = Date.now();
+  setTimeout(()=>{
+    if(S.name&&!S.isGuest) acLogEvent('hub_session_start','shell',null,{period:S.period},null);
+  }, 1000);
   try{sessionStorage.setItem('ac_shell_active','1');}catch(e){}
   document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
   // Start tracking this session
@@ -2540,11 +2563,18 @@ async function resetProfile(){
 
 // ── SUPABASE SYNC ─────────────────────────────────────
 async function syncFromSupabase(){
-  const rows=await sfetch(`/rest/v1/ac_results?name=eq.${encodeURIComponent(S.name)}&select=unit_id,best_accuracy,cards`);
+  const rows=await sfetch(`/rest/v1/ac_results?name=eq.${encodeURIComponent(S.name)}&select=unit_id,best_accuracy,best_score,cards`);
   if(!Array.isArray(rows))return;
   _trophyData=rows;
   let changed=false;
-  rows.forEach(r=>{if(!S.unitsCompleted.includes(r.unit_id)&&r.best_accuracy>=60){S.unitsCompleted.push(r.unit_id);changed=true;}});
+  rows.forEach(r=>{
+    // Only add real unit games to unitsCompleted — not vocab or test rows
+    if(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')&&!S.unitsCompleted.includes(r.unit_id)&&r.best_accuracy>=60){
+      S.unitsCompleted.push(r.unit_id);changed=true;
+    }
+  });
+  // Always refresh HUD after sync so EOC rating reflects loaded data
+  updateHUD();
   awardBadges();checkUnlocks();
   if(changed){saveS();updateHUD();renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();
   // Refresh new views if they are currently open
@@ -2585,12 +2615,35 @@ function shellEOCLevel(score15){
   return{level:1,label:'Level 1',color:'var(--red2)'};
 }
 function calcCumulativeEOC(){
-  // Average best_accuracy across all completed units, mapped to /15
-  if(!_trophyData.length)return null;
-  const completed=_trophyData.filter(r=>r.best_accuracy>=60);
-  if(!completed.length)return null;
-  const avgAcc=completed.reduce((a,r)=>a+(r.best_accuracy||0),0)/completed.length;
-  return Math.round((avgAcc/100)*15);
+  // Game scores (unit games only — exclude vocab_ and test_ rows)
+  const gameRows = _trophyData.filter(r =>
+    r.best_accuracy >= 60 &&
+    r.unit_id &&
+    !r.unit_id.startsWith('vocab_') &&
+    !r.unit_id.startsWith('test_')
+  );
+  // Test scores
+  const testRows = _trophyData.filter(r =>
+    r.unit_id && r.unit_id.startsWith('test_') && r.best_accuracy != null
+  );
+
+  if(!gameRows.length && !testRows.length) return null;
+
+  // Weight: game accuracy 60%, test scores 40% (if tests exist)
+  let score = 0;
+  if(gameRows.length && testRows.length){
+    const gameAvg = gameRows.reduce((a,r)=>a+(r.best_accuracy||0),0)/gameRows.length;
+    const testAvg = testRows.reduce((a,r)=>a+(r.best_accuracy||0),0)/testRows.length;
+    const combined = (gameAvg * 0.60) + (testAvg * 0.40);
+    score = Math.round((combined/100)*15);
+  } else if(gameRows.length){
+    const gameAvg = gameRows.reduce((a,r)=>a+(r.best_accuracy||0),0)/gameRows.length;
+    score = Math.round((gameAvg/100)*15);
+  } else {
+    const testAvg = testRows.reduce((a,r)=>a+(r.best_accuracy||0),0)/testRows.length;
+    score = Math.round((testAvg/100)*15);
+  }
+  return score;
 }
 
 function updateHUD(){
@@ -2615,6 +2668,7 @@ function updateHUD(){
 
 // ── VIEWS ─────────────────────────────────────────────
 function showView(v){
+  if(S.name&&!S.isGuest) acLogEvent('view_changed','shell',null,{view:v},null);
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('view-'+v);if(el){el.classList.add('active');}
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -2841,7 +2895,12 @@ function launchUnit(url){
   localStorage.setItem('ac_returning_from_game','1');
   try{sessionStorage.removeItem('ac_shell_active');}catch(e){}
   const u=UNIT_DATA.find(x=>x.url===url);
-  logSessionEnd(u?u.title:'unit_game').then(()=>{ window.location.href=url; });
+  acLogEvent('unit_launched','unit7a',null,{
+    unit_id:    u?u.id:null,
+    unit_title: u?u.title:null,
+    url:        url
+  },null);
+  acFlushEngagement().then(()=>logSessionEnd(u?u.title:'unit_game')).then(()=>{ window.location.href=url; });
 }
 
 // Mini RPG card for the course-intro bar (far right of the header stripe)
@@ -3076,7 +3135,7 @@ function buildLaunchArea(u,st){
 }
 
 // ── Listen for vocab reward messages from flashcard page ──
-window.addEventListener('message',e=>{
+window.addEventListener('message',async e=>{
   if(e.data?.type==='vocabReward'&&e.data.deckId){
     const{deckId,gold:g,xp:x,score,passed}=e.data;
     // Clear localStorage result key so the poller doesn't double-award
@@ -3095,6 +3154,33 @@ window.addEventListener('message',e=>{
     saveS();
     updateHUDGold();
     renderVocabMedals();
+    // Push vocab result to ac_results so it appears on the leaderboard
+    if(!S.isGuest&&S.name&&score!==undefined){
+      const vocabUnitId='vocab_'+deckId;
+      // Scale vocab to roughly one lesson's worth of points:
+      // 80% pass threshold → ~80pts, 90% → ~120pts, 100% → 150pts
+      const vocabScore = score < 80 ? Math.round(score * 0.5)
+        : score === 100 ? 150
+        : Math.round(80 + ((score - 80) / 20) * 70);
+      try{
+        const existing=await sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(S.name)+'&period=eq.'+encodeURIComponent(S.period||'')+'&unit_id=eq.'+encodeURIComponent(vocabUnitId)+'&select=best_score,best_accuracy,attempts');
+        const prev=existing&&existing[0];
+        await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+          method:'POST',
+          headers:{...SUPA_H,'Prefer':'resolution=merge-duplicates'},
+          body:JSON.stringify({
+            name:S.name,
+            period:S.period||'',
+            unit_id:vocabUnitId,
+            best_score:Math.max(vocabScore,prev?prev.best_score||0:0),
+            best_accuracy:Math.max(score,prev?prev.best_accuracy||0:0),
+            trophy:score>=80?'gold':score>=60?'silver':'tryagain',
+            attempts:(prev?prev.attempts||0:0)+1,
+            updated_at:new Date().toISOString()
+          })
+        });
+      }catch(err){console.log('Vocab result push failed',err);}
+    }
   }
   if(e.data?.type==='unitComplete'&&e.data.unitId)onUnitComplete(e.data.unitId);
 });
@@ -3614,28 +3700,49 @@ function renderVocabMedals(){
 
 async function renderLeaderboard(){
   document.getElementById('lb-sync').textContent='Loading class results…';
-  const [all, profiles] = await Promise.all([
+  const [all, profiles, studentProfiles] = await Promise.all([
     sfetch('/rest/v1/ac_results?select=name,period,unit_id,best_score,best_accuracy,cards&order=best_score.desc&limit=400'),
+    sfetch('/rest/v1/ac_profiles?select=name,period,vocab_passed'),
     sfetch('/rest/v1/ac_student_profiles?select=display_name,period,vocab_passed')
   ]);
 
-  // Build vocab count lookup keyed by "name|period"
+  // Build vocab count lookup keyed by "name|period" — check both profile tables
   const vocabLookup={};
   (profiles||[]).forEach(p=>{
     try{
       const vp=JSON.parse(p.vocab_passed||'{}');
       const count=Object.values(vp).filter(Boolean).length;
-      vocabLookup[p.display_name+'|'+p.period]=count;
+      vocabLookup[(p.name||p.display_name)+'|'+p.period]=count;
+    }catch(e){}
+  });
+  (studentProfiles||[]).forEach(p=>{
+    try{
+      const vp=JSON.parse(p.vocab_passed||'{}');
+      const count=Object.values(vp).filter(Boolean).length;
+      const k=p.display_name+'|'+p.period;
+      // Only set if higher (don't overwrite a better score from ac_profiles)
+      if(!vocabLookup[k]||count>vocabLookup[k]) vocabLookup[k]=count;
     }catch(e){}
   });
 
   const sm={};
+
+  // First seed ALL known students from ac_student_profiles so vocab-only students appear
+  (studentProfiles||[]).forEach(p=>{
+    if(!p.display_name||!p.period||p.period==='guest'||p.period==='teacher') return;
+    const k=p.display_name+'|'+p.period;
+    if(!sm[k]) sm[k]={name:p.display_name,period:p.period,score:0,units:0,golds:0,cards:0,vocab:0,is_teacher:false};
+  });
+
+  // Then layer in actual game scores from ac_results
   (all||[]).forEach(r=>{
     const isT=r.is_teacher||r.period==='teacher';
+    const isVocab=r.unit_id&&r.unit_id.startsWith('vocab_');
+    const isTest=r.unit_id&&r.unit_id.startsWith('test_');
     const k=isT?'__teacher__'+r.name:r.name+'|'+r.period;
     if(!sm[k])sm[k]={name:r.name,period:isT?'':r.period,score:0,units:0,golds:0,cards:0,vocab:0,is_teacher:isT};
-    sm[k].score+=r.best_score||0;sm[k].units++;
-    if(r.best_accuracy>=90)sm[k].golds++;
+    sm[k].score+=r.best_score||0;
+    if(!isVocab&&!isTest){sm[k].units++;if(r.best_accuracy>=90)sm[k].golds++;}
     sm[k].cards+=r.cards||0;
     if(isT)sm[k].is_teacher=true;
   });
@@ -3645,12 +3752,12 @@ async function renderLeaderboard(){
     sm[k].vocab = vocabLookup[k] || 0;
   });
 
-  const sts=Object.values(sm).sort((a,b)=>b.score-a.score);
-  const periods=[...new Set(sts.filter(s=>s.period&&!s.is_teacher&&s.period!=='teacher'&&s.period!=='guest').map(s=>String(s.period)))].sort((a,b)=>+a-+b);
+  _lbSts=Object.values(sm).sort((a,b)=>b.score-a.score);
+  const periods=[...new Set(_lbSts.filter(s=>s.period&&!s.is_teacher&&s.period!=='teacher'&&s.period!=='guest').map(s=>String(s.period)))].sort((a,b)=>+a-+b);
   const tabs=document.getElementById('lb-tabs');
-  tabs.innerHTML=[{k:'all',l:'All'},...periods.map(p=>({k:p,l:'Pd '+p}))].map(t=>`<button class="lb-tab ${_lbPeriod===t.k?'active':''}" onclick="setLbPeriod('${t.k}',${JSON.stringify(sts)})">${t.l}</button>`).join('');
-  drawLbTable(sts,_lbPeriod);
-  document.getElementById('lb-sync').textContent=sts.length+' students · auto-synced from games';
+  tabs.innerHTML=[{k:'all',l:'All'},...periods.map(p=>({k:p,l:'Pd '+p}))].map(t=>`<button class="lb-tab ${_lbPeriod===t.k?'active':''}" onclick="setLbPeriod('${t.k}')">${t.l}</button>`).join('');
+  drawLbTable(_lbSts,_lbPeriod);
+  document.getElementById('lb-sync').textContent=_lbSts.filter(s=>!s.is_teacher).length+' students · auto-synced from games';
 }
 
 let _shellLBDeleteUnlocked=false;
@@ -3668,15 +3775,18 @@ function shellUnlockLBDelete(){
 }
 
 async function shellLBDelete(name,period){
-  if(!confirm('Remove "'+name+'" from ALL leaderboards? This deletes all their unit results and cannot be undone.'))return;
+  if(!confirm('Remove "'+name+'" (Period '+period+') completely? This deletes their unit results AND their profile and cannot be undone.'))return;
   try{
-    await fetch(SUPA_URL+'/rest/v1/ac_results?name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H});
-    notify('Removed from leaderboard');
+    await Promise.all([
+      fetch(SUPA_URL+'/rest/v1/ac_results?name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H}),
+      fetch(SUPA_URL+'/rest/v1/ac_student_profiles?display_name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H}),
+    ]);
+    notify('Removed: '+name);
     renderLeaderboard();
   }catch(e){notify('Error removing entry');}
 }
 
-function setLbPeriod(p,sts){_lbPeriod=p;document.querySelectorAll('.lb-tab').forEach(b=>{b.classList.toggle('active',b.textContent.replace('Pd ','')===p||p==='all'&&b.textContent==='All');});drawLbTable(sts,p);}
+function setLbPeriod(p){_lbPeriod=p;document.querySelectorAll('.lb-tab').forEach(b=>{b.classList.toggle('active',b.textContent.replace('Pd ','')===p||p==='all'&&b.textContent==='All');});drawLbTable(_lbSts,p);}
 
 function drawLbTable(sts,period){
   const el=document.getElementById('lb-content');
@@ -3753,7 +3863,9 @@ function printCert(uid){
   <div class="np" style="text-align:center;margin-top:14px">
     <button class="pbtn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <button class="pbtn" onclick="window.close()" style="margin-left:9px;background:#5a4520;color:#faf7f0">✕ Close</button>
-  </div></body></html>`);w.document.close();
+  </div>
+
+</body></html>`);w.document.close();
 }
 
 // ── EOC PRACTICE CERTIFICATE (reads from shell localStorage) ─────────────
@@ -3813,7 +3925,9 @@ function printEOCShellCert(){
   <div class="np" style="text-align:center;margin-top:14px">
     <button class="pbtn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <button class="pbtn" onclick="window.close()" style="margin-left:9px;background:#5a4520;color:#faf7f0">✕ Close</button>
-  </div></body></html>`);w.document.close();
+  </div>
+
+</body></html>`);w.document.close();
 }
 
 // ── COURSE TROPHY CERTIFICATE ────────────────────────
@@ -3890,14 +4004,30 @@ function printCourseCert(){
   const midtermScore=midtermRow?midtermRow.best_accuracy:0;
   const midtermAttempted=!!midtermRow;
 
+  // ── 6. UNIT TEST SCORES (25% if entered, redistributed if not) ────────────
+  const testRows=_trophyData.filter(r=>r.unit_id&&r.unit_id.startsWith('test_'));
+  const testAvg=testRows.length?Math.round(testRows.reduce((a,r)=>a+(r.best_accuracy||0),0)/testRows.length):null;
+  const testAttempted=testRows.length>0;
+
   // ── WEIGHTED COMPOSITE GRADE ──────────────────────────
-  const courseGrade=Math.round(
-    unitScore        * 0.50 +
-    studyScoreFinal  * 0.20 +
-    eocScore         * 0.15 +
-    rpgScore         * 0.10 +
-    midtermScore     * 0.05
-  );
+  // If test scores entered: unit 40%, test 25%, vocab 15%, eoc 10%, rpg 5%, midterm 5%
+  // If no test scores yet:  unit 50%, vocab 20%, eoc 15%, rpg 10%, midterm 5%
+  const courseGrade = testAttempted
+    ? Math.round(
+        unitScore       * 0.40 +
+        testAvg         * 0.25 +
+        studyScoreFinal * 0.15 +
+        eocScore        * 0.10 +
+        rpgScore        * 0.05 +
+        midtermScore    * 0.05
+      )
+    : Math.round(
+        unitScore        * 0.50 +
+        studyScoreFinal  * 0.20 +
+        eocScore         * 0.15 +
+        rpgScore         * 0.10 +
+        midtermScore     * 0.05
+      );
 
   const tier=calcTier(courseGrade);
   const tcRaw=TIER_COLOR[tier];
@@ -3923,16 +4053,19 @@ function printCourseCert(){
       <td style="padding:2px 6px;font-size:9px;color:${utColors[ut]};text-align:center;font-weight:700">${r.best_accuracy}%</td>
       <td style="padding:2px 6px;font-size:9px;text-align:center;color:${vScore!==null?'#38a050':'#a09080'}">${vScore!==null?vScore+'%':'—'}</td>
       <td style="padding:2px 6px;font-size:9px;text-align:center">${fStudied?'✅':'—'}</td>
+      <td style="padding:2px 6px;font-size:9px;text-align:center;color:${(()=>{const tr=_trophyData.find(x=>x.unit_id==='test_'+u.id);return tr?'#8a4820':'#a09080';})()};font-weight:600">${(()=>{const tr=_trophyData.find(x=>x.unit_id==='test_'+u.id);return tr?tr.best_accuracy+'%':'—';})()}</td>
     </tr>`;
   }).join('');
 
   // ── COMPONENT SUMMARY ROWS ────────────────────────────
+  const useTestWeight = testAttempted;
   const compRows=[
-    {label:'Unit Games + Themes',weight:'50%',score:unitScore,note:`${completedCount}/${totalUnits} units · ${completedThemeCount}/5 themes (½ wt ea) · avg ${Math.round(avgUnitAccuracy)}% × ${Math.round(completionRate*100)}% completion`,attempted:true},
-    {label:'Study (Vocab + Flashcards)',weight:'20%',score:studyScoreFinal,note:`${vocabQuizCount}/${totalDecks} quizzes taken · ${decksStudied}/${totalDecks} decks studied · +${flashcardBonus}pt flashcard bonus`,attempted:studyAttempted},
-    {label:'EOC Practice Test',weight:'15%',score:eocScore,note:eocAttempted?`Best accuracy: ${eocScore}%`:'Not yet attempted — worth 15%',attempted:eocAttempted},
-    {label:'RPG Campaign',weight:'10%',score:rpgScore,note:rpgAttempted?`Best accuracy: ${rpgScore}%`:'Not yet attempted — worth 10%',attempted:rpgAttempted},
-    {label:'Midterm Checkpoint',weight:'5%',score:midtermScore,note:midtermAttempted?`Best accuracy: ${midtermScore}%`:'Not yet attempted — worth 5%',attempted:midtermAttempted},
+    {label:'Unit Games + Themes',      weight:useTestWeight?'40%':'50%', score:unitScore,     note:`${completedCount}/${totalUnits} units · ${completedThemeCount}/5 themes (½ wt ea) · avg ${Math.round(avgUnitAccuracy)}% × ${Math.round(completionRate*100)}% completion`,attempted:true},
+    {label:'Unit Test Scores',          weight:useTestWeight?'25%':'—',   score:testAvg||0,    note:testAttempted?`${testRows.length} test${testRows.length>1?'s':''} entered · avg ${testAvg}%`:'No test scores entered yet — worth 25% when added',attempted:testAttempted},
+    {label:'Study (Vocab + Flashcards)',weight:useTestWeight?'15%':'20%', score:studyScoreFinal,note:`${vocabQuizCount}/${totalDecks} quizzes taken · ${decksStudied}/${totalDecks} decks studied · +${flashcardBonus}pt flashcard bonus`,attempted:studyAttempted},
+    {label:'EOC Practice Test',         weight:useTestWeight?'10%':'15%', score:eocScore,      note:eocAttempted?`Best accuracy: ${eocScore}%`:'Not yet attempted',attempted:eocAttempted},
+    {label:'RPG Campaign',              weight:useTestWeight?'5%':'10%',  score:rpgScore,      note:rpgAttempted?`Best accuracy: ${rpgScore}%`:'Not yet attempted',attempted:rpgAttempted},
+    {label:'Midterm Checkpoint',        weight:'5%',                      score:midtermScore,  note:midtermAttempted?`Best accuracy: ${midtermScore}%`:'Not yet attempted',attempted:midtermAttempted},
   ].map(c=>`<tr>
     <td style="padding:3px 8px;font-size:9px;color:#1a1208;font-weight:600">${c.label}</td>
     <td style="padding:3px 8px;font-size:9px;color:#8a6a2a;text-align:center">${c.weight}</td>
@@ -4006,7 +4139,7 @@ function printCourseCert(){
     <div class="divider"></div>
     <div class="section-label">UNIT GAME HISTORY</div>
     <table class="unit-table">
-      <thead><tr><th>#</th><th>UNIT</th><th style="text-align:center">TROPHY</th><th style="text-align:center">GAME %</th><th style="text-align:center">VOCAB %</th><th style="text-align:center">CARDS</th></tr></thead>
+      <thead><tr><th>#</th><th>UNIT</th><th style="text-align:center">TROPHY</th><th style="text-align:center">GAME %</th><th style="text-align:center">VOCAB %</th><th style="text-align:center">CARDS</th><th style="text-align:center">TEST %</th></tr></thead>
       <tbody>${unitRows}</tbody>
     </table>
     <div class="divider"></div>
@@ -4019,7 +4152,9 @@ function printCourseCert(){
   <div class="np" style="text-align:center;margin-top:14px">
     <button class="pbtn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <button class="pbtn" onclick="window.close()" style="margin-left:9px;background:#5a4520;color:#faf7f0">✕ Close</button>
-  </div></body></html>`);w.document.close();
+  </div>
+
+</body></html>`);w.document.close();
 }
 
 // ══════════════════════════════════════════════════════
@@ -4149,13 +4284,23 @@ function teacherLogout(){IS_TEACHER=false;S.isTeacher=false;saveS();document.get
 async function renderTeacherView(){
   const ul=document.getElementById('teacher-units');
   ul.innerHTML=UNIT_DATA.filter(u=>u.url).map(u=>`<div class="t-unit-row"><div style="font-size:20px;flex-shrink:0">${u.icon}</div><div style="flex:1;min-width:140px"><div style="font-family:var(--playfair);font-size:12px;color:var(--cream)">${u.num} — ${u.title}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${u.years}</div></div><a href="${u.url}" target="_blank" style="text-decoration:none"><button class="btn xs teal"><span>▶ Open</span></button></a></div>`).join('');
-  const re=document.getElementById('teacher-results');re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3)">Loading…</div>';
-  const [all, profiles, sessions]=await Promise.all([
-    sfetch('/rest/v1/ac_results?select=*&order=updated_at.desc&limit=500'),
-    sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,vocab_passed,units_completed,gold,updated_at'),
-    sfetch('/rest/v1/ac_sessions?select=student_name,period,minutes&limit=5000')
-  ]);
-  if(!all?.length){re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">No results yet.</div>';return;}
+  const re=document.getElementById('teacher-results');
+  re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3)">Loading…</div>';
+  let all, profiles, sessions;
+  try{
+    [all, profiles, sessions]=await Promise.all([
+      sfetch('/rest/v1/ac_results?select=name,period,unit_id,best_score,best_accuracy,attempts,updated_at&order=updated_at.desc&limit=500'),
+      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,vocab_passed,units_completed,gold,updated_at'),
+      sfetch('/rest/v1/ac_sessions?select=student_name,period,minutes&limit=5000')
+    ]);
+  }catch(err){
+    re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--red2);padding:12px">Error: '+err.message+'</div>';
+    return;
+  }
+  if(!all?.length&&!profiles?.length){
+    re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">No results yet.</div>';
+    return;
+  }
 
   // Session totals per student
   const sessSm={};
@@ -4172,21 +4317,28 @@ async function renderTeacherView(){
     try{const vp=JSON.parse(p.vocab_passed||'{}');vocabLookup[p.display_name+'|'+p.period]=Object.values(vp).filter(Boolean).length;}catch(e){}
   });
 
-  const sm={};all.forEach(r=>{const k=r.name+'|'+r.period;if(!sm[k])sm[k]={name:r.name,period:r.period,units:[],score:0};sm[k].units.push(r);sm[k].score+=r.best_score||0;});
+  // Seed all known students so vocab-only students appear
+  const sm={};
+  (profiles||[]).forEach(p=>{
+    if(!p.display_name||!p.period||p.period==='guest'||p.period==='teacher')return;
+    const k=p.display_name+'|'+p.period;
+    if(!sm[k])sm[k]={name:p.display_name,period:p.period,units:[],score:0};
+  });
+  all.forEach(r=>{const k=r.name+'|'+r.period;if(!sm[k])sm[k]={name:r.name,period:r.period,units:[],score:0};if(!r.unit_id||(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')))sm[k].units.push(r);sm[k].score+=r.best_score||0;});
   const sts=Object.values(sm).sort((a,b)=>b.score-a.score);
 
   re.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${sts.length} students · ${all.length} unit results</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${sts.length} students · ${(all||[]).filter(r=>!r.unit_id||!r.unit_id.startsWith('vocab_')).length} unit results</div>
       <button class="btn xs green" onclick="exportCSV()"><span>⬇ Export CSV</span></button>
     </div>
-    <table class="lb-table"><thead><tr><th>STUDENT</th><th>PD</th><th>UNITS</th><th>SCORE</th><th>GOLDS</th><th>HISTORIANS</th><th>VOCAB</th><th>AVG ACC</th><th>⏱ MINS</th></tr></thead><tbody>${sts.map(s=>{
+    <table class="lb-table"><thead><tr><th>STUDENT</th><th>PD</th><th>UNITS</th><th>SCORE</th><th>GOLDS</th><th>HISTORIANS</th><th>VOCAB</th><th>AVG ACC</th><th>⏱ MINS</th><th></th></tr></thead><tbody>${sts.map((s,i)=>{
       const k=s.name+'|'+s.period;
       const avgAcc=s.units.length?Math.round(s.units.reduce((a,u)=>a+(u.best_accuracy||0),0)/s.units.length):0;
       const vocab=vocabLookup[k]||0;
       const mins=sessSm[k]||0;
-      return`<tr>
-        <td style="font-family:var(--playfair);font-size:12px;color:var(--cream)">${s.name}</td>
+      return`<tr style="cursor:pointer" onclick="openStudentProfile('${s.name.replace(/'/g,"\\'")}','${s.period||''}')" title="Click to view ${s.name}'s full profile">
+        <td style="font-family:var(--playfair);font-size:12px;color:var(--cream)">${s.name} <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">▶</span></td>
         <td style="color:var(--text3);font-size:10px">${s.period?'Pd '+s.period:'—'}</td>
         <td style="color:var(--teal2)">${s.units.length}</td>
         <td style="color:var(--amber);font-weight:600">${s.score.toLocaleString()}</td>
@@ -4195,20 +4347,469 @@ async function renderTeacherView(){
         <td style="color:var(--teal2)">${vocab}</td>
         <td style="color:var(--text2)">${avgAcc}%</td>
         <td style="color:var(--green2)">${mins>0?mins+' min':'—'}</td>
+        <td onclick="event.stopPropagation()">${(()=>{const _k='del_'+i;window._dashDelRegistry[_k]={name:s.name,period:s.period||''};return'<button onclick="window._dashDelClick(\''+_k+'\',event)" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:3px 8px;cursor:pointer;letter-spacing:1px;">✕ REMOVE</button>';})()}</td>
       </tr>`;
     }).join('')}</tbody></table>`;
   try{const n=document.getElementById('teacher-notes');if(n)n.value=localStorage.getItem('ac_teacher_notes')||'';}catch(e){}
+  buildTestUnitSelect();
+}
+
+
+async function openStudentProfile(name, period){
+  // Show overlay immediately with loading state
+  const ov = document.getElementById('student-profile-overlay');
+  ov.style.display = 'block';
+  document.getElementById('sp-name').textContent = name;
+  document.getElementById('sp-sub').textContent = 'Period ' + period + '  ·  Loading…';
+  document.getElementById('sp-stats').innerHTML = '';
+  document.getElementById('sp-units').innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 0">Loading…</div>';
+  document.getElementById('sp-vocab').innerHTML = '';
+
+  const [results, profiles] = await Promise.all([
+    sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period)+'&select=*&order=unit_id.asc'),
+    sfetch('/rest/v1/ac_student_profiles?display_name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period)+'&select=*')
+  ]);
+
+  const prof = (profiles||[])[0] || {};
+  const unitResults = results || [];
+
+  // Sub line
+  document.getElementById('sp-sub').textContent = 'Period ' + period + (prof.full_name && prof.full_name !== name ? '  ·  ' + prof.full_name : '');
+
+  // Vocab data
+  let vocabPassed = {};
+  let vocabBestScore = {};
+  try { vocabPassed = JSON.parse(prof.vocab_passed || '{}'); } catch(e){}
+  try { vocabBestScore = JSON.parse(prof.vocab_best_score || '{}'); } catch(e){}
+  const vocabCount = Object.values(vocabPassed).filter(Boolean).length;
+
+  // Split results — real unit games vs vocab quiz results
+  const gameResults = unitResults.filter(r => !r.unit_id.startsWith('vocab_'));
+  const vocabResults = unitResults.filter(r => r.unit_id.startsWith('vocab_'));
+
+  // Summary stats (unit games only)
+  const totalScore = gameResults.reduce((a,r) => a + (r.best_score||0), 0);
+  const avgAcc = gameResults.length ? Math.round(gameResults.reduce((a,r) => a + (r.best_accuracy||0), 0) / gameResults.length) : 0;
+  const golds = gameResults.filter(r => r.best_accuracy >= 90).length;
+  document.getElementById('sp-stats').innerHTML = [
+    {v: gameResults.length, l: 'UNITS DONE'},
+    {v: totalScore.toLocaleString(), l: 'TOTAL SCORE'},
+    {v: avgAcc + '%', l: 'AVG ACCURACY'},
+    {v: vocabCount, l: 'VOCAB PASSED'},
+  ].map(s => `<div style="background:var(--bg3);border:1px solid var(--border);padding:10px;text-align:center;">
+    <div style="font-family:var(--bebas);font-size:22px;color:var(--amber)">${s.v}</div>
+    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px">${s.l}</div>
+  </div>`).join('');
+
+  // Unit games table
+  if(!gameResults.length){
+    document.getElementById('sp-units').innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:6px 0">No unit games completed yet.</div>';
+  } else {
+    document.getElementById('sp-units').innerHTML = `<table class="lb-table" style="font-size:11px;">
+      <thead><tr><th>UNIT</th><th>BEST SCORE</th><th>ACCURACY</th><th>ATTEMPTS</th><th>TROPHY</th></tr></thead>
+      <tbody>${gameResults.map(r => {
+        const u = UNIT_DATA.find(x => x.id === r.unit_id) || {};
+        const tier = calcTier(r.best_accuracy||0);
+        const tc = TIER_COLOR[tier];
+        return `<tr>
+          <td style="font-family:var(--playfair);color:var(--cream)">${u.icon||'📖'} ${u.num||r.unit_id} — ${u.title||r.unit_id}</td>
+          <td style="color:var(--amber);font-weight:600">${(r.best_score||0).toLocaleString()}</td>
+          <td style="color:${tc}">${r.best_accuracy||0}%</td>
+          <td style="color:var(--text3)">${r.attempts||1}</td>
+          <td style="color:${tc}">${TIER_EMOJI[tier]} ${TIER_LABEL[tier]}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+
+  // Vocab quizzes — merge profile data with ac_results vocab rows for best picture
+  const vocabFromResults = {};
+  vocabResults.forEach(r => {
+    const deckId = r.unit_id.replace('vocab_','');
+    vocabFromResults[deckId] = r;
+  });
+  const allVocabDecks = [...new Set([...Object.keys(vocabPassed), ...Object.keys(vocabFromResults)])];
+  if(!allVocabDecks.length){
+    document.getElementById('sp-vocab').innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:6px 0">No vocab quizzes completed yet.</div>';
+  } else {
+    document.getElementById('sp-vocab').innerHTML = `<table class="lb-table" style="font-size:11px;">
+      <thead><tr><th>DECK</th><th>STATUS</th><th>BEST SCORE</th><th>ATTEMPTS</th></tr></thead>
+      <tbody>${allVocabDecks.map(deckId => {
+        const passed = vocabPassed[deckId];
+        const best = vocabBestScore[deckId] || vocabFromResults[deckId]?.best_accuracy;
+        const attempts = vocabFromResults[deckId]?.attempts || '—';
+        const label = deckId.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        return `<tr>
+          <td style="font-family:var(--playfair);color:var(--cream)">${label}</td>
+          <td style="color:${passed?'var(--green2)':'var(--amber)'}">${passed ? '✅ Passed' : '🔄 Attempted'}</td>
+          <td style="color:var(--amber);font-weight:600">${best != null ? best + '%' : '—'}</td>
+          <td style="color:var(--text3)">${attempts}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+
+  // Test scores section
+  const testResults = unitResults.filter(r => r.unit_id && r.unit_id.startsWith('test_'));
+  const spTestEl = document.getElementById('sp-test');
+  if(spTestEl){
+    if(!testResults.length){
+      spTestEl.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:6px 0">No test scores entered yet.</div>';
+    } else {
+      spTestEl.innerHTML = `<table class="lb-table" style="font-size:11px;">
+        <thead><tr><th>UNIT</th><th>TEST SCORE</th><th>LEADERBOARD PTS</th></tr></thead>
+        <tbody>${testResults.map(r => {
+          const u = UNIT_DATA.find(x => 'test_'+x.id === r.unit_id) || {};
+          const tc = r.best_accuracy>=90?'var(--gold)':r.best_accuracy>=80?'var(--green2)':r.best_accuracy>=70?'var(--amber)':'var(--red2)';
+          return `<tr>
+            <td style="font-family:var(--playfair);color:var(--cream)">${u.icon||'📝'} ${u.num||r.unit_id} — ${u.title||''}</td>
+            <td style="color:${tc};font-weight:600">${r.best_accuracy}%</td>
+            <td style="color:var(--amber)">${(r.best_score||0).toLocaleString()} pts</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    }
+  }
+}
+
+function spSwitchTab(tab){
+  document.getElementById('sp-panel-scores').style.display     = tab==='scores'     ? 'block' : 'none';
+  document.getElementById('sp-panel-engagement').style.display = tab==='engagement' ? 'block' : 'none';
+  document.getElementById('sp-tab-scores').style.background     = tab==='scores'     ? 'var(--amber)' : 'transparent';
+  document.getElementById('sp-tab-scores').style.color          = tab==='scores'     ? 'var(--bg)'    : 'var(--text3)';
+  document.getElementById('sp-tab-engagement').style.background = tab==='engagement' ? 'var(--amber)' : 'transparent';
+  document.getElementById('sp-tab-engagement').style.color      = tab==='engagement' ? 'var(--bg)'    : 'var(--text3)';
+  if(tab==='engagement' && document.getElementById('sp-engagement-content').dataset.loaded !== 'true'){
+    loadEngagementData();
+  }
+}
+
+async function loadEngagementData(){
+  const name   = document.getElementById('sp-name').textContent;
+  const period = document.getElementById('sp-sub').textContent.split('·')[0].replace('Period','').trim();
+  const el     = document.getElementById('sp-engagement-content');
+  el.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:12px 0;">Loading…</div>';
+
+  try{
+    const rows = await sfetch(
+      '/rest/v1/ac_engagement?student_name=eq.'+encodeURIComponent(name)+
+      '&period=eq.'+encodeURIComponent(period)+
+      '&order=created_at.asc&limit=500'
+    );
+    el.dataset.loaded = 'true';
+    if(!rows||!rows.length){
+      el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px 0;">No engagement data yet — data is collected as students use the site.</div>';
+      return;
+    }
+
+    // ── Aggregate ──
+    let hubSecs=0, briefingSecs=0, studySecs=0, quizSecs=0;
+    let briefings=[], studySessions=[], quizSessions=[], wrongQuestions={};
+    let currentStudy=null, currentQuiz=null;
+
+    rows.forEach(r=>{
+      const d = r.data || {};
+      const s = r.duration_seconds || 0;
+      switch(r.event_type){
+        case 'hub_session_end':    hubSecs += s; break;
+        case 'briefing_closed':
+        case 'briefing_closed_no_play':
+          briefingSecs += s;
+          briefings.push({page: d.page||r.unit_id, secs: s, read_fully: d.read_fully, played: r.event_type==='briefing_closed'});
+          break;
+        case 'briefing_proceeded':
+          briefingSecs += s;
+          briefings.push({page: d.lesson_label||d.page||r.unit_id, secs: s, read_fully: true, played: true});
+          break;
+        case 'study_started':
+          currentStudy = {deck: d.deck||r.deck_id, cards:0, secs:0, start: r.created_at};
+          break;
+        case 'study_completed':
+          if(currentStudy){ currentStudy.cards=d.cards_flipped||0; currentStudy.secs=s; studySecs+=s; studySessions.push({...currentStudy}); currentStudy=null; }
+          break;
+        case 'quiz_started':
+          currentQuiz = {deck: d.deck||r.deck_id, correct:0, total:0, secs:0};
+          break;
+        case 'quiz_completed':
+          if(currentQuiz){ currentQuiz.score=d.score_pct; currentQuiz.correct=d.correct; currentQuiz.total=d.total; currentQuiz.secs=s; currentQuiz.passed=d.passed; quizSecs+=s; quizSessions.push({...currentQuiz}); currentQuiz=null; }
+          break;
+        case 'quiz_question':
+          if(!d.correct && d.question){ wrongQuestions[d.question_id] = wrongQuestions[d.question_id]||{q:d.question, wrong:0, total:0}; wrongQuestions[d.question_id].wrong++; }
+          if(d.question_id){ wrongQuestions[d.question_id] = wrongQuestions[d.question_id]||{q:d.question||d.question_id, wrong:0, total:0}; wrongQuestions[d.question_id].total++; }
+          break;
+      }
+    });
+
+    const fmt = s => s >= 3600 ? Math.floor(s/3600)+'h '+(Math.floor((s%3600)/60))+'m' : s >= 60 ? Math.floor(s/60)+'m '+(s%60)+'s' : s+'s';
+
+    // ── Render ──
+    let html = '';
+
+    // Time summary
+    html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;">
+      ${[
+        {v:fmt(hubSecs),      l:'HUB TIME'},
+        {v:fmt(briefingSecs), l:'BRIEFING TIME'},
+        {v:fmt(studySecs),    l:'STUDY TIME'},
+        {v:fmt(quizSecs),     l:'QUIZ TIME'},
+      ].map(s=>`<div style="background:var(--bg3);border:1px solid var(--border);padding:10px;text-align:center;">
+        <div style="font-family:var(--bebas);font-size:18px;color:var(--amber)">${s.v}</div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px">${s.l}</div>
+      </div>`).join('')}
+    </div>`;
+
+    // Briefings
+    if(briefings.length){
+      html += `<div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">BRIEFINGS READ</div>`;
+      html += `<table class="lb-table" style="font-size:11px;margin-bottom:18px;">
+        <thead><tr><th>BRIEFING</th><th>TIME SPENT</th><th>READ FULLY</th><th>PLAYED AFTER</th></tr></thead>
+        <tbody>${briefings.map(b=>`<tr>
+          <td style="color:var(--cream)">${(b.page||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</td>
+          <td style="color:var(--amber)">${fmt(b.secs||0)}</td>
+          <td style="color:${b.read_fully?'var(--green2)':'var(--text3)'}">${b.read_fully?'✅ Yes':'—'}</td>
+          <td style="color:${b.played?'var(--green2)':'var(--text3)'}">${b.played?'✅ Yes':'❌ No'}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    // Study sessions
+    if(studySessions.length){
+      html += `<div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">FLASHCARD STUDY SESSIONS</div>`;
+      html += `<table class="lb-table" style="font-size:11px;margin-bottom:18px;">
+        <thead><tr><th>DECK</th><th>CARDS FLIPPED</th><th>TIME SPENT</th></tr></thead>
+        <tbody>${studySessions.map(s=>`<tr>
+          <td style="color:var(--cream)">${(s.deck||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</td>
+          <td style="color:var(--teal2)">${s.cards||0}</td>
+          <td style="color:var(--amber)">${fmt(s.secs||0)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    // Quiz sessions
+    if(quizSessions.length){
+      html += `<div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">VOCAB QUIZ ATTEMPTS</div>`;
+      html += `<table class="lb-table" style="font-size:11px;margin-bottom:18px;">
+        <thead><tr><th>DECK</th><th>SCORE</th><th>CORRECT</th><th>TIME</th><th>PASSED</th></tr></thead>
+        <tbody>${quizSessions.map(s=>`<tr>
+          <td style="color:var(--cream)">${(s.deck||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</td>
+          <td style="color:var(--amber);font-weight:600">${s.score!=null?s.score+'%':'—'}</td>
+          <td style="color:var(--teal2)">${s.correct||0}/${s.total||0}</td>
+          <td style="color:var(--text2)">${fmt(s.secs||0)}</td>
+          <td style="color:${s.passed?'var(--green2)':'var(--text3)'}">${s.passed?'✅':'❌'}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    // Wrong questions
+    const wrongs = Object.values(wrongQuestions).filter(q=>q.wrong>0).sort((a,b)=>b.wrong-a.wrong).slice(0,10);
+    if(wrongs.length){
+      html += `<div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">MOST MISSED QUESTIONS</div>`;
+      html += `<table class="lb-table" style="font-size:11px;margin-bottom:8px;">
+        <thead><tr><th>QUESTION</th><th>TIMES WRONG</th><th>TIMES SEEN</th></tr></thead>
+        <tbody>${wrongs.map(q=>`<tr>
+          <td style="color:var(--cream);max-width:300px;white-space:normal;line-height:1.4">${q.q||'—'}</td>
+          <td style="color:var(--red2);font-weight:600">${q.wrong}</td>
+          <td style="color:var(--text3)">${q.total}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    if(!html) html = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px 0;">No detailed engagement data recorded yet.</div>';
+    el.innerHTML = html;
+
+  }catch(err){
+    el.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--red2);padding:12px 0;">Error loading engagement data: '+err.message+'</div>';
+  }
+}
+
+function closeStudentProfile(){
+  document.getElementById('student-profile-overlay').style.display='none';
+  // Reset tab to scores for next open
+  spSwitchTab('scores');
+  document.getElementById('sp-engagement-content').dataset.loaded='';
+}
+
+
+// Global registry for dashboard delete — avoids all inline escaping issues
+window._dashDelRegistry = {};
+window._dashDelClick = function(key, e){
+  e.stopPropagation();
+  const {name, period} = window._dashDelRegistry[key];
+  dashboardDeleteStudent(name, period);
+};
+
+async function dashboardDeleteStudent(name, period){
+  if(!confirm('Remove "'+name+'" (Period '+period+') completely?\nThis deletes their results, profile, and sessions and cannot be undone.'))return;
+  try{
+    await Promise.all([
+      fetch(SUPA_URL+'/rest/v1/ac_results?name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H}),
+      fetch(SUPA_URL+'/rest/v1/ac_student_profiles?display_name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H}),
+      fetch(SUPA_URL+'/rest/v1/ac_sessions?student_name=eq.'+encodeURIComponent(name)+'&period=eq.'+encodeURIComponent(period),{method:'DELETE',headers:SUPA_H}),
+    ]);
+    notify('✅ Removed: '+name);
+    renderTeacherView(); // refresh the dashboard
+  }catch(e){notify('Error removing student');}
+}
+
+
+// ════════════════════════════════════════════
+// TEST SCORE ENTRY & LEADERBOARD INTEGRATION
+// ════════════════════════════════════════════
+
+function buildTestUnitSelect(){
+  const sel = document.getElementById('test-unit-select');
+  if(!sel) return;
+  const units = UNIT_DATA.filter(u => u.url && !u.isCampaign);
+  sel.innerHTML = '<option value="">— Select a unit —</option>' +
+    units.map(u => `<option value="${u.id}">${u.num} — ${u.title}</option>`).join('');
+}
+
+async function loadTestScoreEntry(){
+  const unitId = document.getElementById('test-unit-select').value;
+  if(!unitId){ notify('Please select a unit first.'); return; }
+  const el = document.getElementById('test-score-entry');
+  el.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 0">Loading students…</div>';
+
+  const [existing, profiles] = await Promise.all([
+    sfetch('/rest/v1/ac_results?unit_id=eq.test_'+unitId+'&select=name,period,best_accuracy&order=name.asc'),
+    sfetch('/rest/v1/ac_student_profiles?select=display_name,period&order=period.asc,display_name.asc')
+  ]);
+
+  const scoreMap = {};
+  (existing||[]).forEach(r => { scoreMap[r.name+'|'+r.period] = r.best_accuracy; });
+
+  const students = (profiles||[]).filter(p =>
+    p.display_name && p.period && p.period !== 'guest' && p.period !== 'teacher' && p.period !== ''
+  );
+
+  if(!students.length){
+    el.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:8px 0">No students found.</div>';
+    return;
+  }
+
+  const byPeriod = {};
+  students.forEach(s => {
+    if(!byPeriod[s.period]) byPeriod[s.period] = [];
+    byPeriod[s.period].push(s);
+  });
+
+  const unit = UNIT_DATA.find(u => u.id === unitId);
+  let html = `<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:12px;letter-spacing:.5px">
+    Scores for: <span style="color:var(--amber)">${unit ? unit.num+' — '+unit.title : unitId}</span>
+    &nbsp;·&nbsp; Enter as percentage 0–100. Leave blank to skip.
+  </div>`;
+
+  Object.keys(byPeriod).sort().forEach(period => {
+    html += `<div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--teal2);margin:10px 0 6px">PERIOD ${period}</div>`;
+    html += `<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+      <thead><tr>
+        <th style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--text3);padding:5px 8px;border-bottom:1px solid var(--border2);text-align:left;width:40%">STUDENT</th>
+        <th style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--text3);padding:5px 8px;border-bottom:1px solid var(--border2);text-align:left;width:25%">TEST SCORE %</th>
+        <th style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--text3);padding:5px 8px;border-bottom:1px solid var(--border2);text-align:left">STATUS</th>
+      </tr></thead><tbody>`;
+    byPeriod[period].forEach(s => {
+      const key = s.display_name+'|'+s.period;
+      const prev = scoreMap[key];
+      const statusColor = prev != null ? 'var(--green2)' : 'var(--text3)';
+      const statusText  = prev != null ? '✅ '+prev+'% saved' : 'Not entered';
+      html += `<tr>
+        <td style="font-family:var(--playfair);font-size:12px;color:var(--cream);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03)">${s.display_name}</td>
+        <td style="padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03)">
+          <input type="number" min="0" max="100" step="1"
+            id="ts_${key}"
+            data-name="${s.display_name}" data-period="${s.period}"
+            placeholder="${prev != null ? prev : '—'}"
+            style="width:80px;font-family:var(--dm);font-size:12px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:5px 8px;outline:none;text-align:center"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border2)'">
+        </td>
+        <td id="ts_status_${key}" style="font-family:var(--dm);font-size:9px;color:${statusColor};padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03)">${statusText}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+  });
+
+  html += `<div style="display:flex;gap:8px;margin-top:14px;align-items:center">
+    <button class="btn green" onclick="saveAllTestScores('${unitId}')"><span>💾 Save All Scores</span></button>
+    <div id="test-save-status" style="font-family:var(--dm);font-size:9px;color:var(--text3)"></div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+async function saveAllTestScores(unitId){
+  const inputs = document.querySelectorAll('#test-score-entry input[type=number]');
+  const statusEl = document.getElementById('test-save-status');
+  statusEl.textContent = 'Saving…';
+
+  const toSave = [];
+  inputs.forEach(inp => {
+    const val = inp.value.trim();
+    if(val === '') return;
+    const pct = Math.min(100, Math.max(0, Math.round(parseFloat(val))));
+    if(isNaN(pct)) return;
+    toSave.push({
+      name:          inp.dataset.name,
+      period:        inp.dataset.period,
+      unit_id:       'test_'+unitId,
+      best_score:    testPctToPoints(pct),
+      best_accuracy: pct,
+      trophy:        pct >= 90 ? 'gold' : pct >= 80 ? 'silver' : pct >= 70 ? 'bronze' : pct >= 60 ? 'completed' : 'tryagain',
+      attempts:      1,
+      updated_at:    new Date().toISOString()
+    });
+  });
+
+  if(!toSave.length){ statusEl.textContent = 'Nothing to save.'; return; }
+
+  let saved = 0, errors = 0;
+  for(const row of toSave){
+    try{
+      // Check if existing — keep higher score
+      const existing = await sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(row.name)+'&period=eq.'+encodeURIComponent(row.period)+'&unit_id=eq.'+encodeURIComponent(row.unit_id)+'&select=best_accuracy,attempts');
+      const prev = existing && existing[0];
+      if(prev){
+        row.best_score    = Math.max(row.best_score, testPctToPoints(prev.best_accuracy||0));
+        row.best_accuracy = Math.max(row.best_accuracy, prev.best_accuracy||0);
+        row.attempts      = (prev.attempts||0) + 1;
+      }
+      await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+        method:'POST',
+        headers:{...SUPA_H,'Prefer':'resolution=merge-duplicates'},
+        body: JSON.stringify(row)
+      });
+      // Update status cell
+      const key = row.name+'|'+row.period;
+      const cell = document.getElementById('ts_status_'+key);
+      if(cell){ cell.textContent = '✅ '+row.best_accuracy+'% saved'; cell.style.color='var(--green2)'; }
+      saved++;
+    }catch(e){ errors++; }
+  }
+
+  statusEl.textContent = saved+' saved' + (errors ? ', '+errors+' errors' : '') + ' — leaderboard updated.';
+  notify('✅ '+saved+' test scores saved!');
+}
+
+function testPctToPoints(pct){
+  // Scale test % to match roughly one strong unit game
+  // 100% = 600pts, 90% = 450pts, 80% = 300pts, 70% = 175pts, 60% = 75pts
+  if(pct >= 100) return 600;
+  if(pct >= 90)  return Math.round(300 + ((pct-90)/10)*300);
+  if(pct >= 80)  return Math.round(175 + ((pct-80)/10)*125);
+  if(pct >= 70)  return Math.round(75  + ((pct-70)/10)*100);
+  if(pct >= 60)  return Math.round(25  + ((pct-60)/10)*50);
+  return Math.round(pct * 0.5);
 }
 
 async function exportCSV(){
-  notify('Building export…');
-  const [all, profiles, sessions]=await Promise.all([
-    sfetch('/rest/v1/ac_results?select=*&order=name.asc,period.asc&limit=2000'),
+  notify('Building research export… this may take a moment.');
+  const [all, profiles, sessions, engagement]=await Promise.all([
+    sfetch('/rest/v1/ac_results?select=*&order=name.asc,period.asc&limit=5000'),
     sfetch('/rest/v1/ac_student_profiles?select=*'),
-    sfetch('/rest/v1/ac_sessions?select=student_name,period,minutes,session_start,exit_to&order=session_start.asc&limit=5000')
+    sfetch('/rest/v1/ac_sessions?select=student_name,period,minutes,session_start&order=session_start.asc&limit=10000'),
+    sfetch('/rest/v1/ac_engagement?select=student_name,period,event_type,unit_id,deck_id,duration_seconds,data&limit=20000')
   ]);
 
-  // Build session summary per student
+  // ── Session summary ──────────────────────────────────
   const sessionSm={};
   (sessions||[]).forEach(s=>{
     if(!s.minutes)return;
@@ -4219,54 +4820,138 @@ async function exportCSV(){
     if(s.session_start>sessionSm[k].last_seen)sessionSm[k].last_seen=s.session_start;
   });
 
-  // Build per-student summary
+  // ── Engagement summary ──────────────────────────────
+  const engSm={};
+  (engagement||[]).forEach(e=>{
+    const k=e.student_name+'|'+(e.period||'');
+    if(!engSm[k])engSm[k]={
+      briefing_time_secs:0, briefing_opens:0, briefings_read_fully:0,
+      study_sessions:0, cards_flipped:0, study_time_secs:0,
+      quiz_attempts:0, quiz_time_secs:0,
+      hub_time_secs:0
+    };
+    const s=e.duration_seconds||0;
+    const d=e.data||{};
+    switch(e.event_type){
+      case 'briefing_opened':    engSm[k].briefing_opens++; break;
+      case 'briefing_closed':
+      case 'briefing_proceeded': engSm[k].briefing_time_secs+=s; if(d.read_fully)engSm[k].briefings_read_fully++; break;
+      case 'study_completed':    engSm[k].study_sessions++; engSm[k].study_time_secs+=s; engSm[k].cards_flipped+=(d.cards_flipped||0); break;
+      case 'quiz_completed':     engSm[k].quiz_attempts++; engSm[k].quiz_time_secs+=s; break;
+      case 'hub_session_end':    engSm[k].hub_time_secs+=s; break;
+    }
+  });
+
+  // ── Game results summary ─────────────────────────────
   const sm={};
+  // Seed from profiles so all students appear even with no game data
+  (profiles||[]).forEach(p=>{
+    if(!p.display_name||!p.period||p.period==='guest'||p.period==='teacher')return;
+    const k=p.display_name+'|'+p.period;
+    if(!sm[k])sm[k]={name:p.display_name,period:p.period,units_completed:0,total_score:0,
+      avg_accuracy:0,gold_trophies:0,historian_trophies:0,
+      unit_scores:{},vocab_scores:{},test_scores:{},attempts_total:0};
+  });
   (all||[]).forEach(r=>{
     const k=r.name+'|'+(r.period||'');
-    if(!sm[k])sm[k]={name:r.name,period:r.period||'',units_completed:0,total_score:0,avg_accuracy:0,gold_trophies:0,historian_trophies:0,unit_scores:{},attempts_total:0};
-    sm[k].units_completed++;
+    if(!sm[k])sm[k]={name:r.name,period:r.period||'',units_completed:0,total_score:0,
+      avg_accuracy:0,gold_trophies:0,historian_trophies:0,
+      unit_scores:{},vocab_scores:{},test_scores:{},attempts_total:0};
+    if(r.unit_id.startsWith('vocab_')){
+      sm[k].vocab_scores[r.unit_id.replace('vocab_','')]=r.best_accuracy||0;
+    } else if(r.unit_id.startsWith('test_')){
+      sm[k].test_scores[r.unit_id.replace('test_','')]=r.best_accuracy||0;
+    } else {
+      sm[k].units_completed++;
+      sm[k].avg_accuracy+=r.best_accuracy||0;
+      sm[k].gold_trophies+=(r.best_accuracy>=90?1:0);
+      sm[k].historian_trophies+=(r.best_accuracy===100?1:0);
+      sm[k].attempts_total+=r.attempts||1;
+      sm[k].unit_scores[r.unit_id]=r.best_accuracy||0;
+    }
     sm[k].total_score+=r.best_score||0;
-    sm[k].avg_accuracy+=r.best_accuracy||0;
-    sm[k].attempts_total+=r.attempts||1;
-    if(r.best_accuracy>=90)sm[k].gold_trophies++;
-    if(r.best_accuracy===100)sm[k].historian_trophies++;
-    sm[k].unit_scores[r.unit_id]=r.best_accuracy||0;
   });
 
   const profileLookup={};
   (profiles||[]).forEach(p=>{profileLookup[p.display_name+'|'+(p.period||'')]=p;});
 
-  const unitIds=UNIT_DATA.filter(u=>!u.isCampaign).map(u=>u.id);
+  const unitIds=UNIT_DATA.filter(u=>!u.isCampaign&&!u.id.startsWith('theme_')&&u.id!=='eoc_midterm').map(u=>u.id);
+  const themeIds=UNIT_DATA.filter(u=>u.id.startsWith('theme_')).map(u=>u.id);
 
+  // ── Headers ──────────────────────────────────────────
   const headers=[
+    // Identity
     'Student Name','Full Name','Period',
-    'Units Completed','Total Score','Avg Accuracy %',
-    'Gold Trophies','Historian Trophies','Vocab Medals','Gold Earned',
-    'Total Minutes in Hub','Session Count','Avg Min Per Session','Last Seen',
-    'Avg Attempts Per Unit',
-    ...unitIds.map(id=>{const u=UNIT_DATA.find(x=>x.id===id);return(u?.num||id)+' Accuracy'})
+    // Game performance
+    'Units Completed','Total Score','Game Avg Accuracy %',
+    'Gold Trophies (90%+)','Historian Trophies (100%)',
+    // Vocab
+    'Vocab Quizzes Passed','Vocab Avg Score %',
+    // Test scores
+    'Test Scores Entered','Test Avg %',
+    // EOC
+    'EOC Practice Score %','EOC Practice Scale Score',
+    // Engagement
+    'Hub Sessions','Total Hub Minutes',
+    'Briefings Opened','Briefings Read Fully','Total Briefing Minutes',
+    'Flashcard Study Sessions','Total Cards Flipped','Total Study Minutes',
+    'Vocab Quiz Attempts','Total Quiz Minutes',
+    // Session data
+    'Avg Min Per Session','Last Seen',
+    // Per-unit game accuracy
+    ...unitIds.map(id=>{const u=UNIT_DATA.find(x=>x.id===id);return(u?.num||id)+' Game %'}),
+    // Per-unit test scores
+    ...unitIds.map(id=>{const u=UNIT_DATA.find(x=>x.id===id);return(u?.num||id)+' Test %'}),
+    // Theme games
+    ...themeIds.map(id=>{const u=UNIT_DATA.find(x=>x.id===id);return(u?.title||id)+' Game %'}),
+    // EOC column for manual entry
+    'EOC Score % (enter manually)',
   ];
 
-  const rows=Object.values(sm).sort((a,b)=>{
+  const rows=Object.values(sm).filter(s=>s.period&&s.period!=='teacher').sort((a,b)=>{
     if(a.period!==b.period)return String(a.period).localeCompare(String(b.period));
     return a.name.localeCompare(b.name);
   }).map(s=>{
     const k=s.name+'|'+s.period;
     const prof=profileLookup[k]||{};
     const sess=sessionSm[k]||{total_minutes:0,session_count:0,last_seen:''};
-    let vocabCount=0;
-    try{const vp=JSON.parse(prof.vocab_passed||'{}');vocabCount=Object.values(vp).filter(Boolean).length;}catch(e){}
-    const avgAcc=s.units_completed>0?Math.round(s.avg_accuracy/s.units_completed):0;
-    const avgAttempts=s.units_completed>0?(s.attempts_total/s.units_completed).toFixed(1):0;
-    const avgMinPerSession=sess.session_count>0?Math.round(sess.total_minutes/sess.session_count):0;
+    const eng=engSm[k]||{briefing_time_secs:0,briefing_opens:0,briefings_read_fully:0,study_sessions:0,cards_flipped:0,study_time_secs:0,quiz_attempts:0,quiz_time_secs:0,hub_time_secs:0};
+
+    // Vocab
+    let vocabPassed=0, vocabSum=0, vocabCount=0;
+    try{const vp=JSON.parse(prof.vocab_passed||'{}');vocabPassed=Object.values(vp).filter(Boolean).length;}catch(e){}
+    try{const vbs=JSON.parse(prof.vocab_best_score||'{}');Object.entries(vbs).forEach(([k,v])=>{if(!k.startsWith('_')&&v!=null){vocabSum+=v;vocabCount++;}});}catch(e){}
+    const vocabAvg=vocabCount>0?Math.round(vocabSum/vocabCount):'';
+
+    // Test scores
+    const testVals=Object.values(s.test_scores).filter(v=>v!=null);
+    const testAvg=testVals.length?Math.round(testVals.reduce((a,v)=>a+v,0)/testVals.length):'';
+
+    // EOC
+    let eocBest='', eocScale='';
+    try{const vbs=JSON.parse(prof.vocab_best_score||'{}');if(vbs._eoc_pct!=null)eocBest=vbs._eoc_pct;if(vbs._eoc_scale!=null)eocScale=vbs._eoc_scale;}catch(e){}
+
+    const gameAvg=s.units_completed>0?Math.round(s.avg_accuracy/s.units_completed):'';
+    const avgAttempts=s.units_completed>0?(s.attempts_total/s.units_completed).toFixed(1):'';
+    const avgMinPerSession=sess.session_count>0?Math.round(sess.total_minutes/sess.session_count):'';
     const lastSeen=sess.last_seen?new Date(sess.last_seen).toLocaleDateString('en-US'):'';
+
     return[
-      s.name, prof.full_name||s.name, s.period||'',
-      s.units_completed, s.total_score, avgAcc,
-      s.gold_trophies, s.historian_trophies, vocabCount, prof.gold||0,
-      sess.total_minutes, sess.session_count, avgMinPerSession, lastSeen,
-      avgAttempts,
-      ...unitIds.map(id=>s.unit_scores[id]!==undefined?s.unit_scores[id]:'')
+      s.name, prof.full_name||s.name, s.period,
+      s.units_completed, s.total_score, gameAvg,
+      s.gold_trophies, s.historian_trophies,
+      vocabPassed, vocabAvg,
+      testVals.length, testAvg,
+      eocBest, eocScale,
+      sess.session_count, sess.total_minutes,
+      eng.briefing_opens, eng.briefings_read_fully, Math.round(eng.briefing_time_secs/60),
+      eng.study_sessions, eng.cards_flipped, Math.round(eng.study_time_secs/60),
+      eng.quiz_attempts, Math.round(eng.quiz_time_secs/60),
+      avgMinPerSession, lastSeen,
+      ...unitIds.map(id=>s.unit_scores[id]!==undefined?s.unit_scores[id]:''),
+      ...unitIds.map(id=>s.test_scores[id]!==undefined?s.test_scores[id]:''),
+      ...themeIds.map(id=>s.unit_scores[id]!==undefined?s.unit_scores[id]:''),
+      '', // EOC Score — blank for manual entry
     ];
   });
 
@@ -4276,10 +4961,10 @@ async function exportCSV(){
   const a=document.createElement('a');
   a.href=url;
   const date=new Date().toISOString().slice(0,10);
-  a.download=`american-chronicles-export-${date}.csv`;
+  a.download=`american-chronicles-research-export-${date}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  notify('✅ CSV exported!');
+  notify('✅ Research export ready! '+rows.length+' students.');
 }
 // ── UTILS ─────────────────────────────────────────────
 function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3200);}
@@ -4406,5 +5091,41 @@ function closeWelcome(){
   document.addEventListener('dragstart',e=>e.preventDefault());
 })();
 </script>
+
+<!-- STUDENT PROFILE MODAL -->
+<div id="student-profile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;overflow-y:auto;padding:20px;">
+  <div style="max-width:760px;margin:0 auto;background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--amber);">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border2);">
+      <div>
+        <div id="sp-name" style="font-family:var(--playfair);font-size:18px;color:var(--cream);"></div>
+        <div id="sp-sub" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:1px;"></div>
+      </div>
+      <button onclick="closeStudentProfile()" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;">CLOSE</button>
+    </div>
+    <!-- Summary stats -->
+    <div id="sp-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 18px;border-bottom:1px solid var(--border2);"></div>
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border2);">
+      <button id="sp-tab-scores" onclick="spSwitchTab('scores')" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;padding:10px 18px;background:var(--amber);color:var(--bg);border:none;cursor:pointer;">SCORES</button>
+      <button id="sp-tab-engagement" onclick="spSwitchTab('engagement')" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;padding:10px 18px;background:transparent;color:var(--text3);border:none;cursor:pointer;border-left:1px solid var(--border2);">ENGAGEMENT</button>
+    </div>
+    <!-- Scores tab -->
+    <div id="sp-panel-scores" style="padding:16px 18px;">
+      <div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">UNIT GAMES</div>
+      <div id="sp-units" style="margin-bottom:18px;"></div>
+      <div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">VOCAB QUIZZES</div>
+      <div id="sp-vocab" style="margin-bottom:18px;"></div>
+      <div style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px;">UNIT TEST SCORES</div>
+      <div id="sp-test" style="margin-bottom:8px;"></div>
+    </div>
+    <!-- Engagement tab -->
+    <div id="sp-panel-engagement" style="display:none;padding:16px 18px;">
+      <div id="sp-engagement-content">
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:12px 0;font-style:italic;">Loading engagement data…</div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
