@@ -554,7 +554,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
         <button class="nav-btn" id="nav-profile" onclick="showMainView('profile')">👤 Profile</button>
         <button class="nav-btn" id="nav-characters" onclick="showMainView('characters')">🎭 Characters</button>
         <button class="nav-btn" id="nav-wallet" onclick="showMainView('wallet')">🪙 Gold</button>
-        <button class="nav-btn" id="nav-teacher" onclick="showMainView('teacher')" style="display:none;color:var(--teal2)">📊 Dashboard</button>
+        <button class="nav-btn" id="nav-teacher" onclick="showMainView('teacher')" style="display:none;color:var(--teal2);border:1px solid var(--teal2);padding:6px 12px">📊 Teacher Dashboard</button>
       </div>
     </div>
     <!-- Course sub-nav (shown when inside a course) -->
@@ -566,6 +566,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
       <button class="cnav-btn" id="cnav-trophies" onclick="showCourseView('trophies')">🏆 Trophies</button>
       <button class="cnav-btn" id="cnav-frq" onclick="showCourseView('frq')" id="cnav-frq" style="display:none">✍️ FRQ</button>
       <button class="cnav-btn" id="cnav-leaderboard" onclick="showCourseView('leaderboard')">🏅 Leaderboard</button>
+      <button class="cnav-btn" id="cnav-teacher-shortcut" onclick="showDashboard();showMainView('teacher')" style="display:none;color:var(--teal2)">📊 Dashboard</button>
     </div>
   </div>
 
@@ -4109,6 +4110,9 @@ function enterCourse(courseId){
   // Show/hide FRQ tab
   const frqBtn=document.getElementById('cnav-frq');
   if(frqBtn)frqBtn.style.display=cat.hasFRQ?'inline-block':'none';
+  // Show teacher dashboard shortcut in course-nav when logged in as teacher
+  const tcBtn=document.getElementById('cnav-teacher-shortcut');
+  if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   showCourseView('units');
 }
@@ -5555,9 +5559,18 @@ async function submitTeacher(){
 }
 
 function teacherLogout(){
-  IS_TEACHER=false;try{localStorage.removeItem('civitas_is_teacher');}catch(e){};S.isTeacher=false;
+  IS_TEACHER=false;
+  S.isTeacher=false;
+  S.name='';S.setupDone=false;
+  try{localStorage.removeItem('civitas_is_teacher');}catch(e){}
+  try{localStorage.removeItem('civitas_teacher_name');}catch(e){}
+  document.getElementById('shell').style.display='none';
+  document.getElementById('course-hub').style.display='none';
+  document.getElementById('course-nav').style.display='none';
   document.getElementById('nav-teacher').style.display='none';
-  updateHUD();showDashboard();
+  document.getElementById('title-screen').style.display='flex';
+  document.getElementById('teacher-box').style.display='none';
+  document.getElementById('teacher-toggle-lbl').textContent='Teacher Login';
 }
 
 // ── COMPOSITE SCORE HELPERS ──────────────────────────────────────────────
