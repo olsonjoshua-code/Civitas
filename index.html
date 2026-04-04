@@ -2685,7 +2685,7 @@ function getCourseProgress(courseId){
 //  SUPABASE PROFILE SYNC
 // ══════════════════════════════════════════════════════
 async function saveProfileByName(){
-  if(!S.name||S.isGuest)return;
+  if(!S.name||S.isGuest||IS_TEACHER)return;
   const payload={
     display_name:S.name, full_name:S.fullName||S.name,
     period:(S.courses[0]?.period)||'',
@@ -4188,6 +4188,58 @@ function updateHUD(){
   document.getElementById('hstat-units').textContent=getTotalUnits();
   document.getElementById('hstat-trophies').textContent=countAllTrophies();
   document.getElementById('hstat-gold').textContent=(S.gold||0).toLocaleString();
+  // Always show teacher dashboard button when logged in as teacher
+  const tcBtn=document.getElementById('nav-teacher');
+  if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
+}
+
+function refreshProfile(){
+  const nameEl=document.getElementById('prof-name');
+  const rankEl=document.getElementById('prof-rank');
+  const avatarEl=document.getElementById('profile-avatar');
+  if(nameEl)nameEl.textContent=IS_TEACHER?'Mr. Olson':(S.name||'Student');
+  if(rankEl)rankEl.textContent=IS_TEACHER?'Teacher':getRank();
+  if(avatarEl)avatarEl.innerHTML=getChar(S.avatar||'scholar').svg().replace(/width="\d+"/,'width="78"').replace(/height="\d+"/,'height="78"');
+  const el=document.getElementById('ps-courses');if(el)el.textContent=S.courses.length;
+  const el2=document.getElementById('ps-units');if(el2)el2.textContent=getTotalUnits();
+  const el3=document.getElementById('ps-trophies');if(el3)el3.textContent=countAllTrophies();
+  const el4=document.getElementById('ps-gold');if(el4)el4.textContent=(S.gold||0).toLocaleString();
+  // Course badges
+  const pc=document.getElementById('prof-courses');
+  if(pc){
+    pc.innerHTML=(S.courses||[]).map(c=>{
+      const cat=COURSE_CATALOG.find(x=>x.id===c.id);
+      return cat?`<span style="font-family:var(--dm);font-size:9px;background:rgba(112,96,208,.1);border:1px solid var(--civitas);color:var(--civitas2);padding:2px 8px">${cat.icon} ${cat.name}</span>`:'';
+    }).join('');
+  }
+}
+
+function renderWallet(){
+  const bal=document.getElementById('wallet-balance');
+  const earned=document.getElementById('ws-earned');
+  const spent=document.getElementById('ws-spent');
+  const best=document.getElementById('ws-best');
+  const ledger=document.getElementById('wallet-ledger');
+  if(bal)bal.textContent=(S.gold||0).toLocaleString();
+  if(earned)earned.textContent=(S.goldEarned||0).toLocaleString();
+  if(spent)spent.textContent=(S.goldSpent||0).toLocaleString();
+  if(best)best.textContent=(S.goldBestRun||0).toLocaleString();
+  if(ledger){
+    const entries=(S.goldLedger||[]).slice(-20).reverse();
+    ledger.innerHTML=entries.length?entries.map(e=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--dm);font-size:10px">
+        <span style="color:var(--text2)">${e.reason||'Reward'}</span>
+        <span style="color:${e.amount>0?'var(--gc)':'var(--red2)'};font-family:var(--bebas);font-size:13px">${e.amount>0?'+':''}${e.amount} 🪙</span>
+      </div>`).join('')
+    :'<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:12px;text-align:center;font-style:italic">No transactions yet.</div>';
+  }
+}
+
+function studentLogout(){
+  if(!confirm('Log out? Your progress is saved.'))return;
+  IS_TEACHER=false;
+  try{localStorage.removeItem('civitas_student_name');localStorage.removeItem('civitas_full_name');}catch(e){}
+  location.reload();
 }
 
 // ══════════════════════════════════════════════════════
