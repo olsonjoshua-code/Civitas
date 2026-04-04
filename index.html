@@ -4440,6 +4440,20 @@ function enterCourse(courseId){
   if(!styleEl){styleEl=document.createElement('style');styleEl.id=styleId;document.head.appendChild(styleEl);}
   styleEl.textContent=`.cnav-btn.active{border-bottom-color:${cat.color}!important;color:${cat.color}!important}.cnav-btn:hover{color:${cat.color}!important}`;
 
+  // AP Comp green background theming
+  const hub=document.getElementById('course-hub');
+  if(courseId==='ap_cmp'){
+    hub.style.background='linear-gradient(180deg,#0e1d12 0%,#0a1410 100%)';
+    styleEl.textContent+=`
+      #course-hub .sh{color:#5dba7a!important}
+      #course-hub .unit-card-grid{background:#131f16!important;border-color:#1e3d26!important}
+      #course-hub .unit-card-grid:hover{border-color:#38a050!important}
+      #course-hub #cv-units-intro{border-color:#1e3d26!important}
+    `;
+  } else {
+    hub.style.background='';
+  }
+
   // Show/hide FRQ tab
 
   // Show teacher dashboard shortcut in course-nav when logged in as teacher
@@ -4636,6 +4650,8 @@ function renderCourseUnits(){
   const units=COURSE_UNITS[_activeCourseId]||[];
   const cp=getCourseProgress(_activeCourseId);
   const el=document.getElementById('cv-units-grid');
+  let unitProg={};
+  try{unitProg=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');}catch(e){}
 
   // Intro banner
   const intro=document.getElementById('cv-units-intro');
@@ -4687,7 +4703,17 @@ function renderCourseUnits(){
       onclick="openUnitPreview('${_activeCourseId}','${u.id}')"
       style="border-top:3px solid ${cardColor};${isBigIdea?'background:linear-gradient(135deg,rgba(112,96,208,.08),var(--bg2))':''}${isCapstone?';display:flex;align-items:center;gap:16px':''}">
       <div class="ucg-art" style="${isBigIdea?'background:rgba(112,96,208,.06)':''}${isCapstone?';height:100%;width:90px;flex-shrink:0;border-radius:0':''}${size==='large'?';height:100px':''}${size==='small'?';height:52px':''}">
-        <span style="font-size:${isCapstone?'40':size==='large'?'42':size==='small'?'26':'36'}px">${u.icon}</span>
+        ${_activeCourseId==='ap_cmp'&&!u.isBigIdea&&!isCapstone&&u.id.startsWith('apcmp_u')&&u.id!=='apcmp_u1'
+          ? (()=>{
+              const codeMap={'apcmp_u2':'gb','apcmp_u3':'mx','apcmp_u4':'ru','apcmp_u5':'cn','apcmp_u6':'ir','apcmp_u7':'ng'};
+              const code=codeMap[u.id]||'un';
+              return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <img src="https://flagcdn.com/w80/${code}.png" width="56" height="auto" style="border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.4)" alt="${u.title}">
+                <span style="font-family:var(--bebas);font-size:12px;letter-spacing:1.5px;color:var(--text2)">${u.title.toUpperCase()}</span>
+              </div>`;
+            })()
+          : `<span style="font-size:${isCapstone?'40':size==='large'?'42':size==='small'?'26':'36'}px">${u.icon}</span>`
+        }
         ${done?`<div style="position:absolute;top:6px;right:6px;font-size:14px">✅</div>`:''}
         ${isBigIdea?`<div style="position:absolute;top:6px;left:6px;font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--civitas2);background:rgba(112,96,208,.15);border:1px solid var(--civitas);padding:2px 6px">BIG IDEA · ${u.bigIdea}</div>`:''}
       </div>
@@ -4716,9 +4742,36 @@ function renderCourseUnits(){
   // ── TIER 1: Core Units ──
   if(coreUnits.length){
     html+=sectionHeader('Core Units','Master each unit to unlock the next');
-    html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(coreUnits.length,5)},1fr);gap:10px;margin-bottom:8px">
-      ${coreUnits.map(u=>unitCard(u,'large')).join('')}
-    </div>`;
+
+    // AP Comp: first unit gets wide intro card, rest in 3-col grid
+    if(_activeCourseId==='ap_cmp'&&coreUnits.length>1){
+      const introUnit=coreUnits[0];
+      const countryUnits=coreUnits.slice(1);
+      const introDone=unitProg[introUnit.id]&&unitProg[introUnit.id].bestAccuracy!=null;
+      const cc=introUnit.color||'#38a050';
+      html+=`<div class="unit-card-grid ${introDone?'done':''}"
+        onclick="openUnitPreview('${_activeCourseId}','${introUnit.id}')"
+        style="border-top:3px solid ${cc};display:flex;align-items:center;gap:20px;padding:16px 20px;margin-bottom:10px">
+        <div style="font-size:36px;flex-shrink:0">${introUnit.icon||'🌐'}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--dm);font-size:7px;color:${cc};letter-spacing:2px;margin-bottom:3px">${introUnit.num} · FOUNDATIONS</div>
+          <div style="font-family:var(--playfair);font-size:16px;color:var(--cream);font-weight:700">${introUnit.title}</div>
+          <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);margin-top:4px;font-style:italic">${introUnit.desc||''}</div>
+          ${introUnit.topics&&introUnit.topics.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">
+            ${introUnit.topics.map(t=>`<span style="font-size:9px;background:rgba(56,160,80,.1);border:1px solid rgba(56,160,80,.25);color:${cc};padding:2px 8px;border-radius:3px">${t}</span>`).join('')}
+          </div>`:''}
+          <button class="unit-play-btn" style="margin-top:10px;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid ${cc};color:${cc};padding:4px 14px;cursor:pointer">▶ Play Now</button>
+        </div>
+        ${introDone?`<div style="flex-shrink:0;text-align:center"><div style="font-family:var(--bebas);font-size:11px;color:var(--green2);letter-spacing:1px">COMPLETE</div></div>`:''}
+      </div>`;
+      html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
+        ${countryUnits.map(u=>unitCard(u,'large')).join('')}
+      </div>`;
+    } else {
+      html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(coreUnits.length,5)},1fr);gap:10px;margin-bottom:8px">
+        ${coreUnits.map(u=>unitCard(u,'large')).join('')}
+      </div>`;
+    }
   }
 
   // ── TIER 2: Capstone Experiences ──
@@ -4731,7 +4784,10 @@ function renderCourseUnits(){
 
   // ── TIER 3: Big Idea Reviews ──
   if(bigIdeas.length){
-    html+=sectionHeader('Big Idea Review Games','Cross-unit review by AP Gov theme — play after completing the core units');
+    const biSubtitle = _activeCourseId === 'ap_cmp'
+      ? 'Cross-country comparison by AP Comparative theme'
+      : 'Cross-unit review by AP Gov theme — play after completing the core units';
+    html+=sectionHeader('Big Idea Review Games', biSubtitle);
     html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(bigIdeas.length,5)},1fr);gap:10px;margin-bottom:8px">
       ${bigIdeas.map(u=>unitCard(u,'small')).join('')}
     </div>`;
