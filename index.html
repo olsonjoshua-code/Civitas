@@ -607,6 +607,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
       <div class="badge-grid" id="badge-grid"></div>
       <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
         <button class="btn sm" onclick="openAddCourse()" style="border-color:var(--civitas);color:var(--civitas);font-size:9px"><span>+ Add a Course</span></button>
+        <button class="btn sm" id="prof-teacher-btn" onclick="showMainView('teacher')" style="display:none;border-color:var(--teal2);color:var(--teal2);font-size:9px"><span>📊 Teacher Dashboard</span></button>
         <button class="btn sm" onclick="resetProfile()" style="border-color:var(--border2);color:var(--text3);font-size:9px"><span>↺ Reset Profile</span></button>
         <button class="btn sm" onclick="studentLogout()" style="border-color:var(--border2);color:var(--text3);font-size:9px"><span>⬡ Log Out</span></button>
       </div>
@@ -4206,6 +4207,8 @@ function refreshProfile(){
   if(nameEl)nameEl.textContent=IS_TEACHER?'Mr. Olson':(S.name||'Student');
   if(rankEl)rankEl.textContent=IS_TEACHER?'Teacher':getRank();
   if(avatarEl)avatarEl.innerHTML=getChar(S.avatar||'scholar').svg().replace(/width="\d+"/,'width="78"').replace(/height="\d+"/,'height="78"');
+  const profTcBtn=document.getElementById('prof-teacher-btn');
+  if(profTcBtn)profTcBtn.style.display=IS_TEACHER?'inline-block':'none';
   const el=document.getElementById('ps-courses');if(el)el.textContent=S.courses.length;
   const el2=document.getElementById('ps-units');if(el2)el2.textContent=getTotalUnits();
   const el3=document.getElementById('ps-trophies');if(el3)el3.textContent=countAllTrophies();
@@ -4922,7 +4925,7 @@ th{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#8a6a2a;pa
   <div class="divider"></div>
   <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.15em;color:#5a4520;margin:6px 0">This certifies that</div>
   <div class="student-name">${studentName}</div>
-  <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#5a4520;margin:5px 0">has earned ${earned} of 5 Vocabulary Medals</div>
+  <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#5a4520;margin:5px 0">has earned ${earned} of 5 Vocabulary Medals &nbsp;·&nbsp; <strong>${Math.round(earned/5*100)}% Complete</strong></div>
   <div class="divider"></div>
   <table>
     <thead><tr><th>Unit</th><th>Topic</th><th style="text-align:center">Medal Earned</th></tr></thead>
