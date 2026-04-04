@@ -4325,6 +4325,11 @@ function renderCourseUnits(){
 function launchUnitGame(unit){
   civLogEvent('unit_launched', unit.id, {title:unit.title, course:_activeCourseId});
   civFlushEngagement(); // flush immediately before navigating away
+  // Write FRQ bank for this unit to localStorage so the unit game can read it
+  try{
+    const unitFrqs = (COURSE_FRQS[_activeCourseId]||[]).filter(f=>f.id.includes(unit.id.replace('apg_','')));
+    localStorage.setItem('civitas_frq_bank', JSON.stringify(unitFrqs));
+  }catch(e){}
   try{localStorage.setItem('civitas_shell_url', CIVITAS_BASE);}catch(e){}
   try{localStorage.setItem('civitas_returning','1');}catch(e){}
   try{sessionStorage.removeItem('civitas_shell_active');}catch(e){}
