@@ -5727,15 +5727,35 @@ function buildStudentData(p, frqRows, testRows){
   const rpgAvg = rpgProgress?.completedAt ? (rpgProgress.bestAccuracy||0) : 0;
   const rpgAttempted = !!(rpgProgress?.completedAt);
 
-  // FRQ avg from civitas_frq_results rows for this student
-  const myFrqRows = (frqRows||[]).filter(r=>r.student_name===(p.display_name||p.full_name));
-  // Group by frq_id, keep best per FRQ
+  // FRQ avg — merge two sources:
+  // 1. Shell's own FRQ bank results (Supabase civitas_frq_results rows)
+  // 2. Unit game FRQ results written to courseProgress.frqSubmissions
+  const myFrqRows = (frqRows||[]).filter(r=>{
+    const name=p.display_name||p.full_name;
+    return r.student_name===name||r.full_name===name;
+  });
   const frqBest={};
+  // Source 1: Supabase rows
   myFrqRows.forEach(r=>{ if((r.score||0)>(frqBest[r.frq_id]||0)) frqBest[r.frq_id]=r.score; });
+  // Source 2: courseProgress.frqSubmissions (written by unit games)
+  const cpFrq = (()=>{
+    try{
+      // For the current student's own data use S.courseProgress directly
+      if((p.display_name||p.full_name)===(S.name||S.fullName)){
+        return S.courseProgress?.ap_gov?.frqSubmissions||{};
+      }
+      return {};
+    }catch(e){return {};}
+  })();
+  Object.entries(cpFrq).forEach(([id,sub])=>{
+    if((sub.bestScore||0)>(frqBest[id]||0)) frqBest[id]=sub.bestScore;
+  });
   const frqIds=Object.keys(frqBest);
   const frqAvg = frqIds.length>0 ? Math.round(frqIds.reduce((a,id)=>{
+    // Try shell FRQ bank first, then fall back to stored maxScore
     const frqDef=COURSE_FRQS.ap_gov?.find(f=>f.id===id);
-    const maxPts=frqDef?.points||6;
+    const subMax=cpFrq[id]?.maxScore;
+    const maxPts=frqDef?.points||subMax||6;
     return a+(frqBest[id]/maxPts)*100;
   },0)/frqIds.length) : 0;
 
