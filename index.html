@@ -928,7 +928,7 @@ const COURSE_UNITS = {
     {id:'apg_rpg', num:'Campaign', title:'Civitas RPG', icon:'⚔️', color:'#c8a020',
      desc:'Battle through all 5 units in the Civitas RPG campaign. Unlock historical figures and earn the title of Master Citizen.',
      topics:['All units','All FRQ types','AP Exam Final Challenge'],
-     hasFRQ:false, url:CIVITAS_BASE+'games/ap-gov/rpg/'},
+     hasFRQ:false, isCampaign:true, url:CIVITAS_BASE+'games/ap-gov/rpg/'},
     // Big Idea Theme Games
     {id:'apg_bi_con', num:'Big Idea', title:'Constitutionalism', icon:'🏛️', color:'#7060d0',
      desc:'Cross-unit review of all constitutional principles — federalism, separation of powers, checks and balances.',
@@ -5618,16 +5618,22 @@ function studentLogout(){
 // With tests:    40% units + 25% tests + 20% FRQ + 15% vocab
 // Weighted composite of ONLY attempted components — unplayed areas don't drag score down.
 // Returns a 0-100 percentage that is then converted to the AP 1-5 scale.
-function calcCompositeScore({unitAvg=0, unitAttempted=false, frqAvg=0, frqAttempted=false,
-                              vocabAvg=0, vocabAttempted=false, testAvg=null}){
-  // Build weights only for components the student has touched
+// Weights:
+//   Without tests: 40% units + 25% FRQ + 25% vocab + 10% RPG
+//   With tests:    35% units + 25% tests + 20% FRQ + 10% vocab + 10% RPG
+function calcCompositeScore({unitAvg=0, unitAttempted=false,
+                              frqAvg=0,  frqAttempted=false,
+                              vocabAvg=0, vocabAttempted=false,
+                              rpgAvg=0,  rpgAttempted=false,
+                              testAvg=null}){
+  const hasTests = testAvg!==null;
   let totalWeight=0, weightedSum=0;
-  if(unitAttempted)  { weightedSum+=unitAvg *(testAvg!==null?0.40:0.50); totalWeight+=(testAvg!==null?0.40:0.50); }
-  if(frqAttempted)   { weightedSum+=frqAvg  *(testAvg!==null?0.20:0.25); totalWeight+=(testAvg!==null?0.20:0.25); }
-  if(vocabAttempted) { weightedSum+=vocabAvg*(testAvg!==null?0.15:0.25); totalWeight+=(testAvg!==null?0.15:0.25); }
-  if(testAvg!==null) { weightedSum+=testAvg *0.25;                        totalWeight+=0.25; }
+  if(unitAttempted)  { const w=hasTests?0.35:0.40; weightedSum+=unitAvg *w; totalWeight+=w; }
+  if(frqAttempted)   { const w=hasTests?0.20:0.25; weightedSum+=frqAvg  *w; totalWeight+=w; }
+  if(vocabAttempted) { const w=hasTests?0.10:0.25; weightedSum+=vocabAvg*w; totalWeight+=w; }
+  if(rpgAttempted)   { const w=0.10;               weightedSum+=rpgAvg  *w; totalWeight+=w; }
+  if(hasTests)       { const w=0.25;               weightedSum+=testAvg *w; totalWeight+=w; }
   if(totalWeight===0)return null; // nothing attempted yet
-  // Normalise to 0-100 based on attempted weight only
   return Math.round(weightedSum/totalWeight);
 }
 
@@ -5670,6 +5676,7 @@ function buildStudentData(p, frqRows, testRows){
   const units = COURSE_UNITS['ap_gov']||[];
   const coreUnits = units.filter(u=>!u.isBigIdea&&!u.isCampaign&&u.num?.startsWith('Unit'));
   const bigIdeas  = units.filter(u=>u.isBigIdea);
+  const campaigns = units.filter(u=>u.isCampaign);
 
   // Unit avg: core units full weight, big ideas half weight
   const coreScores = coreUnits.map(u=>unitProgress[u.id]?.bestAccuracy||0).filter((_,i)=>unitProgress[coreUnits[i].id]?.completedAt);
@@ -5678,6 +5685,12 @@ function buildStudentData(p, frqRows, testRows){
   const bigSum  = bigScores.reduce((a,v)=>a+v*0.5,0);
   const unitWeight = coreScores.length + bigScores.length*0.5;
   const unitAvg = unitWeight>0 ? Math.round((coreSum+bigSum)/unitWeight) : 0;
+
+  // RPG campaign score (single unit — apg_rpg)
+  const rpgUnit = campaigns.find(u=>u.id==='apg_rpg');
+  const rpgProgress = rpgUnit ? unitProgress[rpgUnit.id] : null;
+  const rpgAvg = rpgProgress?.completedAt ? (rpgProgress.bestAccuracy||0) : 0;
+  const rpgAttempted = !!(rpgProgress?.completedAt);
 
   // FRQ avg from civitas_frq_results rows for this student
   const myFrqRows = (frqRows||[]).filter(r=>r.student_name===(p.display_name||p.full_name));
@@ -5703,6 +5716,7 @@ function buildStudentData(p, frqRows, testRows){
     unitAvg,  unitAttempted:  unitWeight>0,
     frqAvg,   frqAttempted:   frqIds.length>0,
     vocabAvg, vocabAttempted: vocabScores.length>0,
+    rpgAvg,   rpgAttempted,
     testAvg
   });
   const apScore = scoreToAP(composite);
@@ -5715,7 +5729,7 @@ function buildStudentData(p, frqRows, testRows){
     fullName: p.full_name||'',
     period: p.period||'',
     gold: p.gold||0,
-    unitAvg, frqAvg, vocabAvg, testAvg,
+    unitAvg, frqAvg, vocabAvg, rpgAvg, rpgAttempted, testAvg,
     composite, apScore, label,
     unitProgress, vocabBest,
     unitsCompleted: unitsCompleted.length,
@@ -5765,10 +5779,11 @@ function renderAPScoreBadge(d){
   const l=apScoreLabel(d.apScore);
   const hasTests=d.testAvg!==null;
   const components=[
-    {label:'Units',    val:d.unitAvg+'%',             attempted:d.unitsCompleted>0,  color:'var(--blue2)'},
+    {label:'Units',    val:d.unitAvg+'%',                  attempted:d.unitsCompleted>0,  color:'var(--blue2)'},
     {label:'FRQ',      val:d.frqAvg>0?d.frqAvg+'%':'—',   attempted:d.frqIds.length>0,   color:'var(--purple2)'},
     {label:'Vocab',    val:d.vocabAvg>0?d.vocabAvg+'%':'—',attempted:d.vocabAvg>0,        color:'var(--teal2)'},
-    ...(hasTests?[{label:'Tests',val:d.testAvg+'%',    attempted:true,                color:'var(--amber)'}]:[]),
+    {label:'RPG',      val:d.rpgAvg>0?d.rpgAvg+'%':'—',   attempted:d.rpgAttempted,      color:'#c8a020'},
+    ...(hasTests?[{label:'Tests',val:d.testAvg+'%',         attempted:true,               color:'var(--amber)'}]:[]),
   ];
   return`<div style="border-left:3px solid ${l.color};padding:10px 16px;background:rgba(0,0,0,.2);display:flex;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="text-align:center;flex-shrink:0">
@@ -5878,6 +5893,7 @@ function renderTeacherRoster(period){
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">UNITS</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">FRQ</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">VOCAB</th>
+      <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">RPG</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">TESTS</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">GOLD</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px"></th>
@@ -5897,6 +5913,7 @@ function renderTeacherRoster(period){
         <td style="padding:7px 8px;text-align:center;color:var(--blue2)">${s.unitAvg?s.unitAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--purple2)">${s.frqAvg>0?s.frqAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--teal2)">${s.vocabAvg>0?s.vocabAvg+'%':'—'}</td>
+        <td style="padding:7px 8px;text-align:center;color:#c8a020">${s.rpgAttempted?s.rpgAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--amber)">${s.testAvg!==null?s.testAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--gc);font-family:var(--bebas)">${s.gold}</td>
         <td style="padding:7px 8px;text-align:center">
@@ -6071,10 +6088,11 @@ function buildStudentModalHTML(s){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-width:200px">
       ${[
-        {label:'Unit Games',val:s.unitAvg+'%',sub:'50% or 40% weight',color:'var(--blue2)'},
-        {label:'FRQ Practice',val:s.frqAvg>0?s.frqAvg+'%':'Not started',sub:s.frqIds.length+' FRQs submitted',color:'var(--purple2)'},
-        {label:'Vocab Quizzes',val:s.vocabAvg>0?s.vocabAvg+'%':'Not started',sub:'25% or 15% weight',color:'var(--teal2)'},
-        {label:'Test Scores',val:s.testAvg!==null?s.testAvg+'%':'Not entered',sub:s.myTestRows.length+' test(s)',color:'var(--amber)'},
+        {label:'Unit Games',  val:s.unitAvg+'%',                          sub:'35–40% weight',color:'var(--blue2)'},
+        {label:'FRQ Practice',val:s.frqAvg>0?s.frqAvg+'%':'Not started', sub:s.frqIds.length+' FRQs submitted',color:'var(--purple2)'},
+        {label:'Vocab Quizzes',val:s.vocabAvg>0?s.vocabAvg+'%':'Not started',sub:'10–25% weight',color:'var(--teal2)'},
+        {label:'Civitas RPG', val:s.rpgAttempted?s.rpgAvg+'%':'Not played',sub:'10% weight',color:'#c8a020'},
+        {label:'Test Scores', val:s.testAvg!==null?s.testAvg+'%':'Not entered',sub:s.myTestRows.length+' test(s)',color:'var(--amber)'},
       ].map(c=>`<div style="background:var(--bg3);border:1px solid var(--border2);border-left:3px solid ${c.color};padding:10px 12px">
         <div style="font-family:var(--bebas);font-size:20px;color:${c.color};line-height:1">${c.val}</div>
         <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:3px">${c.label.toUpperCase()}</div>
