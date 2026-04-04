@@ -301,7 +301,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         <div class="hub-meta-item">⚖️ Round 4: <span>SCOTUS &amp; Documents</span></div>
       </div>
     </div>
-    <button class="back-btn" onclick="returnToShell()">← Back to Civitas</button>
+    <button class="back-btn" onclick="returnToShell()">← Back to AP Gov</button>
   </div>
   <div class="hub-tabs">
     <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
@@ -853,7 +853,7 @@ function renderQuestion(){
   if(q.topic)meta+=`<div class="q-tag topic">${q.topic}</div>`;
   if(q.bigIdea)meta+=`<div class="q-tag bi">${q.bigIdea}</div>`;
   meta+=`<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
-  html+=`<div class="question-card" id="qcard"><div class="q-meta">${meta}</div><div class="q-stem">${q.stem}</div><div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div></div>`;
+  html+=`<div class="question-card" id="qcard"><div class="q-meta">${meta}</div><div class="q-stem">${q.stem}</div><div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div><div style="text-align:right;margin-top:8px"><button onclick="submitExamQuestionReport(${JSON.stringify(q.stem)},${JSON.stringify(q.id||'')})" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">&#9873; Report question</button></div></div>`;
   el.innerHTML=html;
   if(G.currentSet?.chartType&&G.questionIdx===0)renderBarChart(G.currentSet);
   if(G.currentSet?.svgType&&G.questionIdx===0)renderCartoonSVG_inline(G.currentSet);
@@ -1109,6 +1109,20 @@ async function submitFRQ(idx){
     const grade=JSON.parse(text);
     grade.answers=answers;
     FRQ_GRADES[frq.id]=grade;
+    // Save to civitas_shell_state frqSubmissions
+    try{
+      var ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      if(!ss.courseProgress)ss.courseProgress={};
+      if(!ss.courseProgress.ap_gov)ss.courseProgress.ap_gov={};
+      if(!ss.courseProgress.ap_gov.frqSubmissions)ss.courseProgress.ap_gov.frqSubmissions={};
+      var fid='apg_exam_'+frq.id;
+      var ex=ss.courseProgress.ap_gov.frqSubmissions[fid]||{bestScore:0,maxScore:frq.maxScore,attempts:0};
+      ex.bestScore=Math.max(ex.bestScore,grade.totalScore||0);
+      ex.maxScore=frq.maxScore;
+      ex.attempts=(ex.attempts||0)+1;
+      ss.courseProgress.ap_gov.frqSubmissions[fid]=ex;
+      localStorage.setItem('civitas_shell_state',JSON.stringify(ss));
+    }catch(e){}
     gradingDiv.innerHTML=renderGradingResult(frq,grade);
     gradingDiv.style.display='block';
     btn.innerHTML='✓ Graded';
@@ -1167,6 +1181,22 @@ function renderGradingResult(frq,grade){
     </div>`;
   }).join('')}
   <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+  <div style="margin-top:8px">
+    <button onclick="toggleExamFRQReport('${frq.id}')" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue with this FRQ</button>
+    <div id="exam-report-${frq.id}" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">
+      <select id="exam-report-type-${frq.id}" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">
+        <option value="">Select issue type...</option>
+        <option value="incorrect_rubric">Rubric seems incorrect</option>
+        <option value="unclear_prompt">Prompt is unclear</option>
+        <option value="ai_grading_error">AI grading error</option>
+        <option value="other">Other</option>
+      </select>
+      <textarea id="exam-report-note-${frq.id}" placeholder="Describe the issue (optional)..." style="width:100%;min-height:50px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>
+      <button onclick="submitExamFRQReport('${frq.id}','${frq.title||''}')" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>
+      <button onclick="toggleExamFRQReport('${frq.id}')" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;margin-left:8px">Cancel</button>
+      <div id="exam-report-status-${frq.id}" style="font-family:var(--dm);font-size:9px;color:var(--green2);margin-top:4px"></div>
+    </div>
+  </div>
   ${grade.improveHint?`<div style="background:rgba(72,120,208,.06);border:1px solid rgba(72,120,208,.2);border-left:3px solid var(--blue);padding:12px 16px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--blue2);line-height:1.65"><strong>💡 How to Improve:</strong> ${grade.improveHint}</div>`:''}`;
 }
 
@@ -1188,6 +1218,49 @@ function showRoundComplete(correct, total, roundIdx) {
   showRoundComplete_orig(correct, total, roundIdx);
   checkShowCertBtn();
   syncProgressToCloud();
+}
+
+// ── REPORT FUNCTIONS ──────────────────────────────────────────
+function toggleExamFRQReport(frqId){
+  var el=document.getElementById('exam-report-'+frqId);
+  if(el)el.style.display=el.style.display==='none'||el.style.display===''?'block':'none';
+}
+
+async function submitExamFRQReport(frqId, frqTitle){
+  var t=document.getElementById('exam-report-type-'+frqId);
+  var n=document.getElementById('exam-report-note-'+frqId);
+  var s=document.getElementById('exam-report-status-'+frqId);
+  if(!t||!t.value){if(s){s.textContent='Select an issue type.';s.style.color='var(--red2)';}return;}
+  var sn=localStorage.getItem('civitas_student_name')||'Unknown';
+  try{
+    if(s){s.textContent='Sending...';s.style.color='var(--text3)';}
+    await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({student_name:sn,course_id:'ap_gov',item_type:'exam_frq',
+        item_id:'apg_exam_'+frqId,item_title:frqTitle,
+        issue_type:t.value,note:n?n.value.trim():'',
+        unit_id:UNIT_ID,submitted_at:new Date().toISOString()})
+    });
+    if(s){s.textContent='Reported — thanks!';s.style.color='var(--green2)';}
+    if(t)t.value='';if(n)n.value='';
+    setTimeout(()=>{toggleExamFRQReport(frqId);if(s)s.textContent='';},2000);
+  }catch(e){if(s){s.textContent='Failed.';s.style.color='var(--red2)';}}
+}
+
+async function submitExamQuestionReport(stem, qId){
+  var sn=localStorage.getItem('civitas_student_name')||'Unknown';
+  try{
+    await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({student_name:sn,course_id:'ap_gov',item_type:'exam_question',
+        item_id:qId||UNIT_ID,item_title:'AP Exam Practice MC',
+        issue_type:'question_error',note:(stem||'').slice(0,300),
+        unit_id:UNIT_ID,submitted_at:new Date().toISOString()})
+    });
+    notify('✓ Question reported — thanks!');
+  }catch(e){notify('Report failed.');}
 }
 </script>
 </body>
