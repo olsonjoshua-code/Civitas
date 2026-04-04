@@ -703,10 +703,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
     <div id="student-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)" onclick="if(event.target===this)closeStudentModal()">
       <div style="background:var(--bg2);border:1px solid var(--border2);max-width:760px;width:100%;max-height:88vh;overflow-y:auto;animation:floatIn .25s ease both">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1">
+          <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0">
           <div id="student-modal-name" style="font-family:var(--bebas);font-size:20px;color:var(--civitas2);letter-spacing:3px"></div>
-          <button onclick="closeStudentModal()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1">x</button>
+          <div style="display:flex;gap:0;margin-left:auto">
+            <button id="smod-tab-scores" onclick="switchStudentModalTab('scores')"
+              style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:var(--civitas);color:#fff;border:none;cursor:pointer">SCORES</button>
+            <button id="smod-tab-engagement" onclick="switchStudentModalTab('engagement')"
+              style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;color:var(--text3);border:none;border-left:1px solid var(--border2);cursor:pointer">ENGAGEMENT</button>
+          </div>
+        </div>
+          <button onclick="closeStudentModal()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;margin-left:12px">x</button>
         </div>
         <div id="student-modal-body" style="padding:20px"></div>
+        <div id="student-modal-engagement" style="padding:20px;display:none">
+          <div id="student-engagement-content">
+            <div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px 0">Loading engagement data…</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3973,7 +3986,9 @@ function enterShell(){
 
   // Session tracking
   _sessionStart2=Date.now();
+  _civHubStart=Date.now();
   logSessionStart();
+  if(!IS_TEACHER&&!S.isGuest&&S.name) civLogEvent('hub_session_start',null,{period:S.period||''});
 }
 
 
@@ -4119,6 +4134,15 @@ function enterCourse(courseId){
 }
 
 function showCourseView(v){
+  // Log time spent in previous view
+  if(_civViewStart&&_civCurrentView&&_civCurrentView!==v){
+    const secs=Math.round((Date.now()-_civViewStart)/1000);
+    if(secs>3) civLogEvent('view_exit',_activeCourseId||null,{view:_civCurrentView},secs);
+  }
+  _civCurrentView=v;
+  _civViewStart=Date.now();
+  civLogEvent('view_entered',_activeCourseId||null,{view:v});
+
   document.querySelectorAll('.course-view').forEach(el=>el.classList.remove('active'));
   document.getElementById('cv-'+v).classList.add('active');
   document.querySelectorAll('.cnav-btn').forEach(b=>b.classList.remove('active'));
@@ -4299,6 +4323,8 @@ function renderCourseUnits(){
 }
 
 function launchUnitGame(unit){
+  civLogEvent('unit_launched', unit.id, {title:unit.title, course:_activeCourseId});
+  civFlushEngagement(); // flush immediately before navigating away
   try{localStorage.setItem('civitas_shell_url', CIVITAS_BASE);}catch(e){}
   try{localStorage.setItem('civitas_returning','1');}catch(e){}
   try{sessionStorage.removeItem('civitas_shell_active');}catch(e){}
@@ -5174,6 +5200,12 @@ ${tc.jsonSchema}`}]
     sub.history.push({score,ts:Date.now()});
     saveS();
 
+    // Log FRQ engagement event
+    civLogEvent('frq_submitted', frq.unit||_activeCourseId, {
+      frq_id: frqId, frq_type: frq.type, score, max_score: frq.points,
+      pct: Math.round(score/frq.points*100), is_improvement: isNew
+    });
+
     // Award gold on improvement
     const goldEarned=isNew&&score>0?Math.round(frq.goldReward*(score/frq.points)):0;
     if(goldEarned>0){
@@ -5886,6 +5918,142 @@ function openStudentModal(fullName){
 }
 function closeStudentModal(){
   document.getElementById('student-modal-overlay').style.display='none';
+  // Reset to scores tab for next open
+  document.getElementById('student-modal-body').style.display='block';
+  document.getElementById('student-modal-engagement').style.display='none';
+  document.getElementById('smod-tab-scores').style.background='var(--civitas)';
+  document.getElementById('smod-tab-scores').style.color='#fff';
+  document.getElementById('smod-tab-engagement').style.background='transparent';
+  document.getElementById('smod-tab-engagement').style.color='var(--text3)';
+  document.getElementById('student-engagement-content').dataset.loaded='';
+}
+
+function switchStudentModalTab(tab){
+  const scoresBtn=document.getElementById('smod-tab-scores');
+  const engBtn=document.getElementById('smod-tab-engagement');
+  const scoresPanel=document.getElementById('student-modal-body');
+  const engPanel=document.getElementById('student-modal-engagement');
+  if(tab==='scores'){
+    scoresPanel.style.display='block'; engPanel.style.display='none';
+    scoresBtn.style.background='var(--civitas)'; scoresBtn.style.color='#fff';
+    engBtn.style.background='transparent'; engBtn.style.color='var(--text3)';
+  } else {
+    scoresPanel.style.display='none'; engPanel.style.display='block';
+    engBtn.style.background='var(--civitas)'; engBtn.style.color='#fff';
+    scoresBtn.style.background='transparent'; scoresBtn.style.color='var(--text3)';
+    const el=document.getElementById('student-engagement-content');
+    if(el.dataset.loaded!=='true') loadStudentEngagement();
+  }
+}
+
+async function loadStudentEngagement(){
+  const nameEl=document.getElementById('student-modal-name');
+  if(!nameEl)return;
+  // Name is "emoji name · Period X" — extract just the name
+  const raw=nameEl.textContent.replace(/·.*$/,'').replace(/^[\s\S]{1,2}\s/,'').trim();
+  // Find student in cached data
+  const s=_teacherData?.find(x=>nameEl.textContent.includes(x.name));
+  const studentName=s?s.name:raw;
+
+  const el=document.getElementById('student-engagement-content');
+  el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px">Loading…</div>';
+
+  try{
+    const rows=await sfetch(
+      '/rest/v1/civitas_engagement?student_name=eq.'+encodeURIComponent(studentName)+
+      '&order=created_at.asc&limit=1000'
+    );
+    el.dataset.loaded='true';
+
+    if(!rows||!rows.length){
+      el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px 0">No engagement data yet — data is collected as the student uses the site.</div>';
+      return;
+    }
+
+    // Aggregate
+    let hubSecs=0, frqSecs=0, unitsSecs=0, trophySecs=0, lbSecs=0;
+    const unitLaunches=[], frqSubmits=[], viewTimes={};
+    const fmt=s=>s>=3600?Math.floor(s/3600)+'h '+(Math.floor((s%3600)/60))+'m':s>=60?Math.floor(s/60)+'m '+(s%60)+'s':s+'s';
+
+    rows.forEach(r=>{
+      const d=r.data?JSON.parse(r.data):{}; 
+      const s=r.duration_seconds||0;
+      switch(r.event_type){
+        case 'hub_session_end': hubSecs+=s; break;
+        case 'view_exit':
+          if(d.view) viewTimes[d.view]=(viewTimes[d.view]||0)+s;
+          if(d.view==='frq') frqSecs+=s;
+          if(d.view==='units') unitsSecs+=s;
+          if(d.view==='trophies') trophySecs+=s;
+          if(d.view==='leaderboard') lbSecs+=s;
+          break;
+        case 'unit_launched':
+          unitLaunches.push({unit:d.title||r.unit_id, ts:r.created_at});
+          break;
+        case 'frq_submitted':
+          frqSubmits.push({type:d.frq_type||'', score:d.score, max:d.max_score, pct:d.pct, ts:r.created_at, improvement:d.is_improvement});
+          break;
+      }
+    });
+
+    let html='';
+
+    // Time summary
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:18px">
+      ${[
+        {v:fmt(hubSecs),    l:'HUB TIME'},
+        {v:fmt(unitsSecs),  l:'UNITS TAB'},
+        {v:fmt(frqSecs),    l:'FRQ TAB'},
+        {v:fmt(trophySecs), l:'TROPHIES TAB'},
+        {v:fmt(lbSecs),     l:'LEADERBOARD'},
+      ].map(s=>`<div style="background:var(--bg3);border:1px solid var(--border2);padding:10px;text-align:center">
+        <div style="font-family:var(--bebas);font-size:18px;color:var(--amber)">${s.v}</div>
+        <div style="font-family:var(--dm);font-size:7px;color:var(--text3);letter-spacing:1px;margin-top:2px">${s.l}</div>
+      </div>`).join('')}
+    </div>`;
+
+    // Unit launches
+    if(unitLaunches.length){
+      html+=`<div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px">UNIT GAME LAUNCHES</div>
+      <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:11px;margin-bottom:18px">
+        <thead><tr>
+          <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">UNIT</th>
+          <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">DATE</th>
+        </tr></thead>
+        <tbody>${unitLaunches.map(u=>`<tr>
+          <td style="padding:5px 8px;color:var(--cream);border-bottom:1px solid rgba(255,255,255,.03)">${u.unit||u.unit}</td>
+          <td style="padding:5px 8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,.03)">${new Date(u.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    // FRQ submissions
+    if(frqSubmits.length){
+      html+=`<div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--amber);border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:10px">FRQ SUBMISSIONS</div>
+      <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:11px;margin-bottom:18px">
+        <thead><tr>
+          <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">TYPE</th>
+          <th style="text-align:center;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">SCORE</th>
+          <th style="text-align:center;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">NEW BEST</th>
+          <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:400;font-size:9px;border-bottom:1px solid var(--border2)">DATE</th>
+        </tr></thead>
+        <tbody>${frqSubmits.map(f=>{
+          const col=f.pct>=80?'var(--green2)':f.pct>=50?'var(--amber)':'var(--red2)';
+          return`<tr>
+            <td style="padding:5px 8px;color:var(--cream);border-bottom:1px solid rgba(255,255,255,.03)">${f.type||'—'}</td>
+            <td style="padding:5px 8px;text-align:center;color:${col};font-family:var(--bebas);border-bottom:1px solid rgba(255,255,255,.03)">${f.score}/${f.max} (${f.pct}%)</td>
+            <td style="padding:5px 8px;text-align:center;color:${f.improvement?'var(--green2)':'var(--text3)'};border-bottom:1px solid rgba(255,255,255,.03)">${f.improvement?'✅':'—'}</td>
+            <td style="padding:5px 8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,.03)">${new Date(f.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    }
+
+    if(!html) html='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px 0">No detailed engagement data recorded yet.</div>';
+    el.innerHTML=html;
+  }catch(err){
+    el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--red2);padding:8px">Error: '+err.message+'</div>';
+  }
 }
 
 function buildStudentModalHTML(s){
@@ -6144,6 +6312,60 @@ async function exportCivitasCSV(){
   notify('✅ CSV exported!');
 }
 
+
+// ══════════════════════════════════════════════════════
+//  ENGAGEMENT TRACKING
+// ══════════════════════════════════════════════════════
+let _civEngQueue = [];
+let _civViewStart = null;   // when student entered current view/tab
+let _civCurrentView = null; // which view/tab they're in
+let _civHubStart = null;    // when they entered the shell
+
+function civLogEvent(eventType, unitId, data, durationSeconds){
+  if(!S||!S.name||S.isGuest||IS_TEACHER)return;
+  _civEngQueue.push({
+    student_name:     S.name,
+    full_name:        S.fullName||S.name,
+    period:           S.period||'',
+    course_id:        _activeCourseId||'',
+    event_type:       eventType,
+    unit_id:          unitId||null,
+    data:             data?JSON.stringify(data):null,
+    duration_seconds: durationSeconds||null,
+    created_at:       new Date().toISOString()
+  });
+}
+
+async function civFlushEngagement(){
+  if(!_civEngQueue.length)return;
+  const batch=_civEngQueue.splice(0);
+  try{
+    await fetch(SUPA_URL+'/rest/v1/civitas_engagement',{
+      method:'POST',
+      headers:{...SUPA_H,'Prefer':'return=minimal'},
+      body:JSON.stringify(batch)
+    });
+  }catch(e){}
+}
+
+setInterval(civFlushEngagement, 15000);
+
+window.addEventListener('beforeunload',()=>{
+  // Log time in current view before leaving
+  if(_civViewStart&&_civCurrentView){
+    const secs=Math.round((Date.now()-_civViewStart)/1000);
+    if(secs>3) civLogEvent('view_exit',_activeCourseId||null,{view:_civCurrentView},secs);
+  }
+  if(_civHubStart){
+    const secs=Math.round((Date.now()-_civHubStart)/1000);
+    if(secs>3) civLogEvent('hub_session_end',null,{},secs);
+  }
+  if(!_civEngQueue.length)return;
+  navigator.sendBeacon(
+    SUPA_URL+'/rest/v1/civitas_engagement',
+    new Blob([JSON.stringify(_civEngQueue)],{type:'application/json'})
+  );
+});
 
 // ══════════════════════════════════════════════════════
 //  SESSION TRACKING
