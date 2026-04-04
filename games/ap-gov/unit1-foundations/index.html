@@ -1892,28 +1892,28 @@ const FRQ_TYPE_CONFIG = {
     taskLabels:{A:'Describe/Identify',B:'Explain (connection)',C:'Explain (consequence)'},
     taskColors:{A:'var(--amber)',B:'var(--teal2)',C:'var(--green2)'},
     minWords: 80,
-    jsonSchema:`{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}`
+    jsonSchema:'{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}'
   },
   QA: {
     label:'Quantitative Analysis', color:'var(--blue2)', bg:'rgba(72,120,208,.08)',
     taskLabels:{A:'Identify trend/pattern',B:'Describe difference',C:'Explain/Apply'},
     taskColors:{A:'var(--amber)',B:'var(--blue2)',C:'var(--green2)'},
     minWords: 80,
-    jsonSchema:`{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}`
+    jsonSchema:'{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}'
   },
   SC: {
     label:'SCOTUS Comparison', color:'var(--amber)', bg:'rgba(232,160,32,.08)',
     taskLabels:{A:'Identify clause/principle',B:'Similarity',C:'Difference',D:'Precedent/Impact'},
     taskColors:{A:'var(--amber)',B:'var(--teal2)',C:'var(--blue2)',D:'var(--purple2)'},
     minWords: 100,
-    jsonSchema:`{"totalScore":<0-4>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"},"D":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}`
+    jsonSchema:'{"totalScore":<0-4>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"},"D":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}'
   },
   AE: {
     label:'Argument Essay', color:'var(--purple2)', bg:'rgba(128,96,200,.08)',
     taskLabels:{A:'Thesis',B1:'Evidence 1',B2:'Evidence 2',B3:'Foundational Doc',C:'Reasoning',D:'Counterargument'},
     taskColors:{A:'var(--amber)',B1:'var(--teal2)',B2:'var(--teal2)',B3:'var(--blue2)',C:'var(--green2)',D:'var(--purple2)'},
     minWords: 200,
-    jsonSchema:`{"totalScore":<0-6>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B1":{"earned":<0|1>,"feedback":"<specific>"},"B2":{"earned":<0|1>,"feedback":"<specific>"},"B3":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"},"D":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}`
+    jsonSchema:'{"totalScore":<0-6>,"tasks":{"A":{"earned":<0|1>,"feedback":"<specific>"},"B1":{"earned":<0|1>,"feedback":"<specific>"},"B2":{"earned":<0|1>,"feedback":"<specific>"},"B3":{"earned":<0|1>,"feedback":"<specific>"},"C":{"earned":<0|1>,"feedback":"<specific>"},"D":{"earned":<0|1>,"feedback":"<specific>"}},"overallFeedback":"<2-3 sentences>","improveHint":"<one tip>"}'
   }
 };
 
@@ -2367,19 +2367,12 @@ async function submitUnitFRQ(frqId) {
         system: `You are an expert AP U.S. Government and Politics FRQ grader. The FRQ type is ${frq.type} (${tc.label}). Score strictly against the rubric. Be fair, specific, and constructive. Respond ONLY in valid JSON — no markdown, no preamble.`,
         messages: [{
           role: 'user',
-          content: `Grade this AP Gov ${tc.label} FRQ response.
-
-FRQ TYPE: ${frq.type} — ${tc.label}
-MAX POINTS: ${frq.points}
-
-RUBRIC:
-${frq.rubric}
-
-STUDENT RESPONSE:
-${response}
-
-Return ONLY this JSON (no markdown):
-${tc.jsonSchema}`
+          content: 'Grade this AP Gov ' + tc.label + ' FRQ response.\n\n' +
+            'FRQ TYPE: ' + frq.type + ' — ' + tc.label + '\n' +
+            'MAX POINTS: ' + frq.points + '\n\n' +
+            'RUBRIC:\n' + frq.rubric + '\n\n' +
+            'STUDENT RESPONSE:\n' + response + '\n\n' +
+            'Return ONLY this JSON (no markdown):\n' + tc.jsonSchema
         }]
       })
     });
