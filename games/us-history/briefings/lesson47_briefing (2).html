@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson 47 Briefing | The Age of Camelot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0d0b09;
+      --bg2:      #141109;
+      --surface:  #1a1510;
+      --surface2: #211b13;
+      --gold:     #b8862a;
+      --gold-dim: rgba(184,134,42,.22);
+      --gold-faint: rgba(184,134,42,.08);
+      --cream:    #f0e6d0;
+      --muted:    #a89070;
+      --rule:     rgba(184,134,42,.18);
+      --blue:     #7ec8e3;
+      --blue-dim: rgba(126,200,227,.15);
+      --blue-faint: rgba(126,200,227,.07);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(184,134,42,.09) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: var(--cream);
+      display: flex;
+      justify-content: center;
+      padding: 36px 20px 60px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: linear-gradient(170deg, #1e180f 0%, #110e09 60%, #0d0b08 100%);
+      border: 1px solid var(--rule);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Corner ornaments */
+    .app::before, .app::after {
+      content: '';
+      position: absolute;
+      width: 60px; height: 60px;
+      border-color: var(--gold-dim);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .app::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .app::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 36px 52px 28px;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 52px; right: 52px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+      opacity: .3;
+    }
+
+    .kicker {
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .28em;
+      font-size: .67rem;
+      font-weight: 400;
+      color: var(--gold);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .kicker::before, .kicker::after {
+      content: '';
+      display: block;
+      height: 1px;
+      width: 24px;
+      background: var(--gold-dim);
+    }
+
+    .title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--cream);
+      margin-bottom: 10px;
+      line-height: 1.1;
+    }
+
+    .title span { color: var(--gold); font-weight: 400; }
+
+    .subtitle {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .92rem;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 640px;
+      letter-spacing: .02em;
+    }
+
+    .shell-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      color: var(--cream);
+      text-decoration: none;
+      border: 1px solid var(--rule);
+      background: var(--gold-faint);
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .68rem;
+      font-weight: 400;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color .25s, background .25s;
+    }
+    .shell-link:hover {
+      border-color: var(--gold-dim);
+      background: rgba(184,134,42,.13);
+    }
+
+    /* ── Main grid ── */
+    .main {
+      display: grid;
+      grid-template-columns: 1.35fr .8fr;
+      min-height: 640px;
+    }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+
+    /* ── Slide area ── */
+    .slide-area {
+      padding: 32px;
+      border-right: 1px solid var(--rule);
+    }
+
+    @media (max-width: 900px) {
+      .slide-area { border-right: none; border-bottom: 1px solid var(--rule); }
+    }
+
+    .slide-card {
+      border: 1px solid var(--rule);
+      background: linear-gradient(160deg, rgba(26,21,14,.95) 0%, rgba(12,9,6,.97) 100%);
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Image band */
+    .image-band {
+      height: 240px;
+      position: relative;
+      border-bottom: 1px solid var(--rule);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #0b0906;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+      transition: background-image .4s ease;
+    }
+
+    .image-band::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(6,5,3,.8));
+      pointer-events: none;
+    }
+
+    .image-label {
+      position: relative;
+      z-index: 1;
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .22em;
+      font-size: .67rem;
+      font-weight: 400;
+      color: var(--cream);
+      background: rgba(10,8,5,.75);
+      border: 1px solid var(--rule);
+      padding: 7px 12px;
+    }
+
+    /* Slide content */
+    .slide-content {
+      padding: 28px 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .slide-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.55rem, 2.6vw, 2.2rem);
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.15;
+      color: var(--cream);
+    }
+
+    .slide-text {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .93rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .bullet-list {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bullet-list li {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .9rem;
+      color: var(--cream);
+      line-height: 1.65;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+      font-size: .8rem;
+      opacity: .7;
+    }
+
+    .remember {
+      margin-top: auto;
+      border-left: 2px solid var(--gold);
+      background: var(--gold-faint);
+      padding: 14px 18px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .9rem;
+      color: #ead9b8;
+      line-height: 1.7;
+    }
+
+    .remember strong {
+      display: block;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .65rem;
+      color: var(--gold);
+      margin-bottom: 7px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--rule);
+      background: rgba(184,134,42,.03);
+    }
+
+    .nav-btn {
+      border: 1px solid var(--rule);
+      background: var(--gold-faint);
+      color: var(--cream);
+      padding: 11px 20px;
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .68rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      border-color: var(--gold-dim);
+      background: rgba(184,134,42,.14);
+    }
+
+    .nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+    .progress-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 120px;
+    }
+
+    .progress-text {
+      text-align: center;
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      color: var(--muted);
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background: rgba(184,134,42,.12);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 8.3%;
+      background: linear-gradient(90deg, var(--gold), #e8c070);
+      transition: width .3s ease;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      padding: 32px 26px;
+      background: linear-gradient(180deg, rgba(12,9,6,.75) 0%, rgba(8,6,4,.88) 100%);
+    }
+
+    .section-label {
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .22em;
+      font-size: .65rem;
+      font-weight: 400;
+      color: var(--gold);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .side-panel {
+      border: 1px solid var(--rule);
+      background: rgba(184,134,42,.04);
+      margin-bottom: 14px;
+      padding: 18px 20px;
+    }
+
+    .side-title {
+      font-family: 'Jost', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .22em;
+      color: var(--gold);
+      font-size: .65rem;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+
+    .eq {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--cream);
+      line-height: 1.5;
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .term {
+      border: 1px solid rgba(126,200,227,.15);
+      background: var(--blue-faint);
+      padding: 10px 8px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .82rem;
+      color: var(--cream);
+      text-align: center;
+      letter-spacing: .04em;
+      transition: border-color .2s, background .2s;
+    }
+    .term:hover {
+      border-color: rgba(126,200,227,.32);
+      background: rgba(126,200,227,.1);
+    }
+
+    .mini-list {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+      counter-reset: mini;
+    }
+
+    .mini-list li {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .86rem;
+      color: var(--muted);
+      line-height: 1.7;
+      padding: 5px 0 5px 26px;
+      border-bottom: 1px solid rgba(184,134,42,.08);
+      position: relative;
+      counter-increment: mini;
+    }
+    .mini-list li:last-child { border-bottom: none; }
+    .mini-list li::before {
+      content: counter(mini);
+      position: absolute;
+      left: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--gold);
+      font-size: .95rem;
+      opacity: .7;
+    }
+
+    .foot {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: .86rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* Footer ornament */
+    .foot-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule);
+      gap: 16px;
+    }
+    .foot-ornament span {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: .9rem;
+      color: var(--gold);
+      opacity: .4;
+    }
+    .foot-ornament::before, .foot-ornament::after {
+      content: '';
+      display: block;
+      height: 1px;
+      width: 60px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim));
+    }
+    .foot-ornament::after {
+      background: linear-gradient(90deg, var(--gold-dim), transparent);
+    }
+
+    /* Slide transition */
+    @keyframes slideReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide-content.animating {
+      animation: slideReveal .28s ease both;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <div class="kicker">American Chronicles Briefing</div>
+        <h1 class="title">Lesson 47: <span>The Age of Camelot</span></h1>
+        <p class="subtitle">
+          A student study file on John F. Kennedy's presidency, Cold War crises, civil rights pressure, and the debate over his legacy.
+        </p>
+      </div>
+      <a class="shell-link" href="unit7a_briefing.html">← Return to Unit 7A</a>
+    </div>
+
+    <div class="main">
+      <section class="slide-area">
+        <div class="slide-card">
+          <div class="image-band" id="imageBand">
+            <div class="image-label" id="imageLabel">Historical Briefing</div>
+          </div>
+
+          <div class="slide-content" id="slideContent">
+            <h2 class="slide-heading" id="slideHeading"></h2>
+            <p class="slide-text" id="slideText"></p>
+            <ul class="bullet-list" id="bulletList"></ul>
+            <div class="remember" id="rememberBox"></div>
+          </div>
+
+          <div class="controls">
+            <button class="nav-btn" id="prevBtn">◀ Previous</button>
+
+            <div class="progress-wrap">
+              <div class="progress-text" id="progressText">Slide 1 of 12</div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <button class="nav-btn" id="nextBtn">Next ▶</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="section-label">Study Guide</div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Essential Question</h3>
+          <div class="eq">Was John F. Kennedy a great president?</div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Key Terms</h3>
+          <div class="term-grid">
+            <div class="term">Camelot</div>
+            <div class="term">New Frontier</div>
+            <div class="term">NASA</div>
+            <div class="term">Bay of Pigs</div>
+            <div class="term">Berlin Wall</div>
+            <div class="term">Cuban Missile Crisis</div>
+            <div class="term">March on Washington</div>
+            <div class="term">Legacy</div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">What to Watch For</h3>
+          <ol class="mini-list">
+            <li>How image and symbolism shaped Kennedy's reputation.</li>
+            <li>Where Kennedy succeeded and where he struggled.</li>
+            <li>Why Cold War events defined so much of his presidency.</li>
+            <li>How assassination changed the way Americans remembered him.</li>
+          </ol>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Study Tip</h3>
+          <p class="foot">
+            Don't just memorize events. Keep asking: what did Kennedy actually accomplish, and what part of his reputation came from image, hope, and tragedy?
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot-ornament"><span>&#10022;</span></div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        label: "Camelot",
+        image: "url('images/lesson47/lifecamelot.png')",
+        heading: "The Age of Camelot",
+        text: "John F. Kennedy's presidency is often remembered as 'Camelot'—a brief era of youth, style, and national optimism. But that image has always raised a bigger question: how much of Kennedy's reputation came from real achievement, and how much came from memory?",
+        bullets: [
+          "Kennedy became a symbol of energy and hope.",
+          "His White House projected glamour and confidence.",
+          "The idea of Camelot shaped how Americans remembered him."
+        ],
+        remember: "Kennedy's legacy was shaped by both history and myth."
+      },
+      {
+        label: "Image and Politics",
+        image: "url('images/lesson47/jfkandjackie.png')",
+        heading: "JFK, Jackie, and the Power of Image",
+        text: "John and Jacqueline Kennedy helped create a polished public image that made the administration feel modern, sophisticated, and exciting. Their visibility mattered politically because many Americans connected style and confidence with leadership.",
+        bullets: [
+          "The Kennedys symbolized youth and elegance.",
+          "Public image became part of presidential influence.",
+          "This helped strengthen the idea of Camelot."
+        ],
+        remember: "Image mattered in the Kennedy years."
+      },
+      {
+        label: "Television Age",
+        image: "url('images/lesson47/jfk_nixon.png')",
+        heading: "Kennedy and the Television Age",
+        text: "Kennedy's debate with Richard Nixon showed how television was changing American politics. Kennedy often appeared calm and composed on screen, and that helped him connect with voters in a new media age.",
+        bullets: [
+          "Television changed how candidates were judged.",
+          "Kennedy benefited from looking confident and steady.",
+          "His media image became one source of political strength."
+        ],
+        remember: "Kennedy was one of the first presidents shaped by television culture."
+      },
+      {
+        label: "New Frontier",
+        image: "url('images/lesson47/onthemoon.png')",
+        heading: "The New Frontier and the Moon Goal",
+        text: "Kennedy's New Frontier represented ambition at home and abroad. His call to reach the moon turned science, exploration, and Cold War competition into a national mission.",
+        bullets: [
+          "Kennedy linked science to national strength.",
+          "The moon goal reflected optimism and ambition.",
+          "The space race became part of Cold War rivalry."
+        ],
+        remember: "The moon program symbolized Kennedy's belief that America should aim high."
+      },
+      {
+        label: "Bay of Pigs",
+        image: "url('images/lesson47/map of cuba bay of pigs.png')",
+        heading: "The Bay of Pigs",
+        text: "Kennedy's first major foreign policy crisis was the failed Bay of Pigs invasion in Cuba. The attempt to overthrow Fidel Castro became a major embarrassment and hurt Kennedy early in his presidency.",
+        bullets: [
+          "The invasion failed badly.",
+          "It weakened American credibility.",
+          "It made Kennedy appear inexperienced in foreign affairs."
+        ],
+        remember: "The Bay of Pigs was one of Kennedy's clearest failures."
+      },
+      {
+        label: "Berlin",
+        image: "url('images/lesson47/kennedy in berlin.png')",
+        heading: "Berlin and a Divided World",
+        text: "Berlin became one of the clearest symbols of the Cold War. Kennedy's presence there showed American support for West Berlin and highlighted the larger struggle between democracy and communism.",
+        bullets: [
+          "Berlin represented Cold War division in visible form.",
+          "Kennedy used speeches and appearances to show resolve.",
+          "The city symbolized the split between East and West."
+        ],
+        remember: "Berlin was one of the most important symbols of the Cold War."
+      },
+      {
+        label: "Missile Crisis",
+        image: "url('images/lesson47/cuban missle crisis.png')",
+        heading: "The Cuban Missile Crisis",
+        text: "The Cuban Missile Crisis brought the United States and the Soviet Union to the edge of nuclear war. Kennedy had to respond to Soviet missiles in Cuba without causing a catastrophe.",
+        bullets: [
+          "This was one of the most dangerous moments of the Cold War.",
+          "Kennedy used a naval blockade and intense diplomacy.",
+          "Many historians view this as his strongest moment as president."
+        ],
+        remember: "The missile crisis is one of the strongest arguments for Kennedy's greatness."
+      },
+      {
+        label: "Arms Race",
+        image: "url('images/lesson47/Nuclear Weapons Stockpiles, 1958-1964.png')",
+        heading: "Why the Crisis Was So Dangerous",
+        text: "The nuclear arms race helps explain why the Cuban Missile Crisis mattered so much. Both the United States and the Soviet Union were rapidly increasing their weapons stockpiles, making the threat of war terrifyingly real.",
+        bullets: [
+          "The superpowers were building nuclear weapons quickly.",
+          "Cold War competition carried enormous danger.",
+          "Kennedy governed during a period of extreme global risk."
+        ],
+        remember: "Kennedy's presidency unfolded under the constant shadow of nuclear war."
+      },
+      {
+        label: "Civil Rights",
+        image: "url('images/lesson47/march on washington.png')",
+        heading: "Civil Rights and the Limits of Camelot",
+        text: "Kennedy's presidency was also shaped by growing civil rights pressure. The March on Washington showed that the struggle for equality was becoming impossible for national leaders to avoid.",
+        bullets: [
+          "Civil rights activists pushed Kennedy to act more forcefully.",
+          "Symbolic leadership was not enough on its own.",
+          "His domestic record looked more mixed than his public image."
+        ],
+        remember: "Camelot looked hopeful, but deep injustice still challenged the nation."
+      },
+      {
+        label: "Assassination",
+        image: "url('images/lesson47/jfk in limo.png')",
+        heading: "Assassination in Dallas",
+        text: "Kennedy's assassination in Dallas on November 22, 1963 shocked the nation and transformed the way Americans remembered him. His presidency ended before many of its promises could be fully tested.",
+        bullets: [
+          "The assassination froze Kennedy's image in public memory.",
+          "It made him a symbol of lost promise.",
+          "His legacy became tied to tragedy as much as policy."
+        ],
+        remember: "Kennedy's unfinished presidency is a major reason his reputation remains so powerful."
+      },
+      {
+        label: "Transfer of Power",
+        image: "url('images/lesson47/lbj jackie on plane.png')",
+        heading: "The Nation Moves Forward",
+        text: "The swearing-in of Lyndon B. Johnson aboard Air Force One captured the immediate transfer of power after Kennedy's death. It remains one of the most dramatic moments in presidential history.",
+        bullets: [
+          "Johnson assumed office almost immediately.",
+          "Jackie Kennedy's presence made the moment unforgettable.",
+          "The image symbolized both continuity and national trauma."
+        ],
+        remember: "Even in crisis, the presidency had to continue."
+      },
+      {
+        label: "Legacy",
+        image: "url('images/lesson47/funeral.png')",
+        heading: "Grief, Memory, and Legacy",
+        text: "Kennedy's funeral deepened the sense that Camelot had been something precious and suddenly lost. Public mourning helped turn him into a national symbol whose memory often blended real accomplishments with unrealized hopes.",
+        bullets: [
+          "Public grief shaped Kennedy's long-term legacy.",
+          "His memory became linked to youth, promise, and tragedy.",
+          "Historians still debate image versus achievement."
+        ],
+        remember: "Was JFK great because of what he achieved, or because Americans never stopped imagining what he might have become?"
+      }
+    ];
+
+    let current = 0;
+
+    const imageBand    = document.getElementById('imageBand');
+    const imageLabel   = document.getElementById('imageLabel');
+    const slideContent = document.getElementById('slideContent');
+    const slideHeading = document.getElementById('slideHeading');
+    const slideText    = document.getElementById('slideText');
+    const bulletList   = document.getElementById('bulletList');
+    const rememberBox  = document.getElementById('rememberBox');
+    const progressText = document.getElementById('progressText');
+    const progressFill = document.getElementById('progressFill');
+    const prevBtn      = document.getElementById('prevBtn');
+    const nextBtn      = document.getElementById('nextBtn');
+
+    function renderSlide(index) {
+      const s = slides[index];
+      imageBand.style.backgroundImage = s.image;
+      imageLabel.textContent = s.label;
+
+      // Animate content swap
+      slideContent.classList.remove('animating');
+      void slideContent.offsetWidth; // reflow
+      slideContent.classList.add('animating');
+
+      slideHeading.textContent = s.heading;
+      slideText.textContent    = s.text;
+      bulletList.innerHTML     = s.bullets.map(b => `<li>${b}</li>`).join('');
+      rememberBox.innerHTML    = `<strong>Remember This</strong>${s.remember}`;
+      progressText.textContent = `Slide ${index + 1} of ${slides.length}`;
+      progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (current > 0) { current--; renderSlide(current); }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (current < slides.length - 1) { current++; renderSlide(current); }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && current < slides.length - 1) { current++; renderSlide(current); }
+      if (e.key === 'ArrowLeft'  && current > 0)                 { current--; renderSlide(current); }
+    });
+
+    renderSlide(current);
+  </script>
+
+<!-- ═══════════════════════════════════════════════
+     AC ENGAGEMENT TRACKING MODULE v1.0
+     Reads student from ac_shell_state localStorage
+     Batches writes to Supabase ac_engagement table
+═══════════════════════════════════════════════ -->
+<script>
+(function(){
+  const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+  const _SUPA_H   = {'Content-Type':'application/json','apikey':_SUPA_KEY,'Authorization':'Bearer '+_SUPA_KEY};
+
+  // Read student identity from shell localStorage
+  function _getStudent(){
+    try{
+      const s = JSON.parse(localStorage.getItem('ac_shell_state')||'{}');
+      return { name: s.name||'', period: s.period||'' };
+    }catch(e){ return {name:'',period:''}; }
+  }
+
+  // Event queue — batched every 10s or on page unload
+  window._acEngQueue = window._acEngQueue || [];
+
+  window.acLogEvent = function(eventType, unitId, deckId, data, durationSeconds){
+    const st = _getStudent();
+    if(!st.name) return; // don't log guests or unauthenticated
+    window._acEngQueue.push({
+      student_name:     st.name,
+      period:           st.period,
+      event_type:       eventType,
+      unit_id:          unitId   || null,
+      deck_id:          deckId   || null,
+      data:             data     || null,
+      duration_seconds: durationSeconds || null,
+      created_at:       new Date().toISOString()
+    });
+  };
+
+  async function _flushEngQueue(){
+    if(!window._acEngQueue.length) return;
+    const batch = window._acEngQueue.splice(0);
+    try{
+      await fetch(_SUPA_URL+'/rest/v1/ac_engagement',{
+        method:'POST',
+        headers:{..._SUPA_H,'Prefer':'return=minimal'},
+        body: JSON.stringify(batch)
+      });
+    }catch(e){ console.log('Engagement flush failed',e); }
+  }
+
+  // Flush every 15 seconds
+  setInterval(_flushEngQueue, 15000);
+
+  // Flush on page unload using sendBeacon for reliability
+  window.addEventListener('beforeunload', ()=>{
+    if(!window._acEngQueue.length) return;
+    const st = _getStudent();
+    navigator.sendBeacon(
+      _SUPA_URL+'/rest/v1/ac_engagement',
+      new Blob([JSON.stringify(window._acEngQueue)], {type:'application/json'})
+    );
+  });
+
+  // Expose flush for manual calls
+  window.acFlushEngagement = _flushEngQueue;
+})();
+</script>
+
+<script>
+// ── BRIEFING ENGAGEMENT TRACKING ──
+(function(){
+  const _pageId   = "lesson47_camelot".replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  const _unitId   = 'unit7a';
+  const _opened   = Date.now();
+  let   _maxScroll = 0;
+
+  // Track scroll depth
+  window.addEventListener('scroll', function(){
+    const pct = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+    if(pct > _maxScroll) _maxScroll = Math.min(pct, 100);
+  }, {passive:true});
+
+  // Log open event
+  window.addEventListener('DOMContentLoaded', function(){
+    acLogEvent('briefing_opened', _unitId, null, {page: _pageId}, null);
+    acFlushEngagement && acFlushEngagement();
+  });
+
+  // Log time + scroll on exit
+  window.addEventListener('beforeunload', function(){
+    const secs = Math.round((Date.now() - _opened) / 1000);
+    acLogEvent('briefing_closed', _unitId, null, {
+      page:        _pageId,
+      scroll_pct:  _maxScroll,
+      read_fully:  _maxScroll >= 80
+    }, secs);
+  });
+})();
+</script>
+</body>
+</html>
