@@ -3832,14 +3832,16 @@ function buildCharGrid(){
 
   // Group all chars: owned first, then affordable, then locked
   const poolOwned=CHAR_POOL.filter(c=>owned.has(c.id));
-  const poolBuyable=CHAR_POOL.filter(c=>!owned.has(c.id)&&c.unlockMethod==='gold'&&gold>=c.cost);
-  const poolLocked=CHAR_POOL.filter(c=>!owned.has(c.id)&&!(c.unlockMethod==='gold'&&gold>=c.cost));
+  const poolBuyable=CHAR_POOL.filter(c=>!owned.has(c.id)&&c.unlockMethod==='gold'&&gold>=(c.cost||0));
+  const poolLocked=CHAR_POOL.filter(c=>!owned.has(c.id)&&!(c.unlockMethod==='gold'&&gold>=(c.cost||0)));
 
   const rarityColor={free:'var(--text3)',common:'var(--text2)',uncommon:'var(--teal2)',rare:'var(--blue2)',legendary:'var(--amber)'};
 
   function cardHTML(c,state){
     const svg=c.svg().replace(/width="\d+"/,'width="56"').replace(/height="\d+"/,'height="56"');
-    const rc=rarityColor[c.rarity]||'var(--text3)';
+    const rarity=(c.rarity||'common').toLowerCase();
+    const rc=rarityColor[rarity]||'var(--text3)';
+    const cost=c.cost||0;
     const isActive=S.avatar===c.id;
     if(state==='owned'){
       return `<div onclick="equipChar('${c.id}')" style="background:var(--bg2);border:1.5px solid ${isActive?'var(--civitas)':'var(--border)'};
@@ -3848,7 +3850,7 @@ function buildCharGrid(){
         onmouseover="this.style.borderColor='var(--civitas2)'" onmouseout="this.style.borderColor='${isActive?'var(--civitas)':'var(--border)'}'">
         ${svg}
         <div style="font-family:var(--dm);font-size:9px;color:var(--cream)">${c.label}</div>
-        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${rarity.toUpperCase()}</div>
         ${isActive?'<div style="font-family:var(--bebas);font-size:8px;color:var(--civitas2);letter-spacing:1px">EQUIPPED</div>':''}
       </div>`;
     }
@@ -3858,8 +3860,8 @@ function buildCharGrid(){
         onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
         ${svg}
         <div style="font-family:var(--dm);font-size:9px;color:var(--cream)">${c.label}</div>
-        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
-        <div style="font-family:var(--bebas);font-size:9px;color:var(--gc)">🪙 ${c.cost.toLocaleString()}</div>
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${rarity.toUpperCase()}</div>
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--gc)">🪙 ${cost.toLocaleString()}</div>
       </div>`;
     }
     // locked
@@ -3867,8 +3869,8 @@ function buildCharGrid(){
       display:flex;flex-direction:column;align-items:center;gap:5px;opacity:.35;text-align:center">
       <div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:28px">🔒</div>
       <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${c.label}</div>
-      <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
-      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3)">🪙 ${c.cost.toLocaleString()}</div>
+      <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${rarity.toUpperCase()}</div>
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3)">🪙 ${cost.toLocaleString()}</div>
     </div>`;
   }
 
