@@ -2051,6 +2051,25 @@ ${response}
       const isNew = score > prev;
       if (isNew) localStorage.setItem(key, score);
 
+      // Also write into the shell's courseProgress frqSubmissions so the AP score updates
+      try {
+        const shellKey = 'civitas_shell_state';
+        const shellState = JSON.parse(localStorage.getItem(shellKey) || '{}');
+        if (!shellState.courseProgress) shellState.courseProgress = {};
+        if (!shellState.courseProgress.ap_gov) shellState.courseProgress.ap_gov = {};
+        if (!shellState.courseProgress.ap_gov.frqSubmissions) shellState.courseProgress.ap_gov.frqSubmissions = {};
+        const fullFrqId = UNIT_ID + '_' + frqId; // e.g. apg_u1_frq1
+        const existing = shellState.courseProgress.ap_gov.frqSubmissions[fullFrqId] || {bestScore:0,maxScore:rubricData.maxScore,attempts:0,history:[]};
+        const newBest = Math.max(existing.bestScore, score);
+        existing.bestScore = newBest;
+        existing.maxScore = rubricData.maxScore;
+        existing.attempts = (existing.attempts||0) + 1;
+        if (!existing.history) existing.history = [];
+        existing.history.push({score, ts: Date.now()});
+        shellState.courseProgress.ap_gov.frqSubmissions[fullFrqId] = existing;
+        localStorage.setItem(shellKey, JSON.stringify(shellState));
+      } catch(e2) {}
+
       // Award gold on improvement
       if (isNew && score > 0) {
         const gold = Math.round(rubricData.goldReward * (score / rubricData.maxScore));
@@ -2126,9 +2145,11 @@ async function saveFRQResult(frqId, score, maxScore, response, feedback) {
       },
       body: JSON.stringify({
         student_name: studentName,
-        full_name: studentName,
+        full_name: localStorage.getItem('civitas_full_name') || studentName,
         course_id: 'ap_gov',
         frq_id: UNIT_ID + '_' + frqId,
+        frq_type: frqId === 'frq1' ? 'CA' : 'AE',
+        unit: UNIT_ID,
         score, max_score: maxScore,
         response_text: response.slice(0, 3000),
         ai_feedback: (feedback || '').slice(0, 1000),
