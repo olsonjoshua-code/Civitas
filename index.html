@@ -2557,6 +2557,33 @@ const SHELL_KEY = 'civitas_state';
 const TEACHER_PWD = 'olson219';
 const OB_KEY = 'civitas_onboarding_seen';
 let IS_TEACHER = false;
+
+function toggleTeacherBox(){
+  const box=document.getElementById('teacher-box');
+  const lbl=document.getElementById('teacher-toggle-lbl');
+  if(!box)return;
+  const open=box.style.display==='none'||box.style.display==='';
+  box.style.display=open?'block':'none';
+  if(lbl)lbl.textContent=open?'Cancel':'Teacher Login';
+  if(open){const inp=document.getElementById('teacher-input');if(inp)inp.focus();}
+}
+
+function submitTeacher(){
+  const inp=document.getElementById('teacher-input');
+  const err=document.getElementById('teacher-err');
+  if(!inp)return;
+  const val=(inp.value||'').trim().toLowerCase();
+  if(val===TEACHER_PWD.toLowerCase()){
+    IS_TEACHER=true;
+    inp.value='';
+    if(err)err.textContent='';
+    const box=document.getElementById('teacher-box');if(box)box.style.display='none';
+    enterShell();
+  } else {
+    if(err){err.textContent='Incorrect code.';setTimeout(()=>{if(err)err.textContent='';},2500);}
+    inp.value='';inp.focus();
+  }
+}
 let _activeCourseId = null;
 let _lbPeriod = 'all';
 let _sessionStart = null;
@@ -5692,7 +5719,7 @@ function feedbackRow(r,labels,dimmed=false){
     +'<span style="font-family:var(--playfair);font-size:11px;color:var(--cream)">'+(r.item_title||r.item_id||'Unknown')+'</span>'
     +'<span style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-left:auto">'+(r.student_name||'Unknown')+' · '+date+'</span></div>'
     +(r.note?'<div style="font-family:var(--crimson);font-size:12px;color:var(--text2);font-style:italic;margin-top:3px">"'+r.note+'"</div>':'')
-    +(!dimmed?'<button onclick="markFeedbackResolved(\x27'+r.id+'\x27)" style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--green2);color:var(--green2);padding:2px 8px;cursor:pointer;margin-top:6px">&#10003; Mark Resolved</button>':'')
+    +(!dimmed?'<button onclick="markFeedbackResolved(''+r.id+'')" style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--green2);color:var(--green2);padding:2px 8px;cursor:pointer;margin-top:6px">&#10003; Mark Resolved</button>':'')
     +'</div>';
 }
 async function markFeedbackResolved(id){
