@@ -2243,11 +2243,11 @@ async function submitFRQReport(id,title){
 }
 
 function renderFRQTab(){
-  const el=document.getElementById('frq-hub-content');if(!el)return;
-  const frqs=getUnitFRQs();
-  if(!frqs.length){el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:20px;text-align:center">No FRQ questions found.</div>';return;}
-  const types=['CA','QA','SC','AE'];
-  let html='<div style="background:rgba(112,96,208,.06);border:1px solid var(--purple);border-left:3px solid var(--purple2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
+  var el=document.getElementById('frq-hub-content');if(!el)return;
+  var frqs=getUnitFRQs();
+  if(!frqs.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No FRQ questions found.</div>';return;}
+  var types=['CA','QA','SC','AE'];
+  var html='<div style="background:rgba(112,96,208,.06);border:1px solid var(--purple);border-left:3px solid var(--purple2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
     +'<strong style="color:var(--purple2)">How it works:</strong> One question per type per session. Submit for AI feedback, resubmit to improve, return for a new set.'
     +'</div>';
   types.forEach(function(type){
@@ -2262,7 +2262,7 @@ function renderFRQTab(){
       var fb=getFRQFeedback(frq.id);
       html+='<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+tc.color+';margin-bottom:14px;overflow:hidden">'
         +'<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
-        +'<div style="font-size:22px">'+(frq.icon||'✍️')+'</div>'
+        +'<div style="font-size:22px">'+(frq.icon||'\u270d\ufe0f')+'</div>'
         +'<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
         +'<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+tc.color+';background:'+tc.bg+';padding:2px 7px;border:1px solid '+tc.color+'">'+tc.label+'</span>'
         +'<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">'+frq.points+' pts</span></div>'
@@ -2271,23 +2271,22 @@ function renderFRQTab(){
           :'<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple2);padding:3px 8px">NOT ATTEMPTED</div>')
         +'</div>'
         +(frq.svgChart?'<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3)">'+frq.svgChart+'</div>':'')
-        +'<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
+        +'<div style="padding:12px 16px;border-bottom:1px solid var(--border)">'
+        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
         +'<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.75;white-space:pre-line">'+frq.prompt+'</div></div>'
-        +'<div style="padding:12px 16px"><div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
-        +'<textarea id="frq-text-'+frq.id+'" style="width:100%;min-height:160px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
-        +' onfocus="this.style.borderColor=''+tc.color+''" onblur="this.style.borderColor='var(--border2)'"'
-        +' oninput="updateFRQWC(''+frq.id+'',this,'+tc.minWords+');saveFRQDraft(''+frq.id+'',this.value)"'
+        +'<div style="padding:12px 16px">'
+        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
+        +'<textarea id="frq-text-'+frq.id+'" data-frqid="'+frq.id+'" data-minwords="'+tc.minWords+'"'
+        +' style="width:100%;min-height:160px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
         +' placeholder="Write your response here...">'+getFRQDraft(frq.id)+'</textarea>'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
         +'<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-'+frq.id+'">0 words</div>'
-        +'<button onclick="submitUnitFRQ(''+frq.id+'')" id="frq-btn-'+frq.id+'"'
-        +' style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid '+tc.color+';color:'+tc.color+';padding:7px 18px;cursor:pointer;transition:all .2s"'
-        +' onmouseover="this.style.background=''+tc.color+'';this.style.color='#0e1018'"'
-        +' onmouseout="this.style.background='transparent';this.style.color=''+tc.color+''">'
+        +'<button data-frqid="'+frq.id+'" id="frq-btn-'+frq.id+'" class="frq-submit-btn"'
+        +' style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid '+tc.color+';color:'+tc.color+';padding:7px 18px;cursor:pointer;transition:all .2s">'
         +(fb?'&#8634; Resubmit':'&#9889; Submit for AI Grading')+'</button></div></div>'
         +'<div id="frq-feedback-'+frq.id+'" style="display:'+(fb?'block':'none')+';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">'+(fb||'')+'</div>'
         +'<div style="padding:6px 16px 10px;border-top:1px solid var(--border)">'
-        +'<button onclick="toggleFRQReport(''+frq.id+'')" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">&#9873; Report an issue</button>'
+        +'<button data-frqid="'+frq.id+'" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
         +'<div id="frq-report-form-'+frq.id+'" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
         +'<select id="frq-report-type-'+frq.id+'" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
         +'<option value="">-- Select issue type --</option>'
@@ -2299,16 +2298,46 @@ function renderFRQTab(){
         +'<option value="other">Other</option></select>'
         +'<textarea id="frq-report-note-'+frq.id+'" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
         +'<div style="display:flex;gap:8px;align-items:center">'
-        +'<button onclick="submitFRQReport(''+frq.id+'',''+frq.title.replace(/'/g,"\'")+'''+')" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
-        +'<button onclick="toggleFRQReport(''+frq.id+'')" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
+        +'<button data-frqid="'+frq.id+'" data-frqtitle="'+frq.title+'" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
+        +'<button data-frqid="'+frq.id+'" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
         +'<div id="frq-report-status-'+frq.id+'" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
         +'</div></div></div></div>';
     });
   });
   el.innerHTML=html;
-  el.querySelectorAll('textarea').forEach(function(ta){
-    ta.addEventListener('paste',function(e){e.preventDefault();notify('Pasting is disabled.');});
+
+  // Wire up events using data attributes — no inline JS quoting issues
+  el.querySelectorAll('.frq-submit-btn').forEach(function(btn){
+    var id=btn.getAttribute('data-frqid');
+    var tc=FRQ_TYPE_CONFIG[getUnitFRQs().find(function(f){return f.id===id;})||{type:'CA'}] || FRQ_TYPE_CONFIG.CA;
+    btn.addEventListener('mouseover',function(){this.style.background=FRQ_TYPE_CONFIG[getUnitFRQs().find(function(f){return f.id===id;}).type].color;this.style.color='#0e1018';});
+    btn.addEventListener('mouseout',function(){this.style.background='transparent';this.style.color=FRQ_TYPE_CONFIG[getUnitFRQs().find(function(f){return f.id===id;}).type].color;});
+    btn.addEventListener('click',function(){submitUnitFRQ(id);});
   });
+  el.querySelectorAll('.frq-report-toggle').forEach(function(btn){
+    btn.addEventListener('mouseover',function(){this.style.opacity='1';});
+    btn.addEventListener('mouseout',function(){this.style.opacity='.6';});
+    btn.addEventListener('click',function(){toggleFRQReport(this.getAttribute('data-frqid'));});
+  });
+  el.querySelectorAll('.frq-report-submit').forEach(function(btn){
+    btn.addEventListener('click',function(){submitFRQReport(this.getAttribute('data-frqid'),this.getAttribute('data-frqtitle'));});
+  });
+  el.querySelectorAll('.frq-report-cancel').forEach(function(btn){
+    btn.addEventListener('click',function(){toggleFRQReport(this.getAttribute('data-frqid'));});
+  });
+  el.querySelectorAll('textarea[data-frqid]').forEach(function(ta){
+    var id=ta.getAttribute('data-frqid');
+    var min=parseInt(ta.getAttribute('data-minwords'))||80;
+    ta.addEventListener('input',function(){updateFRQWC(id,this,min);saveFRQDraft(id,this.value);});
+    ta.addEventListener('paste',function(e){e.preventDefault();notify('Pasting is disabled.');});
+    var frq=getUnitFRQs().find(function(f){return f.id===id;});
+    if(frq){
+      var tc=FRQ_TYPE_CONFIG[frq.type];
+      ta.addEventListener('focus',function(){this.style.borderColor=tc.color;});
+      ta.addEventListener('blur',function(){this.style.borderColor='var(--border2)';});
+    }
+  });
+}
 }
 
 async function submitUnitFRQ(frqId){
