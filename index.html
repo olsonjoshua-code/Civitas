@@ -4398,16 +4398,47 @@ function printCourseCert(){
   const completionRate=completedWeight/totalWeight;
   const unitScore=Math.round(avgAcc*completionRate);
 
-  // FRQ score from localStorage
-  const frqKeys=['civitas_frq_apg_u1_frq1','civitas_frq_apg_u1_frq2','civitas_frq_apg_u2_frq1','civitas_frq_apg_u2_frq2','civitas_frq_apg_u3_frq1','civitas_frq_apg_u3_frq2','civitas_frq_apg_u4_frq1','civitas_frq_apg_u4_frq2','civitas_frq_apg_u5_frq1','civitas_frq_apg_u5_frq2'];
-  const frqScores=frqKeys.map(k=>{const v=localStorage.getItem(k);return v?parseInt(v):null;}).filter(v=>v!==null);
-  const frqAvg=frqScores.length>0?Math.round(frqScores.reduce((a,v)=>a+v,0)/frqScores.length*100/6):0;
-  const frqAttempted=frqScores.length>0;
+  // FRQ avg from courseProgress frqSubmissions
+  const cp=getCourseProgress('ap_gov');
+  const frqSubs=cp.frqSubmissions||{};
+  // frqSubs keys are frq IDs, values are {bestScore, attempts, history, maxScore?}
+  const frqEntries=Object.entries(frqSubs).filter(([,s])=>s.bestScore>0);
+  const frqAvg=frqEntries.length>0?Math.round(frqEntries.reduce((a,[id,s])=>{
+    const frqDef=COURSE_FRQS.ap_gov?.find(f=>f.id===id);
+    const maxPts=frqDef?.points||s.maxScore||6;
+    return a+(s.bestScore/maxPts)*100;
+  },0)/frqEntries.length):0;
+  const frqAttempted=frqEntries.length>0;
 
-  // Composite (units 70%, FRQ 30%)
-  const courseGrade=Math.round(unitScore*0.70+(frqAttempted?frqAvg*0.30:0));
-  const tc=courseGrade>=90?'#ffd700':courseGrade>=75?'#c8c8d8':courseGrade>=60?'#cd7f32':'#38a050';
-  const tier=courseGrade>=90?'🏆 Gold':courseGrade>=75?'⭐ Silver':courseGrade>=60?'🥉 Bronze':'✅ Completed';
+  // Vocab avg
+  const vocabBest=S.vocabBestScore||{};
+  const vocabScores=Object.values(vocabBest).filter(v=>typeof v==='number'&&v>0);
+  const vocabAvg=vocabScores.length>0?Math.round(vocabScores.reduce((a,v)=>a+v,0)/vocabScores.length):0;
+  const vocabAttempted=vocabScores.length>0;
+
+  // RPG
+  const rpgData=progress['apg_rpg'];
+  const rpgAvg=rpgData?.completedAt?(rpgData.bestAccuracy||0):0;
+  const rpgAttempted=!!(rpgData?.completedAt);
+
+  // Test scores — load from Supabase async not available in sync cert, use cached if present
+  // (test scores will show as — on cert unless already in S.testScoresCache)
+  const testAvgCert=S.testScoresCache||null;
+
+  // Use the same calcCompositeScore function so cert always matches HUD
+  const courseGrade=calcCompositeScore({
+    unitAvg:unitScore, unitAttempted:completedWeight>0,
+    frqAvg, frqAttempted,
+    vocabAvg, vocabAttempted,
+    rpgAvg, rpgAttempted,
+    testAvg:testAvgCert
+  })||0;
+
+  // AP 1-5 scale
+  const apScore=scoreToAP(courseGrade);
+  const apLabel=apScoreLabel(apScore||1);
+  const tc=apScore===5?'#9060c0':apScore===4?'#b8860b':apScore===3?'#38a050':apScore===2?'#c87820':'#cd5c5c';
+  const tier=apScore?'AP Score Prediction: '+apScore+' — '+apLabel.label:'In Progress';
 
   if(unitRows.length===0){notify('Complete at least one unit to print your Course Certificate!');return;}
 
@@ -4481,10 +4512,11 @@ function printCourseCert(){
     in AP U.S. Government & Politics through Civitas
   </div>
   <div class="grade-wrap">
-    <div class="grade-val">${courseGrade}%</div>
-    <div class="grade-lbl">COMPOSITE COURSE SCORE</div>
+    <div class="grade-val">${apScore||'—'}</div>
+    <div class="grade-lbl">PREDICTED AP SCORE (1–5)</div>
   </div>
-  <div style="font-family:'Cinzel',serif;font-size:14px;color:${tc};letter-spacing:.1em;margin:6px 0">${tier} Achievement</div>
+  <div style="font-family:'Cinzel',serif;font-size:13px;color:${tc};letter-spacing:.08em;margin:6px 0">${apScore?apLabel.label:'Complete more to see your score'}</div>
+  <div style="font-family:'Crimson Text',serif;font-size:10px;color:#8a6a2a;font-style:italic;margin:2px 0">Composite: ${courseGrade}%</div>
   <div class="divider"></div>
 
   <div style="display:flex;gap:20px;text-align:left">
@@ -4497,9 +4529,12 @@ function printCourseCert(){
     </div>
     <div style="width:200px">
       <div class="section-label">Score Breakdown</div>
-      <div class="comp-row"><span style="color:#1a1208;font-weight:600">Unit Games</span><span style="color:#8a4820;font-weight:700">${unitScore}% <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 70%</span></span></div>
-      <div class="comp-row"><span style="color:#1a1208;font-weight:600">FRQ Practice</span><span style="color:#8a4820;font-weight:700">${frqAttempted?frqAvg+'%':'—'} <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 30%</span></span></div>
-      <div class="comp-row" style="border-top:2px solid rgba(0,0,0,.15);margin-top:4px;padding-top:6px"><span style="color:#1a1208;font-weight:700;font-family:'Cinzel',serif;font-size:10px">COMPOSITE</span><span style="color:${tc};font-weight:700;font-size:13px">${courseGrade}%</span></div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">Unit Games</span><span style="color:#8a4820;font-weight:700">${unitScore}% <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt ${testAvgCert?'35':'40'}%</span></span></div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">FRQ Practice</span><span style="color:#8a4820;font-weight:700">${frqAttempted?Math.round(frqAvg)+'%':'—'} <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt ${testAvgCert?'20':'25'}%</span></span></div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">Vocab Quizzes</span><span style="color:#8a4820;font-weight:700">${vocabAttempted?vocabAvg+'%':'—'} <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt ${testAvgCert?'10':'25'}%</span></span></div>
+      <div class="comp-row"><span style="color:#1a1208;font-weight:600">Civitas RPG</span><span style="color:#8a4820;font-weight:700">${rpgAttempted?rpgAvg+'%':'—'} <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 10%</span></span></div>
+      ${testAvgCert?`<div class="comp-row"><span style="color:#1a1208;font-weight:600">Test Scores</span><span style="color:#8a4820;font-weight:700">${testAvgCert}% <span style="color:#8a6a2a;font-weight:400;font-size:8px">wt 25%</span></span></div>`:''}
+      <div class="comp-row" style="border-top:2px solid rgba(0,0,0,.15);margin-top:4px;padding-top:6px"><span style="color:#1a1208;font-weight:700;font-family:'Cinzel',serif;font-size:10px">COMPOSITE</span><span style="color:${tc};font-weight:700;font-size:13px">${courseGrade}% → AP ${apScore||'?'}</span></div>
       <div class="section-label" style="margin-top:12px">Big Idea Themes</div>
       ${themeRows.length>0?themeRows.map(r=>`<div class="comp-row"><span style="color:#5a4520;font-size:8px">${r.id.replace('apg_','').toUpperCase()}</span><span style="color:#8a4820;font-size:8px">${r.data.bestAccuracy}%</span></div>`).join(''):'<div style="font-size:8px;color:#a09080;padding:4px 8px">None completed yet</div>'}
     </div>
