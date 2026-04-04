@@ -4260,6 +4260,8 @@ function showDashboard(){
   // Update nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav-dashboard').classList.add('active');
+  const tcBtn=document.getElementById('nav-teacher');
+  if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   renderDashboard();
 }
@@ -4278,6 +4280,10 @@ function showMainView(v){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const nb=document.getElementById('nav-'+v);
   if(nb)nb.classList.add('active');
+
+  // Always keep teacher button visible for teachers
+  const tcBtn=document.getElementById('nav-teacher');
+  if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   if(v==='profile')refreshProfile();
   if(v==='wallet')renderWallet();
@@ -4513,10 +4519,7 @@ function renderCourseUnits(){
         <div style="font-family:var(--bebas);font-size:20px;letter-spacing:3px;color:${cat.color}">${cat.name.toUpperCase()}</div>
         <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;margin-top:2px">${cat.grade} · ${units.length} Units · Click any unit to preview and launch</div>
       </div>
-    </div>
-    <div id="cv-ap-score-badge" style="margin-top:10px"></div>`;
-    // Load AP score asynchronously so it doesn't block unit render
-    if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
+    </div>`;
   }
 
   if(!units.length){
