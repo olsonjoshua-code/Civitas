@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson 16 Briefing | Uncovering Problems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #111418;
+      --bg2: #1d232a;
+      --accent: #c49a58;
+      --accent-2: #8398a5;
+      --text: #f2ede3;
+      --muted: #d0cbc1;
+      --rule: rgba(196, 154, 88, 0.18);
+      --rule-strong: rgba(196, 154, 88, 0.32);
+      --chip: rgba(196, 154, 88, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(196, 154, 88, 0.16) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    body {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 36px 20px 60px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: linear-gradient(170deg, #20262d 0%, #14191f 58%, #0b0f13 100%);
+      border: 1px solid var(--rule);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-color: var(--rule-strong);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .app::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .app::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 36px 52px 28px;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 52px;
+      right: 52px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.35;
+    }
+
+    .kicker {
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.67rem;
+      font-weight: 400;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kicker::before,
+    .kicker::after {
+      content: "";
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--rule-strong);
+    }
+
+    .title {
+      font-family: "Cormorant Garamond", serif;
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+    }
+
+    .title span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 630px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .shell-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      font-weight: 400;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color 0.25s, background 0.25s;
+    }
+
+    .shell-link:hover {
+      border-color: var(--rule-strong);
+      background: rgba(196, 154, 88, 0.16);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr;
+      min-height: 640px;
+    }
+
+    .slide-area {
+      padding: 32px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .slide-shell {
+      min-height: 540px;
+      background: linear-gradient(160deg, rgba(36, 43, 52, 0.97) 0%, rgba(17, 21, 26, 0.99) 100%);
+      border: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .image-band {
+      height: 240px;
+      background-color: #161b21;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+    }
+
+    .media-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 0;
+      background: #000;
+    }
+
+    .image-band.has-video .media-video {
+      display: block;
+    }
+
+    .image-band.has-video {
+      background-image: none !important;
+    }
+
+    .image-band::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(4, 10, 20, 0.12), rgba(4, 10, 20, 0.82));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .image-label {
+      position: relative;
+      z-index: 2;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.67rem;
+      color: var(--text);
+      background: rgba(22, 17, 13, 0.82);
+      border: 1px solid var(--rule);
+      padding: 7px 12px;
+    }
+
+    .slide-content {
+      padding: 26px 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .slide-heading {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.5rem, 2.5vw, 2.08rem);
+      line-height: 1.12;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .slide-text {
+      margin: 0;
+      font-family: "Jost", sans-serif;
+      font-size: 0.89rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .bullet-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bullet-list li {
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.58;
+      color: var(--text);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .remember {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-left: 2px solid var(--accent);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: #d9ecfb;
+    }
+
+    .remember strong {
+      display: block;
+      margin-bottom: 7px;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.64rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 28px 18px;
+      border-top: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .nav-btn {
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      color: var(--text);
+      padding: 11px 20px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(107, 145, 126, 0.17);
+      border-color: var(--rule-strong);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-text {
+      font-family: "Jost", sans-serif;
+      text-align: center;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      height: 2px;
+      background: rgba(107, 145, 126, 0.13);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 6.7%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+
+    .sidebar {
+      padding: 32px 26px;
+      background: linear-gradient(180deg, rgba(31, 24, 16, 0.88) 0%, rgba(14, 11, 8, 0.95) 100%);
+    }
+
+    .section-label {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .side-panel {
+      margin-bottom: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .side-title {
+      margin: 0 0 14px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .eq {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.12rem;
+      font-style: italic;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .term {
+      border: 1px solid var(--rule);
+      background: rgba(122, 138, 161, 0.14);
+      padding: 10px 8px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .mini-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: guide;
+    }
+
+    .mini-list li {
+      position: relative;
+      padding: 5px 0 5px 24px;
+      border-bottom: 1px solid rgba(107, 145, 126, 0.12);
+      counter-increment: guide;
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+
+    .mini-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .mini-list li::before {
+      content: counter(guide);
+      position: absolute;
+      left: 0;
+      top: 5px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 0.95rem;
+      color: var(--accent);
+      opacity: 0.72;
+    }
+
+    .foot {
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .foot-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule);
+      position: relative;
+      z-index: 1;
+    }
+
+    .foot-ornament::before,
+    .foot-ornament::after {
+      content: "";
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+      opacity: 0.35;
+    }
+
+    .foot-ornament::after {
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .foot-ornament span {
+      color: var(--accent);
+      opacity: 0.45;
+      font-size: 0.95rem;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-content.animating {
+      animation: reveal 0.28s ease both;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .slide-area {
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 20px 10px 34px;
+      }
+
+      .topbar {
+        padding: 26px 18px 22px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .topbar::after {
+        left: 18px;
+        right: 18px;
+      }
+
+      .slide-area,
+      .sidebar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn {
+        flex: 1 1 140px;
+      }
+
+      .progress-wrap {
+        order: -1;
+        width: 100%;
+      }
+
+      .image-band {
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <div class="kicker">American Chronicles Briefing</div>
+        <h1 class="title">Lesson 16: <span>Uncovering Problems</span></h1>
+        <p class="subtitle">
+          A student study file on the social, political, and economic problems reformers identified at the turn of the century, tracing urban crowding, machine politics, child labor, corporate power, unsafe products, segregation, and the inequality hidden beneath modern growth.
+        </p>
+      </div>
+
+      <a class="shell-link" href="javascript:history.back()">&larr; Return to Unit</a>
+    </div>
+
+    <div class="main">
+      <section class="slide-area">
+        <div class="slide-shell">
+          <div class="image-band" id="imageBand">
+            <video class="media-video" id="mediaVideo" muted loop playsinline controls preload="metadata"></video>
+            <div class="image-label" id="imageLabel">Historical Briefing</div>
+          </div>
+
+          <div class="slide-content" id="slideContent">
+            <h2 class="slide-heading" id="slideHeading"></h2>
+            <p class="slide-text" id="slideText"></p>
+            <ul class="bullet-list" id="bulletList"></ul>
+            <div class="remember" id="rememberBox"></div>
+          </div>
+
+          <div class="controls">
+            <button class="nav-btn" id="prevBtn">&#9664; Previous</button>
+
+            <div class="progress-wrap">
+              <div class="progress-text" id="progressText">Slide 1 of 16</div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <button class="nav-btn" id="nextBtn">Next &#9654;</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="section-label">Study Guide</div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Essential Question</h3>
+          <p class="eq">What problems did rapid industrial and urban growth create at the turn of the century, and why did reformers believe those problems could no longer be ignored?</p>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Key Terms</h3>
+          <div class="term-grid">
+            <div class="term">urbanization</div>
+            <div class="term">tenements</div>
+            <div class="term">political machine</div>
+            <div class="term">muckraker</div>
+            <div class="term">monopoly</div>
+            <div class="term">consumer protection</div>
+            <div class="term">child labor</div>
+            <div class="term">segregation</div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">What to Watch For</h3>
+          <ol class="mini-list">
+            <li>How population growth, migration, and industrial concentration changed where Americans lived and worked.</li>
+            <li>How city life produced crowding, machine politics, poverty, unsafe workplaces, and weak consumer protections.</li>
+            <li>How corporate wealth and political influence raised fears that democracy was being overwhelmed by private power.</li>
+            <li>How racial injustice and uneven access to modern comforts showed that progress was not shared equally.</li>
+          </ol>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Study Tip</h3>
+            <p class="foot">
+              Sort the lesson into four buckets: population change, city problems, economic power, and inequality. If you can place each slide into one of those groups, the logic of Progressive reform becomes much easier to follow.
+            </p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot-ornament"><span>&#10022;</span></div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        label: "Westward Shift",
+        image: "url('images/lesson16/The U.S. population shifted westward.jpg')",
+        heading: "Population Change Showed That the United States Had Become a Larger and Less Stable Industrial Nation",
+        text: "By 1900, the balance of population had shifted away from its older concentration in the Northeast and South. Growth in the Midwest and West reflected railroads, farming, mining, and urban expansion, all of which helped create a nation that felt more modern, more mobile, and more difficult to govern fairly.",
+        bullets: [
+          "Regional change altered economic and political power across the country.",
+          "Newer states and regions were being pulled into a national market more tightly than before.",
+          "Rapid change made many Americans worry that old institutions were no longer keeping up."
+        ],
+        remember: "The problems of the Progressive Era grew out of a nation changing faster than its systems of government and protection."
+      },
+      {
+        label: "Urban Migration",
+        image: "url('images/lesson16/Americans moved from rural area.jpg')",
+        heading: "Americans Moved From Rural Areas to Cities as Industrial Jobs Reorganized Daily Life",
+        text: "At the turn of the century, the share of Americans living in cities climbed sharply as factories, offices, and transportation hubs concentrated work in urban areas. This migration created opportunity, but it also overwhelmed housing, sanitation, and public services.",
+        bullets: [
+          "Urbanization changed where people lived, worked, and raised families.",
+          "City growth often happened faster than government planning or reform.",
+          "Progressives saw urban crowding as a warning sign that modern life was producing new dangers."
+        ],
+        remember: "Urban growth was not just a demographic trend. It was one of the main sources of Progressive-era problems."
+      },
+      {
+        label: "Chicago Hub",
+        image: "url('images/lesson16/Chicago was an ideal hub for railroad lines and shippin.jpg')",
+        heading: "Railroads and Shipping Turned Cities Like Chicago Into Powerful but Strained Industrial Centers",
+        text: "Chicago grew into a major hub because it connected rail lines, meatpacking, manufacturing, and trade. Cities like it became symbols of the new economy: energetic, profitable, and crowded with infrastructure that brought wealth to some people while exposing many others to danger and disorder.",
+        bullets: [
+          "Transportation links made certain cities central to industrial growth.",
+          "Economic success brought crowding, pollution, and intense pressure on workers and neighborhoods.",
+          "The same networks that created wealth also magnified the human costs of expansion."
+        ],
+        remember: "Industrial success often concentrated people, money, and problems in the same places."
+      },
+      {
+        label: "Economic Activity",
+        image: "url('images/lesson16/economic activity.jpg')",
+        heading: "The National Economy Was Linked More Tightly Than Ever, but Growth Was Uneven and Disruptive",
+        text: "By 1900, agriculture, mining, steel, and manufacturing were tied together through railroads, markets, and finance. This made the United States more productive and powerful, but it also meant that local people and resources were increasingly shaped by distant economic forces they could not control.",
+        bullets: [
+          "Industrial America functioned as a national system rather than a collection of isolated regions.",
+          "Different parts of the country supplied different forms of labor, raw materials, and industry.",
+          "Reformers worried that ordinary citizens had too little protection inside such a large economic machine."
+        ],
+        remember: "The economy was expanding nationally, but the gains and burdens of that growth were not shared evenly."
+      },
+      {
+        label: "Factory Belt",
+        image: "url('images/lesson16/factories, such as this Pittsburgh factory.jpg')",
+        heading: "Heavy Industry Produced Wealth, Smoke, Hazard, and Physical Exhaustion on a Massive Scale",
+        text: "Factories in places like Pittsburgh represented the productive power of industrial America, but they also revealed its environmental and human costs. Workers faced long hours and danger, while entire communities lived under smoke, noise, and polluted air and water.",
+        bullets: [
+          "Industrial output rose quickly because factories pushed labor and machinery to the limit.",
+          "Pollution and unsafe conditions made industrial growth feel destructive as well as impressive.",
+          "Progressives increasingly argued that private industry could not be left entirely unregulated."
+        ],
+        remember: "Factories did not just make goods. They also made the social and environmental problems reformers wanted to confront."
+      },
+      {
+        label: "Ethnic Neighborhoods",
+        image: "url('images/lesson16/Ethnic neighborhoods.jpg')",
+        heading: "Immigrant Neighborhoods Offered Support and Identity, but They Also Revealed the Density of Urban Need",
+        text: "Ethnic neighborhoods helped newcomers find language support, jobs, churches, stores, and familiar customs inside large American cities. Yet their concentration also showed how many immigrant families were crowded into dense urban districts with limited services and opportunities.",
+        bullets: [
+          "Neighborhood networks helped immigrants adjust to city life without giving up their identities immediately.",
+          "Crowded districts made the scale of urban poverty and congestion highly visible.",
+          "Progressives often treated immigrant neighborhoods as places needing both service and reform."
+        ],
+        remember: "Ethnic neighborhoods were communities of survival, but they also exposed the unequal conditions of city life."
+      },
+      {
+        label: "Tenements",
+        image: "url('images/lesson16/tennements.jpg')",
+        heading: "Tenements Became One of the Clearest Symbols of Overcrowding, Poor Sanitation, and Urban Neglect",
+        text: "Tenement housing packed many families into cramped apartments with little ventilation, limited light, and weak sanitation. Reformers saw these buildings as proof that rapid city growth had outpaced the willingness of government and landlords to protect basic health and safety.",
+        bullets: [
+          "Tenements showed how working families could be trapped in unhealthy housing close to jobs.",
+          "Crowding increased the spread of disease, fire danger, and daily stress.",
+          "Housing reform became central because city life could not be called modern while so many people lived this way."
+        ],
+        remember: "Tenements turned abstract urban growth into a visible human problem."
+      },
+      {
+        label: "Machine Politics",
+        image: "url('images/lesson16/Tammany Tiger,.jpeg')",
+        heading: "Political Machines Won Loyalty With Help and Jobs While Protecting Corruption and Boss Rule",
+        text: "Urban political machines such as Tammany Hall offered favors, patronage, and neighborhood assistance in exchange for votes. Reformers criticized them for putting party loyalty ahead of honest government, public efficiency, and democratic accountability.",
+        bullets: [
+          "Machines were powerful because they met real needs in cities where official services were weak.",
+          "Bosses used patronage and personal networks to hold power over elections and city offices.",
+          "Progressives argued that corruption made it harder to solve the social problems city residents actually faced."
+        ],
+        remember: "Machine politics survived because it was useful, but Progressives believed it was deeply unhealthy for democracy."
+      },
+      {
+        label: "Trust Power",
+        image: "url('images/lesson16/Millionaires Club.jpeg')",
+        heading: "Corporate Wealth Seemed So Powerful That Many Americans Feared It Was Taking Over Government",
+        text: "Cartoons of monopolists towering over lawmakers captured a growing fear of the era: that giant trusts and wealthy industrial leaders had gained too much control over public life. Reformers warned that concentrated economic power could weaken competition, distort policy, and drown out ordinary citizens.",
+        bullets: [
+          "Trusts symbolized the merger of great wealth with political influence.",
+          "Many Americans feared that democracy could not function fairly if monopolies shaped public decisions.",
+          "Attacks on corporate power became a major part of Progressive reform."
+        ],
+        remember: "Progressives did not just object to wealth itself. They objected to wealth becoming a form of political control."
+      },
+      {
+        label: "Child Labor",
+        image: "url('images/lesson16/Child laborers often worked long hours for low wages.jpg')",
+        heading: "Child Labor Made Industrial Injustice Impossible to Dismiss as a Normal Cost of Business",
+        text: "Children worked long hours in factories, mills, and fields for very low wages, often at the expense of their safety and education. Reformers saw child labor as a moral outrage and as proof that industrial society needed stronger legal protections for the vulnerable.",
+        bullets: [
+          "Employers benefited from cheap labor while children paid the cost in health and schooling.",
+          "Photographs of child workers helped turn reform into an emotional public cause.",
+          "The issue forced Americans to ask whether economic growth was worth so much human sacrifice."
+        ],
+        remember: "Child labor became powerful reform evidence because it showed exploitation in its starkest form."
+      },
+      {
+        label: "Unsafe Products",
+        image: "url('images/lesson16/The government did not regulate product quality or safety.jpg')",
+        heading: "Weak Consumer Protections Left Americans Exposed to Fraud, Unsafe Medicines, and Dirty Processing",
+        text: "Before stronger regulations, companies could market exaggerated or misleading products with relatively little oversight. Reformers argued that a modern industrial society needed rules protecting consumers from contamination, deception, and corporate abuse.",
+        bullets: [
+          "Consumer protection became a Progressive cause because ordinary buyers had too little information or power.",
+          "Unsafe products revealed that industrial problems reached into the home as well as the factory.",
+          "Public outrage over these abuses helped justify stronger federal regulation."
+        ],
+        remember: "Progressives believed that freedom in the marketplace meant little without truthful information and basic safety."
+      },
+      {
+        label: "Uneven Comfort",
+        image: "url('images/lesson16/New appliances revolutionized the way women did housework.jpg')",
+        heading: "Modern Conveniences Reached Some Households While Leaving Many Americans Outside the New Comforts",
+        text: "New household appliances suggested that modern life could become easier, cleaner, and more efficient, especially for middle-class consumers. Yet those benefits were distributed unevenly, which made the contrast between comfort and poverty even sharper in the Progressive Era.",
+        bullets: [
+          "Technological progress improved daily life for some families more than for others.",
+          "Consumer convenience did not erase low wages, crowded housing, or dangerous work.",
+          "The contrast between abundance and deprivation helped fuel reform-minded criticism."
+        ],
+        remember: "One of the era's biggest tensions was that real progress existed, but access to it was deeply unequal."
+      },
+      {
+        label: "Urban Poverty",
+        image: "url('images/lesson16/New York City homeless.jpeg')",
+        heading: "Visible Homelessness and Destitution Showed That Prosperity Had Left Many People Behind",
+        text: "Even in booming cities, some people lived on the margins without stable housing, dependable income, or security. Urban poverty reminded reformers that industrial success did not automatically produce dignity or protection for the most vulnerable.",
+        bullets: [
+          "Economic growth could coexist with deep insecurity and public suffering.",
+          "Poverty was visible in city streets, not hidden far from centers of wealth.",
+          "The sight of urban hardship strengthened arguments for more active reform."
+        ],
+        remember: "Progressive reform began with the recognition that a rich society could still fail large numbers of people."
+      },
+      {
+        label: "Segregation",
+        image: "url('images/lesson16/segregated drinking fountain.jpg')",
+        heading: "Racial Segregation Revealed That Turn-of-the-Century America Was Still Structured by Legal Inequality",
+        text: "Jim Crow segregation in the South showed that many Americans were being denied equal treatment through law and custom. This injustice exposed a major limit of the age: even as reform talk grew louder, racial discrimination remained deeply embedded in everyday life.",
+        bullets: [
+          "Segregation was a visible reminder that progress was not reaching everyone equally.",
+          "Public facilities enforced racial hierarchy as part of daily routine.",
+          "The Progressive Era's problems included civil rights failures, not just city corruption and industrial abuse."
+        ],
+        remember: "Any honest picture of the era has to include the persistence of racial injustice."
+      },
+      {
+        label: "Migrant Labor",
+        image: "url('images/lesson16/Mexican immigrants worked in various industries.jpg')",
+        heading: "Low-Wage Labor Problems Extended Beyond Northern Factories and Into Regional Economies Across the Country",
+        text: "Mexican immigrants worked in agriculture, railroads, and other industries, especially in the Southwest, showing that the pressures of industrial-era labor were national in scope. Their experience reminds us that inequality and vulnerability were not limited to a few eastern cities.",
+        bullets: [
+          "The modern economy relied on many different groups of workers across many regions.",
+          "Low wages and insecure labor conditions were part of a national pattern.",
+          "Progressive problems cannot be understood only through the lens of one city or one industry."
+        ],
+        remember: "Industrial-era inequality spread across the nation, even when the exact jobs and regions looked different."
+      },
+      {
+        label: "Jacob Riis",
+        image: "url('images/lesson16/Jacob Riis.jpg')",
+        heading: "Muckrakers Helped Americans See Problems They Had Learned to Ignore",
+        text: "Journalists and photographers such as Jacob Riis exposed the hidden conditions of city life and forced the public to confront what industrial growth had produced. By revealing overcrowding, poverty, corruption, and neglect, they helped turn private suffering into public reform demands.",
+        bullets: [
+          "Muckrakers transformed investigation into a tool for political change.",
+          "Exposes mattered because many people with power had not seen these conditions directly or had chosen not to look.",
+          "The first step of Progressivism was uncovering problems clearly enough that reform became unavoidable."
+        ],
+        remember: "Before reform could happen, someone had to make the nation look at itself honestly."
+      }
+    ];
+
+    let current = 0;
+
+    const imageBand = document.getElementById("imageBand");
+    const mediaVideo = document.getElementById("mediaVideo");
+    const imageLabel = document.getElementById("imageLabel");
+    const slideContent = document.getElementById("slideContent");
+    const slideHeading = document.getElementById("slideHeading");
+    const slideText = document.getElementById("slideText");
+    const bulletList = document.getElementById("bulletList");
+    const rememberBox = document.getElementById("rememberBox");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function renderSlide(index) {
+      const slide = slides[index];
+      if (slide.video) {
+        imageBand.classList.add("has-video");
+        imageBand.style.backgroundImage = slide.poster ? `url('${slide.poster}')` : "none";
+        mediaVideo.src = slide.video;
+        mediaVideo.poster = slide.poster || "";
+        mediaVideo.load();
+        const playAttempt = mediaVideo.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(() => {});
+        }
+      } else {
+        imageBand.classList.remove("has-video");
+        imageBand.style.backgroundImage = slide.image || "none";
+        mediaVideo.pause();
+        mediaVideo.removeAttribute("src");
+        mediaVideo.removeAttribute("poster");
+        mediaVideo.load();
+      }
+
+      imageLabel.textContent = slide.label;
+
+      slideContent.classList.remove("animating");
+      void slideContent.offsetWidth;
+      slideContent.classList.add("animating");
+
+      slideHeading.textContent = slide.heading;
+      slideText.textContent = slide.text;
+      bulletList.innerHTML = slide.bullets.map((bullet) => `<li>${bullet}</li>`).join("");
+      rememberBox.innerHTML = `<strong>Remember This</strong>${slide.remember}`;
+      progressText.textContent = `Slide ${index + 1} of ${slides.length}`;
+      progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" && current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+
+      if (event.key === "ArrowRight" && current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    renderSlide(current);
+  </script>
+</body>
+</html>
+
