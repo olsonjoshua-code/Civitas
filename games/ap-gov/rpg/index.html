@@ -381,7 +381,7 @@ option{background:var(--bg2)}
 
 <div id="game-header">
   <div class="hud-inner">
-    <button onclick="returnToCivitas()" style="font-family:var(--cinzel);font-size:8px;letter-spacing:.08em;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">← CIVITAS</button>
+    <button onclick="returnToCivitas()" style="font-family:var(--cinzel);font-size:8px;letter-spacing:.08em;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">← Back to AP Gov</button>
     <div style="width:52px;height:52px;flex-shrink:0;cursor:pointer;border-radius:50%;overflow:hidden" id="hud-sprite-wrap" onclick="showScreen('profile')">
     </div>
     <div class="hud-info">
@@ -432,7 +432,7 @@ option{background:var(--bg2)}
 <!-- TITLE -->
 <div id="title-screen" class="screen">
   <div style="text-align:right;margin-bottom:8px">
-    <button onclick="returnToCivitas()" style="font-family:var(--cinzel);font-size:8px;letter-spacing:.08em;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">← BACK TO CIVITAS</button>
+    <button onclick="returnToCivitas()" style="font-family:var(--cinzel);font-size:8px;letter-spacing:.08em;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">← Back to AP Gov</button>
   </div>
   <div style="padding:2rem 0 1rem;text-align:center">
     <div style="font-size:72px;margin-bottom:16px;filter:drop-shadow(0 0 30px rgba(201,168,76,.3))">🏛️</div>
@@ -570,6 +570,7 @@ option{background:var(--bg2)}
     <div class="trivia-tag" id="trivia-tag">AP Gov Challenge</div>
     <div class="trivia-q" id="trivia-q">Question here</div>
     <div class="trivia-opts" id="trivia-opts"></div>
+    <div id="trivia-report-wrap" style="text-align:right"></div>
   </div>
   <button class="btn sm" onclick="showScreen('battle')" style="margin-top:6px">← BACK (no action)</button>
 </div>
@@ -3727,6 +3728,24 @@ function checkEraUnlocks(){
         showMapNotif('UNIT '+EPISODES[idx+1].num+' UNLOCKED!');
       }
     }
+    // Write episode completion to civitas_unit_progress so course cards update
+    if(epDone&&!ep.isFinalBoss){
+      try{
+        var prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+        var rpgKey='apg_rpg_'+ep.id;
+        if(!prog[rpgKey]||!prog[rpgKey].completedAt){
+          var acc=G.qTotal>0?Math.round(G.qCorrect/G.qTotal*100):50;
+          prog[rpgKey]={bestAccuracy:acc,completedAt:new Date().toISOString()};
+          // Also mark the overall RPG unit as having progress
+          prog['apg_rpg']={bestAccuracy:acc,completedAt:new Date().toISOString()};
+          localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
+        }
+      }catch(e){}
+    }
+  });save();
+}
+      }
+    }
   });save();
 }
 function showMapNotif(msg){const el=document.getElementById('map-notification');if(el){el.textContent='★ '+msg+' ★';el.style.display='block';setTimeout(()=>el.style.display='none',4000);}}
@@ -3934,6 +3953,9 @@ function renderTriviaScreen(){
   BT.shuffledOpts=shuffled;
   const letters=['A','B','C','D'];
   document.getElementById('trivia-opts').innerHTML=shuffled.map((opt,i)=>`<button class="t-opt" onclick="answerShuffled(${i})">${letters[i]}. ${opt.text}</button>`).join('');
+  // Report button
+  var reportWrap=document.getElementById('trivia-report-wrap');
+  if(reportWrap)reportWrap.innerHTML='<button onclick="submitRPGQuestionReport()" style="font-family:var(--cinzel);font-size:7px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.45;margin-top:6px">&#9873; Report question</button>';
 }
 function answerShuffled(idx){
   const isCorrect=BT.shuffledOpts&&BT.shuffledOpts[idx]&&BT.shuffledOpts[idx].isCorrect;
@@ -4195,8 +4217,10 @@ function endBattle(won){
       SFX.card();
     }
     if(en.unlockAvatar&&!G.unlockedAvatars.includes(en.unlockAvatar)){G.unlockedAvatars.push(en.unlockAvatar);notify('NEW CITIZEN UNLOCKED!','green');
-    try{if(window.opener)window.opener.postMessage({type:'RPG_CHAR_UNLOCKED',charId:en.unlockAvatar,charName:en.unlockAvatar.replace(/_av$/,'').replace(/_/g,' ')},'*');}catch(e){}
-    try{localStorage.setItem('civitas_rpg_unlock',JSON.stringify({charId:en.unlockAvatar,ts:Date.now()}));}catch(e){}}
+    // Store unlock in localStorage — shell reads this on return
+    try{localStorage.setItem('civitas_rpg_unlock',JSON.stringify({charId:en.unlockAvatar,charName:en.unlockAvatar.replace(/_av$/,'').replace(/_/g,' '),ts:Date.now()}));}catch(e){}
+    // Also try postMessage for popup scenarios
+    try{if(window.opener)window.opener.postMessage({type:'RPG_CHAR_UNLOCKED',charId:en.unlockAvatar,charName:en.unlockAvatar.replace(/_av$/,'').replace(/_/g,' ')},'*');}catch(e){}}
     addXP(BT.earnedXP);checkEraUnlocks();checkAchievements();checkGameCompletion();
     document.getElementById('result-emoji').textContent='🏆';
     document.getElementById('result-headline').textContent='ARGUMENT WON!';
@@ -4616,6 +4640,13 @@ function checkGameCompletion(){
   const allBeaten=allEn.every(e=>G.beatenEnemies.includes(e.id));
   if(allBeaten&&!G.completionCelebrated){
     G.completionCelebrated=true;
+    // Write full completion to civitas_unit_progress so shell recognizes RPG as done
+    try{
+      var prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+      var acc=G.qTotal>0?Math.round(G.qCorrect/G.qTotal*100):75;
+      prog['apg_rpg']={bestAccuracy:acc,completedAt:new Date().toISOString(),fullComplete:true};
+      localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
+    }catch(e){}
     // Unlock AOC
     if(!G.unlockedAvatars.includes('aoc'))G.unlockedAvatars.push('aoc');
     // Populate stats
@@ -5497,6 +5528,35 @@ function hideContinue(){
   if(banner)banner.style.display='none';
   const s1=document.getElementById('login-step-1');
   if(s1)s1.style.display='block';
+}
+
+// ── CIVITAS FEEDBACK INTEGRATION ──────────────────────────────
+// Separate from RPG's own Supabase — reports go to main Civitas DB
+const CIVITAS_SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const CIVITAS_SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+
+async function submitRPGQuestionReport(){
+  var q=BT&&BT.currentQ;
+  var sn=localStorage.getItem('civitas_student_name')||G&&G.name||'Unknown';
+  var epId=BT&&BT.epId||'unknown';
+  var enemyName=BT&&BT.enemy&&BT.enemy.name||'Unknown';
+  try{
+    await fetch(CIVITAS_SUPA_URL+'/rest/v1/civitas_feedback',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':CIVITAS_SUPA_KEY,'Authorization':'Bearer '+CIVITAS_SUPA_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({
+        student_name:sn,course_id:'ap_gov',item_type:'rpg_question',
+        item_id:'apg_rpg_'+epId,item_title:'RPG: '+enemyName,
+        issue_type:'question_error',
+        note:q?(q.q||'').slice(0,300):'Unknown question',
+        unit_id:'apg_rpg',submitted_at:new Date().toISOString()
+      })
+    });
+    notify('✓ Question reported — thanks!','green');
+  }catch(e){notify('Report failed.','red');}
+  // Hide the button after reporting
+  var wrap=document.getElementById('trivia-report-wrap');
+  if(wrap)wrap.innerHTML='<span style="font-family:var(--cinzel);font-size:7px;color:var(--green);opacity:.6">✓ Reported</span>';
 }
 </script>
 </body>
