@@ -4130,8 +4130,7 @@ function enterShell(){
 
   updateHUD();
   buildCharGrid();
-
-  // Populate AP score in HUD as soon as shell loads
+  syncGoldFromStorage(); // ensure gold is up to date from localStorage
   if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
 
   const seen=localStorage.getItem(OB_KEY);
@@ -4338,10 +4337,14 @@ function enterCourse(courseId){
 
   // External course handler
   if(courseId==='us_history'){
-    window.location.href='/Civitas/games/us-history/';
+    try{localStorage.setItem('civitas_last_course','us_history');}catch(e){}
+    window.location.href='https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
     return;
   }
-  if(courseId==='hs_ush') return;
+  if(courseId==='hs_ush'){
+    window.location.href='https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+    return;
+  }
 
   if(cat.comingSoon){
     notify('📚 '+cat.name+' — coming soon!');
@@ -4497,12 +4500,19 @@ function renderDashboard(){
   const el=document.getElementById('dashboard-courses');
   if(!el)return;
 
+  let unitProg={};
+  try{unitProg=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');}catch(e){}
+
   const enrolled=S.courses.map(c=>{
     const cat=COURSE_CATALOG.find(x=>x.id===c.id);
     if(!cat)return null;
+    const units=COURSE_UNITS[c.id]||[];
+    const total=units.length||8;
+    // Count completed units from localStorage (primary) OR S.courseProgress (fallback)
+    const doneFromLS=units.filter(u=>unitProg[u.id]&&unitProg[u.id].completed).length;
     const cp=getCourseProgress(c.id);
-    const done=cp.unitsCompleted?cp.unitsCompleted.length:0;
-    const total=(COURSE_UNITS[c.id]||[]).length||8;
+    const doneFromState=(cp.unitsCompleted||[]).length;
+    const done=Math.max(doneFromLS,doneFromState);
     const pct=Math.round(done/Math.max(1,total)*100);
     return{...cat, enrolledPeriod:c.period, done, total, pct};
   }).filter(Boolean);
