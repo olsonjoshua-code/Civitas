@@ -3824,6 +3824,98 @@ function buildStarterGrid(){
   buildFilteredCharGrid();
 }
 
+function buildCharGrid(){
+  const el=document.getElementById('char-grid');
+  if(!el)return;
+  const owned=new Set(S.unlocked||[]);
+  const gold=S.gold||0;
+
+  // Group all chars: owned first, then affordable, then locked
+  const poolOwned=CHAR_POOL.filter(c=>owned.has(c.id));
+  const poolBuyable=CHAR_POOL.filter(c=>!owned.has(c.id)&&c.unlockMethod==='gold'&&gold>=c.cost);
+  const poolLocked=CHAR_POOL.filter(c=>!owned.has(c.id)&&!(c.unlockMethod==='gold'&&gold>=c.cost));
+
+  const rarityColor={free:'var(--text3)',common:'var(--text2)',uncommon:'var(--teal2)',rare:'var(--blue2)',legendary:'var(--amber)'};
+
+  function cardHTML(c,state){
+    const svg=c.svg().replace(/width="\d+"/,'width="56"').replace(/height="\d+"/,'height="56"');
+    const rc=rarityColor[c.rarity]||'var(--text3)';
+    const isActive=S.avatar===c.id;
+    if(state==='owned'){
+      return `<div onclick="equipChar('${c.id}')" style="background:var(--bg2);border:1.5px solid ${isActive?'var(--civitas)':'var(--border)'};
+        ${isActive?'box-shadow:0 0 12px rgba(112,96,208,.3);':''} cursor:pointer;padding:10px 6px;
+        display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;text-align:center"
+        onmouseover="this.style.borderColor='var(--civitas2)'" onmouseout="this.style.borderColor='${isActive?'var(--civitas)':'var(--border)'}'">
+        ${svg}
+        <div style="font-family:var(--dm);font-size:9px;color:var(--cream)">${c.label}</div>
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
+        ${isActive?'<div style="font-family:var(--bebas);font-size:8px;color:var(--civitas2);letter-spacing:1px">EQUIPPED</div>':''}
+      </div>`;
+    }
+    if(state==='buyable'){
+      return `<div onclick="buyChar('${c.id}')" style="background:var(--bg2);border:1.5px solid var(--gc2);cursor:pointer;padding:10px 6px;
+        display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;text-align:center;opacity:.85"
+        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
+        ${svg}
+        <div style="font-family:var(--dm);font-size:9px;color:var(--cream)">${c.label}</div>
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--gc)">🪙 ${c.cost.toLocaleString()}</div>
+      </div>`;
+    }
+    // locked
+    return `<div style="background:var(--bg2);border:1.5px solid var(--border);padding:10px 6px;
+      display:flex;flex-direction:column;align-items:center;gap:5px;opacity:.35;text-align:center">
+      <div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:28px">🔒</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${c.label}</div>
+      <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:${rc}">${c.rarity.toUpperCase()}</div>
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3)">🪙 ${c.cost.toLocaleString()}</div>
+    </div>`;
+  }
+
+  let html='';
+
+  if(poolOwned.length){
+    html+=`<div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--civitas2);margin-bottom:8px">OWNED (${poolOwned.length})</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:20px">`;
+    html+=poolOwned.map(c=>cardHTML(c,'owned')).join('');
+    html+=`</div>`;
+  }
+  if(poolBuyable.length){
+    html+=`<div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--gc);margin-bottom:8px">AVAILABLE TO BUY</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:20px">`;
+    html+=poolBuyable.map(c=>cardHTML(c,'buyable')).join('');
+    html+=`</div>`;
+  }
+  if(poolLocked.length){
+    html+=`<div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--text3);margin-bottom:8px">LOCKED (${poolLocked.length})</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:20px">`;
+    html+=poolLocked.map(c=>cardHTML(c,'locked')).join('');
+    html+=`</div>`;
+  }
+
+  el.innerHTML=html||'<div style="font-family:var(--dm);font-size:11px;color:var(--text3);padding:20px">No characters available.</div>';
+}
+
+function equipChar(id){
+  S.avatar=id;
+  saveState();
+  updateHUD();
+  buildCharGrid();
+}
+
+function buyChar(id){
+  const c=CHAR_POOL.find(x=>x.id===id);
+  if(!c)return;
+  if((S.gold||0)<c.cost){notify('Not enough gold!');return;}
+  S.gold=(S.gold||0)-c.cost;
+  if(!S.unlocked)S.unlocked=[];
+  if(!S.unlocked.includes(id))S.unlocked.push(id);
+  saveState();
+  updateHUD();
+  buildCharGrid();
+  notify('🎉 Unlocked '+c.label+'!');
+}
+
 function pickAvatar(id,el){
   _setupAvatar=id;
   document.querySelectorAll('.starter-opt').forEach(e=>e.classList.remove('selected'));
