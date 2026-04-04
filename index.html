@@ -546,6 +546,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
         <div class="hud-stat">COURSES<span id="hstat-courses">0</span></div>
         <div class="hud-stat">UNITS<span id="hstat-units">0</span></div>
         <div class="hud-stat">TROPHIES<span id="hstat-trophies">0</span></div>
+        <div class="hud-stat" id="hstat-ap-wrap" style="display:none;cursor:default" title="Predicted AP Exam Score (1-5)">AP SCORE<span id="hstat-ap" style="color:var(--purple2)">—</span></div>
         <div class="hud-stat gold-stat">🪙<span id="hstat-gold">0</span></div>
       </div>
       <button id="course-switcher-btn" onclick="openCourseSwitcher()">📚 My Courses ▾</button>
@@ -4200,10 +4201,10 @@ function renderCourseUnits(){
         <div style="font-family:var(--bebas);font-size:20px;letter-spacing:3px;color:${cat.color}">${cat.name.toUpperCase()}</div>
         <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;margin-top:2px">${cat.grade} · ${units.length} Units · Click any unit to preview and launch</div>
       </div>
-      <div id="cv-ap-score-badge" style="flex:1;min-width:200px"></div>
-    </div>`;
+    </div>
+    <div id="cv-ap-score-badge" style="margin-top:10px"></div>`;
     // Load AP score asynchronously so it doesn't block unit render
-    if(!S.isGuest&&S.name) renderCourseAPScore();
+    if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
   }
 
   if(!units.length){
@@ -5583,20 +5584,48 @@ function studentLogout(){
 // Calculates composite AP Score for a student given their component scores.
 // Without tests: 50% units + 25% FRQ + 25% vocab
 // With tests:    40% units + 25% tests + 20% FRQ + 15% vocab
-function calcCompositeScore({unitAvg=0, frqAvg=0, vocabAvg=0, testAvg=null}){
-  if(testAvg!==null && testAvg>0){
-    return Math.round(unitAvg*0.40 + testAvg*0.25 + frqAvg*0.20 + vocabAvg*0.15);
-  }
-  return Math.round(unitAvg*0.50 + frqAvg*0.25 + vocabAvg*0.25);
+// Weighted composite of ONLY attempted components — unplayed areas don't drag score down.
+// Returns a 0-100 percentage that is then converted to the AP 1-5 scale.
+function calcCompositeScore({unitAvg=0, unitAttempted=false, frqAvg=0, frqAttempted=false,
+                              vocabAvg=0, vocabAttempted=false, testAvg=null}){
+  // Build weights only for components the student has touched
+  let totalWeight=0, weightedSum=0;
+  if(unitAttempted)  { weightedSum+=unitAvg *(testAvg!==null?0.40:0.50); totalWeight+=(testAvg!==null?0.40:0.50); }
+  if(frqAttempted)   { weightedSum+=frqAvg  *(testAvg!==null?0.20:0.25); totalWeight+=(testAvg!==null?0.20:0.25); }
+  if(vocabAttempted) { weightedSum+=vocabAvg*(testAvg!==null?0.15:0.25); totalWeight+=(testAvg!==null?0.15:0.25); }
+  if(testAvg!==null) { weightedSum+=testAvg *0.25;                        totalWeight+=0.25; }
+  if(totalWeight===0)return null; // nothing attempted yet
+  // Normalise to 0-100 based on attempted weight only
+  return Math.round(weightedSum/totalWeight);
 }
 
-function compositeLabel(score){
-  if(score>=90)return{tier:'Historian',color:'var(--purple2)',emoji:'🏛️'};
-  if(score>=80)return{tier:'Gold',color:'var(--gold)',emoji:'🏆'};
-  if(score>=70)return{tier:'Silver',color:'#c8c8d8',emoji:'⭐'};
-  if(score>=60)return{tier:'Bronze',color:'#cd7f32',emoji:'🥉'};
-  if(score>0)  return{tier:'In Progress',color:'var(--text2)',emoji:'📚'};
-  return{tier:'Not Started',color:'var(--text3)',emoji:'—'};
+// Convert 0-100 composite percentage to AP 1-5 scale
+function scoreToAP(pct){
+  if(pct===null)return null;
+  if(pct>=90)return 5;
+  if(pct>=75)return 4;
+  if(pct>=60)return 3;
+  if(pct>=45)return 2;
+  return 1;
+}
+
+function apScoreLabel(ap){
+  const map={
+    5:{label:'Extremely Well Qualified', color:'var(--purple2)', desc:'On track for a 5'},
+    4:{label:'Well Qualified',           color:'var(--gold)',    desc:'On track for a 4'},
+    3:{label:'Qualified',                color:'var(--green2)',  desc:'On track for a 3'},
+    2:{label:'Possibly Qualified',       color:'var(--amber)',   desc:'On track for a 2'},
+    1:{label:'No Recommendation',        color:'var(--red2)',    desc:'Needs improvement'},
+  };
+  return map[ap]||{label:'Not Started',color:'var(--text3)',desc:'Complete a unit to see your score'};
+}
+
+// Legacy alias used by teacher dashboard
+function compositeLabel(pct){
+  if(pct===null||pct===undefined)return{tier:'No Data',color:'var(--text3)',emoji:'—'};
+  const ap=scoreToAP(pct);
+  const l=apScoreLabel(ap);
+  return{tier:l.label,color:l.color,emoji:String(ap)};
 }
 
 // Build a student data object from a civitas_profiles row + optional FRQ/test rows
@@ -5638,7 +5667,13 @@ function buildStudentData(p, frqRows, testRows){
   const myTestRows = (testRows||[]).filter(r=>r.student_name===(p.display_name||p.full_name));
   const testAvg = myTestRows.length>0 ? Math.round(myTestRows.reduce((a,r)=>a+(r.score||0),0)/myTestRows.length) : null;
 
-  const composite = calcCompositeScore({unitAvg, frqAvg, vocabAvg, testAvg});
+  const composite = calcCompositeScore({
+    unitAvg,  unitAttempted:  unitWeight>0,
+    frqAvg,   frqAttempted:   frqIds.length>0,
+    vocabAvg, vocabAttempted: vocabScores.length>0,
+    testAvg
+  });
+  const apScore = scoreToAP(composite);
   const label = compositeLabel(composite);
 
   const unitsCompleted = Object.keys(unitProgress).filter(k=>unitProgress[k]?.completedAt);
@@ -5649,7 +5684,7 @@ function buildStudentData(p, frqRows, testRows){
     period: p.period||'',
     gold: p.gold||0,
     unitAvg, frqAvg, vocabAvg, testAvg,
-    composite, label,
+    composite, apScore, label,
     unitProgress, vocabBest,
     unitsCompleted: unitsCompleted.length,
     totalUnits: coreUnits.length,
@@ -5660,46 +5695,63 @@ function buildStudentData(p, frqRows, testRows){
   };
 }
 
-// ── STUDENT COMPOSITE in COURSE HUB HEADER ───────────────────────────────
+// ── STUDENT AP SCORE — updates HUD stat + course intro breakdown ──────────
 async function renderCourseAPScore(){
-  const intro=document.getElementById('cv-units-intro');
-  if(!intro||!S.name)return;
+  if(IS_TEACHER||!S.name||S.isGuest)return; // teachers don't get a student AP score
   try{
     const [frqRows,testRows]=await Promise.all([
       sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(S.name)+'&select=frq_id,score&order=score.desc'),
       sfetch('/rest/v1/civitas_test_scores?student_name=eq.'+encodeURIComponent(S.name)+'&select=test_name,score')
     ]);
-    const p={display_name:S.name,full_name:S.fullName||S.name,unit_progress:JSON.stringify(JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}')),vocab_best_score:JSON.stringify(S.vocabBestScore||{}),gold:S.gold||0};
+    const p={
+      display_name:S.name, full_name:S.fullName||S.name,
+      unit_progress:JSON.stringify(JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}')),
+      vocab_best_score:JSON.stringify(S.vocabBestScore||{}),
+      gold:S.gold||0
+    };
     const d=buildStudentData(p,frqRows||[],testRows||[]);
-    // Append composite badge to intro
-    const badge=document.getElementById('cv-ap-score-badge');
-    if(badge){
-      badge.innerHTML=renderAPScoreBadge(d);
+
+    // Update HUD stat
+    const wrap=document.getElementById('hstat-ap-wrap');
+    const stat=document.getElementById('hstat-ap');
+    if(wrap&&stat&&d.apScore!==null){
+      const l=apScoreLabel(d.apScore);
+      stat.textContent=d.apScore;
+      stat.style.color=l.color;
+      wrap.style.display='block';
+      wrap.title=l.label+' — '+l.desc;
     }
+
+    // Update inline breakdown in course intro
+    const badge=document.getElementById('cv-ap-score-badge');
+    if(badge) badge.innerHTML=renderAPScoreBadge(d);
   }catch(e){}
 }
 
 function renderAPScoreBadge(d){
-  const l=d.label;
+  if(d.apScore===null) return ''; // nothing attempted yet — show nothing
+  const l=apScoreLabel(d.apScore);
   const hasTests=d.testAvg!==null;
-  return`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+  const components=[
+    {label:'Units',    val:d.unitAvg+'%',             attempted:d.unitsCompleted>0,  color:'var(--blue2)'},
+    {label:'FRQ',      val:d.frqAvg>0?d.frqAvg+'%':'—',   attempted:d.frqIds.length>0,   color:'var(--purple2)'},
+    {label:'Vocab',    val:d.vocabAvg>0?d.vocabAvg+'%':'—',attempted:d.vocabAvg>0,        color:'var(--teal2)'},
+    ...(hasTests?[{label:'Tests',val:d.testAvg+'%',    attempted:true,                color:'var(--amber)'}]:[]),
+  ];
+  return`<div style="border-left:3px solid ${l.color};padding:10px 16px;background:rgba(0,0,0,.2);display:flex;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="text-align:center;flex-shrink:0">
-      <div style="font-family:var(--bebas);font-size:40px;line-height:1;color:${l.color}">${d.composite||'—'}${d.composite?'%':''}</div>
-      <div style="font-family:var(--dm);font-size:8px;color:${l.color};letter-spacing:1px">${l.emoji} ${l.tier.toUpperCase()} · AP SCORE</div>
+      <div style="font-family:var(--bebas);font-size:52px;line-height:1;color:${l.color}">${d.apScore}</div>
+      <div style="font-family:var(--dm);font-size:7px;color:${l.color};letter-spacing:1px;margin-top:2px">PREDICTED AP SCORE</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      ${[
-        {label:'Units',val:d.unitAvg+'%',w:'50%',color:'var(--blue2)'},
-        {label:'FRQ',val:d.frqAvg>0?d.frqAvg+'%':'—',w:'25%',color:'var(--purple2)'},
-        {label:'Vocab',val:d.vocabAvg>0?d.vocabAvg+'%':'—',w:'25%',color:'var(--teal2)'},
-        ...(hasTests?[{label:'Tests',val:d.testAvg+'%',w:'25%',color:'var(--amber)'}]:[])
-      ].map(c=>`<div style="text-align:center">
-        <div style="font-family:var(--bebas);font-size:18px;color:${c.color};line-height:1">${c.val}</div>
-        <div style="font-family:var(--dm);font-size:7px;color:var(--text3);letter-spacing:1px">${c.label.toUpperCase()} · ${c.w}</div>
-      </div>`).join('')}
-    </div>
-    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:2px;flex-basis:100%">
-      Composite: ${hasTests?'40% units + 25% tests + 20% FRQ + 15% vocab':'50% units + 25% FRQ + 25% vocab'}
+    <div>
+      <div style="font-family:var(--bebas);font-size:13px;color:${l.color};letter-spacing:2px;margin-bottom:4px">${l.label}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${components.map(c=>`<div style="text-align:center;opacity:${c.attempted?1:.35}">
+          <div style="font-family:var(--bebas);font-size:16px;color:${c.color};line-height:1">${c.val}</div>
+          <div style="font-family:var(--dm);font-size:7px;color:var(--text3);letter-spacing:.5px">${c.label.toUpperCase()}</div>
+        </div>`).join('')}
+      </div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:6px">${l.desc} · based on ${d.unitsCompleted} unit${d.unitsCompleted!==1?'s':''} completed${d.frqIds.length>0?', '+d.frqIds.length+' FRQ':''}${d.vocabAvg>0?', vocab':''}${hasTests?', '+d.myTestRows.length+' test':''}</div>
     </div>
   </div>`;
 }
@@ -5737,7 +5789,7 @@ async function renderTeacherView(){
       const withTests=students.filter(s=>s.testAvg!==null).length;
       statsEl.innerHTML=[
         {label:'Students',val:students.length,color:'var(--civitas2)'},
-        {label:'Class AP Avg',val:avgComp+'%',color:compositeLabel(avgComp).color},
+        {label:'Class AP Avg',val:(()=>{const ap=scoreToAP(avgComp);return ap?'Avg '+ap:'—';})(),color:compositeLabel(avgComp).color},
         {label:'Unit Avg',val:avgUnits+'%',color:'var(--blue2)'},
         {label:'FRQ Submitted',val:withFRQ,color:'var(--purple2)'},
         {label:'Test Scores In',val:withTests,color:'var(--amber)'},
@@ -5807,8 +5859,8 @@ function renderTeacherRoster(period){
         <td style="padding:7px 8px;color:var(--cream);font-family:var(--playfair)">${s.char} ${s.name}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--text3)">${s.period||'—'}</td>
         <td style="padding:7px 8px;text-align:center">
-          <span style="font-family:var(--bebas);font-size:16px;color:${l.color}">${s.composite?s.composite+'%':'—'}</span>
-          <span style="font-size:10px;margin-left:3px">${l.emoji}</span>
+          <span style="font-family:var(--bebas);font-size:22px;color:${l.color}">${s.apScore!==null?s.apScore:'—'}</span>
+          ${s.apScore?`<div style="font-family:var(--dm);font-size:7px;color:${l.color};letter-spacing:.5px">${l.tier.split(' ')[0]}</div>`:''}
         </td>
         <td style="padding:7px 8px;text-align:center;color:var(--blue2)">${s.unitAvg?s.unitAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--purple2)">${s.frqAvg>0?s.frqAvg+'%':'—'}</td>
@@ -5845,9 +5897,9 @@ function buildStudentModalHTML(s){
   // Composite summary
   let html=`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)">
     <div style="text-align:center;flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
-      <div style="font-family:var(--bebas);font-size:48px;line-height:1;color:${l.color}">${s.composite||'—'}${s.composite?'%':''}</div>
-      <div style="font-family:var(--dm);font-size:8px;color:${l.color};letter-spacing:1px;margin-top:4px">${l.emoji} ${l.tier.toUpperCase()}</div>
-      <div style="font-family:var(--dm);font-size:7px;color:var(--text3);margin-top:2px">COMPOSITE AP SCORE</div>
+      <div style="font-family:var(--bebas);font-size:64px;line-height:1;color:${l.color}">${s.apScore!==null?s.apScore:'—'}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:${l.color};letter-spacing:1px;margin-top:4px">${l.tier.toUpperCase()}</div>
+      <div style="font-family:var(--dm);font-size:7px;color:var(--text3);margin-top:2px">PREDICTED AP SCORE</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-width:200px">
       ${[
