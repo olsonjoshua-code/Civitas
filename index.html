@@ -2584,6 +2584,11 @@ function submitTeacher(){
     S.isTeacher=true;
     S.setupDone=true;
     S.avatar=S.avatar||'scholar';
+    // Ensure teacher has AP Gov enrolled
+    if(!S.courses)S.courses=[];
+    if(!S.courses.find(c=>c.id==='ap_gov')){
+      S.courses.push({id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()});
+    }
     localStorage.setItem('civitas_student_name','Mr. Olson');
     localStorage.setItem('civitas_full_name','Joshua Olson');
     enterShell();
@@ -4290,7 +4295,70 @@ function showCourseView(v){
 // ══════════════════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════════════════
-function renderDashboard(){
+function openAddCourse(){
+  // Build modal overlay
+  const existing=document.getElementById('add-course-modal');
+  if(existing)existing.remove();
+
+  const groups=[...new Set(COURSE_CATALOG.map(c=>c.group))];
+  const enrolledIds=new Set((S.courses||[]).map(c=>c.id));
+
+  const groupHTML=groups.map(g=>{
+    const courses=COURSE_CATALOG.filter(c=>c.group===g);
+    return `<div style="margin-bottom:18px">
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--text3);margin-bottom:8px">${g.toUpperCase()}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+        ${courses.map(c=>{
+          const enrolled=enrolledIds.has(c.id);
+          return `<div onclick="${enrolled||c.comingSoon?'':(`enrollCourse('${c.id}')`)}"`+
+            ` style="background:var(--bg2);border:1.5px solid ${enrolled?'var(--civitas)':c.comingSoon?'var(--border)':'var(--border2)'};`+
+            `padding:12px 14px;cursor:${enrolled||c.comingSoon?'default':'pointer'};`+
+            `opacity:${c.comingSoon?'.4':'1'};transition:all .15s"`+
+            ` onmouseover="if(${!enrolled&&!c.comingSoon})this.style.borderColor='${c.color}'"` +
+            ` onmouseout="if(${!enrolled&&!c.comingSoon})this.style.borderColor='var(--border2)'">`+
+            `<div style="display:flex;align-items:center;gap:10px">`+
+            `<div style="font-size:22px">${c.icon}</div>`+
+            `<div>`+
+            `<div style="font-family:var(--bebas);font-size:12px;letter-spacing:1px;color:${enrolled?'var(--civitas2)':'var(--cream)'}">${c.name}</div>`+
+            `<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${c.grade}${c.comingSoon?' · Coming Soon':''}</div>`+
+            `</div>`+
+            `${enrolled?'<div style="font-family:var(--bebas);font-size:9px;color:var(--civitas2);margin-left:auto">✓ ENROLLED</div>':''}`+
+            `</div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const modal=document.createElement('div');
+  modal.id='add-course-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(6,6,12,.92);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML=`
+    <div style="background:var(--bg2);border:1.5px solid var(--border2);max-width:720px;width:100%;max-height:80vh;overflow-y:auto;padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-family:var(--bebas);font-size:22px;letter-spacing:3px;color:var(--civitas2)">ADD A COURSE</div>
+        <button onclick="document.getElementById('add-course-modal').remove()"
+          style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer">✕ CLOSE</button>
+      </div>
+      ${groupHTML}
+    </div>`;
+  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+  document.body.appendChild(modal);
+}
+
+function enrollCourse(courseId){
+  const cat=COURSE_CATALOG.find(c=>c.id===courseId);
+  if(!cat||cat.comingSoon){notify('📚 '+( cat?cat.name:'Course')+' — coming soon!');return;}
+  if((S.courses||[]).find(c=>c.id===courseId)){notify('Already enrolled!');return;}
+  const period=IS_TEACHER?'teacher':prompt('Enter your class period (e.g. 1, 2, 4):','');
+  if(period===null)return; // cancelled
+  if(!S.courses)S.courses=[];
+  S.courses.push({id:courseId,period:period||'',enrolledAt:new Date().toISOString()});
+  saveState();
+  updateHUD();
+  const modal=document.getElementById('add-course-modal');if(modal)modal.remove();
+  renderDashboard();
+  notify('✅ Enrolled in '+cat.name+'!');
+}
   const el=document.getElementById('dashboard-courses');
   if(!el)return;
 
