@@ -985,6 +985,26 @@ const COURSE_UNITS = {
      desc:'Federal democracy, ethnic and religious cleavages, and the challenges of development.',
      topics:['Federalism','Ethnic cleavages','Oil & corruption','Boko Haram','PDP vs. APC','Military legacy'],
      hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit7-nigeria.html'},
+    {id:'apcmp_exam', num:'AP Exam', title:'AP Exam Practice', icon:'📝', color:'#38a050',
+     desc:'Full AP Comparative exam practice — MCQ, stimulus-based questions, and all FRQ types across all six countries.',
+     topics:['All countries','MCQ','Concept Application','Country & Concept Analysis','Argument Essay'],
+     hasFRQ:true, comingSoon:true, url:CIVITAS_BASE+'games/ap-comparative/ap-exam.html'},
+    {id:'apcmp_rpg', num:'Campaign', title:'Comparative Chronicles RPG', icon:'🌍', color:'#28c878',
+     desc:'Battle through all six countries in the Comparative Chronicles RPG. Master each regime and earn the title of Global Scholar.',
+     topics:['All countries','All FRQ types','Final Challenge'],
+     hasFRQ:false, isCampaign:true, comingSoon:true, url:CIVITAS_BASE+'games/ap-comparative/rpg.html'},
+    {id:'apcmp_bi_pd', num:'Big Idea', title:'Power & Democracy', icon:'👑', color:'#28a878',
+     desc:'Cross-country comparison of how power is distributed, contested, and legitimized across all six AP Comp regimes.',
+     topics:['All countries','Regime types','Legitimacy','Accountability'],
+     isBigIdea:true, bigIdea:'PD', hasFRQ:false, comingSoon:true, url:CIVITAS_BASE+'games/ap-comparative/theme-power-democracy.html'},
+    {id:'apcmp_bi_ci', num:'Big Idea', title:'Citizens & Society', icon:'🤝', color:'#28a878',
+     desc:'How civil society, political culture, and citizen participation differ across authoritarian and democratic regimes.',
+     topics:['All countries','Civil society','Political culture','Elections','Social movements'],
+     isBigIdea:true, bigIdea:'CS', hasFRQ:false, comingSoon:true, url:CIVITAS_BASE+'games/ap-comparative/theme-citizens-society.html'},
+    {id:'apcmp_bi_de', num:'Big Idea', title:'Development & Inequality', icon:'📈', color:'#28a878',
+     desc:'Economic development, corruption, resource wealth, and inequality across the six AP Comparative countries.',
+     topics:['All countries','GDP','Oil curse','Corruption','Globalization','HDI'],
+     isBigIdea:true, bigIdea:'DE', hasFRQ:false, comingSoon:true, url:CIVITAS_BASE+'games/ap-comparative/theme-development.html'},
   ]
 };
 
@@ -4409,6 +4429,16 @@ function enterCourse(courseId){
   document.getElementById('course-nav-name').textContent=cat.name.toUpperCase();
   document.getElementById('course-nav-name').style.color=cat.color;
 
+  // Apply course accent color to active nav buttons
+  document.querySelectorAll('.cnav-btn').forEach(b=>{
+    b.style.setProperty('--course-color', cat.color);
+  });
+  // Update active cnav-btn border color to course color
+  const styleId='course-color-style';
+  let styleEl=document.getElementById(styleId);
+  if(!styleEl){styleEl=document.createElement('style');styleEl.id=styleId;document.head.appendChild(styleEl);}
+  styleEl.textContent=`.cnav-btn.active{border-bottom-color:${cat.color}!important;color:${cat.color}!important}.cnav-btn:hover{color:${cat.color}!important}`;
+
   // Show/hide FRQ tab
 
   // Show teacher dashboard shortcut in course-nav when logged in as teacher
@@ -5034,13 +5064,36 @@ th{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#8a6a2a;pa
 function renderVocabMedals() {
   const el = document.getElementById('vocab-medal-grid');
   if (!el) return;
-  const AP_GOV_UNITS = [
-    { id:'apg_u1', label:'Unit 1', sub:'Foundations' },
-    { id:'apg_u2', label:'Unit 2', sub:'Branches' },
-    { id:'apg_u3', label:'Unit 3', sub:'Civil Liberties' },
-    { id:'apg_u4', label:'Unit 4', sub:'Ideology' },
-    { id:'apg_u5', label:'Unit 5', sub:'Participation' },
-  ];
+  // Hide vocab section for courses without quizzes yet
+  const vocabWrap = el.closest('.\\s+') || el.parentElement;
+  const printBtn = document.getElementById('print-vocab-cert-btn') ||
+    document.querySelector('[onclick="printAllVocabCert()"]');
+  if(_activeCourseId !== 'ap_gov'){
+    el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:8px 0">Vocabulary medals coming soon for this course.</div>';
+    if(printBtn)printBtn.style.display='none';
+    return;
+  }
+  if(printBtn)printBtn.style.display='';
+  // Course-aware unit list for vocab medals
+  const VOCAB_UNIT_MAP = {
+    ap_gov: [
+      { id:'apg_u1', label:'Unit 1', sub:'Foundations' },
+      { id:'apg_u2', label:'Unit 2', sub:'Branches' },
+      { id:'apg_u3', label:'Unit 3', sub:'Civil Liberties' },
+      { id:'apg_u4', label:'Unit 4', sub:'Ideology' },
+      { id:'apg_u5', label:'Unit 5', sub:'Participation' },
+    ],
+    ap_cmp: [
+      { id:'apcmp_u1', label:'Unit 1', sub:'Intro to Comparative' },
+      { id:'apcmp_u2', label:'Unit 2', sub:'United Kingdom' },
+      { id:'apcmp_u3', label:'Unit 3', sub:'Mexico' },
+      { id:'apcmp_u4', label:'Unit 4', sub:'Russia' },
+      { id:'apcmp_u5', label:'Unit 5', sub:'China' },
+      { id:'apcmp_u6', label:'Unit 6', sub:'Iran' },
+      { id:'apcmp_u7', label:'Unit 7', sub:'Nigeria' },
+    ],
+  };
+  const AP_GOV_UNITS = VOCAB_UNIT_MAP[_activeCourseId] || VOCAB_UNIT_MAP['ap_gov'];
   function medalTier(score) {
     if (score === 100) return { color:'#e8d0ff', ringA:'#f4e8ff', ringB:'#9060c0', label:'Historian', ribbon:'#9060c0', shimmer:true };
     if (score >= 90)   return { color:'#ffd700', ringA:'#fff0a0', ringB:'#b8900a', label:'Gold',      ribbon:'#b8900a' };
@@ -5090,6 +5143,11 @@ function renderVocabMedals() {
 function renderBigIdeaTrophies() {
   var el = document.getElementById('big-idea-trophies');
   if (!el) return;
+  // Big Idea trophies are AP Gov specific
+  if (_activeCourseId !== 'ap_gov') {
+    el.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:8px 0">Big Idea trophies are available in AP U.S. Government.</div>';
+    return;
+  }
   var BIG_IDEAS = [
     { id:'apg_bi_con',  label:'CON',  name:'Constitutionalism',  color:'#8080f0', icon:'⚖️' },
     { id:'apg_bi_lor',  label:'LOR',  name:'Liberty & Order',     color:'#40c0b0', icon:'🗽' },
