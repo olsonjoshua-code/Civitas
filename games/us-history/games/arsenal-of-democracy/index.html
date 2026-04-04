@@ -1,0 +1,2836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arsenal of Democracy — Unit 5A: World War II</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060809;--bg2:#0a0e0c;--bg3:#0e1410;--panel:#101810;
+  --border:#1a2818;--border2:#243820;
+  --gold:#c8d420;--gold2:#98a818;--gold3:#e0ec40;
+  --red:#a02808;--red2:#d03810;
+  --green:#184820;--green2:#28782a;
+  --teal:#186858;--teal2:#207868;
+  --blue:#182840;--blue2:#284878;
+  --text:#dce8d0;--text2:#8ca880;--text3:#506040;--cream:#e8f0d8;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-height:100vh;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse at 50% 0%,   rgba(80,100,20,.30)  0%,  transparent 60%),
+    radial-gradient(ellipse at 15% 60%,  rgba(50, 70,10,.18)  0%,  transparent 55%),
+    radial-gradient(ellipse at 85% 85%,  rgba(30, 50, 5,.15)  0%,  transparent 50%),
+    linear-gradient(175deg, #090c06 0%, #060904 40%, #040703 100%);}
+/* Five-pointed star watermark (WWII) */
+body::after{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' width='400' height='400'%3E%3Cpolygon transform='translate(200,200)' points='0,-155 36,-50 148,-48 59,19 91,122 0,60 -91,122 -59,19 -148,-48 -36,-50' opacity='0.09' fill='rgba(200,212,32,1)' stroke='rgba(200,212,32,0.3)' stroke-width='4'/%3E%3Ccircle cx='200' cy='200' r='168' fill='none' stroke='rgba(200,212,32,0.05)' stroke-width='3'/%3E%3C/svg%3E");
+  background-size:520px 520px;
+  background-position:center center;
+  background-repeat:no-repeat;
+  pointer-events:none;z-index:0;opacity:1;}
+/* Noise texture on top of everything */
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+  pointer-events:none;z-index:9998;opacity:0.7;}
+/* Scanline effect */
+#root::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.012) 3px,rgba(0,0,0,0.012) 4px);
+  pointer-events:none;z-index:9999;}
+
+/* ── ROOT / LAYOUT ── */
+#root{max-width:860px;margin:0 auto;padding:0 24px 100px;min-height:100vh;position:relative;z-index:1;}
+/* When HUD is visible, push content down so it isn't hidden behind the fixed bar */
+body.hud-active #root{padding-top:68px;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-70px)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(200,48,32,.3)}50%{box-shadow:0 0 40px rgba(200,48,32,.7)}}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none;padding-top:16px;}
+.screen.active{display:block;animation:fadeIn .4s ease;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--bebas);font-size:15px;letter-spacing:2px;background:transparent;
+  border:1.5px solid var(--gold);color:var(--gold);padding:12px 28px;cursor:pointer;
+  transition:all .2s;display:inline-block;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0;pointer-events:none;}
+.btn:hover{color:var(--bg);box-shadow:0 0 25px rgba(200,48,32,.4);}
+.btn:hover::before{transform:scaleX(1);}
+.btn span{position:relative;z-index:1;}
+.btn:active{transform:scale(.97);}
+.btn.full{display:block;width:100%;text-align:center;margin:6px 0;}
+.btn.sm{font-size:11px;padding:8px 18px;letter-spacing:1.5px;}
+.btn.green{border-color:var(--green2);color:var(--green2);}
+.btn.green::before{background:var(--green2);}
+.btn.green:hover{color:#fff;}
+.btn.teal{border-color:#2aaa98;color:#2aaa98;}
+.btn.teal::before{background:#2aaa98;}
+.btn.teal:hover{color:#fff;}
+.btn:disabled{opacity:.25;cursor:not-allowed;pointer-events:none;}
+
+/* ── TOP HUD (sticky) ── */
+#game-hud{background:linear-gradient(180deg,rgba(8,6,8,.98),rgba(16,8,16,.95));
+  border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  padding:10px 14px;
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:860px;
+  z-index:200;backdrop-filter:blur(12px);
+  display:none;}
+.hud-inner{display:flex;align-items:center;gap:12px;}
+.hud-avatar{width:44px;height:44px;flex-shrink:0;border-radius:50%;overflow:hidden;}
+.hud-info{flex:1;min-width:0;}
+.hud-name{font-family:var(--playfair);font-size:12px;color:var(--gold);font-style:italic;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-rank{font-family:var(--dm);font-size:10px;color:var(--text2);}
+.hud-xp-bar{height:3px;background:rgba(255,255,255,.06);margin-top:4px;border-radius:2px;overflow:hidden;}
+.hud-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));transition:width .6s;border-radius:2px;}
+.hud-stats{display:flex;gap:10px;flex-shrink:0;}
+.hud-stat{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;}
+.hud-stat span{display:block;color:var(--gold);font-size:13px;font-weight:600;}
+.hud-back-btn{font-family:var(--dm);font-size:9px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer;
+  transition:all .15s;letter-spacing:.5px;flex-shrink:0;}
+.hud-back-btn:hover{border-color:var(--gold2);color:var(--gold);}
+
+/* ── NOTIFICATIONS ── */
+.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--gold2);padding:10px 20px;
+  font-family:var(--dm);font-size:11px;color:var(--gold);z-index:1000;
+  animation:pop .3s,floatUp 2.5s .8s forwards;white-space:nowrap;max-width:90vw;text-align:center;}
+
+/* ── SECTION HEADING ── */
+.section-head{font-family:var(--bebas);font-size:18px;letter-spacing:2px;color:var(--gold);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;}
+.section-head::before{content:'';display:block;width:3px;height:18px;background:var(--gold);}
+
+
+/* ════════════════════════════════
+   UNIT HUB — civil rights style
+════════════════════════════════ */
+.hub-banner{background:var(--bg2);border:1px solid var(--border2);
+  border-radius:2px;padding:14px 16px;margin-bottom:12px;}
+.hub-banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hub-banner-label{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:3px;}
+.hub-banner-count{font-family:var(--bebas);font-size:13px;color:var(--gold);}
+.hub-progress-bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.hub-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .6s;}
+
+.eq-banner{background:linear-gradient(135deg,rgba(26,8,8,.15),rgba(42,10,10,.08));
+  border:1px solid var(--border2);border-left:3px solid var(--gold);
+  padding:12px 16px;margin-bottom:16px;
+  font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;}
+.eq-banner strong{color:var(--gold);font-style:normal;}
+
+.deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);}
+.deco-divider-icon{font-size:14px;color:var(--text3);}
+
+/* Chapter cards */
+.unit-card{background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:10px;overflow:hidden;transition:border-color .2s;cursor:pointer;}
+.unit-card.available:hover{border-color:var(--gold2);}
+.unit-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.unit-card.completed{border-color:var(--green);}
+.unit-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.unit-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.unit-icon{font-size:28px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-number{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.unit-name{font-family:var(--playfair);font-size:15px;color:var(--cream);margin:2px 0;}
+.unit-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;}
+.unit-status{font-family:var(--dm);font-size:8px;padding:4px 10px;border:1px solid;}
+.unit-status.available{color:var(--gold);border-color:var(--gold2);background:rgba(200,48,32,.08);}
+.unit-status.locked{color:var(--text3);border-color:var(--border);}
+.unit-status.completed{color:var(--green2);border-color:var(--green);background:rgba(56,160,80,.08);}
+.unit-progress-bar{height:2px;background:rgba(255,255,255,.04);}
+.unit-progress-fill{height:100%;background:var(--gold2);transition:width .5s;}
+.unit-card-meta{padding:0 16px 8px;font-family:var(--dm);font-size:9px;color:var(--text3);}
+.unit-card-unlock{padding:0 16px 8px;font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;}
+
+
+
+/* ════════════════════════════════
+   LAYER 3: BRIEFING MODAL
+════════════════════════════════ */
+#briefing-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);
+  z-index:500;overflow-y:auto;padding:20px 16px 60px;}
+#briefing-modal.show{display:block;animation:fadeIn .3s ease;}
+.briefing-inner{max-width:760px;margin:0 auto;}
+.briefing-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin-bottom:20px;padding-top:10px;}
+.briefing-eyebrow{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:4px;}
+.briefing-title{font-family:var(--playfair);font-size:clamp(20px,4vw,28px);
+  color:var(--cream);font-style:italic;line-height:1.2;}
+.briefing-close-btn{font-family:var(--dm);font-size:10px;background:var(--bg2);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 12px;cursor:pointer;
+  transition:all .2s;flex-shrink:0;margin-top:4px;}
+.briefing-close-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+.briefing-scene{width:100%;margin-bottom:16px;border:1px solid var(--border2);overflow:hidden;}
+.briefing-location-row{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);}
+.briefing-location{font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;}
+.briefing-date{font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;}
+
+.briefing-text{font-family:var(--crimson);font-size:16px;line-height:1.75;color:var(--text);
+  padding:18px;background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:14px;position:relative;}
+.briefing-text::before{content:'\201C';font-family:var(--playfair);font-size:70px;
+  color:rgba(200,48,32,.06);position:absolute;top:-8px;left:10px;line-height:1;pointer-events:none;}
+
+.briefing-quote{font-family:var(--playfair);font-size:14px;color:var(--gold);
+  font-style:italic;border-left:3px solid var(--gold2);padding:10px 14px;
+  background:rgba(200,48,32,.04);margin-bottom:16px;line-height:1.6;}
+
+.briefing-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.briefing-tag{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:3px 8px;border-radius:2px;}
+
+.briefing-proceed-row{display:flex;flex-direction:column;gap:8px;}
+
+/* ════════════════════════════════
+   LAYER 3: QUESTION SCREEN
+════════════════════════════════ */
+#question-screen{padding-top:0;}
+.q-progress-bar-wrap{height:3px;background:rgba(255,255,255,.05);margin-bottom:20px;border-radius:2px;}
+.q-progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  transition:width .4s;border-radius:2px;}
+
+.q-context-pill{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(200,48,32,.06);border:1px solid var(--border2);
+  padding:5px 10px;margin-bottom:16px;}
+.q-context-lesson{font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;}
+.q-context-sep{width:1px;height:10px;background:var(--border2);}
+.q-context-topic{font-family:var(--crimson);font-size:11px;color:var(--text2);font-style:italic;}
+
+/* THE QUESTION — primary visual weight */
+.q-block{background:var(--bg2);border:1px solid var(--border2);
+  border-left:3px solid var(--gold);padding:24px 22px;margin-bottom:18px;}
+.q-number{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.q-text{font-family:var(--playfair);font-size:clamp(16px,2.4vw,20px);
+  color:var(--cream);line-height:1.6;}
+
+/* Answer choices */
+.choices-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.choice-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);padding:16px 20px;cursor:pointer;text-align:left;
+  transition:all .2s;position:relative;overflow:hidden;}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--gold);transform:scaleY(0);transition:transform .2s;pointer-events:none;}
+.choice-btn:hover:not(.answered){border-color:var(--gold2);background:rgba(200,48,32,.04);}
+.choice-btn:hover:not(.answered)::before{transform:scaleY(1);}
+.choice-btn.correct{border-color:var(--green2)!important;background:rgba(40,80,32,.08)!important;animation:pop .3s;}
+.choice-btn.correct::before{background:var(--green2)!important;transform:scaleY(1)!important;}
+.choice-btn.incorrect{border-color:var(--red2)!important;background:rgba(128,16,16,.06)!important;opacity:.6;}
+.choice-btn.incorrect::before{background:var(--red2)!important;transform:scaleY(1)!important;}
+.choice-btn.answered{cursor:default;}
+.choice-letter{font-family:var(--bebas);font-size:14px;color:var(--gold2);
+  margin-right:12px;display:inline-block;width:20px;}
+.choice-text{font-family:var(--crimson);font-size:17px;line-height:1.5;}
+
+/* Feedback */
+.feedback-panel{display:none;border-left:3px solid var(--gold);
+  padding:16px 16px 16px 20px;margin-bottom:14px;animation:slideUp .3s;
+  background:var(--bg2);border:1px solid var(--border);}
+.feedback-panel.show{display:block;}
+.feedback-panel.correct{border-left-color:var(--green2)!important;border-color:rgba(56,160,80,.2);}
+.feedback-panel.incorrect{border-left-color:var(--red2)!important;border-color:rgba(192,32,32,.2);}
+.feedback-verdict{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:8px;}
+.feedback-verdict.correct{color:var(--green2);}
+.feedback-verdict.incorrect{color:var(--red2);}
+.feedback-text{font-family:var(--crimson);font-size:15px;line-height:1.65;
+  color:var(--text);margin-bottom:8px;}
+.feedback-standard{font-family:var(--dm);font-size:9px;color:var(--text3);
+  border-top:1px solid var(--border);padding-top:8px;margin-top:8px;}
+
+/* Momentum tracker */
+.momentum-display{display:flex;align-items:center;gap:12px;background:var(--bg2);
+  border:1px solid var(--border);padding:10px 14px;margin-bottom:14px;}
+.momentum-label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;flex-shrink:0;}
+.momentum-track{flex:1;height:6px;background:rgba(255,255,255,.05);
+  border-radius:3px;overflow:hidden;}
+.momentum-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  border-radius:3px;transition:width .5s;}
+.momentum-val{font-family:var(--playfair);font-size:13px;color:var(--gold);
+  font-style:italic;flex-shrink:0;min-width:60px;text-align:right;}
+
+/* ════════════════════════════════
+   LESSON COMPLETE OVERLAY
+════════════════════════════════ */
+#lesson-complete{display:none;position:fixed;inset:0;background:#080608;
+  z-index:600;overflow-y:auto;text-align:center;}
+#lesson-complete.show{display:block;animation:fadeIn .4s;}
+.complete-inner{max-width:480px;margin:0 auto;padding:30px 16px 100px;}
+.complete-badge{width:100px;height:100px;margin:0 auto 16px;border:2px solid var(--gold);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:48px;animation:glowPulse 2s infinite;background:var(--bg2);}
+.complete-unit-lbl{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:6px;}
+.complete-lesson-title{font-family:var(--playfair);font-size:24px;color:var(--cream);
+  font-style:italic;margin-bottom:4px;}
+.complete-tier{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:20px;}
+.complete-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;}
+.complete-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.complete-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.complete-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);
+  letter-spacing:1px;margin-top:2px;}
+.complete-btn-group{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;}
+
+/* ════════════════════════════════
+   LOGIN GATE
+════════════════════════════════ */
+#login-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);
+  z-index:900;align-items:center;justify-content:center;padding:20px;}
+#login-gate.show{display:flex;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);max-width:380px;width:100%;padding:28px 24px;}
+.login-logo{font-family:var(--bebas);font-size:clamp(28px,6vw,40px);color:var(--gold);
+  letter-spacing:4px;margin-bottom:4px;text-align:center;}
+.login-sub{font-family:var(--playfair);font-size:13px;color:var(--text2);
+  font-style:italic;text-align:center;margin-bottom:20px;}
+.login-field{margin-bottom:10px;}
+.login-field label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;display:block;margin-bottom:5px;}
+.login-input{font-family:var(--playfair);font-size:15px;font-style:italic;
+  background:var(--bg3);border:1.5px solid var(--border2);color:var(--cream);
+  padding:10px 14px;width:100%;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--gold);}
+.login-input::placeholder{color:var(--text3);}
+.login-notice{font-family:var(--dm);font-size:9px;color:var(--text3);
+  text-align:center;margin-top:8px;line-height:1.5;}
+
+/* ════════════════════════════════
+   WELCOME BACK MODAL
+════════════════════════════════ */
+#welcome-back-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+  z-index:950;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+#welcome-back-overlay.show{display:flex;}
+.wb-box{background:var(--bg2);border:1px solid var(--border2);max-width:420px;width:100%;
+  padding:28px 24px;text-align:center;animation:slideUp .3s ease both;}
+.wb-avatar{width:70px;height:70px;margin:0 auto 14px;border-radius:50%;overflow:hidden;}
+.wb-greeting{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:4px;margin-bottom:6px;}
+.wb-name{font-family:var(--playfair);font-size:24px;color:var(--cream);font-style:italic;margin-bottom:4px;}
+.wb-sub{font-family:var(--dm);font-size:10px;color:var(--gold2);margin-bottom:4px;}
+.wb-progress{font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:20px;}
+
+
+/* ── Standard tag on question block ── */
+.q-standard-tag{font-family:var(--dm);font-size:9px;letter-spacing:2px;
+  color:var(--gold);border:1px solid var(--gold2);
+  background:rgba(0,0,0,.25);
+  display:inline-block;padding:3px 9px;margin-bottom:8px;
+  text-transform:uppercase;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold2);}
+
+/* ════════════════════════════════
+   BOTTOM NAV (carried from v1)
+════════════════════════════════ */
+#bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:640px;background:rgba(8,6,8,.97);
+  border-top:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  display:none;z-index:300;backdrop-filter:blur(12px);}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:8px 4px;background:none;border:none;color:var(--text3);cursor:pointer;
+  font-family:var(--dm);font-size:8px;letter-spacing:.5px;transition:color .15s;}
+.bn-btn:hover,.bn-btn.active{color:var(--gold);}
+.bn-icon{font-size:18px;display:block;}
+
+/* ════════════════════════════════
+   OVERLAYS (carried from v1)
+════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);
+  z-index:400;overflow-y:auto;padding:20px 16px 80px;}
+.overlay.show{display:block;animation:fadeIn .2s;}
+.overlay-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;position:sticky;top:0;background:rgba(8,6,8,.97);
+  padding:10px 0;border-bottom:1px solid var(--border2);z-index:10;}
+.overlay-title{font-family:var(--bebas);font-size:22px;color:var(--gold);letter-spacing:2px;}
+.overlay-close{font-family:var(--dm);font-size:10px;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;transition:all .2s;}
+.overlay-close:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Leaderboard */
+.lb-wrap{background:var(--bg2);border:1px solid var(--border2);padding:20px;}
+.lb-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.lb-tab{font-family:var(--bebas);font-size:10px;letter-spacing:1px;padding:5px 12px;
+  cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all .15s;}
+.lb-tab.active{border-color:var(--gold);color:var(--bg);background:var(--gold);}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);
+  padding:7px 8px;border-bottom:1px solid var(--border2);text-align:left;}
+.lb-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.025);
+  font-family:var(--dm);font-size:11px;color:var(--text2);vertical-align:middle;}
+.lb-table tr.lb-you td{background:rgba(200,48,32,.05);color:var(--text);}
+.lb-name{font-family:var(--playfair);font-size:13px;color:var(--cream);font-style:italic;}
+.lb-score{font-family:var(--bebas);font-size:16px;color:var(--gold);}
+
+/* Profile overlay */
+.profile-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.profile-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.profile-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.profile-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.badges-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.badge-pill{background:var(--bg2);border:1px solid var(--border);padding:6px 10px;
+  display:flex;align-items:center;gap:6px;font-family:var(--dm);font-size:9px;color:var(--text2);}
+.badge-pill.earned{border-color:var(--gold2);color:var(--gold);background:rgba(200,48,32,.06);}
+.badge-icon{font-size:16px;filter:grayscale(1);}
+.badge-pill.earned .badge-icon{filter:none;}
+
+/* Historical figure cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.hist-card{background:var(--bg2);border:1px solid var(--gold2);padding:14px;position:relative;overflow:hidden;}
+.hist-card::before{content:'';position:absolute;inset:4px;border:1px solid rgba(200,48,32,.12);pointer-events:none;}
+.hist-card-icon{font-size:36px;text-align:center;margin-bottom:8px;}
+.hist-card-name{font-family:var(--bebas);font-size:13px;color:var(--gold);letter-spacing:1px;margin-bottom:2px;}
+.hist-card-role{font-family:var(--dm);font-size:9px;color:#2aaa98;margin-bottom:6px;}
+.hist-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.5;}
+.hist-card-unlock{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:6px;}
+.locked-card{opacity:.35;}
+
+/* ════════════════════════════════
+   TROPHY / EOC DISPLAY
+════════════════════════════════ */
+.trophy-display{background:var(--bg2);border:1px solid var(--border2);
+  padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.trophy-icon{font-size:36px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(200,48,32,.4));}
+.trophy-info{flex:1;}
+.trophy-tier-name{font-family:var(--bebas);font-size:18px;letter-spacing:2px;margin-bottom:2px;}
+.trophy-stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+.trophy-stat{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.trophy-stat strong{color:var(--text2);}
+.eoc-rating-badge{font-family:var(--bebas);font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;display:inline-block;margin-top:5px;}
+
+/* ════════════════════════════════
+   BADGE & CARD REWARD CHIPS
+════════════════════════════════ */
+.reward-section{background:var(--bg2);border:1px solid var(--border2);
+  padding:12px 14px;margin-bottom:14px;}
+.reward-section-lbl{font-family:var(--bebas);font-size:9px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.reward-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.reward-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--border2);background:var(--bg3);}
+.reward-chip.earned{border-color:var(--gold2);background:rgba(200,48,32,.06);
+  animation:pop .4s ease;}
+.reward-chip-icon{font-size:16px;}
+.reward-chip-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.reward-chip.earned .reward-chip-lbl{color:var(--gold);}
+.reward-chip.locked-chip{opacity:.35;}
+
+/* Lesson card rewards preview */
+.lesson-card-rewards{padding:0 16px 10px;display:flex;gap:5px;flex-wrap:wrap;}
+.lesson-reward-pip{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:2px 6px;display:inline-flex;align-items:center;gap:3px;}
+.lesson-reward-pip.earned{border-color:var(--gold2);color:var(--gold);}
+
+/* Next-lesson unlock indicator on cards */
+.lesson-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.lesson-card-unlock-note{font-family:var(--dm);font-size:8px;color:var(--text3);
+  padding:0 16px 8px;font-style:italic;}
+
+/* ════════════════════════════════
+   CERTIFICATE / PRINT
+════════════════════════════════ */
+#print-area{display:none;}
+@media print{
+  body>*:not(#print-area){display:none!important;}
+  #print-area{display:block!important;padding:40px;}
+  .cert-body{font-family:Georgia,serif;}
+}
+/* ── Unit Trophy Reveal Overlay ── */
+#unit-trophy-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(4,3,2,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+#unit-trophy-overlay.show{display:flex;animation:fadeIn .5s ease;}
+.utr-eyebrow{font-family:var(--bebas);font-size:11px;letter-spacing:4px;color:var(--text3);margin-bottom:10px;}
+.utr-name{font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:18px;}
+.utr-icon{font-size:72px;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(200,160,32,.5));}
+.utr-trophy-name{font-family:var(--bebas);font-size:32px;letter-spacing:4px;margin-bottom:6px;}
+.utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
+.utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
+.utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+</style>
+<script>
+// Instant redirect if no shell session
+(function(){
+  try{
+    var s=localStorage.getItem('ac_shell_state');
+    if(!s){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+    var p=JSON.parse(s);
+    // Just need a real name — setupDone may not be set with Google auth
+    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');}
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     STICKY HUD (shows after login)
+═══════════════════════════════ -->
+<div id="game-hud">
+  <div class="hud-inner">
+    <div class="hud-avatar" id="hud-avatar-wrap"></div>
+    <div class="hud-info">
+      <div class="hud-name" id="hud-player-name">—</div>
+      <div class="hud-rank" id="hud-player-rank">—</div>
+      <div class="hud-xp-bar"><div class="hud-xp-fill" id="hud-xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat">🪙 GOLD<span id="hud-score" style="color:#f5c842;">0</span></div>
+      <div class="hud-stat">STREAK<span id="hud-streak">0</span></div>
+    </div>
+    <button class="hud-back-btn" id="hud-back-unit" onclick="returnToUnitHub()">← Unit Hub</button>
+    <button class="hud-back-btn" id="hud-back-shell" onclick="returnToShell()">🏛 A.C.</button>
+  </div>
+</div>
+
+<div id="root">
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 2: UNIT HUB
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="unit-hub-screen">
+
+  <!-- Player banner — name, rank, progress -->
+  <div id="hub-player-banner"></div>
+
+  <!-- Shell return (shown when arriving from American Chronicles) -->
+  <div id="shell-return-btn" style="display:none;margin-bottom:12px;">
+    <button class="btn full" onclick="returnToShell()" style="border-color:var(--teal2);color:var(--teal2);">
+      <span>← Return to American Chronicles Hub</span>
+    </button>
+  </div>
+
+  <!-- Unit title header -->
+  <div class="section-head" style="margin-top:4px;">Unit 5A — World War II</div>
+
+  <!-- Essential question -->
+  <div class="eq-banner">
+    <strong>Essential Question:</strong> How did World War II transform the United States at home and abroad, and what kind of world did the Allied victory create?
+  </div>
+
+  <!-- Lesson / chapter cards — rendered by JS -->
+  <div id="hub-chapters"></div>
+
+  <!-- Divider -->
+  <div class="deco-divider"><span class="deco-divider-icon">⭐</span></div>
+
+  <!-- Badges row — rendered by JS -->
+  <div class="section-head" style="font-size:14px;">Badges</div>
+  <div class="badges-row" id="hub-badges"></div>
+
+  <!-- Trophy / EOC block — rendered by JS -->
+  <div id="hub-trophy-section" style="display:none;"></div>
+
+  <!-- Print certificate — shown when unit complete -->
+  <div id="hub-cert-row" style="display:none;margin-top:4px;">
+    <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
+      <span>🖨️ Print Certificate</span>
+    </button>
+    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+  </div>
+
+</div><!-- /unit-hub-screen -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 3a: QUESTION SCREEN
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="question-screen">
+
+  <!-- Progress bar across the top -->
+  <div class="q-progress-bar-wrap" style="margin-top:16px;">
+    <div class="q-progress-bar-fill" id="q-progress-fill" style="width:0%"></div>
+  </div>
+
+  <!-- Context pill — small reminder of which lesson/topic -->
+  <div class="q-context-pill">
+    <div class="q-context-lesson" id="q-context-lesson">LESSON 38</div>
+    <div class="q-context-sep"></div>
+    <div class="q-context-topic" id="q-context-topic">A World Divided</div>
+  </div>
+
+  <!-- Momentum display -->
+  <div class="momentum-display">
+    <div class="momentum-label">MOMENTUM</div>
+    <div class="momentum-track">
+      <div class="momentum-fill" id="momentum-fill" style="width:0%"></div>
+    </div>
+    <div class="momentum-val" id="momentum-val">Ready</div>
+  </div>
+
+  <!-- THE QUESTION — primary visual weight -->
+  <div class="q-block">
+    <div class="q-standard-tag" id="q-standard-tag" style="display:none;"></div>
+    <div class="q-number" id="q-number">QUESTION 1 OF 4</div>
+    <div class="q-text" id="q-text">Question text loads here.</div>
+  </div>
+
+  <!-- Answer choices -->
+  <div class="choices-list" id="choices-list"></div>
+
+  <!-- Feedback panel (hidden until answered) -->
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-verdict" id="feedback-verdict"></div>
+    <div class="feedback-text" id="feedback-text"></div>
+    <div class="feedback-standard" id="feedback-standard"></div>
+  </div>
+
+  <!-- Next/Proceed button (hidden until answered) -->
+  <div id="next-btn-wrap" style="display:none;">
+    <button class="btn full" onclick="nextQuestion()"><span id="next-btn-label">Next Question →</span></button>
+  </div>
+
+</div><!-- /question-screen -->
+
+</div><!-- #root -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     BRIEFING MODAL (shown before question screen)
+═══════════════════════════════════════════════════════ -->
+<div id="briefing-modal">
+  <div class="briefing-inner">
+    <div class="briefing-header">
+      <div>
+        <div class="briefing-eyebrow" id="briefing-eyebrow">LESSON 38 · MISSION BRIEFING</div>
+        <div class="briefing-title" id="briefing-title">World War II</div>
+      </div>
+      <button class="briefing-close-btn" onclick="closeBriefing()">✕ Close</button>
+    </div>
+
+    <!-- Optional scene visual (rendered by JS) -->
+    <div class="briefing-scene" id="briefing-scene"></div>
+
+    <div class="briefing-location-row">
+      <div class="briefing-location" id="briefing-location">Washington D.C. and Europe</div>
+      <div class="briefing-date" id="briefing-date">1945–1949</div>
+    </div>
+    <div id="briefing-role" style="display:none;font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;padding:6px 12px;background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);margin-bottom:0;"></div>
+
+    <!-- Historical briefing text -->
+    <div class="briefing-text" id="briefing-text">Briefing text loads here.</div>
+
+    <!-- Optional pull quote -->
+    <div class="briefing-quote" id="briefing-quote" style="display:none;"></div>
+
+    <!-- Standards/tags -->
+    <div class="briefing-meta" id="briefing-meta"></div>
+
+    <div class="briefing-proceed-row">
+      <button class="btn full" onclick="proceedToQuestions()"><span>Proceed to Questions →</span></button>
+      <button class="btn full sm" style="border-color:var(--border2);color:var(--text3);" onclick="closeBriefing()"><span>← Back to Unit Hub</span></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LESSON COMPLETE OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div id="lesson-complete">
+  <div class="complete-inner">
+
+    <!-- Trophy badge -->
+    <div class="complete-badge" id="complete-badge">🏆</div>
+    <div class="complete-unit-lbl" id="complete-unit-lbl">UNIT 5A</div>
+    <div class="complete-lesson-title" id="complete-lesson-title">World War II</div>
+    <div class="complete-tier" id="complete-tier" style="color:var(--gold)">GOLD — 90%</div>
+
+    <!-- Stats row -->
+    <div class="complete-stats" id="complete-stats"></div>
+
+    <!-- EOC Rating (shown on unit completion / EOC lesson) -->
+    <div id="complete-eoc-block" style="display:none;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;margin-bottom:6px;">EOC PRACTICE RATING</div>
+      <div id="complete-eoc-rating" style="font-family:var(--bebas);font-size:22px;letter-spacing:2px;"></div>
+      <div id="complete-eoc-label" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:3px;"></div>
+    </div>
+
+    <!-- Gold earned this run -->
+    <div id="complete-rewards" style="display:none;background:var(--bg2);border:1px solid var(--gold2);padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px;">GOLD EARNED THIS RUN</div>
+      <div id="complete-rewards-inner"></div>
+    </div>
+
+    <!-- Badges earned this lesson -->
+    <div id="complete-badges-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">BADGES</div>
+      <div class="reward-chips" id="complete-badges-chips"></div>
+    </div>
+
+    <!-- Cards earned this lesson -->
+    <div id="complete-cards-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">HISTORICAL FIGURE CARDS</div>
+      <div class="reward-chips" id="complete-cards-chips"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="complete-btn-group">
+      <!-- Retry same lesson -->
+      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
+      <!-- Replay entire unit from Lesson 33 (always visible) -->
+      <button class="btn full" id="btn-replay-all" onclick="replayFromBeginning()" style="border-color:var(--gold2);color:var(--gold2);display:none;"><span>⟳ Replay Unit From Beginning</span></button>
+      <!-- Return to unit hub -->
+      <button class="btn full green" onclick="returnToUnitHub()"><span>← Return to Unit Hub</span></button>
+      <!-- Return to shell -->
+      <button class="btn full teal" onclick="returnToShell()"><span>🏛 Return to American Chronicles</span></button>
+      <!-- Print certificate (shown when unit complete) -->
+      <button class="btn full" id="btn-print-cert" onclick="printCertificate()" style="display:none;border-color:var(--text3);color:var(--text3);"><span>🖨️ Print Certificate</span></button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Print area -->
+<div id="print-area"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN GATE
+═══════════════════════════════════════════════════════ -->
+<!-- WELCOME BACK MODAL -->
+<div id="welcome-back-overlay">
+  <div class="wb-box">
+    <div class="wb-avatar" id="wb-avatar"></div>
+    <div class="wb-greeting">WELCOME BACK</div>
+    <div class="wb-name" id="wb-name">Historian</div>
+    <div class="wb-sub" id="wb-sub">Curious Citizen</div>
+    <div class="wb-progress" id="wb-progress">No progress saved yet</div>
+    <button class="btn full" onclick="confirmWelcomeBack()" style="margin-bottom:8px;">
+      <span>Continue as This Student</span>
+    </button>
+    <button class="btn full" onclick="switchPlayer()"
+      style="border-color:var(--border2);color:var(--text3);font-size:11px;">
+      <span>That's Not Me — Switch Player</span>
+    </button>
+  </div>
+</div>
+
+<!-- UNIT TROPHY REVEAL OVERLAY -->
+<div id="unit-trophy-overlay">
+  <div class="utr-eyebrow">UNIT COMPLETE</div>
+  <div class="utr-name" id="utr-name"></div>
+  <div class="utr-icon" id="utr-icon"></div>
+  <div class="utr-trophy-name" id="utr-trophy-name"></div>
+  <div class="utr-msg" id="utr-msg"></div>
+  <div class="utr-acc" id="utr-acc"></div>
+  <button class="utr-btn" id="utr-btn" onclick="closeUnitTrophy()"></button>
+</div>
+<div id="login-gate">
+  <div class="login-box">
+    <div class="login-logo">ARSENAL OF<br>DEMOCRACY</div>
+    <div class="login-sub">Unit 5A — World War II</div>
+
+    <div class="login-field">
+      <label>Your Name</label>
+      <input type="text" class="login-input" id="login-name" placeholder="Enter your name" maxlength="40" autocomplete="off">
+    </div>
+
+    <div class="login-field">
+      <label>Class Period</label>
+      <div id="period-selector" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button class="btn full" onclick="submitLogin()"><span>Enter →</span></button>
+    </div>
+
+    <div class="login-notice">Returning from American Chronicles? Your profile loads automatically.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     BOTTOM NAV (carried from v1)
+════════════════════════════════════════════ -->
+<div id="bottom-nav">
+  <button class="bn-btn active" id="bn-hub" onclick="navToHub()">
+    <span class="bn-icon">🏠</span>Hub
+  </button>
+  <button class="bn-btn" onclick="openLeaderboard()">
+    <span class="bn-icon">🏆</span>Ranks
+  </button>
+  <button class="bn-btn" onclick="openProfile()">
+    <span class="bn-icon">👤</span>Profile
+  </button>
+  <button class="bn-btn" onclick="openCardCollection()">
+    <span class="bn-icon">🃏</span>Cards
+  </button>
+</div>
+
+<!-- LEADERBOARD OVERLAY -->
+<div class="overlay" id="leaderboard-overlay">
+  <div class="overlay-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="overlay-title">🏆 Leaderboard</div>
+      <button id="lb-teacher-unlock" onclick="unlockLBDelete()" style="font-family:var(--dm);font-size:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 8px;cursor:pointer;" title="Teacher: unlock delete">🔒</button>
+    </div>
+    <button class="overlay-close" onclick="closeLeaderboard()">CLOSE</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;" id="lb-type-tabs">
+    <button class="lb-tab active" onclick="setLbType('overall',this)">🌐 Overall</button>
+    <button class="lb-tab" onclick="setLbType('class',this)">🏫 My Class</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;" id="lb-period-tabs"></div>
+  <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px;" id="lb-sync-status">Loading…</div>
+  <div id="lb-content"></div>
+</div>
+
+<!-- PROFILE OVERLAY -->
+<div class="overlay" id="profile-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Your Profile</div>
+    <button class="overlay-close" onclick="closeProfile()">CLOSE</button>
+  </div>
+  <div id="profile-avatar-large" style="text-align:center;margin-bottom:16px;"></div>
+  <div class="profile-stat-grid" id="profile-stat-grid"></div>
+  <div class="section-head" style="font-size:13px;">Badges Earned</div>
+  <div class="badges-row" id="profile-badge-grid" style="margin-bottom:16px;"></div>
+  <div class="section-head" style="font-size:13px;margin-top:8px;">Card Collection</div>
+  <div class="card-grid" id="profile-card-grid"></div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- CARD COLLECTION OVERLAY -->
+<div class="overlay" id="cardcoll-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Historical Figures</div>
+    <button class="overlay-close" onclick="document.getElementById('cardcoll-overlay').classList.remove('show')">CLOSE</button>
+  </div>
+  <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);margin-bottom:16px;font-style:italic;">
+    Earn historical figure cards by completing lessons. Each card tells the story of a key World War II figure.
+  </div>
+  <div class="card-grid" id="cardcoll-grid"></div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════
+// CONSTANTS & KEYS
+// ════════════════════════════════════════════
+const SHELL_KEY   = 'ac_shell_state';
+const SAVE_KEY   = 'arsenal_v1_save';
+const UNIT_ID     = 'unit5a';
+
+// ── GOLD ECONOMY ──────────────────────────────────────
+// These are the canonical reward values for UNIT 5A.
+// All gold earned here flows into the shell's global wallet
+// and from there into the RPG. Adjust by lesson type below.
+//
+// lesson      : 20 per correct · 25 completion · 25 perfect run
+// extension   : 20 per correct · 30 completion · 30 perfect run
+// capstone    : 25 per correct · 50 completion · 50 mastery (100% acc)
+// eoc         : 15 per correct · 50 completion · 50 high-score (≥90%)
+//
+const GOLD_RULES = {
+  lesson:    { perCorrect: 20, completionBonus: 25, perfectBonus: 25  },
+  extension: { perCorrect: 20, completionBonus: 30, perfectBonus: 30  },
+  capstone:  { perCorrect: 25, completionBonus: 50, masteryBonus: 50  },
+  eoc:       { perCorrect: 15, completionBonus: 50, highScoreBonus: 50 },
+};
+
+// Supabase credentials (carried over from original)
+const OLD_SUPA_URL = 'https://iluvuartxsenbgylogit.supabase.co';
+const OLD_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZ1YXJ0eHNlbmJneWxvZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTIsImV4cCI6MjA4OTQzNjY5Mn0.stAmdi5xy7ofDAB4AiRg78Eoky-7FXZEa-Ui1dgwHd0';
+const OLD_HEADERS = {'Content-Type':'application/json','apikey':OLD_SUPA_KEY,'Authorization':'Bearer '+OLD_SUPA_KEY};
+
+const AC_SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const AC_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AC_HEADERS  = {'Content-Type':'application/json','apikey':AC_SUPA_KEY,'Authorization':'Bearer '+AC_SUPA_KEY};
+
+// ════════════════════════════════════════════
+// LESSON DATA — TEMPLATE STRUCTURE
+// Replace briefings and question banks via JSON later.
+// ════════════════════════════════════════════
+
+/*
+  LESSON STRUCTURE CONTRACT:
+  Each lesson object has:
+    id         — unique string key
+    label      — e.g. "LESSON 38"
+    title      — thematic title
+    sub        — location · years
+    icon       — emoji
+    type       — 'lesson' | 'capstone' | 'eoc'
+    briefing   — { location, date, text, quote?, tags[] }
+    bank       — array of question objects (8–12 for lessons, 20–25 for EOC)
+    displayCount — number of questions to show per playthrough
+    cardEarned — optional string id
+
+  QUESTION STRUCTURE CONTRACT:
+  Each question in bank:
+    id         — unique string
+    text       — question text
+    choices    — array of { text, correct, feedback }
+    standard   — e.g. "SS.912.A.6.12"
+
+  NOTE: Answer choices are randomized on every playthrough.
+        displayCount questions are drawn randomly from bank each time.
+*/
+
+const LESSONS = [
+
+  // ==================================================
+  // LESSON 34 — Gathering Storm
+  // ==================================================
+  {
+    id: 'lesson34',
+    label: 'LESSON 34',
+    title: 'Gathering Storm',
+    sub: 'Origins of World War II - 1930s-1941',
+    icon: '🌩️',
+    type: 'lesson',
+    briefing: {
+      location: 'Origins of World War II - 1930s-1941',
+      date: '',
+      role: 'foreign affairs observer',
+      text: 'The world is sliding toward war. Dictators are expanding their power, democratic governments are debating how to respond, and the United States is torn between isolation and growing concern. As aggression spreads from Europe to Asia, Americans must decide whether this is another distant conflict or a crisis that will eventually demand national action.',
+      tags: ['SS.912.A.6.3', 'SS.912.A.6.4']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Gathering Storm', cards: ['Appeasement', 'Pearl Harbor'] },
+    bank: [
+      {
+        id: '5A-L34-Q1',
+        text: 'Why did Britain and France follow a policy of appeasement toward Hitler in the 1930s?',
+        choices: ['They hoped concessions might avoid another major war and buy time because they were not ready to fight.', 'They wanted Germany to conquer Western Europe quickly so communist governments would collapse first.', 'They believed the League of Nations had already guaranteed military protection for every threatened state.', 'They expected the United States to join them immediately if Germany crossed any border in Europe.'],
+        correctAnswer: 'They hoped concessions might avoid another major war and buy time because they were not ready to fight.',
+        explanation: 'Many leaders feared another catastrophe like World War I, and they believed limited concessions might preserve peace while Britain and France prepared militarily.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-L34-Q2',
+        text: 'What condition helped dictators gain power in Europe and Asia during the 1930s?',
+        choices: ['Economic hardship and political instability made extremist promises more attractive to anxious voters.', 'Rapid prosperity convinced most citizens that democratic governments had become unnecessary and outdated.', 'Stable international trade encouraged militarist leaders to reduce conflict through peaceful cooperation.', 'Successful League of Nations reforms persuaded weaker states to adopt one-party rule voluntarily.'],
+        correctAnswer: 'Economic hardship and political instability made extremist promises more attractive to anxious voters.',
+        explanation: 'The Great Depression and unresolved anger from World War I weakened democratic governments and helped authoritarian leaders present themselves as decisive saviors.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-L34-Q3',
+        text: 'What did the Nazi-Soviet Pact allow Hitler to do in 1939?',
+        choices: ['It allowed him to attack Poland while avoiding a two-front war with the Soviet Union at first.', 'It forced Britain and France to support German expansion in Eastern Europe without public resistance.', 'It created a military alliance between Germany, Japan, and the Soviet Union against the United States.', 'It guaranteed that the League of Nations would remain neutral if Germany invaded Western Europe.'],
+        correctAnswer: 'It allowed him to attack Poland while avoiding a two-front war with the Soviet Union at first.',
+        explanation: 'The pact shocked the world because Nazi Germany and the Soviet Union agreed not to attack each other, clearing the way for the invasion of Poland.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-L34-Q4',
+        text: 'Why did Germany\'s invasion of Poland trigger the start of World War II in Europe?',
+        choices: ['Britain and France finally declared war after concluding Hitler would not stop with negotiated gains.', 'The United States immediately invaded Germany and forced the rest of Europe into a wider conflict.', 'The Soviet Union formally demanded that Britain and France surrender Poland rather than militarily defend it against German aggression.', 'Italy switched sides at once and launched attacks on both Germany and Japan across the continent.'],
+        correctAnswer: 'Britain and France finally declared war after concluding Hitler would not stop with negotiated gains.',
+        explanation: 'Appeasement ended when Hitler invaded Poland, and Britain and France responded with declarations of war instead of more concessions.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-L34-Q5',
+        text: 'Why did many Americans support the Neutrality Acts before Pearl Harbor?',
+        choices: ['They wanted to avoid being drawn into another overseas war like the one they associated with World War I.', 'They believed Nazi Germany had a legitimate claim to most of Europe and should be left alone.', 'They expected the League of Nations to defeat Japan and Italy without any American economic pressure.', 'They wanted to permanently block all overseas trade so the United States could become entirely self-sufficient and economically independent.'],
+        correctAnswer: 'They wanted to avoid being drawn into another overseas war like the one they associated with World War I.',
+        explanation: 'Isolationist sentiment remained strong in the 1930s, and many Americans feared arms sales and loans would once again pull the nation into war.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L34-Q6',
+        text: 'How did Lend-Lease signal a shift in U.S. policy before formal entry into World War II?',
+        choices: ['It let the United States aid Allied nations materially while officially remaining out of direct combat.', 'It required American combat troops to serve under British military command before Congress had issued any formal declaration of war against the Axis powers.', 'It ended all trade with Europe so American industry could focus entirely on domestic civilian needs.', 'It forced Britain to repay World War I debts immediately before receiving any new military supplies.'],
+        correctAnswer: 'It let the United States aid Allied nations materially while officially remaining out of direct combat.',
+        explanation: 'Lend-Lease showed that the United States was moving away from strict neutrality by supplying nations fighting the Axis powers.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L34-Q7',
+        text: 'Why did the attack on Pearl Harbor transform U.S. policy so quickly?',
+        choices: ['It ended support for neutrality by bringing the United States directly into the war after a direct attack.', 'It convinced Americans to avoid war in Europe and focus only on diplomatic pressure in the Pacific.', 'It proved that Japan had already agreed to surrender terms, leaving Congress to declare war afterward mainly as a symbolic gesture of national unity.', 'It led Britain and France to withdraw from Asia so the United States could remain formally neutral.'],
+        correctAnswer: 'It ended support for neutrality by bringing the United States directly into the war after a direct attack.',
+        explanation: 'After Pearl Harbor, debate over staying out of the war collapsed because the United States had been attacked directly.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L34-Q8',
+        text: 'What lesson does the Munich Conference often symbolize in discussions of the road to war?',
+        choices: ['Yielding to aggressive dictators can encourage further expansion instead of securing lasting peace.', 'International diplomacy never matters because wars are caused only by economic cycles and trade collapse.', 'Democratic governments should always surrender smaller states if that avoids short-term military spending.', 'Authoritarian leaders usually become more cooperative once neighboring democracies recognize their demands.'],
+        correctAnswer: 'Yielding to aggressive dictators can encourage further expansion instead of securing lasting peace.',
+        explanation: 'Munich became a symbol of appeasement because Hitler treated concessions as encouragement rather than as a reason to stop.',
+        standard: 'SS.912.A.6.3'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 35 — Arsenal of Democracy
+  // ==================================================
+  {
+    id: 'lesson35',
+    label: 'LESSON 35',
+    title: 'Arsenal of Democracy',
+    sub: 'The Impact of World War II on Americans - 1941-1945',
+    icon: '🔧',
+    type: 'lesson',
+    briefing: {
+      location: 'The Impact of World War II on Americans - 1941-1945',
+      date: '',
+      role: 'home front coordinator',
+      text: 'Once the United States enters the war, daily life changes everywhere. Factories shift to wartime production, women and minorities take on new roles, rationing and bond drives shape ordinary routines, and the government expands its power in the name of victory. The war opens new opportunities for some Americans while exposing deep contradictions in democracy at home.',
+      tags: ['SS.912.A.6.6']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Arsenal of Democracy', cards: ['Rosie the Riveter', 'Home Front'] },
+    bank: [
+      {
+        id: '5A-L35-Q1',
+        text: 'How did World War II affect the American economy on the home front?',
+        choices: ['War production expanded industry dramatically and helped pull the nation out of the Great Depression.', 'War production reduced factory employment because most industrial goods were redirected to Europe and Asia.', 'War production weakened federal revenue so severely that rationing replaced wages in most defense plants.', 'War production mattered little because the United States fought mainly with older weapons and stockpiles.'],
+        correctAnswer: 'War production expanded industry dramatically and helped pull the nation out of the Great Depression.',
+        explanation: 'Massive defense contracts increased employment, factory output, and federal spending, bringing broad economic recovery during the war years.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q2',
+        text: 'Why did the government use rationing and war bond drives during World War II?',
+        choices: ['They conserved key resources for the military while helping citizens support the war effort financially.', 'They replaced taxes entirely so the federal government would not need to borrow during wartime.', 'They discouraged industrial growth by limiting production of ships, planes, and military vehicles at home.', 'They forced Americans to stop buying food so agricultural exports could end until the war was over.'],
+        correctAnswer: 'They conserved key resources for the military while helping citizens support the war effort financially.',
+        explanation: 'Rationing managed scarce materials like gasoline and rubber, while bond drives raised money and promoted civic participation in the war effort.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q3',
+        text: 'What did the image of \'Rosie the Riveter\' represent during World War II?',
+        choices: ['Women taking industrial and defense jobs that had often been closed to them before the war.', 'Women leaving the workforce so men returning from military service could reclaim every factory job.', 'Women refusing government propaganda and organizing nationwide strikes against wartime production quotas.', 'Women serving almost entirely in combat infantry roles on the front lines across Europe and Asia.'],
+        correctAnswer: 'Women taking industrial and defense jobs that had often been closed to them before the war.',
+        explanation: 'Rosie the Riveter symbolized female wartime labor and the broader shift in expectations about women\'s work during the emergency.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q4',
+        text: 'What was the basic idea behind the Double V campaign during World War II?',
+        choices: ['African Americans should fight for victory abroad and for greater equality at home at the same time.', 'African Americans should avoid military service until the federal government ended all segregation first.', 'African Americans should support only the Pacific war because racism made the European war irrelevant.', 'African Americans should leave industrial jobs so white veterans could return to peacetime employment faster.'],
+        correctAnswer: 'African Americans should fight for victory abroad and for greater equality at home at the same time.',
+        explanation: 'The Double V campaign highlighted the contradiction of defending democracy overseas while African Americans faced discrimination and segregation in the United States.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q5',
+        text: 'Why is the internment of Japanese Americans seen as a major contradiction in wartime America?',
+        choices: ['The government claimed to defend freedom while imprisoning many citizens and residents without due process.', 'The government interned only captured enemy soldiers, which made the policy fully consistent with civil liberty.', 'The government relied on proven espionage convictions for nearly every family sent to internment camps.', 'The government used internment mainly to protect Japanese American property from anti-Asian violence on the West Coast.'],
+        correctAnswer: 'The government claimed to defend freedom while imprisoning many citizens and residents without due process.',
+        explanation: 'Internment exposed the tension between wartime fear and constitutional values by targeting Japanese Americans as a group rather than through individual evidence.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q6',
+        text: 'Why did wartime labor shortages change who could find work in the United States?',
+        choices: ['The draft and military mobilization opened jobs for women, minorities, and migrant laborers in new numbers.', 'The military draft actually reduced overall demand for civilian workers because major defense industries immediately shut down most of their non-essential civilian production lines.', 'The draft pushed the government to ban migration between states so local labor markets remained stable.', 'The draft led employers to replace wages with food vouchers, which discouraged new groups from applying.'],
+        correctAnswer: 'The draft and military mobilization opened jobs for women, minorities, and migrant laborers in new numbers.',
+        explanation: 'With millions of men in uniform and production expanding rapidly, employers turned to groups that had often been excluded or limited before the war.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q7',
+        text: 'What contradiction did World War II expose on the American home front?',
+        choices: ['The nation fought for democracy overseas while discrimination and unequal treatment continued at home.', 'The nation rejected all federal power overseas while expanding only local government inside the United States.', 'The nation ended all debate about civil rights because wartime unity resolved social conflict permanently.', 'The nation won the war mainly by reducing industrial production so civilian life would remain unchanged.'],
+        correctAnswer: 'The nation fought for democracy overseas while discrimination and unequal treatment continued at home.',
+        explanation: 'World War II created both patriotic unity and sharper awareness of the gap between democratic ideals and lived reality in the United States.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-L35-Q8',
+        text: 'How did wartime changes inside the United States shape postwar society?',
+        choices: ['They expanded expectations about work, citizenship, and rights, helping fuel later social change.', 'They restored most prewar social patterns so quickly that the war left almost no lasting domestic effects.', 'They ended migration to industrial cities because factories closed permanently as soon as the war ended.', 'They convinced most Americans that federal policy should never again address inequality or labor conditions.'],
+        correctAnswer: 'They expanded expectations about work, citizenship, and rights, helping fuel later social change.',
+        explanation: 'The war broadened experience and expectations for many groups, contributing to later movements for civil rights, expanded opportunity, and social reform.',
+        standard: 'SS.912.A.6.6'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 36 — Into the Fire
+  // ==================================================
+  {
+    id: 'lesson36',
+    label: 'LESSON 36',
+    title: 'Into the Fire',
+    sub: 'Fighting World War II - 1941-1945',
+    icon: '⚔️',
+    type: 'lesson',
+    briefing: {
+      location: 'Fighting World War II - 1941-1945',
+      date: '',
+      role: 'military operations planner',
+      text: 'The war is now global. American forces fight in Europe, North Africa, and the Pacific while commanders make difficult decisions about strategy, resources, and sacrifice. From island-hopping to D-Day, the conflict is shaped by geography, technology, and alliances, and each turning point carries enormous human cost.',
+      tags: ['SS.912.A.6.4']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Into the Fire', cards: ['D-Day', 'Island Hopping'] },
+    bank: [
+      {
+        id: '5A-L36-Q1',
+        text: 'Why did the Allies adopt a Europe First strategy during World War II?',
+        choices: ['They believed Nazi Germany posed the most dangerous threat and had to be defeated before Japan.', 'They believed Japan would surrender quickly if American forces ignored the Pacific for several years.', 'They believed the Soviet Union wanted the United States to avoid Europe and focus only on Asia.', 'They believed Germany lacked modern industry, so a quick invasion would end the war in weeks.'],
+        correctAnswer: 'They believed Nazi Germany posed the most dangerous threat and had to be defeated before Japan.',
+        explanation: 'Allied leaders judged Germany to be the strongest Axis power and the greatest long-term danger, even while the United States also fought Japan in the Pacific.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q2',
+        text: 'Why is the Battle of Midway considered a turning point in the Pacific war?',
+        choices: ['It badly damaged Japan\'s carrier force and shifted the strategic initiative to the United States.', 'It allowed Japan to destroy most of the American fleet and threaten the West Coast directly.', 'It permanently ended traditional naval warfare in the entire Pacific theater by conclusively proving that submarines were far more decisive than aircraft carriers.', 'It forced the Soviet Union to enter the Pacific war years earlier than planned by Allied leaders.'],
+        correctAnswer: 'It badly damaged Japan\'s carrier force and shifted the strategic initiative to the United States.',
+        explanation: 'Midway weakened Japan\'s offensive power and marked the point where the United States began taking the strategic lead in the Pacific.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q3',
+        text: 'What was the purpose of the island-hopping strategy in the Pacific?',
+        choices: ['To capture key islands while bypassing stronger Japanese positions and moving closer to Japan.', 'To liberate every occupied island in exact order before any advance toward the Japanese mainland.', 'To avoid naval battles completely and rely only on long-range bombing from Australia and Hawaii.', 'To force Japan into peace talks by surrendering large Allied positions in the central Pacific first.'],
+        correctAnswer: 'To capture key islands while bypassing stronger Japanese positions and moving closer to Japan.',
+        explanation: 'Island-hopping aimed to seize strategically useful positions and isolate heavily defended Japanese strongholds rather than attack each one directly.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q4',
+        text: 'Why was D-Day so important to the Allied war effort in Europe?',
+        choices: ['It opened a major western front against Nazi Germany and accelerated the liberation of Western Europe.', 'It ended the war in Europe immediately by forcing Germany to surrender on the Normandy beaches.', 'D-Day prevented the Soviet Union from continuing to fight Germany by having Allied forces take over all ground combat operations on the entire eastern front.', 'It persuaded Italy and Japan to abandon the Axis alliance within days of the Normandy landings.'],
+        correctAnswer: 'It opened a major western front against Nazi Germany and accelerated the liberation of Western Europe.',
+        explanation: 'The Normandy invasion was crucial because it established a large Allied foothold in France and increased pressure on Germany from the west.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q5',
+        text: 'Why was the Soviet Union\'s role so important in defeating Nazi Germany?',
+        choices: ['It absorbed enormous German forces on the eastern front and suffered massive losses in the process.', 'It focused mainly on the Pacific theater, allowing Britain and the United States to retake Europe alone.', 'It remained neutral for most of the war, joining the Allies only after Germany had already collapsed.', 'It supplied Germany with most of its weapons until D-Day forced a sudden Soviet policy reversal.'],
+        correctAnswer: 'It absorbed enormous German forces on the eastern front and suffered massive losses in the process.',
+        explanation: 'The eastern front was central to the war in Europe, and Soviet resistance tied down huge German resources at terrible human cost.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q6',
+        text: 'How did intelligence and codebreaking help the Allies during World War II?',
+        choices: ['They gave commanders information that helped them anticipate enemy plans and protect vital convoys.', 'They replaced the need for industrial production by making battles depend mostly on secret communications.', 'They allowed the Allies to avoid all major battles by negotiating directly with German field commanders.', 'They guaranteed immediate victory in every theater once enemy radio traffic could be intercepted at sea.'],
+        correctAnswer: 'They gave commanders information that helped them anticipate enemy plans and protect vital convoys.',
+        explanation: 'Breaking enemy codes helped the Allies make better strategic decisions and reduce losses in both the Atlantic and Pacific theaters.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q7',
+        text: 'Why did World War II require such intense economic mobilization from the Allied powers?',
+        choices: ['Modern global war depended on huge amounts of weapons, fuel, transport, and coordinated production.', 'Modern global war depended mainly on small volunteer armies that could operate without industrial support.', 'Modern global war became shorter once civilian industries were shut down and rationing was ended quickly.', 'Modern global war mattered less than diplomacy because most major victories came through negotiated truces.'],
+        correctAnswer: 'Modern global war depended on huge amounts of weapons, fuel, transport, and coordinated production.',
+        explanation: 'World War II was a total war in which industrial output, logistics, and alliance coordination were as important as battlefield bravery.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-L36-Q8',
+        text: 'What made the Pacific war especially difficult and costly for American forces?',
+        choices: ['Long distances, difficult terrain, and determined Japanese resistance made each advance costly.', 'The Pacific war involved almost no naval combat, forcing armies to march across entire oceans.', 'The Pacific war was fought mostly in Europe, so supply lines to Asia mattered very little.', 'Japanese leaders agreed early to surrender occupied islands, reducing the need for prolonged campaigns.'],
+        correctAnswer: 'Long distances, difficult terrain, and determined Japanese resistance made each advance costly.',
+        explanation: 'The Pacific theater demanded long supply lines, amphibious assaults, and repeated battles against entrenched defenders.',
+        standard: 'SS.912.A.6.4'
+      },
+    ]
+  },
+
+  // ==================================================
+  // UNIT 5A CAPSTONE — Aftermath of Victory
+  // ==================================================
+  {
+    id: 'capstone',
+    label: 'UNIT 5A CAPSTONE',
+    title: 'Aftermath of Victory',
+    sub: 'The Aftermath of World War II - 1945 and beyond',
+    icon: '🌐',
+    type: 'capstone',
+    briefing: {
+      location: 'The Aftermath of World War II - 1945 and beyond',
+      date: '',
+      role: 'postwar diplomatic aide',
+      text: 'Victory has come, but peace will not be simple. The world must reckon with the Holocaust, the use of atomic weapons, the rebuilding of shattered nations, and the emergence of the United States and the Soviet Union as rival superpowers. The decisions made after 1945 will shape the modern world and lay the groundwork for a new era of tension.',
+      tags: ['SS.912.A.6.5']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 25, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'Aftermath of Victory', cards: ['United Nations', 'Postwar Order'] },
+    bank: [
+      {
+        id: '5A-CAP-Q1',
+        text: 'Why is the Holocaust central to understanding the aftermath of World War II?',
+        choices: ['It revealed the scale of Nazi genocide and forced the world to confront crimes against humanity.', 'It showed that most European governments had successfully protected Jewish citizens during the war.', 'It ended only after the United Nations sent peacekeepers into Germany before Allied victory in Europe.', 'It had little impact on postwar law because wartime atrocities were treated as ordinary battlefield crimes.'],
+        correctAnswer: 'It revealed the scale of Nazi genocide and forced the world to confront crimes against humanity.',
+        explanation: 'The liberation of camps exposed the systematic murder of millions and shaped postwar debates about justice, memory, and human rights.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q2',
+        text: 'Why was the United Nations created after World War II?',
+        choices: ['Leaders hoped a stronger international body could help prevent future wars and encourage cooperation.', 'Leaders wanted to replace all national governments with a permanent global military administration.', 'Leaders needed a temporary alliance to coordinate the invasion of Japan after Germany had surrendered.', 'Leaders intended to use it mainly to restore European colonial control over Asia and Africa.'],
+        correctAnswer: 'Leaders hoped a stronger international body could help prevent future wars and encourage cooperation.',
+        explanation: 'The United Nations reflected the belief that a more effective international organization might reduce conflict and support collective security.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q3',
+        text: 'What major issue is raised by the American use of atomic bombs against Japan?',
+        choices: ['It raises questions about military necessity, civilian casualties, and the moral limits of warfare.', 'It proves diplomacy had already failed because Japan had invaded the Soviet Union after Germany fell.', 'It shows nuclear weapons were treated mainly as symbolic devices rather than as tools of war.', 'It ended debate immediately because all nations agreed the bombings created no ethical controversy.'],
+        correctAnswer: 'It raises questions about military necessity, civilian casualties, and the moral limits of warfare.',
+        explanation: 'Historians continue to debate whether the bombings hastened surrender decisively and whether that result justified the humanitarian costs.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q4',
+        text: 'What was the importance of the Nuremberg Trials after World War II?',
+        choices: ['They established that national leaders could be held accountable for war crimes and crimes against humanity.', 'They restored the Nazi government so Germany could rebuild more quickly under familiar leadership.', 'They settled borders in Eastern Europe by allowing defeated states to redraw their own frontiers.', 'The Nuremberg Trials replaced military occupation with immediate internationally supervised democratic elections held across all of the former Axis-controlled countries.'],
+        correctAnswer: 'They established that national leaders could be held accountable for war crimes and crimes against humanity.',
+        explanation: 'Nuremberg was historically important because it treated aggressive war and mass atrocity as punishable international crimes.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q5',
+        text: 'Why did the United States and the Soviet Union emerge from World War II as superpowers?',
+        choices: ['They ended the war with enormous military power and influence while much of Europe was devastated.', 'They ended the war as minor regional states because Britain and France remained overwhelmingly dominant.', 'They avoided major wartime casualties, which allowed both nations to withdraw from global affairs entirely.', 'They merged their economies after the war and governed a shared international alliance without tension.'],
+        correctAnswer: 'They ended the war with enormous military power and influence while much of Europe was devastated.',
+        explanation: 'The war weakened older European powers and left the United States and Soviet Union as the two most powerful states in the world.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q6',
+        text: 'Why did wartime cooperation between the United States and the Soviet Union begin to break down after 1945?',
+        choices: ['Their alliance had been based on defeating Hitler, but they had conflicting goals for postwar Europe.', 'Their alliance ended because both nations agreed Germany should remain unified under Soviet occupation.', 'Their alliance ended when Japan joined NATO and forced both countries to abandon the Pacific settlement.', 'Their alliance ended mainly because Britain prohibited the Soviet Union from attending peace conferences.'],
+        correctAnswer: 'Their alliance had been based on defeating Hitler, but they had conflicting goals for postwar Europe.',
+        explanation: 'Once the common enemy was gone, disagreements over Eastern Europe, Germany, and political systems became much more important.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q7',
+        text: 'What was a major goal of the Allied occupation of Germany and Japan after the war?',
+        choices: ['To rebuild political systems and reduce the ability of militarist regimes to start new wars.', 'To strip both nations of all industry permanently so they could never recover economically again.', 'To divide both nations into dozens of small colonies run directly by private American corporations.', 'To restore prewar military leaders quickly so local populations would accept occupation with less unrest.'],
+        correctAnswer: 'To rebuild political systems and reduce the ability of militarist regimes to start new wars.',
+        explanation: 'Occupation policy aimed at demilitarization, reform, and reconstruction so that defeated Axis powers would not return to aggressive expansion.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q8',
+        text: 'How did World War II help accelerate decolonization around the world?',
+        choices: ['The war weakened European empires and encouraged independence movements to press for self-rule.', 'The war strengthened colonial control so completely that independence movements largely disappeared after 1945.', 'The war caused Asian and African leaders to ask European empires for tighter control and permanent rule.', 'The war ended colonialism overnight because the United Nations immediately outlawed all empires everywhere.'],
+        correctAnswer: 'The war weakened European empires and encouraged independence movements to press for self-rule.',
+        explanation: 'European colonial powers emerged weakened, and many colonial subjects demanded the self-determination that wartime rhetoric had promised.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q9',
+        text: 'How did the GI Bill affect many Americans after World War II?',
+        choices: ['It helped many veterans attend college, buy homes, and move into the postwar middle class.', 'It required all veterans to remain in military service until the United Nations approved discharge requests.', 'It limited education benefits to officers so enlisted soldiers would return directly to factory labor.', 'It replaced private mortgages with direct military housing on permanent federal bases across the country.'],
+        correctAnswer: 'It helped many veterans attend college, buy homes, and move into the postwar middle class.',
+        explanation: 'The GI Bill became one of the most important domestic legacies of the war by expanding educational access and home ownership for many veterans.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-CAP-Q10',
+        text: 'What best explains why victory in World War II did not bring a simple or lasting peace?',
+        choices: ['The war ended Axis aggression, but it also created new tensions, moral questions, and global responsibilities.', 'The war resolved all major disputes because the Allied powers agreed completely on postwar borders and ideology.', 'The war left the United States weaker than before, so it withdrew from world affairs and avoided alliances.', 'The war ended international rivalry because nuclear weapons made all future conflict impossible to imagine.'],
+        correctAnswer: 'The war ended Axis aggression, but it also created new tensions, moral questions, and global responsibilities.',
+        explanation: 'The aftermath included justice for atrocities, nuclear anxieties, rebuilding, decolonization, and the beginnings of the Cold War.',
+        standard: 'SS.912.A.6.5'
+      },
+    ]
+  },
+
+  // ==================================================
+  // EOC REVIEW — EOC Practice Quiz
+  // ==================================================
+  {
+    id: 'eoc',
+    label: 'EOC REVIEW',
+    title: 'EOC Practice Quiz',
+    sub: 'World War II Review - road to war through postwar settlement',
+    icon: '📋',
+    type: 'eoc',
+    briefing: {
+      location: 'World War II Review - road to war through postwar settlement',
+      date: '',
+      role: 'exam prep coach',
+      text: 'This review pulls together the major ideas of Unit 5A. Expect questions that connect the rise of dictatorships, American mobilization, military strategy, the wartime home front, and the creation of a new postwar order. The goal here is synthesis, not just recall, so this section should feel like a full EOC-style check on your understanding.',
+      tags: ['SS.912.A.6.3', 'SS.912.A.6.4', 'SS.912.A.6.6', 'SS.912.A.6.5']
+    },
+    displayCount: 15,
+    goldRules: { perCorrect: 15, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'World War II Mastery', cards: ['World War II Review'] },
+    bank: [
+      {
+        id: '5A-EOC-Q1',
+        text: 'Why did Britain and France try appeasement before World War II began in Europe?',
+        choices: ['They hoped concessions would avoid war and buy time because they feared another massive conflict.', 'They wanted Germany to conquer France first so Britain could stay neutral and protect its empire.', 'They believed the League of Nations had enough military power to stop Hitler without their help.', 'They expected the United States to declare war immediately if Germany entered Czechoslovakia or Poland.'],
+        correctAnswer: 'They hoped concessions would avoid war and buy time because they feared another massive conflict.',
+        explanation: 'Appeasement reflected both fear of another world war and the hope that Hitler\'s demands might remain limited.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-EOC-Q2',
+        text: 'Which condition most helped authoritarian leaders rise during the 1930s?',
+        choices: ['Economic crisis and political instability made radical promises seem attractive to many citizens.', 'Stable prosperity convinced voters that democratic institutions no longer needed public support.', 'Strong international cooperation made militarist leaders appear unnecessary in most industrial nations.', 'Rapid decolonization gave dictators new overseas markets that solved unemployment before they took power.'],
+        correctAnswer: 'Economic crisis and political instability made radical promises seem attractive to many citizens.',
+        explanation: 'Depression, resentment, and political weakness created openings for leaders who promised order, recovery, and national revival.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-EOC-Q3',
+        text: 'Why did Germany\'s invasion of Poland mark a decisive turning point in 1939?',
+        choices: ['It finally pushed Britain and France to declare war instead of continuing appeasement.', 'It led the Soviet Union to join Britain and France in a single democratic alliance at once.', 'It brought the United States directly into the war before any fighting spread across Western Europe.', 'It forced Japan to abandon the Axis alliance and focus entirely on expansion in China instead.'],
+        correctAnswer: 'It finally pushed Britain and France to declare war instead of continuing appeasement.',
+        explanation: 'The invasion of Poland convinced Britain and France that Hitler would continue expanding unless stopped by force.',
+        standard: 'SS.912.A.6.3'
+      },
+      {
+        id: '5A-EOC-Q4',
+        text: 'Why did many Americans support neutrality in the 1930s?',
+        choices: ['They believed earlier involvement in European war had been costly and wanted to avoid repeating it.', 'They believed Japan and Germany were stable democracies that posed no threat to world peace.', 'They believed neutrality would force the League of Nations to defend every victim of aggression alone.', 'They believed military weakness abroad made American trade impossible until Europe became unified again.'],
+        correctAnswer: 'They believed earlier involvement in European war had been costly and wanted to avoid repeating it.',
+        explanation: 'Memories of World War I and a strong isolationist mood shaped U.S. policy before Pearl Harbor.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q5',
+        text: 'What did Lend-Lease suggest about the direction of U.S. foreign policy before Pearl Harbor?',
+        choices: ['The United States was moving away from strict neutrality by aiding nations fighting the Axis.', 'The United States was preparing to ally with Germany against the Soviet Union and imperial Japan.', 'The United States was ending all arms production until Congress could debate military budgets again.', 'The United States was planning to withdraw trade from both Britain and China to remain fully neutral.'],
+        correctAnswer: 'The United States was moving away from strict neutrality by aiding nations fighting the Axis.',
+        explanation: 'Lend-Lease allowed the United States to support Allied resistance without yet entering the war as a combatant.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q6',
+        text: 'Why did Pearl Harbor change the American debate over World War II?',
+        choices: ['A direct attack on U.S. forces ended most opposition to entering the war.', 'A direct attack on U.S. forces convinced Congress to remain neutral but expand trade sanctions.', 'A direct attack on U.S. forces led Americans to concentrate only on rebuilding Hawaii and not Europe.', 'A direct attack on U.S. forces persuaded Britain to surrender responsibility for the Atlantic theater.'],
+        correctAnswer: 'A direct attack on U.S. forces ended most opposition to entering the war.',
+        explanation: 'Pearl Harbor transformed the political landscape by making the war immediate and personal to the American public.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q7',
+        text: 'How did World War II affect industrial production in the United States?',
+        choices: ['Factories converted to wartime output on a massive scale and greatly increased production.', 'Factories closed temporarily because rationing made heavy industry impossible to sustain at home.', 'Factories relied mostly on imported goods because U.S. raw materials were reserved for allies abroad.', 'Factories remained focused on luxury consumer items because the military required only limited support.'],
+        correctAnswer: 'Factories converted to wartime output on a massive scale and greatly increased production.',
+        explanation: 'The United States became the \'arsenal of democracy\' by producing huge quantities of planes, ships, vehicles, and weapons.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-EOC-Q8',
+        text: 'What did the wartime experience of many American women demonstrate?',
+        choices: ['Women could perform industrial and military-support roles that had often been reserved for men.', 'Women were excluded from defense work because factories preferred to preserve prewar hiring patterns.', 'Women played little role in the war effort because rationing prevented them from entering paid labor.', 'Women rejected most wartime work because bond drives and volunteer programs met all national needs.'],
+        correctAnswer: 'Women could perform industrial and military-support roles that had often been reserved for men.',
+        explanation: 'Women entered new jobs and responsibilities during the war, challenging older assumptions about work and citizenship.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-EOC-Q9',
+        text: 'What was the main message of the Double V campaign?',
+        choices: ['African Americans sought victory against fascism abroad and discrimination at home.', 'African Americans should postpone civil rights demands until the Cold War replaced World War II.', 'African Americans should support only economic reforms because military service offered little national value.', 'African Americans should leave northern cities and return to agricultural work during the emergency.'],
+        correctAnswer: 'African Americans sought victory against fascism abroad and discrimination at home.',
+        explanation: 'The Double V campaign made clear that the fight for democracy overseas highlighted the need for greater equality in the United States.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-EOC-Q10',
+        text: 'Why is Japanese American internment remembered as a civil liberties failure?',
+        choices: ['People were removed and confined largely because of ancestry rather than proven individual wrongdoing.', 'People were removed only after courts convicted almost every internee of espionage against the United States.', 'People were removed mainly to give them safer housing than what existed on the West Coast in 1942.', 'People were removed temporarily so they could serve more effectively in military intelligence units overseas.'],
+        correctAnswer: 'People were removed and confined largely because of ancestry rather than proven individual wrongdoing.',
+        explanation: 'Internment reflected wartime fear and racism more than evidence-based justice, making it a major constitutional and moral controversy.',
+        standard: 'SS.912.A.6.6'
+      },
+      {
+        id: '5A-EOC-Q11',
+        text: 'Why did Allied leaders use a Europe First strategy?',
+        choices: ['They judged Germany to be the strongest Axis threat and the key to overall victory.', 'They believed Japan had already lost the Pacific war and no longer required any military attention.', 'They wanted the Soviet Union to fight Japan alone while the United States remained out of Asia.', 'They expected Britain to defeat Germany without American help and focused only on North Africa.'],
+        correctAnswer: 'They judged Germany to be the strongest Axis threat and the key to overall victory.',
+        explanation: 'Allied planners saw Nazi Germany as the most dangerous power and believed its defeat would shape the entire war.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q12',
+        text: 'Why did the Battle of Midway matter so much in the Pacific theater?',
+        choices: ['It damaged Japan\'s offensive strength and helped shift momentum toward the United States.', 'It allowed Japan to seize Hawaii and force American retreat to the West Coast.', 'It marked the first major Soviet naval victory against Japanese forces in the Pacific in direct support of American aircraft carrier operations.', 'It ended the Pacific war instantly by forcing Tokyo to accept unconditional surrender.'],
+        correctAnswer: 'It damaged Japan\'s offensive strength and helped shift momentum toward the United States.',
+        explanation: 'Midway reduced Japanese carrier power and marked a major strategic turning point in the Pacific war.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q13',
+        text: 'What was the strategic logic of island-hopping?',
+        choices: ['Take key islands, bypass stronger enemy positions, and move steadily closer to Japan.', 'Recapture every Pacific island in exact sequence before attempting any major naval engagements.', 'Avoid amphibious warfare and rely exclusively on submarine attacks against Japanese civilian shipping.', 'Trade occupied islands back to Japan in return for access to bases in mainland China and Korea.'],
+        correctAnswer: 'Take key islands, bypass stronger enemy positions, and move steadily closer to Japan.',
+        explanation: 'The strategy emphasized selective advances rather than costly attacks on every Japanese-held position.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q14',
+        text: 'What made D-Day a turning point in the European war?',
+        choices: ['It established a major Allied front in Western Europe and increased pressure on Germany from both sides.', 'It forced the Soviet Union to withdraw from the war because Western troops had replaced eastern fighting.', 'It ended all German resistance in France within a single day and brought instant Allied victory in Europe.', 'It convinced Italy and Japan to surrender together before Allied armies entered German territory.'],
+        correctAnswer: 'It established a major Allied front in Western Europe and increased pressure on Germany from both sides.',
+        explanation: 'The Normandy invasion was crucial because it opened the way for the liberation of Western Europe and tightened the military squeeze on Germany.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q15',
+        text: 'Why was the eastern front so important to the outcome of the war in Europe?',
+        choices: ['It tied down huge German forces and inflicted losses that Germany struggled to replace.', 'It remained mostly quiet after 1941, allowing Germany to focus almost entirely on Western Europe.', 'It mattered mainly because Japan sent troops there to help Germany attack Soviet oil fields.', 'It gave Britain direct control over Soviet military planning and major land campaigns against Berlin.'],
+        correctAnswer: 'It tied down huge German forces and inflicted losses that Germany struggled to replace.',
+        explanation: 'The eastern front consumed enormous German resources and was central to the ultimate defeat of Nazi Germany.',
+        standard: 'SS.912.A.6.4'
+      },
+      {
+        id: '5A-EOC-Q16',
+        text: 'Why is the Holocaust considered one of the defining horrors of World War II?',
+        choices: ['It was a systematic genocide carried out by the Nazi regime against Jews and other targeted groups.', 'It was a brief outbreak of violence caused mainly by food shortages after Germany surrendered in 1945.', 'It was limited mostly to military prisoners captured during the D-Day invasion of Western Europe.', 'It ended once the League of Nations imposed sanctions that forced Germany to close concentration camps.'],
+        correctAnswer: 'It was a systematic genocide carried out by the Nazi regime against Jews and other targeted groups.',
+        explanation: 'The Holocaust was not accidental wartime chaos but an organized program of persecution and mass murder.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-EOC-Q17',
+        text: 'Why does the use of atomic bombs on Hiroshima and Nagasaki remain so controversial?',
+        choices: ['People continue to debate military necessity, civilian deaths, and the moral meaning of nuclear war.', 'People generally agree the bombings had no effect on Japan\'s surrender or on later world politics.', 'People know the bombings were ordered by the United Nations rather than by American leaders in 1945.', 'People remember the bombings mainly as conventional attacks that caused little long-term destruction.'],
+        correctAnswer: 'People continue to debate military necessity, civilian deaths, and the moral meaning of nuclear war.',
+        explanation: 'The bombings ended the war quickly in one sense, but they also opened a lasting moral and strategic debate about nuclear weapons.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-EOC-Q18',
+        text: 'What was the main goal of creating the United Nations after World War II?',
+        choices: ['To provide a stronger forum for cooperation and conflict prevention than earlier international efforts.', 'To eliminate national sovereignty entirely and place all military forces under one permanent global army.', 'To replace American diplomacy with direct British and Soviet control of postwar settlements in Europe.', 'To organize colonial empires more efficiently so European powers could recover their overseas authority.'],
+        correctAnswer: 'To provide a stronger forum for cooperation and conflict prevention than earlier international efforts.',
+        explanation: 'The United Nations was designed to avoid the weaknesses of earlier international organizations and help reduce the risk of future global war.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-EOC-Q19',
+        text: 'Why did the end of World War II lead quickly into tensions between the United States and the Soviet Union?',
+        choices: ['They had defeated a common enemy, but they disagreed deeply about postwar power and political systems.', 'They agreed completely on the future of Eastern Europe, which made conflict unnecessary after 1945.', "The two nations stopped competing for global influence entirely because Britain still remained the world's strongest and most experienced military power after the war.", 'They entered a formal alliance to share occupation zones permanently under one combined command.'],
+        correctAnswer: 'They had defeated a common enemy, but they disagreed deeply about postwar power and political systems.',
+        explanation: 'The wartime alliance was temporary and practical, and postwar disagreements soon pushed both powers into rivalry.',
+        standard: 'SS.912.A.6.5'
+      },
+      {
+        id: '5A-EOC-Q20',
+        text: 'Which idea best connects the entire World War II unit from the road to war through the postwar settlement?',
+        choices: ['World War II changed both global power and American society, creating victories, sacrifices, and new tensions.', 'World War II mattered mainly as a military event and had little effect on politics or life at home.', 'World War II ended international rivalry so completely that the postwar world became politically stable.', "World War II conclusively proved that democratic nations should avoid all military alliances because wartime cooperation always ultimately weakens each individual nation's sovereignty."],
+        correctAnswer: 'World War II changed both global power and American society, creating victories, sacrifices, and new tensions.',
+        explanation: 'The war reshaped diplomacy, military power, civil liberties, social roles, and the international order all at once.',
+        standard: 'SS.912.A.6.3 · SS.912.A.6.4 · SS.912.A.6.5 · SS.912.A.6.6'
+      },
+    ]
+  },
+
+];
+
+
+
+
+
+// ════════════════════════════════════════════
+// PLAYER STATE
+// ════════════════════════════════════════════
+
+let P = null; // player state object
+
+const DEFAULT_P = {
+  name: '',
+  period: null,
+  // Unit progress
+  lessonsCompleted: [], // array of lesson ids
+  lessonBestScores: {}, // lessonId -> { correct, total, accuracy }
+  totalCorrect: 0,
+  totalAnswered: 0,
+  // Collections earned in this unit
+  cardsEarned: [],
+  badgesEarned: [],
+  // Session state
+  lastLesson: null
+};
+
+function loadP() {
+  // 1. Try shell state first (seamless session from American Chronicles)
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) {
+      const shell = JSON.parse(raw);
+      if (shell && shell.name && shell.name !== 'Guest') {
+        // Build a P from shell identity
+        const saved = loadSavedUnit();
+        P = Object.assign({}, DEFAULT_P, saved || {}, {
+          name: shell.name,
+          period: shell.period || null,
+          avatar: shell.avatar || 'scholar_f',
+          globalRank: shell.rank || 'Curious Citizen',
+          fromShell: true
+        });
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // 2. Try local save
+  const saved = loadSavedUnit();
+  if (saved && saved.name) {
+    P = Object.assign({}, DEFAULT_P, saved);
+    return true;
+  }
+  return false;
+}
+
+function loadSavedUnit() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveP() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// PORTRAIT ENGINE (minimal — reads from shell or generates)
+// ════════════════════════════════════════════
+
+function svgMedallion(bg,ring,face,size=44){
+  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:50%;overflow:visible">
+    <circle cx="20" cy="20" r="19.5" fill="${ring}"/>
+    <circle cx="20" cy="20" r="17.5" fill="${darken(ring)}"/>
+    <circle cx="20" cy="20" r="15.5" fill="${bg}"/>
+    ${face}
+    <circle cx="20" cy="20" r="15.5" fill="none" stroke="${ring}" stroke-width=".35" opacity=".5"/>
+  </svg>`;
+}
+function darken(c){const m={'#c9a84c':'#a8863a','#208878':'#156658','#7a2010':'#4a1008','#2a4a8a':'#1a3060','#6a4a20':'#4a3010','#c07818':'#905010'};return m[c]||'#0a0808';}
+function face(skin,eyes,hair,outfit,extras=''){return `
+  <circle cx="20" cy="17" r="6" fill="${skin}"/>
+  <ellipse cx="20" cy="26" rx="8.5" ry="5.5" fill="${outfit}"/>
+  <rect x="13" y="21" width="14" height="8" fill="${outfit}"/>
+  <ellipse cx="17.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  <ellipse cx="22.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  ${hair}
+  ${extras}`;}
+function hair_short(c,y=12){return `<ellipse cx="20" cy="${y}" rx="6" ry="3.5" fill="${c}"/>`;}
+function hair_bun(c){return `<ellipse cx="20" cy="11.5" rx="5.5" ry="3" fill="${c}"/><circle cx="20" cy="9.5" r="2.5" fill="${c}"/>`;}
+function hair_long(c){return `<ellipse cx="20" cy="11" rx="6" ry="4" fill="${c}"/><path d="M14 14 Q12 20 14 25" fill="none" stroke="${c}" stroke-width="2.5"/><path d="M26 14 Q28 20 26 25" fill="none" stroke="${c}" stroke-width="2.5"/>`;}
+function hair_afro(c){return `<ellipse cx="20" cy="10" rx="8" ry="6" fill="${c}"/>`;}
+function hair_straight_long(c){return `<ellipse cx="20" cy="11" rx="6.5" ry="4" fill="${c}"/><path d="M13.5 14 Q12 22 13.5 27" fill="none" stroke="${c}" stroke-width="3"/><path d="M26.5 14 Q28 22 26.5 27" fill="none" stroke="${c}" stroke-width="3"/>`;}
+function beard(c,opacity=1){return `<path d="M15 20 Q16 24 20 25 Q24 24 25 20" fill="${c}" opacity="${opacity}"/>`;}
+function glasses(){return `<rect x="14.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><rect x="21.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><line x1="18.5" y1="15.5" x2="21.5" y2="15.5" stroke="#2a1a0a" stroke-width=".8"/>`;}
+function hat_top(c){return `<rect x="15" y="5.5" width="10" height="9" rx=".8" fill="${c}"/><rect x="12" y="14" width="16" height="2" rx=".5" fill="${c}"/>`;}
+function hat_military(c){return `<ellipse cx="20" cy="12" rx="6.5" ry="3.5" fill="${c}"/><rect x="16" y="8" width="8" height="4.5" rx=".5" fill="${c}"/>`;}
+function hat_cowboy(c){return `<ellipse cx="20" cy="12.5" rx="6" ry="3.2" fill="${c}"/><rect x="16" y="9" width="8" height="4" rx=".5" fill="${c}"/><path d="M13 13 Q12 15 14 16" fill="none" stroke="${c}" stroke-width="2"/><path d="M27 13 Q28 15 26 16" fill="none" stroke="${c}" stroke-width="2"/>`;}
+function detail_book(){return `<rect x="22" y="19" width="5" height="7" rx=".5" fill="#f5ead8" opacity=".8"/>`;}
+function detail_stars(){return `<text x="16" y="28" font-size="5" fill="#c9a84c" opacity=".7">★★</text>`;}
+
+// Starter characters for game HUD avatars
+const STARTERS = {
+  scholar_f:    ()=>svgMedallion('#0d1a2e','#c9a84c',face('#f0c8a0','#1a1a1a',hair_long('#3a2010'),'#1a3060',detail_book())),
+  activist_m:   ()=>svgMedallion('#100808','#c9a84c',face('#a06040','#1a1a1a',hair_afro('#1a0a0a'),'#3a0a0a')),
+  reporter_f:   ()=>svgMedallion('#0a0c08','#c9a84c',face('#8a5530','#0a0a0a',hair_straight_long('#2a1a0a'),'#1a2a1a')),
+  soldier_m:    ()=>svgMedallion('#2a3a1a','#c9a84c',face('#d4a870','#1a1a0a',hat_military('#556644'),'#3a4a2a',beard('#a07040',.35))),
+  pioneer_f:    ()=>svgMedallion('#0c0a06','#c9a84c',face('#c89870','#2a1a0a',hat_cowboy('#8b4513'),'#5a3010')),
+  worker_m_asian:()=>svgMedallion('#080a0a','#c9a84c',face('#d4b080','#1a0a00',hat_military('#555544'),'#1a1a1a')),
+};
+function getAvatarSVG(id, size=44){
+  const fn = STARTERS[id] || STARTERS.scholar_f;
+  const svg = fn();
+  return svg.replace(/width="\d+"/, `width="${size}"`).replace(/height="\d+"/, `height="${size}"`);
+}
+
+// ════════════════════════════════════════════
+// SESSION GAME STATE
+// ════════════════════════════════════════════
+
+let activeLesson = null;   // lesson object
+let activeQueue = [];      // randomized question subset for this playthrough
+let activeQIdx = 0;        // current question index in queue
+let sessionCorrect = 0;
+let sessionTotal = 0;
+let sessionScore = 0;
+let sessionGoldEarned = 0; // gold earned this specific run
+let momentum = 0;
+let streak = 0;
+let answeredCurrent = false;
+
+// ════════════════════════════════════════════
+// GOLD WALLET — reads/writes the shared shell state
+// The shell is the single source of truth for gold.
+// This file writes directly to SHELL_KEY so the balance
+// is immediately available when the student returns to shell.
+// ════════════════════════════════════════════
+
+/**
+ * Read current gold balance from shell state.
+ */
+function getShellGold() {
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) { const s = JSON.parse(raw); return s.gold || 0; }
+  } catch(e) {}
+  return 0;
+}
+
+/**
+ * Award gold directly into the shell wallet.
+ * Also pushes a ledger entry so it appears in the shell's Gold view.
+ * @param {number} amount
+ * @param {string} source  — human label shown in ledger
+ * @param {boolean} showParticle
+ */
+function awardGoldToShell(amount, source, showParticle = true) {
+  if (!amount || amount <= 0) return;
+  sessionGoldEarned += amount;
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    shell.gold        = (shell.gold        || 0) + amount;
+    shell.goldEarned  = (shell.goldEarned  || 0) + amount;
+    if (amount > (shell.goldBestRun || 0)) shell.goldBestRun = amount;
+    if (!Array.isArray(shell.goldLedger)) shell.goldLedger = [];
+    shell.goldLedger.unshift({ ts: Date.now(), source, unitId: UNIT_ID, amount, type: 'earn' });
+    if (shell.goldLedger.length > 50) shell.goldLedger = shell.goldLedger.slice(0, 50);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('Gold write failed', e); }
+  if (showParticle) spawnGoldParticle('+' + amount + ' 🪙');
+  // Update HUD gold display
+  updateHUDGold();
+}
+
+function spawnGoldParticle(text) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;font-family:'Bebas Neue',sans-serif;font-size:15px;
+    color:#f5c842;pointer-events:none;z-index:9200;
+    text-shadow:0 0 8px rgba(245,200,66,.7);
+    animation:_gpFloat 1.6s ease-out forwards;`;
+  el.textContent = text;
+  // Inject keyframe once
+  if (!document.getElementById('_gp-style')) {
+    const s = document.createElement('style');
+    s.id = '_gp-style';
+    s.textContent = `@keyframes _gpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.2)}}`;
+    document.head.appendChild(s);
+  }
+  const hudScore = document.getElementById('hud-score');
+  if (hudScore) {
+    const r = hudScore.getBoundingClientRect();
+    el.style.left = (r.left + r.width / 2 - 24) + 'px';
+    el.style.top  = (r.top - 8) + 'px';
+  } else { el.style.left = '50%'; el.style.top = '80px'; }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+
+function updateHUDGold() {
+  const g = getShellGold();
+  const el = document.getElementById('hud-score');
+  if (el) el.textContent = g.toLocaleString();
+}
+
+// ════════════════════════════════════════════
+// UTILITY
+// ════════════════════════════════════════════
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickSubset(bank, n) {
+  return shuffle(bank).slice(0, Math.min(n, bank.length));
+}
+
+function calcTier(acc) {
+  if (acc === 100) return {label:'Historian', color:'#e8d0ff', icon:'🏛️'};
+  if (acc >= 90)  return {label:'Gold',      color:'#ffd700', icon:'🥇'};
+  if (acc >= 80)  return {label:'Silver',    color:'#c8c8d8', icon:'🥈'};
+  if (acc >= 70)  return {label:'Bronze',    color:'#cd7f32', icon:'🥉'};
+  if (acc >= 60)  return {label:'Completed', color:'#38a050', icon:'✅'};
+  return              {label:'Try Again',    color:'#c02020', icon:'🔄'};
+}
+
+function notify(msg, col) {
+  const n = document.createElement('div');
+  n.className = 'notif' + (col ? ' ' + col : '');
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3500);
+}
+
+// ════════════════════════════════════════════
+// SCREEN ROUTING (Layer 2 and Layer 3)
+// ════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function showUnitHub() {
+  showScreen('unit-hub-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'none';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+  showBottomNav();
+  setActiveNav(0);
+  renderUnitHub();
+}
+
+function showQuestionScreen() {
+  showScreen('question-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'inline-block';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+}
+
+// ════════════════════════════════════════════
+// UNIT HUB RENDERING
+// ════════════════════════════════════════════
+
+function isLessonUnlocked(idx) {
+  if (idx === 0) return true;
+  return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
+}
+
+function renderUnitHub() {
+  updateHUD();
+
+  // ── Player banner ──────────────────────────
+  const done  = P.lessonsCompleted.length;
+  const total = LESSONS.length;
+  const pct   = Math.round(done / total * 100);
+  const bannerEl = document.getElementById('hub-player-banner');
+  if (bannerEl) {
+    bannerEl.innerHTML = `
+      <div class="hub-banner">
+        <div class="hub-banner-top">
+          <div class="hub-banner-label">UNIT 5A — WORLD WAR II</div>
+          <div class="hub-banner-count">${done}/${total} LESSONS</div>
+        </div>
+        <div class="hub-progress-bar">
+          <div class="hub-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Shell return button — show if arrived from shell
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = P.fromShell ? 'block' : 'none';
+
+  // ── Chapter cards ──────────────────────────
+  const chEl = document.getElementById('hub-chapters');
+  if (!chEl) return;
+
+  chEl.innerHTML = LESSONS.map((lesson, idx) => {
+    const completed = P.lessonsCompleted.includes(lesson.id);
+    const unlocked  = isLessonUnlocked(idx);
+    const isNextUp  = unlocked && !completed && idx > 0;
+    const best      = P.lessonBestScores[lesson.id];
+
+    const statusLabel = completed ? '✓ COMPLETE' : unlocked ? '▶ PLAY' : '🔒 LOCKED';
+    const statusClass = completed ? 'completed'  : unlocked ? 'available' : 'locked';
+
+    let cardClass = 'unit-card ' + statusClass;
+    if (isNextUp) cardClass += ' next-up';
+
+    const metaRow = best
+      ? `<div class="unit-card-meta">Best: ${best.accuracy}% · ${best.correct}/${best.total} correct</div>`
+      : '';
+
+    const unlockNote = !unlocked
+      ? `<div class="unit-card-unlock">Complete ${LESSONS[idx-1].label} to unlock</div>`
+      : '';
+
+    return `<div class="${cardClass}" onclick="${unlocked ? `openBriefing('${lesson.id}')` : ''}">
+      <div class="unit-card-header">
+        <div class="unit-icon">${unlocked ? lesson.icon : '🔒'}</div>
+        <div class="unit-info">
+          <div class="unit-number">${lesson.label}</div>
+          <div class="unit-name">${lesson.title}</div>
+          <div class="unit-desc">${lesson.sub}</div>
+        </div>
+        <div class="unit-status ${statusClass}">${statusLabel}</div>
+      </div>
+      ${metaRow}
+      ${unlockNote}
+      <div class="unit-progress-bar">
+        <div class="unit-progress-fill" style="width:${completed ? 100 : 0}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Replay from beginning — show when all done
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDone) {
+    chEl.innerHTML += `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border2);">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:8px;text-align:center;">
+          UNIT COMPLETE — Want to improve your score?
+        </div>
+        <button class="btn full" onclick="replayFromBeginning()" style="border-color:var(--teal2);color:var(--teal2);">
+          <span>↺ Replay Unit from Lesson 33</span>
+        </button>
+      </div>`;
+  }
+
+  // ── Badges row ─────────────────────────────
+  const badgesEl = document.getElementById('hub-badges');
+  if (badgesEl) {
+    badgesEl.innerHTML = UNIT_BADGES.map(b => {
+      const earned = b.lessonId
+        ? P.lessonsCompleted.includes(b.lessonId)
+        : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      return `<div class="badge-pill ${earned ? 'earned' : ''}">
+        <span class="badge-icon">${b.icon}</span>${b.label}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Certificate row ─────────────────────────
+  const certRow = document.getElementById('hub-cert-row');
+  if (certRow) certRow.style.display = allDone ? 'block' : 'none';
+
+  // ── Trophy block ────────────────────────────
+  renderHubTrophySection();
+}
+
+// ── EOC Rating helpers (matches shell logic) ─────────────
+function eocLevel(acc) {
+  if (acc >= 90) return {level:5, label:'Level 5 — Historian Ready', color:'#38a050'};
+  if (acc >= 80) return {level:4, label:'Level 4 — Strong',          color:'#2aaa98'};
+  if (acc >= 70) return {level:3, label:'Level 3 — Developing',      color:'#c07818'};
+  if (acc >= 60) return {level:2, label:'Level 2 — Needs Review',    color:'#a01818'};
+  return              {level:1, label:'Level 1 — Try Again',         color:'#c02020'};
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  // Only show if at least one lesson completed
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const best = P.lessonBestScores;
+  const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+
+  // Unit overall trophy = best single-lesson accuracy
+  const bestAcc = Math.max(...scores.map(s => s.accuracy));
+  const unitTier = calcTier(bestAcc);
+
+  // EOC rating from the EOC lesson specifically, or overall avg
+  const eocScore = best['eoc'] ? best['eoc'].accuracy :
+    Math.round(scores.reduce((a, s) => a + s.accuracy, 0) / scores.length);
+  const eoc = eocLevel(eocScore);
+
+  el.innerHTML = `
+    <div class="sh" style="margin-top:20px;">Unit Performance</div>
+    <div class="trophy-display">
+      <div class="trophy-icon">${unitTier.icon}</div>
+      <div class="trophy-info">
+        <div class="trophy-tier-name" style="color:${unitTier.color}">${unitTier.label}</div>
+        <div class="trophy-stat-row">
+          <div class="trophy-stat">Best accuracy: <strong>${bestAcc}%</strong></div>
+          <div class="trophy-stat">Lessons done: <strong>${P.lessonsCompleted.length}/${LESSONS.length}</strong></div>
+        </div>
+        <div class="eoc-rating-badge" style="color:${eoc.color};border-color:${eoc.color};">
+          EOC ${eoc.label}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════════
+
+function updateHUD() {
+  if (!P) return;
+  document.getElementById('hud-player-name').textContent = P.name;
+  // RULE: Always show global rank from shell — never a unit-specific rank
+  document.getElementById('hud-player-rank').textContent = P.globalRank || 'Curious Citizen';
+  document.getElementById('hud-avatar-wrap').innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 44);
+  // Gold balance — reads from shared shell wallet
+  document.getElementById('hud-score').textContent = getShellGold().toLocaleString();
+  document.getElementById('hud-streak').textContent = streak;
+
+  const xpPct = Math.min(100, Math.round(((P.totalAnswered || 0) / 60) * 100));
+  document.getElementById('hud-xp-fill').style.width = xpPct + '%';
+}
+
+// ════════════════════════════════════════════
+// BRIEFING FLOW
+// ════════════════════════════════════════════
+
+function openBriefing(lessonId) {
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  if (!lesson) return;
+  activeLesson = lesson;
+
+  const b = lesson.briefing;
+
+  document.getElementById('briefing-eyebrow').textContent = lesson.label + ' · MISSION BRIEFING';
+  document.getElementById('briefing-title').textContent = lesson.title;
+  document.getElementById('briefing-location').textContent = b.location || '';
+  document.getElementById('briefing-date').textContent = b.date || '';
+  document.getElementById('briefing-text').textContent = b.text || '';
+
+  // Role line
+  const roleEl = document.getElementById('briefing-role');
+  if (roleEl) {
+    if (b.role) { roleEl.textContent = 'Your role: ' + b.role; roleEl.style.display = 'block'; }
+    else roleEl.style.display = 'none';
+  }
+
+  // Quote
+  const qEl = document.getElementById('briefing-quote');
+  if (b.quote) {
+    qEl.textContent = b.quote;
+    qEl.style.display = 'block';
+  } else {
+    qEl.style.display = 'none';
+  }
+
+  // Tags
+  document.getElementById('briefing-meta').innerHTML =
+    (b.tags || []).map(t => `<span class="briefing-tag">${t}</span>`).join('');
+
+  // Scene placeholder (could load SVG from SCENES object later)
+  const sceneEl = document.getElementById('briefing-scene');
+  sceneEl.innerHTML = `<div style="width:100%;height:60px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;">[SCENE ART LOADS FROM JSON]</div>`;
+
+  document.getElementById('briefing-modal').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+function closeBriefing() {
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+}
+
+function proceedToQuestions() {
+  if (!activeLesson) return;
+  document.getElementById('briefing-modal').classList.remove('show');
+  startLesson(activeLesson);
+}
+
+// ════════════════════════════════════════════
+// QUESTION ENGINE
+// ════════════════════════════════════════════
+
+function startLesson(lesson) {
+  activeLesson = lesson;
+  activeQueue = pickSubset(lesson.bank, lesson.displayCount);
+  activeQIdx = 0;
+  sessionCorrect = 0;
+  sessionTotal = 0;
+  sessionScore = 0;
+  sessionGoldEarned = 0;
+  momentum = 0;
+  streak = 0;
+  answeredCurrent = false;
+
+  showQuestionScreen();
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (activeQIdx >= activeQueue.length) {
+    finishLesson();
+    return;
+  }
+
+  const q = activeQueue[activeQIdx];
+  const total = activeQueue.length;
+  answeredCurrent = false;
+
+  // Progress bar
+  document.getElementById('q-progress-fill').style.width =
+    Math.round(activeQIdx / total * 100) + '%';
+
+  // Context pill
+  document.getElementById('q-context-lesson').textContent = activeLesson.label;
+  document.getElementById('q-context-topic').textContent = activeLesson.title;
+
+  // Momentum
+  updateMomentumDisplay();
+
+  // Question number
+  document.getElementById('q-number').textContent =
+    `QUESTION ${activeQIdx + 1} OF ${total}`;
+
+  // Question text
+  document.getElementById('q-text').textContent = q.text;
+
+  // Standard tag — shown if question has a standard code
+  const stdTag = document.getElementById('q-standard-tag');
+  if (stdTag) {
+    if (q.standard) {
+      stdTag.textContent = q.standard;
+      stdTag.style.display = 'inline-block';
+    } else {
+      stdTag.style.display = 'none';
+    }
+  }
+
+  // Shuffle choices at runtime.
+  // correctAnswer is a plain string matching one of the choices — no index assumptions.
+  const shuffledChoices = shuffle(q.choices.slice());
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  document.getElementById('choices-list').innerHTML = shuffledChoices.map((choiceText, i) => {
+    const isCorrect = (choiceText === q.correctAnswer);
+    // Encode explanation and standard safely for inline onclick
+    const safeExpl  = encodeURIComponent(q.explanation || '');
+    const safeStd   = encodeURIComponent(q.standard || '');
+    return `<button class="choice-btn"
+      data-correct="${isCorrect}"
+      data-explanation="${safeExpl}"
+      data-standard="${safeStd}"
+      onclick="selectChoice(this)">
+      <span class="choice-letter">${letters[i]}.</span>
+      <span class="choice-text">${choiceText}</span>
+    </button>`;
+  }).join('');
+
+  // Hide feedback and next btn
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel';
+  document.getElementById('next-btn-wrap').style.display = 'none';
+
+  updateHUD();
+}
+
+function selectChoice(btn) {
+  if (answeredCurrent) return;
+  answeredCurrent = true;
+
+  // Read correctness from data attribute — set during render, not passed through onclick
+  const isCorrect  = btn.dataset.correct === 'true';
+  const explanation = decodeURIComponent(btn.dataset.explanation || '');
+  const standard   = decodeURIComponent(btn.dataset.standard || '');
+
+  // Mark all buttons answered; highlight chosen and correct
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.add('answered');
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  if (!isCorrect) btn.classList.add('incorrect');
+
+  sessionTotal++;
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  if (isCorrect) {
+    sessionCorrect++;
+    streak++;
+    const pts = 100 + (streak > 1 ? (streak - 1) * 25 : 0);
+    sessionScore += pts;
+    momentum = Math.min(100, momentum + 20);
+    awardGoldToShell(rules.perCorrect, 'Correct Answer — ' + activeLesson.label, true);
+    notify(streak > 2 ? `🔥 ${streak} streak! +${rules.perCorrect} 🪙` : `✓ Correct! +${rules.perCorrect} 🪙`);
+  } else {
+    streak = 0;
+    momentum = Math.max(0, momentum - 10);
+    notify('✗ Incorrect');
+  }
+
+  P.totalAnswered = (P.totalAnswered || 0) + 1;
+  if (isCorrect) P.totalCorrect = (P.totalCorrect || 0) + 1;
+  saveP();
+
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel show ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').className =
+    'feedback-verdict ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+  document.getElementById('feedback-text').textContent = explanation;
+  document.getElementById('feedback-standard').textContent = standard ? `Standard: ${standard}` : '';
+
+  const nw = document.getElementById('next-btn-wrap');
+  nw.style.display = 'block';
+  const isLast = activeQIdx === activeQueue.length - 1;
+  document.getElementById('next-btn-label').textContent = isLast ? 'See Results →' : 'Next Question →';
+
+  updateMomentumDisplay();
+  updateHUD();
+}
+
+function nextQuestion() {
+  activeQIdx++;
+  renderQuestion();
+}
+
+function updateMomentumDisplay() {
+  document.getElementById('momentum-fill').style.width = momentum + '%';
+  const labels = ['Ready', 'Warming Up', 'On Track', 'Sharp!', 'On Fire 🔥'];
+  const idx = Math.floor(momentum / 25);
+  document.getElementById('momentum-val').textContent = labels[Math.min(idx, labels.length - 1)];
+}
+
+// ════════════════════════════════════════════
+// LESSON COMPLETE
+// ════════════════════════════════════════════
+
+function finishLesson() {
+  const acc = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+  const tier = calcTier(acc);
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  // ── Gold bonuses ─────────────────────────────────────
+  let bonusGold = 0, bonusLabel = '';
+  if (acc >= 60) {
+    awardGoldToShell(rules.completionBonus, 'Completion Bonus — ' + activeLesson.label, false);
+    bonusGold += rules.completionBonus; bonusLabel = 'Completion Bonus';
+  }
+  if ((activeLesson.type === 'lesson' || activeLesson.type === 'extension') && acc === 100 && rules.perfectBonus) {
+    awardGoldToShell(rules.perfectBonus, 'Perfect Run — ' + activeLesson.label, false);
+    bonusGold += rules.perfectBonus; bonusLabel = 'Perfect Run!';
+  } else if (activeLesson.type === 'capstone' && acc === 100 && rules.masteryBonus) {
+    awardGoldToShell(rules.masteryBonus, 'Mastery — ' + activeLesson.label, false);
+    bonusGold += rules.masteryBonus; bonusLabel = 'Mastery Achieved!';
+  } else if (activeLesson.type === 'eoc' && acc >= 90 && rules.highScoreBonus) {
+    awardGoldToShell(rules.highScoreBonus, 'High Score — ' + activeLesson.label, false);
+    bonusGold += rules.highScoreBonus; bonusLabel = 'High Score Bonus!';
+  }
+  if (sessionGoldEarned > 0) spawnGoldParticle('+' + sessionGoldEarned + ' 🪙 total');
+
+  // ── Save best score ───────────────────────────────────
+  const prev = P.lessonBestScores[activeLesson.id];
+  if (!prev || acc > prev.accuracy) {
+    P.lessonBestScores[activeLesson.id] = {
+      correct: sessionCorrect, total: sessionTotal, accuracy: acc, score: sessionScore
+    };
+  }
+  const passedThisRun = acc >= 60;
+  const alreadyCompleted = P.lessonsCompleted.includes(activeLesson.id);
+  if (passedThisRun && !alreadyCompleted) {
+    P.lessonsCompleted.push(activeLesson.id);
+    // Push badge and cards to shell archive
+    pushRewardsToShell(activeLesson);
+  }
+  saveP();
+
+  // Only push to Supabase when the entire unit is complete
+  const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDoneCheck) {
+    const allScores = Object.values(P.lessonBestScores);
+    const overallAcc = allScores.length
+      ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+      : acc;
+    pushACResult(overallAcc);
+    setTimeout(() => showUnitTrophy(overallAcc), 1200);
+  }
+
+  // ── Trophy badge ──────────────────────────────────────
+  document.getElementById('complete-badge').textContent = tier.icon;
+  document.getElementById('complete-unit-lbl').textContent = activeLesson.label;
+  document.getElementById('complete-lesson-title').textContent = activeLesson.title;
+  document.getElementById('complete-tier').textContent = tier.label + ' — ' + acc + '%';
+  document.getElementById('complete-tier').style.color = tier.color;
+
+  // ── Stats row ─────────────────────────────────────────
+  document.getElementById('complete-stats').innerHTML = [
+    { val: sessionCorrect + '/' + sessionTotal, lbl: 'CORRECT' },
+    { val: acc + '%',                            lbl: 'ACCURACY' },
+    { val: '🪙 ' + sessionGoldEarned.toLocaleString(), lbl: 'GOLD EARNED' },
+  ].map(s => `<div class="complete-stat">
+    <div class="complete-stat-val">${s.val}</div>
+    <div class="complete-stat-lbl">${s.lbl}</div>
+  </div>`).join('');
+
+  // ── EOC Rating (show on EOC lesson or unit completion) ──
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  const showEOC = activeLesson.type === 'eoc' || allDone;
+  const eocBlock = document.getElementById('complete-eoc-block');
+  if (showEOC) {
+    const eoc = eocLevel(acc);
+    document.getElementById('complete-eoc-rating').textContent = eoc.label;
+    document.getElementById('complete-eoc-rating').style.color = eoc.color;
+    document.getElementById('complete-eoc-label').textContent =
+      acc >= 60 ? 'This result has been saved to your American Chronicles profile.' :
+      'Score 60% or higher to record your EOC rating.';
+    eocBlock.style.display = 'block';
+  } else {
+    eocBlock.style.display = 'none';
+  }
+
+  // ── Gold reward block ─────────────────────────────────
+  const rewardsEl = document.getElementById('complete-rewards');
+  const rewardsIn = document.getElementById('complete-rewards-inner');
+  if (bonusGold > 0 && rewardsIn) {
+    rewardsIn.innerHTML = `
+      <div style="font-family:var(--bebas);font-size:18px;color:#f5c842;margin-bottom:4px;">
+        +${bonusGold} 🪙 ${bonusLabel}
+      </div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);">
+        This run: +${sessionGoldEarned} 🪙 · Shell balance: ${getShellGold().toLocaleString()} 🪙
+      </div>`;
+    rewardsEl.style.display = 'block';
+  } else {
+    rewardsEl.style.display = 'none';
+  }
+
+  // ── Badges earned ──────────────────────────────────────
+  const rewards = activeLesson.rewards || {};
+  const badgeNames = rewards.badge ? [rewards.badge] : [];
+  const cardNames  = rewards.cards || [];
+  const newlyEarned = passedThisRun && !alreadyCompleted;
+
+  const badgesBlock = document.getElementById('complete-badges-block');
+  const badgesChips = document.getElementById('complete-badges-chips');
+  if (badgeNames.length) {
+    badgesChips.innerHTML = badgeNames.map(b =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🏅</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${b}</span>
+      </div>`
+    ).join('');
+    badgesBlock.style.display = 'block';
+  } else {
+    badgesBlock.style.display = 'none';
+  }
+
+  // ── Cards earned ───────────────────────────────────────
+  const cardsBlock = document.getElementById('complete-cards-block');
+  const cardsChips = document.getElementById('complete-cards-chips');
+  if (cardNames.length) {
+    cardsChips.innerHTML = cardNames.map(c =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🃏</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${c}</span>
+      </div>`
+    ).join('');
+    cardsBlock.style.display = 'block';
+  } else {
+    cardsBlock.style.display = 'none';
+  }
+
+  // ── Button visibility ──────────────────────────────────
+  // "Replay from Beginning" — show when all lessons done or on the last lesson
+  const isLastLesson = activeLesson.id === LESSONS[LESSONS.length - 1].id;
+  const replayBtn = document.getElementById('btn-replay-all');
+  if (replayBtn) replayBtn.style.display = (allDone || isLastLesson) ? 'block' : 'none';
+
+  // Print certificate — show when full unit complete
+  const certBtn = document.getElementById('btn-print-cert');
+  if (certBtn) certBtn.style.display = allDone ? 'block' : 'none';
+
+  document.getElementById('lesson-complete').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+// ── Push earned rewards to shell archive ─────────────────
+function pushRewardsToShell(lesson) {
+  const rewards = lesson.rewards || {};
+  const badge = rewards.badge;
+  const cards = rewards.cards || [];
+
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    if (!shell.unitBadges) shell.unitBadges = {};
+    if (!shell.unitCards)  shell.unitCards  = {};
+    if (!shell.unitBadges[UNIT_ID]) shell.unitBadges[UNIT_ID] = [];
+    if (!shell.unitCards[UNIT_ID])  shell.unitCards[UNIT_ID]  = [];
+
+    // Badge — store as slugified id
+    if (badge) {
+      const badgeId = badge.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitBadges[UNIT_ID].includes(badgeId)) {
+        shell.unitBadges[UNIT_ID].push(badgeId);
+      }
+    }
+    // Cards
+    cards.forEach(c => {
+      const cardId = c.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitCards[UNIT_ID].includes(cardId)) {
+        shell.unitCards[UNIT_ID].push(cardId);
+      }
+    });
+
+    // Also mark unit as completed in shell if all lessons done
+    if (LESSONS.every(l => P.lessonsCompleted.includes(l.id))) {
+      if (!Array.isArray(shell.unitsCompleted)) shell.unitsCompleted = [];
+      if (!shell.unitsCompleted.includes(UNIT_ID)) shell.unitsCompleted.push(UNIT_ID);
+    }
+
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('pushRewardsToShell failed', e); }
+
+  // Also notify via postMessage for live shell sessions
+  try {
+    if (badge) window.parent.postMessage({type:'UNIT_BADGE_EARNED', unitId:UNIT_ID, badgeId: badge.toLowerCase().replace(/\s+/g,'_')}, '*');
+    cards.forEach(c => window.parent.postMessage({type:'UNIT_CARD_EARNED', unitId:UNIT_ID, cardId: c.toLowerCase().replace(/\s+/g,'_')}, '*'));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// BUTTON LOGIC (completion screen)
+// ════════════════════════════════════════════
+
+function retryLesson() {
+  // Replay same lesson — same briefing → questions
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(activeLesson.id);
+}
+
+function returnToUnitHub() {
+  // Go to Layer 2 — Unit Hub — NO re-login
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+  showUnitHub();
+}
+
+// ── UNIT TROPHY REVEAL ────────────────────────────────────
+function showUnitTrophy(overallAcc) {
+  const tier = calcTier(overallAcc);
+  const name = P.name || 'Historian';
+  const passed = overallAcc >= 60;
+  const messages = {
+    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
+    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
+    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
+    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
+    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
+  };
+  const tierKey = tier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages.tryagain;
+  document.getElementById('utr-name').textContent = name;
+  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
+  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
+  document.getElementById('utr-trophy-name').style.color = tier.color;
+  document.getElementById('utr-msg').textContent = msg;
+  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
+  const btn = document.getElementById('utr-btn');
+  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
+  btn.style.borderColor = tier.color;
+  btn.style.color = tier.color;
+  document.getElementById('unit-trophy-overlay').classList.add('show');
+}
+function closeUnitTrophy() {
+  document.getElementById('unit-trophy-overlay').classList.remove('show');
+  const acc = parseInt(document.getElementById('utr-acc').textContent.replace(/[^0-9]/g,''));
+  if (acc < 60) {
+    document.getElementById('lesson-complete') && document.getElementById('lesson-complete').classList.remove('show');
+    showUnitHub && showUnitHub();
+  }
+}
+function returnToShell() {
+  saveP();
+  if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
+  try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
+  notify('Returning to American Chronicles…');
+  const shellURL = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  setTimeout(() => { window.location.href = shellURL; }, 600);
+}
+
+function replayFromBeginning() {
+  // Reset all lesson progress and start from Lesson 33
+  P.lessonsCompleted = [];
+  P.lessonBestScores = {};
+  saveP();
+  document.getElementById('lesson-complete').classList.remove('show');
+  // Start the first lesson's briefing
+  openBriefing(LESSONS[0].id);
+}
+
+function printCertificate() {
+  const scores = P.lessonBestScores;
+  const allScores = Object.values(scores);
+  const avgAcc = allScores.length
+    ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+    : 0;
+  const tier = calcTier(avgAcc);
+  const eoc = eocLevel(avgAcc);
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const lessonRows = LESSONS.map(l => {
+    const s = scores[l.id];
+    return s
+      ? `<tr><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">${s.accuracy}%</td><td style="text-align:center">${s.correct}/${s.total}</td></tr>`
+      : `<tr style="opacity:.4"><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>`;
+  }).join('');
+  const w = window.open('','_blank','width=780,height=680');
+  if(!w){notify('Allow popups to print certificate.');return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;font-family:Georgia,serif}
+    .cert{width:700px;background:#faf7f0;border:3px double #c83020;padding:36px 44px;text-align:center}
+    .title{font-family:'Cinzel Decorative',serif;font-size:22px;color:#1a0a08;letter-spacing:.08em;margin:8px 0}
+    .divider{height:2px;background:linear-gradient(90deg,transparent,#c83020,transparent);margin:14px auto;width:80%}
+    .name{font-family:'Cinzel Decorative',serif;font-size:28px;color:#1a0a08;margin:8px 0}
+    .tier{font-family:'Cinzel',serif;font-size:18px;color:#c83020;letter-spacing:.1em;margin:8px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+    th{border-bottom:2px solid #c83020;padding:6px;text-align:left;font-family:'Cinzel',serif;letter-spacing:.05em}
+    td{padding:5px 6px;border-bottom:1px solid #e0d8c8}
+    .footer{font-size:10px;color:#888;margin-top:14px;border-top:1px solid #ddd;padding-top:10px}
+    .pbtn{margin-top:16px;padding:10px 24px;background:#c83020;border:none;color:#fff;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;letter-spacing:.06em}
+    @media print{.pbtn{display:none}}
+  </style></head><body>
+  <div class="cert">
+    <div style="font-size:10px;letter-spacing:.3em;color:#888;font-family:'Cinzel',serif">AMERICAN CHRONICLES · U.S. HISTORY</div>
+    <div style="font-size:40px;margin:10px 0">${tier.icon}</div>
+    <div class="title">Certificate of Completion</div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:#666;letter-spacing:.1em">THIS CERTIFIES THAT</div>
+    <div class="name">${P.name || 'Historian'}</div>
+    <div style="font-size:13px;color:#444;margin:6px 0">has successfully completed</div>
+    <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">Arsenal of Democracy — Unit 5A: World War II</div>
+    ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
+    <div class="divider"></div>
+    <div class="tier">${tier.label} · ${avgAcc}% Accuracy</div>
+    <div style="font-size:12px;color:#555;margin:4px 0">EOC Practice Rating: ${eoc.label}</div>
+    <table>
+      <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
+      <tbody>${lessonRows}</tbody>
+    </table>
+    <div class="footer">Issued ${date} · American Chronicles · Created by Joshua Olson · Brevard County, FL</div>
+  </div>
+  <button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+// ════════════════════════════════════════════
+// SUPABASE PUSH
+// ════════════════════════════════════════════
+
+async function pushACResult(acc) {
+  if (!P || !P.name || P.name === 'Guest') return;
+  const tier = calcTier(acc);
+  try {
+    const existing = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(P.name) +
+      '&period=eq.' + encodeURIComponent(P.period || '') +
+      '&unit_id=eq.' + UNIT_ID,
+      {headers: AC_HEADERS}
+    );
+    const rows = await existing.json();
+    const prev = rows && rows[0];
+    const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+    const tierKey = tier.label.toLowerCase().replace(' ','');
+    const bestTier = prev ?
+      (tierOrder.indexOf(tierKey) > tierOrder.indexOf(prev.trophy) ? tierKey : prev.trophy) :
+      tierKey;
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer':'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          name: P.name,
+          period: P.period || '',
+          unit_id: UNIT_ID,
+          best_score: Math.max(sessionScore, prev ? prev.best_score || 0 : 0),
+          best_accuracy: Math.max(acc, prev ? prev.best_accuracy || 0 : 0),
+          trophy: bestTier,
+          cards: Math.max(P.cardsEarned ? P.cardsEarned.length : 0, prev ? prev.cards || 0 : 0),
+          attempts: (prev ? prev.attempts || 0 : 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+  } catch(e) { console.log('AC push failed', e); }
+}
+
+// ════════════════════════════════════════════
+// LOGIN GATE
+// ════════════════════════════════════════════
+
+function buildPeriodSelector() {
+  const el = document.getElementById('period-selector');
+  el.innerHTML = [1,2,3,4,5,6,7].map(p =>
+    `<div onclick="selectPeriod(${p}, this)"
+      style="background:var(--bg3);border:1.5px solid var(--border2);color:var(--text3);
+      font-family:var(--bebas);font-size:18px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;"
+      id="period-opt-${p}">${p}</div>`
+  ).join('');
+}
+
+let selectedPeriod = null;
+function selectPeriod(p, el) {
+  selectedPeriod = p;
+  document.querySelectorAll('#period-selector div').forEach(d => {
+    d.style.borderColor = 'var(--border2)';
+    d.style.color = 'var(--text3)';
+    d.style.background = 'var(--bg3)';
+  });
+  el.style.borderColor = 'var(--gold)';
+  el.style.color = 'var(--gold)';
+  el.style.background = 'rgba(200,48,32,.08)';
+}
+
+function submitLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!selectedPeriod) { alert('Please select your class period.'); return; }
+
+  P = Object.assign({}, DEFAULT_P, loadSavedUnit() || {}, {
+    name,
+    period: selectedPeriod,
+    globalRank: 'Curious Citizen'
+  });
+  P.fromShell = false;
+  saveP();
+
+  document.getElementById('login-gate').classList.remove('show');
+  showUnitHub();
+}
+
+function showLoginGate() {
+  document.getElementById('login-gate').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// HISTORICAL CARDS & BADGES DATA
+// (carried from v1, adapted to new lesson structure)
+// ════════════════════════════════════════════
+
+const HIST_CARDS = {
+  fdr:         {icon:'🎙️', name:'Franklin D. Roosevelt',    role:'32nd President · 1933–1945',
+    desc:'Led the United States through the Great Depression and World War II. His Lend-Lease program made America the \'Arsenal of Democracy\' before Pearl Harbor, and his leadership shaped the Allied grand strategy.', unlockLesson:'lesson34'},
+  churchill:   {icon:'🇬🇧', name:'Winston Churchill',         role:'British Prime Minister · 1940–1945',
+    desc:'Refused to surrender when Britain stood alone in 1940. His oratory, stubbornness, and alliance-building were essential to Allied survival. His partnership with Roosevelt defined the Western war effort.', unlockLesson:'lesson34'},
+  hitler:      {icon:'☠️',  name:'Adolf Hitler',              role:'Nazi Dictator · 1933–1945',
+    desc:'His aggressive expansion and ideology of racial supremacy caused the deadliest conflict in human history. The Holocaust, ordered under his direction, killed six million Jews and millions of others.', unlockLesson:'lesson34'},
+  rosie:       {icon:'🔧', name:'Rosie the Riveter',          role:'Symbol of the American Home Front',
+    desc:'The iconic image of women entering wartime industry. More than six million women joined the workforce during WWII, transforming gender roles and laying groundwork for postwar social change.', unlockLesson:'lesson35'},
+  eisenhower:  {icon:'⭐', name:'Dwight D. Eisenhower',       role:'Supreme Allied Commander · Europe',
+    desc:'Planned and commanded Operation Overlord — the D-Day invasion of Normandy. His ability to manage Allied egos and coordinate a massive multinational force was essential to victory in Europe.', unlockLesson:'lesson36'},
+  nimitz:      {icon:'⚓', name:'Chester Nimitz',             role:'Commander, Pacific Fleet · 1941–1945',
+    desc:'Led U.S. naval forces after Pearl Harbor and commanded the island-hopping campaign that brought American forces within striking distance of Japan. The Pacific War\'s outcome depended on naval supremacy.', unlockLesson:'lesson36'},
+  truman:      {icon:'💣', name:'Harry S. Truman',            role:'33rd President · 1945',
+    desc:'Assumed the presidency after FDR\'s death and made the decision to use atomic bombs against Japan. Then navigated the creation of the postwar order — the UN, the Marshall Plan, and the beginning of the Cold War.', unlockLesson:'capstone'},
+};
+
+const UNIT_BADGES = [
+  {id:'gathering_storm',  icon:'🌩️', label:'Gathering Storm',    desc:'Completed Gathering Storm',         lessonId:'lesson34'},
+  {id:'arsenal',          icon:'🔧', label:'Arsenal',             desc:'Completed Arsenal of Democracy',    lessonId:'lesson35'},
+  {id:'into_the_fire',    icon:'⚔️', label:'Into the Fire',       desc:'Completed Into the Fire',           lessonId:'lesson36'},
+  {id:'aftermath',        icon:'🌐', label:'Aftermath of Victory', desc:'Completed the Capstone',           lessonId:'capstone'},
+  {id:'wwii_complete',    icon:'📋', label:'WWII Complete',        desc:'Completed EOC Review',             lessonId:'eoc'},
+  {id:'unit5a_complete',  icon:'⭐', label:'Unit 5A Complete',     desc:'Completed all lessons',            lessonId:null},
+];
+
+// ════════════════════════════════════════════
+// BOTTOM NAV & OVERLAY FUNCTIONS
+// ════════════════════════════════════════════
+
+function navToHub() {
+  // Close any open overlays and return to unit hub
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  setActiveNav(0);
+  returnToUnitHub();
+}
+
+function setActiveNav(idx) {
+  document.querySelectorAll('.bn-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+function showBottomNav() {
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+// ── LEADERBOARD ──────────────────────────────
+let _lbAllData = [];
+let _lbType = 'overall';
+let _lbPeriodFilter = 'all';
+let _lbDeleteUnlocked = false;
+
+function openLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.add('show');
+  setActiveNav(1);
+  loadLeaderboard();
+}
+function closeLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+async function loadLeaderboard() {
+  if (!P) return;
+  document.getElementById('lb-sync-status').textContent = 'Loading…';
+  try {
+    const r = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + UNIT_ID + '&order=best_score.desc&limit=200',
+      {headers: AC_HEADERS}
+    );
+    _lbAllData = await r.json() || [];
+    renderLeaderboard();
+  } catch(e) {
+    document.getElementById('lb-sync-status').textContent = 'Could not load scores.';
+    _lbAllData = [];
+    renderLeaderboard();
+  }
+}
+
+function setLbType(type, btn) {
+  _lbType = type;
+  _lbPeriodFilter = 'all';
+  document.querySelectorAll('#lb-type-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function setLbPeriod(p, btn) {
+  _lbPeriodFilter = p;
+  document.querySelectorAll('#lb-period-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const medals = ['🥇','🥈','🥉'];
+  const periods = [...new Set(_lbAllData.map(s => s.period).filter(p => p && p !== '0'))].sort((a,b) => +a - +b);
+  if (_lbType === 'class') {
+    document.getElementById('lb-period-tabs').innerHTML = periods.map(p =>
+      `<button class="lb-tab ${_lbPeriodFilter===p?'active':''}" onclick="setLbPeriod('${p}',this)">Period ${p}</button>`
+    ).join('');
+  } else {
+    document.getElementById('lb-period-tabs').innerHTML = '';
+  }
+  let filtered = _lbAllData;
+  if (_lbType === 'class') {
+    filtered = filtered.filter(s => s.period && s.period !== '0');
+    if (_lbPeriodFilter !== 'all') filtered = filtered.filter(s => String(s.period) === String(_lbPeriodFilter));
+  }
+  document.getElementById('lb-sync-status').textContent = filtered.length + ' students — Unit 5A: World War II';
+  if (!filtered.length) {
+    document.getElementById('lb-content').innerHTML =
+      '<div style="font-family:var(--crimson);color:var(--text3);font-style:italic;padding:16px;">No results yet.</div>';
+    return;
+  }
+  const showDelete = _lbDeleteUnlocked;
+  const headerCols = `<th>#</th><th>STUDENT</th><th>SCORE</th><th>ACCURACY</th><th>ATTEMPTS</th>${showDelete?'<th></th>':''}`;
+  const rows = filtered.slice(0, 50).map((s, i) => {
+    const isMe = P && s.name === P.name && String(s.period) === String(P.period);
+    const medal = i < 3 ? medals[i] : '#' + (i+1);
+    const mc = i===0?'var(--gold)':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text3)';
+    const delBtn = showDelete
+      ? `<td><button onclick="lbDeleteEntry('${s.name.replace(/'/g,"\\'")}','${s.period}')" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:2px 6px;cursor:pointer;">X</button></td>`
+      : '';
+    return `<tr class="${isMe?'lb-you':''}">
+      <td style="font-family:var(--dm);font-size:12px;color:${mc};">${medal}</td>
+      <td><div class="lb-name">${s.name||'--'}${isMe?' ◀':''}</div></td>
+      <td class="lb-score">${(s.best_score||0).toLocaleString()}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--gold);">${s.best_accuracy!=null?s.best_accuracy+'%':'--'}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--text3);">${s.attempts||1}</td>
+      ${delBtn}
+    </tr>`;
+  }).join('');
+  document.getElementById('lb-content').innerHTML =
+    `<table class="lb-table"><thead><tr>${headerCols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function unlockLBDelete() {
+  const code = prompt('Teacher delete code:');
+  if (code === 'olson219') {
+    _lbDeleteUnlocked = true;
+    document.getElementById('lb-teacher-unlock').textContent = '🔓';
+    renderLeaderboard();
+  }
+}
+
+async function lbDeleteEntry(name, period) {
+  if (!confirm(`Remove "${name}" from leaderboard?`)) return;
+  try {
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(name) +
+      '&period=eq.' + encodeURIComponent(period) + '&unit_id=eq.' + UNIT_ID,
+      {method:'DELETE', headers: AC_HEADERS}
+    );
+    notify('Removed');
+    loadLeaderboard();
+  } catch(e) { notify('Error removing entry'); }
+}
+
+// ── PROFILE ──────────────────────────────────
+function openProfile() {
+  if (!P) return;
+  setActiveNav(2);
+  // Avatar
+  document.getElementById('profile-avatar-large').innerHTML =
+    `<div style="width:80px;height:80px;margin:0 auto;">${getAvatarSVG(P.avatar||'scholar_f', 80)}</div>
+     <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-style:italic;margin-top:8px;">${P.name}</div>
+     <div style="font-family:var(--dm);font-size:10px;color:var(--gold2);margin-top:3px;">${P.globalRank||'Curious Citizen'}${P.period?' · Period '+P.period:''}</div>`;
+
+  // Stats
+  const scores = Object.values(P.lessonBestScores || {});
+  const totalCorrect = scores.reduce((a, s) => a + (s.correct||0), 0);
+  const totalAnswered = scores.reduce((a, s) => a + (s.total||0), 0);
+  const avgAcc = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0;
+  const bestAcc = scores.length ? Math.max(...scores.map(s => s.accuracy)) : 0;
+  const tier = calcTier(bestAcc);
+  document.getElementById('profile-stat-grid').innerHTML = [
+    {val: P.lessonsCompleted.length + '/' + LESSONS.length, lbl: 'LESSONS DONE'},
+    {val: avgAcc + '%',       lbl: 'OVERALL ACCURACY'},
+    {val: tier.icon + ' ' + tier.label, lbl: 'TROPHY TIER'},
+    {val: getShellGold().toLocaleString() + ' 🪙', lbl: 'GOLD BALANCE'},
+  ].map(s =>
+    `<div class="profile-stat"><div class="profile-stat-val">${s.val}</div><div class="profile-stat-lbl">${s.lbl}</div></div>`
+  ).join('');
+
+  // Badges
+  document.getElementById('profile-badge-grid').innerHTML = UNIT_BADGES.map(b => {
+    const earned = b.lessonId
+      ? P.lessonsCompleted.includes(b.lessonId)
+      : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+    return `<div class="badge-pill ${earned?'earned':''}">
+      <span class="badge-icon">${b.icon}</span>${b.label}
+    </div>`;
+  }).join('');
+
+  // Cards
+  document.getElementById('profile-card-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock.'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profile-overlay').classList.add('show');
+}
+function closeProfile() {
+  document.getElementById('profile-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+// ── CARD COLLECTION ──────────────────────────
+function openCardCollection() {
+  setActiveNav(3);
+  document.getElementById('cardcoll-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P && P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock this card.'}</div>
+      ${!earned ? `<div class="hist-card-unlock">🔒 Locked</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('cardcoll-overlay').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildPeriodSelector();
+
+  // Try loading from shell session first
+  const hasSession = loadP();
+
+  if (hasSession) {
+    // Shell handles auth — skip all gates, go straight in
+    document.getElementById('login-gate').classList.remove('show');
+    const wbo = document.getElementById('welcome-back-overlay');
+    if (wbo) wbo.classList.remove('show');
+    showUnitHub();
+  } else {
+  // No shell session — redirect to shell to login with Google
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  }
+});
+
+// ════════════════════════════════════════════
+// WELCOME BACK MODAL
+// ════════════════════════════════════════════
+
+function showWelcomeBack() {
+  if (!P) { window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; return; }
+
+  // Populate avatar
+  const avatarEl = document.getElementById('wb-avatar');
+  if (avatarEl) avatarEl.innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 70);
+
+  // Name
+  const nameEl = document.getElementById('wb-name');
+  if (nameEl) nameEl.textContent = P.name || 'Historian';
+
+  // Rank / teacher / period line
+  const subEl = document.getElementById('wb-sub');
+  if (subEl) {
+    const parts = [];
+    if (P.globalRank) parts.push(P.globalRank);
+    if (P.period) parts.push('Period ' + P.period);
+    subEl.textContent = parts.join(' — ') || 'Curious Citizen';
+  }
+
+  // Progress line
+  const progEl = document.getElementById('wb-progress');
+  if (progEl) {
+    const done = (P.lessonsCompleted || []).length;
+    const total = LESSONS.length;
+    progEl.textContent = done > 0
+      ? done + ' of ' + total + ' lessons completed'
+      : 'No progress saved yet';
+  }
+
+  document.getElementById('welcome-back-overlay').classList.add('show');
+}
+
+function confirmWelcomeBack() {
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  showUnitHub();
+}
+
+function switchPlayer() {
+  // Clear saved unit state so a new player can log in fresh
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  P = null;
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; // redirect to shell login
+}
+
+// ── Anti-copy
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+
+</script>
+</body>
+</html>

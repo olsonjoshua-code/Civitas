@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>American Chronicles: Semester 1 Midterm Checkpoint</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c12;--bg2:#0e1520;--bg3:#141e2c;--panel:#192338;
+  --border:#1e2d42;--border2:#2a3f5a;
+  --liberty:#4a9fd4;--liberty2:#2d7aad;--liberty3:#7ec8f0;
+  --parchment:#e8d5a0;--parchment2:#c9b67a;--parchment3:#f5e8c0;
+  --red:#c03030;--red2:#e04040;
+  --green:#2a7a3a;--green2:#38a050;
+  --text:#e8dcc8;--text2:#8a9bb0;--text3:#4a5870;--cream:#f0e6d0;
+  --gold:#d4a017;--gold2:#b8860b;--gold3:#f0c040;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(74,159,212,0.08) 0%,transparent 50%),radial-gradient(ellipse at 85% 100%,rgba(180,134,11,0.07) 0%,transparent 50%);}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:0.8;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.008) 3px,rgba(0,0,0,0.008) 4px);pointer-events:none;z-index:9999;}
+#root{max-width:820px;margin:0 auto;padding:16px 24px;padding-bottom:120px;min-height:100vh;position:relative;z-index:1;}
+.screen{display:none;}.screen.active{display:block;animation:fadeIn 0.4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pop{0%{transform:scale(0.5);opacity:0;}70%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-70px);}}
+.btn{font-family:var(--bebas);font-size:15px;letter-spacing:2px;background:transparent;border:1.5px solid var(--liberty);color:var(--liberty);padding:12px 28px;cursor:pointer;transition:all 0.2s;display:inline-block;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--liberty);transform:scaleX(0);transform-origin:left;transition:transform 0.2s;z-index:0;}
+.btn:hover{color:var(--bg);box-shadow:0 0 25px rgba(74,159,212,0.35);}.btn:hover::before{transform:scaleX(1);}
+.btn span{position:relative;z-index:1;}.btn:active{transform:scale(0.97);}
+.btn.full{display:block;width:100%;text-align:center;margin:6px 0;}
+.btn.gold{border-color:var(--gold);color:var(--gold);}.btn.gold::before{background:var(--gold);}.btn.gold:hover{color:var(--bg);}
+.btn.red{border-color:var(--red2);color:var(--red2);}.btn.red::before{background:var(--red2);}.btn.red:hover{color:#fff;}
+.btn.sm{font-size:11px;padding:8px 18px;}.btn:disabled{opacity:0.25;cursor:not-allowed;pointer-events:none;}
+#game-header{background:linear-gradient(180deg,rgba(8,12,18,0.98),rgba(14,21,32,0.96));border-bottom:1px solid var(--border2);padding:10px 14px;display:none;position:sticky;top:0;z-index:200;margin:-16px -16px 16px -16px;backdrop-filter:blur(12px);}
+.hud-inner{display:flex;align-items:center;gap:12px;}
+.hud-avatar{width:44px;height:44px;flex-shrink:0;cursor:pointer;}
+.hud-info{flex:1;min-width:0;}
+.hud-name{font-family:var(--playfair);font-size:12px;color:var(--liberty3);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;}
+.hud-rank{font-family:var(--dm);font-size:10px;color:var(--text2);}
+.hud-stats{display:flex;gap:10px;flex-shrink:0;}
+.hud-stat{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;}
+.hud-stat span{display:block;color:var(--liberty);font-size:13px;margin-top:1px;font-weight:600;}
+.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--liberty2);padding:10px 20px;font-family:var(--dm);font-size:11px;color:var(--liberty);z-index:1000;animation:pop 0.3s,floatUp 2.5s 0.8s forwards;white-space:nowrap;max-width:90vw;text-align:center;}
+.notif.green{border-color:var(--green2);color:var(--green2);}.notif.red{border-color:var(--red2);color:var(--red2);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:400;overflow-y:auto;padding:20px 16px 80px;}
+.overlay.show{display:block;animation:fadeIn 0.2s;}
+.overlay-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:sticky;top:0;background:rgba(8,12,18,0.97);padding:10px 0;border-bottom:1px solid var(--border2);z-index:10;}
+.overlay-title{font-family:var(--bebas);font-size:22px;color:var(--liberty);letter-spacing:2px;}
+.overlay-close{font-family:var(--dm);font-size:10px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;transition:all 0.2s;}
+.overlay-close:hover{border-color:var(--liberty);color:var(--liberty);}
+.section-head{font-family:var(--bebas);font-size:18px;letter-spacing:2px;color:var(--liberty);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-head::before{content:'';display:block;width:3px;height:18px;background:var(--liberty);}
+.deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);}
+.deco-divider-icon{font-size:14px;color:var(--text3);}
+.era-badge{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:2px;padding:3px 10px;border:1px solid;margin-bottom:8px;}
+.choice-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:16px 20px;cursor:pointer;text-align:left;transition:all 0.2s;margin-bottom:8px;position:relative;overflow:hidden;}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--liberty);transform:scaleY(0);transition:transform 0.2s;}
+.choice-btn:hover{border-color:var(--liberty2);background:rgba(74,159,212,0.04);}.choice-btn:hover::before{transform:scaleY(1);}
+.choice-btn.correct{border-color:var(--green2);background:rgba(56,160,80,0.08);animation:pop 0.3s;}.choice-btn.correct::before{background:var(--green2);transform:scaleY(1);}
+.choice-btn.incorrect{border-color:var(--red2);background:rgba(192,48,48,0.06);opacity:0.6;}.choice-btn.incorrect::before{background:var(--red2);transform:scaleY(1);}
+.feedback-panel{display:none;background:var(--bg2);border-left:3px solid var(--liberty);padding:16px 16px 16px 20px;margin-bottom:14px;animation:slideUp 0.3s;}
+.feedback-panel.show{display:block;}.feedback-panel.correct{border-color:var(--green2);}.feedback-panel.incorrect{border-color:var(--red2);}
+.feedback-verdict{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:8px;}
+.feedback-verdict.correct{color:var(--green2);}.feedback-verdict.incorrect{color:var(--red2);}
+.feedback-text{font-family:var(--crimson);font-size:16px;line-height:1.6;color:var(--text);margin-bottom:8px;}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;padding:8px 6px;border-bottom:1px solid var(--border2);text-align:left;}
+.lb-table td{padding:10px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.lb-table tr.lb-you td{background:rgba(74,159,212,0.05);}
+.lb-name{font-family:var(--playfair);font-size:13px;color:var(--cream);font-style:italic;}
+.lb-score{font-family:var(--bebas);font-size:16px;color:var(--liberty);letter-spacing:1px;}
+.lb-tab{font-family:var(--dm);font-size:9px;padding:6px 12px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);transition:all .15s;margin-right:5px;margin-bottom:5px;}
+.lb-tab.active{border-color:var(--liberty);color:var(--liberty);background:rgba(74,159,212,.08);}
+.profile-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.profile-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.profile-stat-val{font-family:var(--bebas);font-size:24px;color:var(--liberty);}
+.profile-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,12,18,0.97);border-top:1px solid var(--border2);display:none;z-index:300;backdrop-filter:blur(12px);}
+#bottom-nav.show{display:flex;}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--dm);font-size:8px;letter-spacing:0.5px;transition:color 0.15s;}
+.bn-btn:hover,.bn-btn.active{color:var(--liberty);}
+.bn-icon{font-size:18px;display:block;}
+.stimulus-block{margin-bottom:16px;background:var(--bg2);border:1px solid var(--border2);overflow:hidden;}
+.stimulus-img{width:100%;max-height:320px;object-fit:contain;display:block;cursor:zoom-in;background:#0a0f18;}
+.stimulus-caption{font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 12px;border-top:1px solid var(--border);font-style:italic;line-height:1.5;}
+.img-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:600;align-items:center;justify-content:center;padding:20px;}
+.img-modal.show{display:flex;animation:fadeIn 0.2s;}
+.img-modal img{max-width:100%;max-height:90vh;object-fit:contain;border:1px solid var(--border2);}
+.img-modal-close{position:absolute;top:16px;right:16px;font-family:var(--dm);font-size:10px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;z-index:10;}
+.q-card{background:var(--bg2);border:1px solid var(--border2);padding:24px 22px;margin-bottom:14px;}
+.q-text{font-family:var(--playfair);font-size:clamp(16px,2.4vw,19px);color:var(--cream);line-height:1.65;margin-bottom:18px;}
+.progress-bar-wrap{height:3px;background:rgba(255,255,255,0.04);margin-bottom:16px;}
+.progress-bar-fill{height:100%;background:var(--gold2);transition:width 0.4s;border-radius:2px;}
+.q-meta{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;text-align:right;margin-bottom:12px;}
+.diff-pill{display:inline-block;font-family:var(--dm);font-size:7px;letter-spacing:1px;padding:2px 7px;border:1px solid;border-radius:2px;margin-left:6px;vertical-align:middle;}
+.diff-low{color:#38a050;border-color:#38a050;}
+.diff-moderate{color:#d4a017;border-color:#d4a017;}
+.diff-high{color:#e04040;border-color:#e04040;}
+.sec-complete-block{background:var(--bg2);border:1px solid var(--liberty2);padding:20px;margin-bottom:14px;}
+.sec-score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:16px 0;}
+.sec-score-cell{background:var(--bg3);border:1px solid var(--border);padding:12px;text-align:center;}
+.sec-score-val{font-family:var(--bebas);font-size:24px;color:var(--liberty);}
+.sec-score-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.final-section-row{background:var(--bg2);border:1px solid var(--border2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.tier-block{padding:20px;text-align:center;margin:16px 0;border:1px solid;}
+.tier-label{font-family:var(--bebas);font-size:32px;letter-spacing:3px;}
+.tier-desc{font-family:var(--crimson);font-size:14px;margin-top:8px;font-style:italic;line-height:1.6;}
+.game-logo{font-family:var(--bebas);font-size:clamp(32px,8vw,54px);color:var(--parchment);letter-spacing:4px;text-shadow:0 0 40px rgba(232,213,160,0.3),3px 3px 0 rgba(0,0,0,0.6);line-height:1;margin-bottom:4px;}
+.game-subtitle{font-family:var(--playfair);font-size:14px;color:var(--liberty3);font-style:italic;margin-bottom:6px;letter-spacing:1px;}
+.game-unit-badge{display:inline-block;background:rgba(74,159,212,0.08);border:1px solid var(--liberty2);color:var(--liberty);font-family:var(--dm);font-size:9px;padding:4px 12px;letter-spacing:3px;margin-bottom:1.5rem;text-transform:uppercase;}
+.hub-banner{background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;}
+.hub-avatar{width:60px;height:60px;flex-shrink:0;}
+.hub-player-name{font-family:var(--playfair);font-size:16px;color:var(--cream);font-style:italic;margin-bottom:2px;}
+.hub-player-rank{font-family:var(--dm);font-size:11px;color:var(--liberty3);margin-bottom:6px;}
+.code-gate-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,18,0.98);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.code-gate-overlay.show{display:flex;}
+.code-gate-inner{background:var(--bg2);border:1px solid var(--border2);padding:28px 24px;width:100%;max-width:400px;}
+.welcome-gate{display:none;position:fixed;inset:0;background:rgba(8,12,18,0.98);z-index:1100;align-items:center;justify-content:center;padding:20px;}
+.welcome-gate.show{display:flex;}
+.welcome-inner{background:var(--bg2);border:1px solid var(--border2);padding:28px 24px;width:100%;max-width:400px;text-align:center;}
+#question-screen,#section-intro-screen,#section-summary-screen,#final-screen,
+.choice-btn,.q-card,.stimulus-block{-webkit-user-select:none;-moz-user-select:none;user-select:none;}
+input{-webkit-user-select:text!important;user-select:text!important;}
+/* ── Unit Trophy Reveal Overlay ── */
+#unit-trophy-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(4,3,2,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+#unit-trophy-overlay.show{display:flex;animation:fadeIn .5s ease;}
+.utr-eyebrow{font-family:var(--bebas);font-size:11px;letter-spacing:4px;color:var(--text3);margin-bottom:10px;}
+.utr-name{font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:18px;}
+.utr-icon{font-size:72px;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(200,160,32,.5));}
+.utr-trophy-name{font-family:var(--bebas);font-size:32px;letter-spacing:4px;margin-bottom:6px;}
+.utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
+.utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
+.utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+</style>
+<script>
+// Instant redirect if no shell session
+(function(){
+  try{
+    var s=localStorage.getItem('ac_shell_state');
+    if(!s){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+    var p=JSON.parse(s);
+    // Just need a real name — setupDone may not be set with Google auth
+    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');}
+})();
+</script>
+</head>
+<body>
+<div id="root">
+
+<div id="game-header">
+  <div class="hud-inner">
+    <div class="hud-avatar" id="hud-avatar-svg" onclick="openProfile()"></div>
+    <div class="hud-info">
+      <div class="hud-name" id="hud-name">--</div>
+      <div class="hud-rank" id="hud-rank">Curious Citizen</div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat">SCORE<span id="hud-score">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TITLE SCREEN -->
+
+
+<!-- SECTION INTRO -->
+<div class="screen" id="section-intro-screen">
+  <div id="section-intro-content"></div>
+  <button class="btn full gold" id="section-start-btn" onclick="startSection()"><span>Begin Section &rarr;</span></button>
+</div>
+
+<!-- QUESTION SCREEN -->
+<div class="screen" id="question-screen">
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="q-progress-fill" style="width:0%"></div></div>
+  <div class="q-meta" id="q-meta"></div>
+  <div id="stimulus-container"></div>
+  <div class="q-card">
+    <div class="q-text" id="q-text"></div>
+    <div id="q-choices"></div>
+    <div id="q-feedback"></div>
+  </div>
+</div>
+
+<!-- SECTION SUMMARY -->
+<div class="screen" id="section-summary-screen">
+  <div id="section-summary-content"></div>
+  <div id="section-summary-next-btn"></div>
+</div>
+
+<!-- FINAL RESULTS -->
+<div class="screen" id="final-screen">
+  <div id="final-results-content"></div>
+</div>
+
+<!-- HUB -->
+<div class="screen" id="hub-screen">
+  <div id="hub-banner-container"></div>
+  <div id="shell-return-btn" style="display:none;margin-bottom:12px">
+    <button class="btn full" onclick="returnToShell()" style="border-color:var(--liberty2);color:var(--liberty2)"><span>&larr; Return to American Chronicles Hub</span></button>
+  </div>
+  <div class="section-head">Midterm Checkpoint</div>
+  <div style="font-family:var(--dm);font-size:9px;color:var(--gold2);letter-spacing:2px;margin-bottom:10px;margin-top:-8px">UNIT ARCS 1&ndash;6 &middot; THROUGH THE ROARING TWENTIES &middot; THROUGH THE ROARING TWENTIES</div>
+  <div style="background:linear-gradient(135deg,rgba(212,160,23,0.06),rgba(212,160,23,0.02));border:1px solid var(--border2);border-left:3px solid var(--gold);padding:14px 16px;margin-bottom:16px;">
+    <div style="font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;margin-bottom:4px">ASSESSMENT OVERVIEW</div>
+    <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7">Work through all 6 sections in order. Score 75% (6/8) on each section to unlock the next. Completed sections remain open for retakes anytime.</div>
+  </div>
+  <div id="hub-sections-list"></div>
+  <div class="deco-divider"><span class="deco-divider-icon">&#128203;</span></div>
+  <button class="btn full gold" id="hub-start-btn" onclick="launchCheckpoint()" style="font-size:15px;padding:15px"><span id="hub-start-label">Begin Checkpoint &rarr;</span></button>
+  <button class="btn full" onclick="returnToShell()" style="margin-top:6px;border-color:var(--border2);color:var(--text2);font-size:11px"><span>&larr; Return to American Chronicles Hub</span></button>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="overlay" id="leaderboard-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Leaderboard</div>
+    <button class="overlay-close" onclick="document.getElementById('leaderboard-overlay').classList.remove('show')">X Close</button>
+  </div>
+  <div style="margin-bottom:12px">
+    <button id="lb-tab-all" class="lb-tab active" onclick="setLBPeriod('all')">Overall</button>
+    <button id="lb-tab-class" class="lb-tab" onclick="setLBPeriod('class')">My Class</button>
+    <button id="lb-teacher-unlock" onclick="unlockLBDelete()" style="font-family:var(--dm);font-size:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 8px;cursor:pointer">Lock</button>
+  </div>
+  <div id="lb-content"></div>
+</div>
+
+<!-- PROFILE -->
+<div class="overlay" id="profile-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Profile</div>
+    <button class="overlay-close" onclick="document.getElementById('profile-overlay').classList.remove('show')">X Close</button>
+  </div>
+  <div id="profile-content"></div>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div class="overlay" id="teacher-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Teacher Dashboard</div>
+    <button class="overlay-close" onclick="document.getElementById('teacher-overlay').classList.remove('show')">X Close</button>
+  </div>
+  <div id="teacher-content"></div>
+</div>
+
+<!-- LOGIN GATE -->
+<div class="code-gate-overlay" id="code-gate-overlay">
+  <div class="code-gate-inner">
+    <div id="login-step-1">
+      <div style="font-family:var(--bebas);font-size:22px;color:var(--liberty);letter-spacing:3px;margin-bottom:6px">SELECT YOUR TEACHER</div>
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;margin-bottom:20px">Who is your U.S. History teacher?</div>
+      <button class="btn full" onclick="selectTeacher('olson')" style="margin-bottom:8px"><span>Mr. Olson</span></button>
+      <button class="btn full" onclick="selectTeacher('guest')" style="border-color:var(--border2);color:var(--text3);font-size:11px"><span>Guest / Other</span></button>
+    </div>
+    <div id="login-step-2" style="display:none">
+      <div style="font-family:var(--bebas);font-size:18px;color:var(--liberty);letter-spacing:2px;margin-bottom:12px">SELECT YOUR PERIOD</div>
+      <div id="period-buttons" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+    </div>
+    <div id="login-step-3" style="display:none">
+      <div id="login-step3-label" style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;margin-bottom:16px"></div>
+      <input id="class-code-input" type="text" placeholder="Your name..." maxlength="40"
+        style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:12px 14px;font-family:var(--dm);font-size:14px;margin-bottom:8px;outline:none"
+        onkeydown="if(event.key==='Enter')submitClassCode()">
+      <div id="code-error" style="font-family:var(--dm);font-size:10px;color:var(--red2);margin-bottom:8px"></div>
+      <button class="btn full gold" onclick="submitClassCode()"><span>Enter &rarr;</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- WELCOME GATE -->
+<div class="welcome-gate" id="welcome-gate" style="display:none">
+  <div class="welcome-inner">
+    <div id="wg-avatar" style="width:60px;height:60px;margin:0 auto 12px"></div>
+    <div style="font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:3px;margin-bottom:6px">WELCOME BACK</div>
+    <div id="wg-name" style="font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:4px"></div>
+    <div id="wg-detail" style="font-family:var(--dm);font-size:10px;color:var(--liberty3);margin:4px 0"></div>
+    <div id="wg-progress" style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:20px"></div>
+    <button class="btn full gold" onclick="welcomeContinue()"><span>Continue &rarr;</span></button>
+    <button class="btn full" onclick="welcomeNewPlayer()" style="border-color:var(--border2);color:var(--text3);font-size:10px;margin-top:4px"><span>Switch Player</span></button>
+  </div>
+</div>
+
+<!-- IMAGE MODAL -->
+<div class="img-modal" id="img-modal" onclick="closeImgModal()">
+  <button class="img-modal-close">X Close</button>
+  <img id="img-modal-src" src="" alt="">
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="bottom-nav">
+  <button class="bn-btn" id="nav-0" onclick="setActiveNav(0);showScreen('hub-screen')"><span class="bn-icon">&#127968;</span>Hub</button>
+  <button class="bn-btn" id="nav-1" onclick="setActiveNav(1);openLeaderboard()"><span class="bn-icon">&#127942;</span>Scores</button>
+  <button class="bn-btn" id="nav-2" onclick="setActiveNav(2);openProfile()"><span class="bn-icon">&#128100;</span>Profile</button>
+</div>
+
+</div>
+
+<script>
+
+var SAVE_KEY = 'ac_midterm_checkpoint_save';
+var SHELL_KEY = 'ac_shell_state';
+var SHELL_URL = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+var SHELL_UNIT_ID = 'eoc_midterm';
+var AC_SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+var AC_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+var AC_HEADERS = {'Content-Type':'application/json','apikey':AC_SUPA_KEY,'Authorization':'Bearer '+AC_SUPA_KEY};
+var TEACHERS = {olson:{name:'Mr. Olson',periods:['1','2','3','4','5','6','7'],teacherCode:'OLSON219'}};
+
+var SECTIONS = [
+  {num:1,title:'Civil War and Reconstruction',era:'1861-1877',icon:'&#9876;',semester:1,desc:'The Union at war, emancipation, and Reconstruction - amendments, freedpeople, Black Codes, and the Compromise of 1877.',standards:'SS.912.A.2.1, SS.912.A.2.2, SS.912.A.2.3'},
+  {num:2,title:'Challenges in the West and Industry',era:'1865-1900',icon:'&#128640;',semester:1,desc:'Native American displacement, westward expansion, railroads, robber barons, monopolies, and the Populist response.',standards:'SS.912.A.3.1, SS.912.A.3.2, SS.912.A.3.3'},
+  {num:3,title:'Immigration, Urbanization, and Political Machines',era:'1870-1900',icon:'&#127968;',semester:1,desc:'Cities transformed by mass immigration, tenement conditions, political machines, and settlement house reformers.',standards:'SS.912.A.3.4, SS.912.A.3.5'},
+  {num:4,title:'The Progressive Era and Imperialism',era:'1890-1914',icon:'&#9881;',semester:1,desc:'Progressive reformers tackled industrial abuses while the U.S. stepped onto the world stage - Spanish-American War, Panama Canal, and Big Stick diplomacy.',standards:'SS.912.A.3.7, SS.912.A.4.1, SS.912.A.4.2'},
+  {num:5,title:'World War I',era:'1914-1920',icon:'&#128472;',semester:1,desc:'From neutrality to intervention - unrestricted submarine warfare, the home front, propaganda, and the contested peace.',standards:'SS.912.A.4.4, SS.912.A.5.1'},
+  {num:6,title:'The Roaring Twenties',era:'1920-1929',icon:'&#127926;',semester:1,desc:'Mass consumer culture, credit, automobiles, and prosperity - and the isolationism and fragility beneath the surface.',standards:'SS.912.A.5.2, SS.912.A.5.3'},
+];
+var QUESTION_BANK = [{"id": "sec1_q01", "section": 1, "difficulty": "low", "stimulus_type": "image", "stimulus_path": "assets/sec1_scotts_great_snake_01.png", "stimulus_caption": "Scott's Great Snake map illustrating Union strategy during the Civil War.", "question": "The map above illustrated a Union strategy during the Civil War.\n\nWhat was the main goal of this strategy?", "choices": ["to divide the Confederacy by controlling a major river", "to secure British and French recognition of the Confederacy", "to blockade southern ports and cut off Confederate supply lines", "to reduce manufacturing output in the northern states"], "correct_answer": "A", "explanation": "The Anaconda Plan aimed to split the Confederacy and cut off resources by controlling the Mississippi River."}, {"id": "sec1_q02", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A southern leader claimed that a state could reject federal authority when national policies threatened its interests.\n\nWhich development followed most directly from this idea?", "choices": ["southern states left the Union", "factory workers formed labor unions", "reformers opened settlement houses", "Congress passed civil service laws"], "correct_answer": "A", "explanation": "States' rights arguments, especially about slavery, helped drive secession."}, {"id": "sec1_q03", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which goal was most important to Radical Republicans during Reconstruction?", "choices": ["restoring office to former Confederate leaders", "protecting rights of formerly enslaved people", "reducing the power of the national government", "expanding industry across the former Confederacy"], "correct_answer": "B", "explanation": "Radical Republicans pushed for strong federal protection of freedpeople's rights."}, {"id": "sec1_q10", "section": 1, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A historian argued that Reconstruction changed the Constitution but did not fully protect African Americans from oppression in everyday life.\n\nWhich factor best explains that conclusion?", "choices": ["segregation laws limited those new protections", "labor strikes undermined congressional support for reform", "labor strikes weakened congressional authority over Reconstruction policy", "political parties disappeared in the South after 1870"], "correct_answer": "A", "explanation": "Black Codes and later Jim Crow laws undercut Reconstruction-era gains."}, {"id": "sec1_q13", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A former Confederate state tried to deny citizenship rights to formerly enslaved people after the Civil War.\n\nWhich constitutional change most directly challenged that effort?", "choices": ["the amendment that ended slavery", "the amendment that defined national citizenship", "the amendment that lowered the voting age", "the amendment that guaranteed women's suffrage and civic participation"], "correct_answer": "B", "explanation": "The Fourteenth Amendment defined citizenship and provided equal protection."}, {"id": "sec1_q18", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which effect did the Fifteenth Amendment have on American society?", "choices": ["it granted voting rights regardless of race", "it ended slavery in all states", "it provided citizenship to formerly enslaved people", "it established equal protection under the law"], "correct_answer": "A", "explanation": "The Fifteenth Amendment prohibited denying the vote on the basis of race."}, {"id": "sec1_q21", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "After the Civil War, Congress sought to make emancipation permanent through a constitutional change.\n\nWhich amendment achieved that goal?", "choices": ["the amendment ending slavery", "the amendment defining citizenship", "the amendment protecting voting rights regardless of race", "the amendment authorizing an income tax"], "correct_answer": "A", "explanation": "The Thirteenth Amendment abolished slavery."}, {"id": "sec1_q22", "section": 1, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "After the Civil War, southern states passed laws that limited the rights of African Americans and restricted their economic opportunities.\n\nWhich term best describes these laws?", "choices": ["Black Codes", "Jim Crow laws", "Homestead laws", "Antitrust laws"], "correct_answer": "A", "explanation": "Black Codes were enacted immediately after the Civil War to restrict freedpeople's rights."}, {"id": "sec1_q26", "section": 1, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A historian argued that Reconstruction created lasting constitutional change but failed to bring full equality in practice.\n\nWhich evidence best supports this argument?", "choices": ["segregation laws limited rights despite new amendments", "industrial growth increased significantly in northern cities", "farmers gained access to new transportation systems and western markets", "farmers benefited from expanded railroad routes across the Great Plains"], "correct_answer": "A", "explanation": "Legal protections expanded, but segregation and discrimination persisted."}, {"id": "sec1_q31_text", "section": 1, "difficulty": "moderate", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from the Fourteenth Amendment, 1868.", "stimulus_text": "“All persons born or naturalized in the United States ... are citizens of the United States and of the state wherein they reside.”", "question": "Which issue was this constitutional language most directly intended to address after the Civil War?", "choices": ["efforts by southern states to deny citizenship to formerly enslaved people", "efforts by western states to regulate railroad shipping rates", "efforts by western states to expand interstate commerce regulations and tariffs", "efforts by Congress to expand immigration from Europe"], "correct_answer": "A", "explanation": "The Fourteenth Amendment established national citizenship and challenged attempts to deny basic legal status to formerly enslaved people."}, {"id": "sec1_q05", "section": 2, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A farmer in the late 1800s complained about debt, low crop prices, and high railroad shipping costs.\n\nWhich movement formed most directly in response to these concerns?", "choices": ["the temperance movement", "the Populist movement", "the abolitionist movement", "the conservation movement"], "correct_answer": "B", "explanation": "The Populist movement grew from farmers' economic struggles."}, {"id": "sec1_q06", "section": 2, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which development most affected Chinese immigrants in the late 1800s?", "choices": ["Congress restricted immigration from China", "western states expanded voting rights", "labor unions recruited Asian workers", "railroad companies offered free land grants"], "correct_answer": "A", "explanation": "The Chinese Exclusion Act limited immigration from China."}, {"id": "sec1_q14", "section": 2, "difficulty": "high", "stimulus_type": "image", "stimulus_path": "assets/sec1_population_AFAM_1880-1930.png", "stimulus_caption": "Table showing changes in African American population across cities over time.", "question": "The data above shows changes in population over time.\n\nWhich conclusion is best supported by this data?", "choices": ["African Americans increasingly moved to northern cities", "southern agricultural production declined sharply after 1900", "southern agricultural production fell as Black workers left for the North", "industrial output slowed significantly during this period"], "correct_answer": "A", "explanation": "The table supports a conclusion about demographic change and migration to northern cities."}, {"id": "sec1_q15", "section": 2, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A business owner formed a large company that controlled most of an industry and eliminated competition.\n\nWhich term best describes this practice?", "choices": ["monopoly", "labor union", "trade tariff", "consumer boycott"], "correct_answer": "A", "explanation": "A monopoly exists when one company dominates an industry and limits competition."}, {"id": "sec1_q23", "section": 2, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A farmer supported the free coinage of silver to increase the money supply and reduce debt.\n\nWhich problem was the farmer trying to address?", "choices": ["high interest rates and falling crop prices", "limited access to industrial jobs", "declining immigration into rural areas", "increased competition from foreign factories"], "correct_answer": "A", "explanation": "Free silver was meant to ease debt burdens and help indebted farmers facing low prices."}, {"id": "sec1_q24", "section": 2, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Nativist groups in the late 1800s argued that some immigrant groups threatened jobs and social stability.\n\nWhich federal action most clearly reflected this attitude?", "choices": ["a law restricting immigration from China", "a law regulating railroad shipping rates", "a law promoting settlement in western territories", "a law breaking up monopolies in industry"], "correct_answer": "A", "explanation": "The Chinese Exclusion Act reflected anti-immigrant nativist attitudes."}, {"id": "sec1_q25", "section": 2, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A Native American group was forced onto a reservation and encouraged to adopt farming and private land ownership.\n\nWhich policy does this situation best describe?", "choices": ["assimilation policies toward Native Americans", "expansion of industrial labor opportunities in the East", "expansion of industrial labor into Native American reservation territories", "development of transcontinental railroad monopolies"], "correct_answer": "A", "explanation": "Federal policy often pushed assimilation and private land ownership on Native Americans."}, {"id": "sec1_q28", "section": 2, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A business leader argued that government should not interfere with economic competition and that success depended on individual ability.\n\nWhich idea does this argument reflect?", "choices": ["laissez-faire economics", "collective bargaining between workers and management", "collective bargaining rights enforced through federal labor legislation", "populist reform of industrial markets"], "correct_answer": "A", "explanation": "Laissez-faire ideas favored minimal government interference in the economy."}, {"id": "sec1_q32_text", "section": 2, "difficulty": "high", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from William Jennings Bryan's “Cross of Gold” speech, 1896.", "stimulus_text": "“You shall not press down upon the brow of labor this crown of thorns, you shall not crucify mankind upon a cross of gold.”", "question": "Which complaint was Bryan expressing most directly in this excerpt?", "choices": ["the gold standard made debt harder for farmers and workers to repay", "high protective tariffs weakened southern manufacturing industries", "high tariffs damaged southern manufacturing and reduced agricultural exports", "urban reform laws reduced profits for industrial businesses"], "correct_answer": "A", "explanation": "Bryan argued that a strict gold standard hurt indebted farmers and workers by keeping the money supply too limited."}, {"id": "sec1_q07", "section": 3, "difficulty": "high", "stimulus_type": "image", "stimulus_path": "assets/sec1_nast_tiger_PC.png", "stimulus_caption": "Thomas Nast cartoon criticizing corruption in urban machine politics.", "question": "What criticism did the cartoon most clearly express?", "choices": ["city governments were controlled by corruption", "national courts favored wealthy landowners over workers", "national courts consistently protected wealthy landowners from reform efforts", "labor unions weakened industrial growth in major cities"], "correct_answer": "A", "explanation": "The cartoon symbolizes machine corruption in cities such as New York under Tammany Hall."}, {"id": "sec1_q08", "section": 3, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Factory workers organized strikes in the late 1800s to demand higher pay, fewer hours, and safer conditions.\n\nWhat was the main purpose of these strikes?", "choices": ["to improve wages and working conditions", "to expand settlement in western territories", "to increase trade with foreign countries", "to reduce immigration into large cities"], "correct_answer": "A", "explanation": "Labor unions and strikes focused on wages, hours, and safety."}, {"id": "sec1_q09", "section": 3, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "What was the main purpose of settlement houses such as Hull House?", "choices": ["to assist immigrants and the urban poor", "to supervise elections in major cities", "to regulate safety in large factories", "to settle disputes between railroad companies"], "correct_answer": "A", "explanation": "Settlement houses provided education, childcare, and support services in immigrant neighborhoods."}, {"id": "sec1_q11", "section": 3, "difficulty": "moderate", "stimulus_type": "image", "stimulus_path": "assets/sec1_tenements_pic.png", "stimulus_caption": "Photo of crowded urban tenement housing in the late 1800s.", "question": "The image above shows living conditions in many cities during the late 1800s.\n\nWhich development most directly resulted from these conditions?", "choices": ["reformers created settlement houses to assist urban residents", "farmers relocated west to expand agricultural production", "farmers moved west to claim newly opened frontier homestead territories", "railroads expanded their routes across the industrial Midwest"], "correct_answer": "A", "explanation": "Poor urban living conditions helped inspire reform movements and settlement houses."}, {"id": "sec1_q12", "section": 3, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "An immigrant family arrived in the United States and settled in a crowded city neighborhood where jobs were available but housing was poor.\n\nWhich factor most likely influenced this decision?", "choices": ["access to industrial jobs in urban areas", "availability of free land in western territories", "support from federal agricultural programs", "enforcement of strict immigration quotas"], "correct_answer": "A", "explanation": "Many immigrants settled in cities because industrial jobs were available there."}, {"id": "sec1_q16", "section": 3, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Workers in a large factory organized together to demand shorter hours and safer conditions.\n\nWhat kind of organization were they most likely joining?", "choices": ["a labor union", "a political machine", "a settlement house", "a business trust"], "correct_answer": "A", "explanation": "Labor unions organized workers to bargain for better conditions."}, {"id": "sec1_q17", "section": 3, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A historian argued that industrialization led to both economic growth and social problems in American cities.\n\nWhich evidence best supports this claim?", "choices": ["factories increased production while working conditions remained unsafe", "farmers gained access to cheaper transportation networks", "farmers benefited from cheaper rail transport and access to wider national markets", "international trade expanded significantly during this period"], "correct_answer": "A", "explanation": "Industrialization boosted production, but often at the cost of worker safety and living conditions."}, {"id": "sec1_q19", "section": 3, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A city government relied on a political organization that provided jobs and services in exchange for votes.\n\nWhich term best describes this system?", "choices": ["political machine", "labor union", "reform commission", "civic reform movement dedicated to eliminating political corruption"], "correct_answer": "A", "explanation": "Political machines exchanged favors and services for political support."}, {"id": "sec1_q27", "section": 3, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A reformer opened a neighborhood center in a crowded immigrant district to provide classes, childcare, and other services.\n\nWhat type of institution was this most likely?", "choices": ["a settlement house", "a labor union hall", "a political ward office", "a federal land office"], "correct_answer": "A", "explanation": "Settlement houses offered social services and education in urban immigrant neighborhoods."}, {"id": "sec1_q29", "section": 3, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A worker joined an organization that negotiated with employers for better pay and safer conditions.\n\nWhat type of organization did the worker most likely join?", "choices": ["a labor union", "a political machine", "a settlement house", "a reform commission"], "correct_answer": "A", "explanation": "Labor unions negotiated with employers on behalf of workers."}, {"id": "sec1_q04", "section": 4, "difficulty": "moderate", "stimulus_type": "image", "stimulus_path": "assets/sec1_child_labor_PC.png", "stimulus_caption": "Political cartoon criticizing child labor conditions during industrialization.", "question": "The cartoon above criticized conditions during the late 1800s.\n\nWhich problem did reformers most directly target?", "choices": ["unsafe work done by children", "falling prices for farm crops", "limits on voting by women", "conflict over land in the West"], "correct_answer": "A", "explanation": "Progressive reformers targeted child labor and unsafe industrial working conditions."}, {"id": "sec1_q20", "section": 4, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A reformer believed that government should take a more active role in regulating business and improving social conditions.\n\nThis belief was most closely associated with which movement?", "choices": ["the Progressive movement", "the abolitionist movement", "the Populist movement", "the nativist movement"], "correct_answer": "A", "explanation": "Progressives supported an active government role in addressing social and economic problems."}, {"id": "sec1_q30", "section": 4, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A reformer argued that rapid industrial growth created wealth but also increased inequality and unsafe conditions.\n\nWhich conclusion best reflects this argument?", "choices": ["industrialization produced both economic benefits and serious social problems", "industrialization reduced the need for government action on social issues", "industrialization reduced the need for government regulation of the economy", "industrialization limited the growth of urban populations"], "correct_answer": "A", "explanation": "Industrialization expanded production and wealth while also worsening many social problems."}, {"id": "sec2_q27", "section": 4, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which group promoted reforms to address problems caused by industrialization and urbanization?", "choices": ["Progressives", "Federalists", "Loyalists", "Isolationists"], "correct_answer": "A", "explanation": "Progressives pushed for reforms in government, labor, and social welfare."}, {"id": "sec2_q28", "section": 4, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A business expanded rapidly by merging with competitors and controlling supply.\n\nWhat term best describes this process?", "choices": ["consolidation", "segregation", "migration", "monopolization"], "correct_answer": "A", "explanation": "Consolidation refers to combining businesses to increase control of an industry."}, {"id": "sec2_q31_text", "section": 4, "difficulty": "moderate", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from Jane Addams on settlement house work.", "stimulus_text": "“The good we secure for ourselves is precarious and uncertain until it is secured for all of us and incorporated into our common life.”", "question": "Which Progressive Era reform effort is best reflected in this excerpt?", "choices": ["providing social services and education in immigrant neighborhoods", "expanding U.S. naval power throughout the Caribbean region", "protecting factory owners from labor strikes and union organizing", "shielding manufacturers from federal oversight and Progressive Era regulation"], "correct_answer": "A", "explanation": "Jane Addams and other reformers used settlement houses to improve conditions for immigrants and the urban poor."}, {"id": "sec2_q32_text", "section": 4, "difficulty": "high", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from Upton Sinclair's The Jungle, 1906.", "stimulus_text": "“There would be meat stored in great piles in rooms; and the water from leaky roofs would drip over it...”", "question": "Public reaction to descriptions like this most directly increased support for which reform?", "choices": ["government regulation of food and drug safety", "expansion of overseas markets in Asia and Latin America", "reduction of voting rights in urban immigrant communities", "reduction of voting rights and limits on immigrant political participation"], "correct_answer": "A", "explanation": "Muckraking accounts of unsafe food production helped build support for federal regulation such as the Pure Food and Drug Act."}, {"id": "sec2_q01", "section": 4, "difficulty": "low", "stimulus_type": "image", "stimulus_path": "assets/sec2_maine_headline.png", "stimulus_caption": "Newspaper headline connected to the USS Maine and the Spanish-American War.", "question": "The headline above reflects reporting from the late 1800s.\n\nWhat effect did this type of reporting have on the United States?", "choices": ["it increased public support for war with Spain", "it encouraged immigration from European nations", "it reduced diplomatic tensions with foreign governments", "it reduced tensions with Spain and helped avoid any direct military conflict"], "correct_answer": "A", "explanation": "Sensational reporting about Cuba and the USS Maine helped build public support for war."}, {"id": "sec2_q02", "section": 4, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A newspaper published exaggerated stories about events in Cuba to influence public opinion in the United States.\n\nWhat was the most likely purpose of this reporting?", "choices": ["to increase support for military action against Spain", "to promote trade agreements with European nations", "to build economic partnerships and expand trade with European powers", "to reduce diplomatic tensions between foreign governments"], "correct_answer": "A", "explanation": "Yellow journalism aimed to shape public opinion and push the United States toward intervention."}, {"id": "sec2_q03", "section": 4, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which development most directly contributed to the outbreak of the Spanish-American War?", "choices": ["destruction of a U.S. battleship near Cuba", "expansion of railroads across the Midwest", "increased immigration into northern cities", "formation of labor unions in industrial areas"], "correct_answer": "A", "explanation": "The sinking of the USS Maine became a major trigger for war."}, {"id": "sec2_q04", "section": 4, "difficulty": "moderate", "stimulus_type": "image", "stimulus_path": "assets/sec2_big_stick_PC.png", "stimulus_caption": "Political cartoon representing Theodore Roosevelt's Big Stick diplomacy.", "question": "The cartoon above represents U.S. foreign policy in the early 1900s.\n\nWhich idea is best reflected in this image?", "choices": ["the United States used military strength to influence other nations", "the United States avoided all involvement in foreign conflicts", "the United States promoted equal trade agreements and avoided military pressure", "the United States promoted equal trade agreements with nations worldwide"], "correct_answer": "A", "explanation": "Big Stick diplomacy relied on the implied use of force to influence events abroad."}, {"id": "sec2_q05", "section": 4, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "The United States supported the construction of the Panama Canal to improve global trade.\n\nWhat was the main benefit of this canal?", "choices": ["it reduced travel time between the Atlantic and Pacific Oceans", "it increased immigration into the United States", "it expanded farmland in Central America", "it strengthened European colonial control of the most important global trade routes"], "correct_answer": "A", "explanation": "The canal created a shorter shipping route between the Atlantic and Pacific."}, {"id": "sec2_q11", "section": 4, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "The United States gained overseas territories following a war with Spain in 1898.\n\nWhich outcome resulted from this conflict?", "choices": ["the United States acquired territories in the Caribbean and Pacific", "the United States withdrew from international trade agreements", "the United States reduced its military presence abroad", "the United States granted independence to all territories immediately"], "correct_answer": "A", "explanation": "The Spanish-American War led to U.S. control of places such as Puerto Rico, Guam, and the Philippines."}, {"id": "sec2_q13", "section": 4, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A nation expanded its influence by gaining control of territories and increasing its presence in global trade.\n\nWhich policy does this situation best describe?", "choices": ["imperialism", "federalism", "nativism", "progressivism"], "correct_answer": "A", "explanation": "Imperialism involves extending a nation's power through territories and influence abroad."}, {"id": "sec2_q06", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which factor most influenced the United States to enter World War I?", "choices": ["attacks on American ships by German submarines", "competition with European nations for western land", "conflicts over labor conditions in urban factories", "disputes about voting rights during Reconstruction"], "correct_answer": "A", "explanation": "Unrestricted submarine warfare pushed the United States toward war."}, {"id": "sec2_q08", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "During World War I, the government used posters, speeches, and media campaigns to influence public opinion.\n\nWhat was the main purpose of these efforts?", "choices": ["to gain support for the war effort", "to increase industrial competition among manufacturers", "to encourage private businesses to expand wartime production capacity", "to expand domestic agricultural production for export"], "correct_answer": "A", "explanation": "Propaganda campaigns were used to win support for the war and home-front sacrifices."}, {"id": "sec2_q09", "section": 5, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which group experienced increased employment opportunities during World War I?", "choices": ["women entering industrial jobs", "farmers relocating to cities", "immigrants leaving the United States", "business owners moving overseas"], "correct_answer": "A", "explanation": "World War I opened more industrial jobs to women."}, {"id": "sec2_q14", "section": 5, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Many Americans later criticized the peace settlement after World War I because they believed it created resentment and instability in Europe.\n\nWhich agreement was at the center of that criticism?", "choices": ["the Treaty of Versailles", "the Treaty of Paris", "the Open Door Policy", "the Roosevelt Corollary"], "correct_answer": "A", "explanation": "The Treaty of Versailles ended World War I and was often blamed for creating future instability."}, {"id": "sec2_q26", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "During World War I, industries increased production to support military needs.\n\nWhich result followed from this change?", "choices": ["economic growth and job opportunities expanded significantly", "agricultural production declined as rural workers left for cities", "agricultural production declined sharply as farm workers left for industrial jobs", "foreign trade was sharply reduced or eliminated entirely"], "correct_answer": "A", "explanation": "War production increased industrial output and created employment opportunities."}, {"id": "sec2_q30", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "Which effect resulted from World War I on American society?", "choices": ["women expanded their participation in the industrial workforce", "industrial production declined as factories suspended wartime operations", "industrial production decreased nationwide and factories were forced to close", "agricultural output stopped entirely due to labor shortages"], "correct_answer": "A", "explanation": "World War I increased job opportunities for women in many sectors."}, {"id": "sec3_q32_text", "section": 5, "difficulty": "high", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from Woodrow Wilson's war message to Congress, 1917.", "stimulus_text": "“The world must be made safe for democracy.”", "question": "Wilson used this argument most directly to justify which action?", "choices": ["U.S. entry into World War I against Germany", "U.S. acquisition of the Philippines after the Spanish-American War", "U.S. refusal to join postwar peace negotiations", "U.S. support for immigration restrictions in the 1920s"], "correct_answer": "A", "explanation": "Wilson framed U.S. entry into World War I as a defense of democratic principles."}, {"id": "sec2_q12", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "After World War I, many Americans opposed joining alliances that might pull the United States into future wars overseas.\n\nWhich position did this view most strongly reflect?", "choices": ["isolationism", "imperialism", "progressivism", "collective security"], "correct_answer": "A", "explanation": "Isolationists wanted to avoid commitments that could drag the United States into new foreign wars."}, {"id": "sec2_q15", "section": 6, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "After World War I, many Americans opposed joining international organizations that might involve the United States in future conflicts.\n\nWhich position does this view reflect?", "choices": ["isolationism", "containment", "expansionism", "interventionism"], "correct_answer": "A", "explanation": "This reflects a desire to avoid entanglement in future foreign conflicts."}, {"id": "sec2_q16", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "In the 1920s, many Americans purchased goods using credit instead of cash.\n\nHow did this practice contribute to later economic problems?", "choices": ["it increased debt levels when incomes declined", "it reduced the number of available consumer goods", "it limited industrial production across the country", "it decreased trade between nations"], "correct_answer": "A", "explanation": "Heavy reliance on credit left many consumers vulnerable during economic downturns."}, {"id": "sec2_q17", "section": 6, "difficulty": "low", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A historian described the 1920s as a decade transformed by mass production, consumer credit, and new patterns of daily life.\n\nWhich industry best symbolized those changes?", "choices": ["automobile manufacturing", "cotton sharecropping", "small-scale blacksmithing", "subsistence farming"], "correct_answer": "A", "explanation": "The automobile industry symbolized mass production and consumer culture in the 1920s."}, {"id": "sec2_q29", "section": 6, "difficulty": "high", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "question": "A historian argued that economic growth in the 1920s hid deeper weaknesses in the economy.\n\nWhich evidence best supports this claim?", "choices": ["heavy reliance on credit and risky stock investments", "stable wages and steady consumer spending across all industries", "limited industrial expansion and slower growth in key manufacturing sectors", "reduced dependence on international trade and foreign investment"], "correct_answer": "A", "explanation": "Credit use and stock speculation made the economy more fragile than it appeared."}, {"id": "sec3_q31_text", "section": 6, "difficulty": "moderate", "stimulus_type": "text", "stimulus_path": "", "stimulus_caption": "Excerpt adapted from Theodore Roosevelt, 1901.", "stimulus_text": "“Speak softly and carry a big stick; you will go far.”", "question": "Which foreign policy approach is most clearly reflected in this statement?", "choices": ["using the threat of force to support U.S. influence abroad", "avoiding international involvement whenever possible", "avoiding all international involvement whenever possible and refusing to engage abroad", "granting immediate independence to all territories"], "correct_answer": "A", "explanation": "Roosevelt's phrase became associated with Big Stick diplomacy, which relied on military strength to back U.S. policy."}, {"id": "s5_new_q01", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "Which event most directly pushed the United States toward entering World War I in 1917?", "choices": ["Germany's offer to help Mexico reclaim U.S. territory", "Britain's naval blockade of American shipping lanes in the Atlantic Ocean", "France's request for immediate military and financial support", "Austria-Hungary's declaration of war on Russia and the Balkans"], "correct_answer": "A", "explanation": "The Zimmermann Telegram — in which Germany secretly proposed a military alliance with Mexico against the U.S. — outraged Americans and accelerated the decision to enter the war."}, {"id": "s5_new_q02", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "The Selective Service Act of 1917 required eligible men to register for military service.\n\nWhat does this law most directly show about the U.S. government's approach to World War I?", "choices": ["The government organized the war effort on a national scale", "The government depended entirely on local volunteer recruitment drives in each state", "The government reduced the size of the standing peacetime army", "The government opposed direct military involvement in the European conflict"], "correct_answer": "A", "explanation": "The Selective Service Act showed that the federal government took an active, centralized role in mobilizing the nation for war rather than relying on volunteers alone."}, {"id": "s5_new_q03", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During World War I, Congress passed laws making it illegal to criticize the war or the military.\n\nWhich principle did critics argue these laws violated?", "choices": ["freedom of speech", "the right to a trial by jury", "the right to bear arms", "freedom from unreasonable searches"], "correct_answer": "A", "explanation": "The Espionage Act (1917) and Sedition Act (1918) criminalized anti-war speech. Critics argued these laws unconstitutionally restricted First Amendment freedoms."}, {"id": "s5_new_q04", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During World War I, large numbers of African Americans moved from the South to northern industrial cities.\n\nWhich factor most directly drove this migration?", "choices": ["wartime factory jobs created new economic opportunities in the North", "the federal government mandated relocation to support war production", "southern states passed laws actively encouraging residents to leave", "northern cities offered guaranteed farmland and housing subsidies to attract new workers from the South"], "correct_answer": "A", "explanation": "The wartime labor shortage in northern factories — combined with continued racial violence in the South — created powerful economic incentives for African Americans to migrate north during the Great Migration."}, {"id": "s5_new_q05", "section": 5, "difficulty": "hard", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "President Wilson's Fourteen Points proposed creating an international organization to prevent future wars.\n\nWhat was this organization called?", "choices": ["the League of Nations", "the United Nations", "the Allied Powers Council", "the World Peace Commission"], "correct_answer": "A", "explanation": "Wilson's Fourteen Points called for the creation of the League of Nations — an international body meant to resolve disputes peacefully and prevent another global war."}, {"id": "s5_new_q06", "section": 5, "difficulty": "hard", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "After World War I, the U.S. Senate refused to ratify the Treaty of Versailles.\n\nWhat was the main reason for this rejection?", "choices": ["concerns that the League of Nations would limit U.S. independence in foreign policy", "opposition to the reparations and financial penalties placed on the Allied nations after the war", "disagreement over which European nations would receive new territory under the peace settlement", "belief that Germany had been treated too leniently given its responsibility for starting the war"], "correct_answer": "A", "explanation": "Senate opponents — led by Henry Cabot Lodge — argued that membership in the League of Nations would compromise U.S. sovereignty by committing the nation to collective military action without Congressional approval."}, {"id": "s5_new_q07", "section": 5, "difficulty": "easy", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "On the home front during World War I, the government asked Americans to buy Liberty Bonds and conserve food.\n\nWhat was the main purpose of these efforts?", "choices": ["to fund the war and maintain supplies for troops", "to reduce immigration during wartime", "to prepare civilians for a possible invasion", "to increase agricultural exports to neutral nations"], "correct_answer": "A", "explanation": "Liberty Bonds raised money to finance the war, while food conservation programs like 'Wheatless Wednesdays' ensured enough supplies reached American soldiers overseas."}, {"id": "s5_new_q08", "section": 5, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "Which of the following best describes a major underlying cause of World War I in Europe?", "choices": ["a system of rival alliances that turned a local conflict into a continental war", "a trade dispute between the United States and Germany over Atlantic naval shipping routes", "a series of democratic revolutions that overthrew long-established European monarchies", "intensifying competition between France and Britain over control of territory in West Africa and the Middle East"], "correct_answer": "A", "explanation": "The alliance system — Triple Alliance vs. Triple Entente — meant that the assassination of Archduke Franz Ferdinand triggered a chain reaction of declarations of war that rapidly drew most of Europe into conflict."}, {"id": "s6_new_q01", "section": 6, "difficulty": "easy", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "The Eighteenth Amendment banned the manufacture and sale of alcohol in the United States.\n\nWhat term describes this policy?", "choices": ["Prohibition", "Suffrage", "Imperialism", "Isolationism"], "correct_answer": "A", "explanation": "Prohibition, established by the 18th Amendment (1919) and enforced by the Volstead Act, banned the production and sale of alcohol — though widespread violations led to its eventual repeal in 1933."}, {"id": "s6_new_q02", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During the 1920s, African American artists, writers, and musicians created a cultural movement centered in New York City.\n\nWhat was this movement called?", "choices": ["the Harlem Renaissance", "the Progressive Movement", "the Great Awakening", "the Populist Revival"], "correct_answer": "A", "explanation": "The Harlem Renaissance was a flowering of African American art, literature, jazz, and intellectual life centered in Harlem, New York — asserting a new sense of Black identity and cultural pride."}, {"id": "s6_new_q03", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "The Immigration Act of 1924 set strict limits on the number of immigrants entering the United States.\n\nWhich belief most strongly influenced this legislation?", "choices": ["nativism — the idea that native-born Americans were superior to immigrants", "progressivism — the belief that government should protect immigrants' rights", "isolationism — opposition to all foreign economic relationships", "imperialism — the desire to expand American influence overseas"], "correct_answer": "A", "explanation": "Nativist fears that immigrants from southern and eastern Europe were racially or culturally inferior drove the Immigration Act of 1924, which used national-origin quotas to sharply reduce immigration from those regions."}, {"id": "s6_new_q04", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "After World War I, fear of communism led to raids on labor unions and political organizations in the United States.\n\nWhat term describes this period of anti-communist anxiety?", "choices": ["the Red Scare", "the Great Depression", "the Panic of 1919", "the Progressive Backlash"], "correct_answer": "A", "explanation": "The first Red Scare (1919-1920) followed the Russian Revolution and a wave of labor strikes. Attorney General A. Mitchell Palmer ordered mass arrests of suspected radicals in the Palmer Raids."}, {"id": "s6_new_q05", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "The 1925 Scopes Trial put a Tennessee teacher on trial for teaching evolution in a public school.\n\nWhich broader tension in 1920s American society did this trial most clearly represent?", "choices": ["conflict between modern science and religious traditionalism", "disagreement over the United States joining the League of Nations", "tension between labor unions and industrial employers", "debate over women's suffrage and political participation"], "correct_answer": "A", "explanation": "The Scopes Trial reflected a deep cultural divide between modernists who accepted evolution and fundamentalist Christians who saw it as a threat to religious faith — a tension that defined much of 1920s social life."}, {"id": "s6_new_q06", "section": 6, "difficulty": "easy", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During the 1920s, new technologies like radio and film reached millions of Americans for the first time.\n\nWhat was the most significant result of this development?", "choices": ["a shared national popular culture emerged across regions", "regional dialects and local traditions became more distinct", "immigration from Europe increased significantly", "political participation among young voters declined"], "correct_answer": "A", "explanation": "Radio and film created a shared mass culture — spreading the same music, stories, and advertisements to Americans from coast to coast — and helping shape a unified national identity."}, {"id": "s6_new_q07", "section": 6, "difficulty": "hard", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During the 1920s, American factories produced more goods than consumers could afford to buy.\n\nHow did this overproduction contribute to the economic collapse of 1929?", "choices": ["it led to falling prices, reduced profits, and widespread business failures", "it caused critical shortages of the raw materials and natural resources needed to sustain manufacturing output", "it forced Congress to raise tariffs and impose new taxes on domestically produced industrial goods", "it resulted in a significant increase in immigration as companies recruited foreign workers to fill factory positions"], "correct_answer": "A", "explanation": "When factories produced more than consumers could purchase — especially as credit dried up — prices fell, profits collapsed, businesses closed, and unemployment surged, contributing to the Great Depression."}, {"id": "s6_new_q08", "section": 6, "difficulty": "moderate", "stimulus_type": "none", "stimulus_path": "", "stimulus_caption": "", "stimulus_text": "", "question": "During the 1920s, the Ku Klux Klan experienced a major revival, expanding its membership to millions.\n\nWhich groups did the revived Klan target?", "choices": ["African Americans, immigrants, Catholics, and Jews", "industrialists, railroad owners, and political machines", "labor union leaders and socialist organizers", "Progressive Era reformers and settlement house workers"], "correct_answer": "A", "explanation": "The revived Klan of the 1920s broadened its targets beyond African Americans to include Catholic immigrants, Jews, and anyone seen as threatening the nativist ideal of a white, Protestant America."}];
+
+var G = null;
+var _loginTeacher = null, _loginPeriod = null;
+var _lbAllData = [], _lbPeriod = 'all', _lbDeleteUnlocked = false;
+var _secIdx = 0;
+var _secQuestions = [];
+var _qIdx = 0;
+var _qAnswered = false;
+var _secScores = [0,0,0,0,0,0];
+var _shuffledChoices = [];
+var _correctChoiceIdx = -1;
+
+function svgMedallion(bg,ring,faceHtml,size){
+  size=size||44;
+  return '<svg viewBox="0 0 40 40" width="'+size+'" height="'+size+'" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:50%;overflow:visible"><circle cx="20" cy="20" r="19.5" fill="'+ring+'"/><circle cx="20" cy="20" r="17.5" fill="'+darkenRing(ring)+'"/><circle cx="20" cy="20" r="15.5" fill="'+bg+'"/>'+faceHtml+'<circle cx="20" cy="20" r="15.5" fill="none" stroke="'+ring+'" stroke-width=".35" opacity=".5"/></svg>';
+}
+function darkenRing(c){var m={'#c9a84c':'#a8863a','#208878':'#156658','#7a2010':'#4a1008','#2a4a8a':'#1a3060','#6a4a20':'#4a3010','#c07818':'#905010'};return m[c]||'#0a0808';}
+function makeFace(skin,eyes,hair,outfit,extras){extras=extras||'';return '<circle cx="20" cy="17" r="6" fill="'+skin+'"/><ellipse cx="20" cy="26" rx="8.5" ry="5.5" fill="'+outfit+'"/><rect x="13" y="21" width="14" height="8" fill="'+outfit+'"/><ellipse cx="17.5" cy="16" rx="1.1" ry="1.4" fill="'+eyes+'"/><ellipse cx="22.5" cy="16" rx="1.1" ry="1.4" fill="'+eyes+'"/>'+hair+extras;}
+function hairShort(c,y){y=y||12;return '<ellipse cx="20" cy="'+y+'" rx="6" ry="3.5" fill="'+c+'"/>';}
+function hairBun(c){return '<ellipse cx="20" cy="11.5" rx="5.5" ry="3" fill="'+c+'"/><circle cx="20" cy="9.5" r="2.5" fill="'+c+'"/>';}
+function hairLong(c){return '<ellipse cx="20" cy="11" rx="6" ry="4" fill="'+c+'"/><path d="M14 14 Q12 20 14 25" fill="none" stroke="'+c+'" stroke-width="2.5"/><path d="M26 14 Q28 20 26 25" fill="none" stroke="'+c+'" stroke-width="2.5"/>';}
+function hairAfro(c){return '<ellipse cx="20" cy="10" rx="8" ry="6" fill="'+c+'"/>';}
+function hairStraightLong(c){return '<ellipse cx="20" cy="11" rx="6.5" ry="4" fill="'+c+'"/><path d="M13.5 14 Q12 22 13.5 27" fill="none" stroke="'+c+'" stroke-width="3"/><path d="M26.5 14 Q28 22 26.5 27" fill="none" stroke="'+c+'" stroke-width="3"/>';}
+function makeBeard(c,o){o=o||1;return '<path d="M15 20 Q16 24 20 25 Q24 24 25 20" fill="'+c+'" opacity="'+o+'"/>';}
+function hatTop(c){return '<rect x="15" y="5.5" width="10" height="9" rx=".8" fill="'+c+'"/><rect x="12" y="14" width="16" height="2" rx=".5" fill="'+c+'"/>';}
+function hatMilitary(c){return '<ellipse cx="20" cy="12" rx="6.5" ry="3.5" fill="'+c+'"/><rect x="16" y="8" width="8" height="4.5" rx=".5" fill="'+c+'"/>';}
+function hatCowboy(c){return '<ellipse cx="20" cy="12.5" rx="6" ry="3.2" fill="'+c+'"/><rect x="16" y="9" width="8" height="4" rx=".5" fill="'+c+'"/><path d="M13 13 Q12 15 14 16" fill="none" stroke="'+c+'" stroke-width="2"/><path d="M27 13 Q28 15 26 16" fill="none" stroke="'+c+'" stroke-width="2"/>';}
+function detailBook(){return '<rect x="22" y="19" width="5" height="7" rx=".5" fill="#f5ead8" opacity=".8"/>';}
+
+var MIDTERM_AVATARS = {
+  scholar_f:      function(s){return svgMedallion('#0d1a2e','#c9a84c',makeFace('#f0c8a0','#1a1a1a',hairLong('#3a2010'),'#1a3060',detailBook()),s);},
+  activist_m:     function(s){return svgMedallion('#100808','#c9a84c',makeFace('#a06040','#1a1a1a',hairAfro('#1a0a0a'),'#3a0a0a',''),s);},
+  reporter_f:     function(s){return svgMedallion('#0a0c08','#c9a84c',makeFace('#8a5530','#0a0a0a',hairStraightLong('#2a1a0a'),'#1a2a1a',''),s);},
+  soldier_m:      function(s){return svgMedallion('#2a3a1a','#c9a84c',makeFace('#d4a870','#1a1a0a',hatMilitary('#556644'),'#3a4a2a',makeBeard('#a07040',.35)),s);},
+  pioneer_f:      function(s){return svgMedallion('#0c0a06','#c9a84c',makeFace('#c89870','#2a1a0a',hatCowboy('#8b4513'),'#5a3010',''),s);},
+  worker_m_asian: function(s){return svgMedallion('#080a0a','#c9a84c',makeFace('#d4b080','#1a0a00',hatMilitary('#555544'),'#1a1a1a',''),s);},
+  lincoln:        function(s){return svgMedallion('#0a0c18','#c9a84c',makeFace('#d4a870','#1a1a1a',hatTop('#1a1a1a'),'#00205b','<rect x="14" y="22" width="12" height="1.5" rx=".5" fill="#c9a84c"/>'),s);},
+  harriet_tubman: function(s){return svgMedallion('#080408','#c9a84c',makeFace('#5a2a10','#0a0a0a',hairShort('#2a1a0a',11),'#1a0808',''),s);},
+  fred_douglass:  function(s){return svgMedallion('#0a0808','#c9a84c',makeFace('#6a3820','#0a0a0a',hairAfro('#2a1a0a'),'#1a0808',makeBeard('#3a1a08',.6)),s);},
+  ida_wells:      function(s){return svgMedallion('#0a0c0a','#c9a84c',makeFace('#7a4520','#0a0a0a',hairBun('#1a0a0a'),'#0a1a0a',''),s);},
+  mlk:            function(s){return svgMedallion('#040810','#c9a84c',makeFace('#7a4020','#1a0a00',hairShort('#2a1a0a'),'#00205b','<rect x="14" y="22" width="12" height="1.5" rx=".5" fill="#c9a84c"/>'),s);},
+  rosa_parks:     function(s){return svgMedallion('#060810','#c9a84c',makeFace('#7a4828','#0a0a0a',hairBun('#1a1a1a'),'#1a0a0a',''),s);},
+  sojourner_truth:function(s){return svgMedallion('#060808','#c9a84c',makeFace('#6a3018','#0a0808',hairBun('#0a0808'),'#2a1a1a',''),s);},
+  cesar_chavez:   function(s){return svgMedallion('#060808','#c9a84c',makeFace('#b07040','#1a0a00',hairShort('#1a0808'),'#1a0a0a',''),s);}
+};
+
+function getPortraitSVG(id, size) {
+  size = size || 60;
+  var fn = MIDTERM_AVATARS[id] || MIDTERM_AVATARS['scholar_f'];
+  return fn(size);
+}
+
+var AVATAR_LIST = [
+  {id:'scholar_f',label:'Scholar'},{id:'activist_m',label:'Activist'},
+  {id:'reporter_f',label:'Reporter'},{id:'soldier_m',label:'Soldier'},
+  {id:'pioneer_f',label:'Pioneer'},{id:'worker_m_asian',label:'Worker'}
+];
+
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function getRank(s) {
+  if (s >= 8000) return 'Master Historian';
+  if (s >= 5000) return 'Senior Scholar';
+  if (s >= 3000) return 'Researcher';
+  if (s >= 1500) return 'Apprentice';
+  return 'Curious Citizen';
+}
+
+function notify(msg, type) {
+  var el = document.createElement('div');
+  el.className = 'notif' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3500);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function setActiveNav(n) {
+  document.querySelectorAll('.bn-btn').forEach(function(b, i) { b.classList.toggle('active', i === n); });
+}
+
+function saveGame() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch(e) {} }
+function loadGame() { try { var r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch(e) {} }
+
+function newGame(name, teacher, period, avatarId) {
+  return {
+    name: name, teacher: teacher, period: period, avatarId: avatarId || 'scholar_f',
+    score: 0, totalAnswers: 0, correctAnswers: 0,
+    checkpointCompleted: false, checkpointBestScore: null,
+    checkpointBestAccuracy: null, checkpointAttempts: 0,
+    _prevRunScores: null,
+    _sectionBest: [null,null,null,null,null,null],
+    _sectionUnlocked: [true,false,false,false,false,false]
+  };
+}
+
+function normalizeG() {
+  if (!G) return;
+  if (!G.score) G.score = 0;
+  if (!G.totalAnswers) G.totalAnswers = 0;
+  if (!G.correctAnswers) G.correctAnswers = 0;
+  if (!G.checkpointAttempts) G.checkpointAttempts = 0;
+  if (!G._sectionBest||G._sectionBest.length<6) G._sectionBest=[null,null,null,null,null,null];
+  if (!G._sectionUnlocked||G._sectionUnlocked.length<6) G._sectionUnlocked=[true,false,false,false,false,false];
+}
+
+function getShellProfile() {
+  try {
+    var raw = localStorage.getItem(SHELL_KEY);
+    if (!raw) return null;
+    var p = JSON.parse(raw);
+    if (p && p.name && p.name !== 'Guest') return p;  // setupDone not required — top-of-page redirect already blocks guests
+  } catch(e) {}
+  return null;
+}
+
+function notifyShellComplete() {
+  try {
+    var raw = localStorage.getItem(SHELL_KEY);
+    if (!raw) return;
+    var s = JSON.parse(raw);
+    if (!s.unitsCompleted) s.unitsCompleted = [];
+    if (s.unitsCompleted.indexOf(SHELL_UNIT_ID) === -1) s.unitsCompleted.push(SHELL_UNIT_ID);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(s));
+  } catch(e) {}
+}
+
+// ── UNIT TROPHY REVEAL ────────────────────────────────────
+function calcTier(acc){
+  if(acc===100)return{label:'Historian',color:'#e8d0ff',icon:'🏛️'};
+  if(acc>=90) return{label:'Gold',      color:'#ffd700',icon:'🥇'};
+  if(acc>=80) return{label:'Silver',    color:'#c8c8d8',icon:'🥈'};
+  if(acc>=70) return{label:'Bronze',    color:'#cd7f32',icon:'🥉'};
+  if(acc>=60) return{label:'Completed', color:'#38a050',icon:'✅'};
+  return           {label:'Try Again',  color:'#c02020',icon:'🔄'};
+}
+function showUnitTrophy(overallAcc) {
+  const tier = calcTier(overallAcc);
+  var name = (typeof G !== 'undefined' && G && G.name) ? G.name : (typeof P !== 'undefined' && P && P.name) ? P.name : 'Historian';
+  const passed = overallAcc >= 60;
+  const messages = {
+    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
+    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
+    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
+    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
+    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
+  };
+  const tierKey = tier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages.tryagain;
+  document.getElementById('utr-name').textContent = name;
+  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
+  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
+  document.getElementById('utr-trophy-name').style.color = tier.color;
+  document.getElementById('utr-msg').textContent = msg;
+  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
+  const btn = document.getElementById('utr-btn');
+  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
+  btn.style.borderColor = tier.color;
+  btn.style.color = tier.color;
+  document.getElementById('unit-trophy-overlay').classList.add('show');
+}
+function closeUnitTrophy() {
+  document.getElementById('unit-trophy-overlay').classList.remove('show');
+}
+function returnToShell() {
+  var stored = localStorage.getItem('ac_shell_return');
+  window.location.href = stored || SHELL_URL;
+}
+
+function showLoginGate() {
+  var sp = getShellProfile();
+  var saved = loadGame();
+  if (saved && G && G.name) { showWelcomeGate(G, sp || null); return; }
+  if (sp) { showWelcomeGate(null, sp); return; }
+  var cgo = document.getElementById('code-gate-overlay');
+  cgo.style.display = 'flex';
+  goToStep(1);
+}
+
+function showWelcomeGate(savedGame, shellProfile) {
+  var wg = document.getElementById('welcome-gate');
+  var name = savedGame ? savedGame.name : (shellProfile ? shellProfile.name : '');
+  var period = savedGame ? savedGame.period : (shellProfile ? shellProfile.period : '');
+  var avatarId = savedGame ? savedGame.avatarId : (shellProfile ? shellProfile.avatar || 'scholar_f' : 'scholar_f');
+  document.getElementById('wg-avatar').innerHTML = getPortraitSVG(avatarId, 60);
+  document.getElementById('wg-name').textContent = name || 'Unknown';
+  document.getElementById('wg-detail').textContent = (period && period !== '0') ? 'Mr. Olson - Period ' + period : 'Guest / Other';
+  var progress = 'No progress saved yet';
+  if (savedGame && savedGame.checkpointCompleted) {
+    progress = 'Checkpoint completed - Score: ' + (savedGame.checkpointBestScore || 0) + '/24';
+  } else if (savedGame) {
+    progress = 'In progress';
+  }
+  document.getElementById('wg-progress').textContent = progress;
+  wg._savedGame = savedGame;
+  wg._shellProfile = shellProfile;
+  wg.style.display = 'flex';
+}
+
+function welcomeContinue() {
+  var wg = document.getElementById('welcome-gate');
+  var saved = wg._savedGame;
+  var sp = wg._shellProfile;
+  wg.style.display = 'none';
+  if (saved) { G = saved; if (sp && sp.avatar) G.avatarId = sp.avatar || G.avatarId; saveGame(); }
+  else if (sp) { G = newGame(sp.name, 'olson', sp.period || '0', sp.avatar || 'scholar_f'); G.shellLinked = true; saveGame(); }
+  normalizeG();
+  afterLogin();
+}
+
+function welcomeNewPlayer() {
+  document.getElementById('welcome-gate').style.display = 'none';
+  clearSave(); G = null;
+  var cgo = document.getElementById('code-gate-overlay');
+  cgo.style.display = 'flex';
+  goToStep(1);
+}
+
+function goToStep(n) {
+  [1, 2, 3].forEach(function(i) {
+    document.getElementById('login-step-' + i).style.display = (i === n) ? 'block' : 'none';
+  });
+}
+
+function selectTeacher(t) {
+  _loginTeacher = t;
+  if (t === 'guest') {
+    _loginPeriod = '0';
+    goToStep(3);
+    document.getElementById('login-step3-label').textContent = "Enter your name. You'll appear on the Overall leaderboard only.";
+    return;
+  }
+  var teacher = TEACHERS[t];
+  var el = document.getElementById('period-buttons');
+  if (el && teacher) {
+    el.innerHTML = teacher.periods.map(function(p) {
+      return '<button class="btn sm" onclick="selectPeriod(\'' + p + '\')">' + p + '</button>';
+    }).join('');
+  }
+  goToStep(2);
+}
+
+function selectPeriod(p) {
+  _loginPeriod = p;
+  goToStep(3);
+  document.getElementById('login-step3-label').textContent = 'Mr. Olson - Period ' + p + '. Enter your name:';
+}
+
+function submitClassCode() {
+  var inp = document.getElementById('class-code-input');
+  var err = document.getElementById('code-error');
+  var name = (inp && inp.value.trim()) || '';
+  if (!name) { if (err) err.textContent = 'Please enter your name.'; return; }
+  G = newGame(name, _loginTeacher || 'guest', _loginPeriod || '0', 'scholar_f');
+  saveGame();
+  document.getElementById('code-gate-overlay').style.display = 'none';
+  if (inp) inp.value = '';
+  afterLogin();
+}
+
+function afterLogin() {
+  updateHUD();
+  document.getElementById('game-header').style.display = 'block';
+  document.getElementById('bottom-nav').classList.add('show');
+  var sp = getShellProfile();
+  if (sp || (G && G.shellLinked)) {
+    var rb = document.getElementById('shell-return-btn');
+    if (rb) rb.style.display = 'block';
+  }
+  renderHub();
+  showScreen('hub-screen');
+  setActiveNav(0);
+}
+
+function showTeacherDashboard() {
+  var pw = prompt('Enter teacher code:');
+  if (!pw) return;
+  var valid = false;
+  for (var k in TEACHERS) {
+    if (pw.toUpperCase() === TEACHERS[k].teacherCode.toUpperCase()) { valid = true; break; }
+  }
+  if (!valid) { alert('Incorrect code.'); return; }
+  document.getElementById('teacher-overlay').classList.add('show');
+  loadTeacherData();
+}
+
+function updateHUD() {
+  if (!G) return;
+  document.getElementById('hud-avatar-svg').innerHTML = getPortraitSVG(G.avatarId || 'scholar_f', 44);
+  document.getElementById('hud-name').textContent = G.name || '--';
+  document.getElementById('hud-rank').textContent = getRank(G.score || 0);
+  document.getElementById('hud-score').textContent = (G.score || 0).toLocaleString();
+}
+
+function renderHub() {
+  if (!G) return;
+  var bannerEl = document.getElementById('hub-banner-container');
+  if (bannerEl) {
+    bannerEl.innerHTML = '<div class="hub-banner"><div class="hub-avatar" id="hub-av"></div>' +
+      '<div style="flex:1"><div class="hub-player-name">' + G.name + '</div>' +
+      '<div class="hub-player-rank">' + getRank(G.score || 0) + (G.period && G.period !== '0' ? ' - Period ' + G.period : '') + '</div></div>' +
+      '<div style="text-align:right"><div style="font-family:var(--bebas);font-size:22px;color:var(--liberty)">' + (G.score || 0).toLocaleString() + '</div>' +
+      '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">POINTS</div></div></div>';
+    var avEl = document.getElementById('hub-av');
+    if (avEl) avEl.innerHTML = getPortraitSVG(G.avatarId || 'scholar_f', 60);
+  }
+  var listEl = document.getElementById('hub-sections-list');
+  if (listEl) {
+    var html = '<div style="font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:3px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border2)">SEMESTER 1 SECTIONS</div>';
+    html += SECTIONS.map(function(s) {
+      var i = s.num-1;
+      var sp=QUESTION_BANK.filter(function(q){return q.section===s.num;});
+      var st=Math.min(8,sp.length);
+      var best=G._sectionBest?G._sectionBest[i]:null;
+      var unlocked=G._sectionUnlocked?G._sectionUnlocked[i]:(i===0);
+      var passed=best!==null&&best>=Math.ceil(st*0.75);
+      var scoreStr=best!==null?best+'/'+st:'--';
+      var pc=best===null?'var(--text3)':passed?'var(--green2)':(best/st)>=0.5?'var(--gold)':'var(--red2)';
+      var bc=passed?'var(--green)':unlocked?'var(--border2)':'var(--border)';
+      var badge=!unlocked?'<span style="font-size:7px;font-family:var(--dm);color:var(--text3);border:1px solid var(--border);padding:2px 7px">&#128274; Locked</span>':
+        passed?'<span style="font-size:7px;font-family:var(--dm);color:var(--green2);border:1px solid var(--green);padding:2px 7px">&#10003; Passed</span>':
+        best!==null?'<span style="font-size:7px;font-family:var(--dm);color:var(--gold);border:1px solid var(--gold2);padding:2px 7px">Retake</span>':
+        '<span style="font-size:7px;font-family:var(--dm);color:var(--liberty);border:1px solid var(--liberty2);padding:2px 7px">&#9654; Start</span>';
+      var onclk=unlocked?' onclick="launchSection('+i+')"':'';
+      return '<div'+onclk+' style="background:var(--bg2);border:1px solid '+bc+';padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:'+(unlocked?'pointer':'default')+';opacity:'+(unlocked?1:0.5)+'">'+
+        '<div style="font-size:20px;flex-shrink:0;'+(!unlocked?'filter:grayscale(1)':'')+'">' + s.icon+'</div>'+
+        '<div style="flex:1"><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">SEC '+s.num+' - '+s.era+'</div>'+
+        '<div style="font-family:var(--playfair);font-size:13px;color:'+(unlocked?'var(--cream)':'var(--text3)')+'">'+s.title+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0"><div style="font-family:var(--bebas);font-size:16px;color:'+pc+'">'+scoreStr+'</div>'+badge+'</div></div>';
+    }).join('');
+html += '<div style="background:var(--bg2);border:1px dashed var(--border);padding:12px 14px;margin-top:8px;text-align:center">'+
+      '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px">SEMESTER 2 CHECKPOINT</div>'+
+      '<div style="font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;margin-top:3px">Coming after Units 9-17 - Great Depression through Modern America</div></div>';
+    listEl.innerHTML = html;
+  }
+  var lbl = document.getElementById('hub-start-label');
+  var hsbtn = document.getElementById('hub-start-btn');
+  if (lbl) {
+    var nextIdx=-1;
+    for (var ni=0;ni<SECTIONS.length;ni++) {
+      var np2=QUESTION_BANK.filter(function(q){return q.section===(ni+1);});
+      var nt2=Math.min(8,np2.length);
+      var nb2=G._sectionBest?G._sectionBest[ni]:null;
+      if (G._sectionUnlocked[ni]&&(nb2===null||nb2<Math.ceil(nt2*0.75))){nextIdx=ni;break;}
+    }
+    if (nextIdx>=0) {
+      lbl.textContent='Begin Section '+(nextIdx+1)+': '+SECTIONS[nextIdx].title+' ->';
+      if (hsbtn) hsbtn.onclick=function(){launchSection(nextIdx);};
+    } else {
+      lbl.textContent='All Sections Complete - Retake Any ->';
+      if (hsbtn) hsbtn.onclick=function(){launchSection(0);};
+    }
+  }
+  updateHUD();
+}
+
+function launchSection(idx) {
+  if (!G._sectionUnlocked[idx]) { notify('Complete the previous section with 75% first.','red'); return; }
+  _secIdx = idx;
+  _secScores[idx] = 0;
+  showSectionIntro(idx);
+}
+function launchCheckpoint() {
+  var start=0;
+  for (var i=0;i<SECTIONS.length;i++) { if (G._sectionUnlocked[i]&&G._sectionBest[i]===null){start=i;break;} }
+  launchSection(start);
+}
+
+function showSectionIntro(idx) {
+  if (!G._sectionUnlocked[idx]) {
+    notify('Complete ' + (idx>0?SECTIONS[idx-1].title:'the previous section') + ' with 75% to unlock this section.', 'red');
+    return;
+  }
+  _secIdx = idx;
+  var s = SECTIONS[idx];
+  var el = document.getElementById('section-intro-content');
+  if (el) {
+    el.innerHTML =
+      '<div style="text-align:center;margin-bottom:20px">' +
+        '<div style="font-size:52px;margin-bottom:10px">' + s.icon + '</div>' +
+        '<div class="era-badge" style="color:var(--gold);border-color:var(--gold2)">' + s.era.toUpperCase() + '</div>' +
+        '<div style="font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:4px;margin:6px 0">SECTION ' + s.num + ' OF 6</div>' +
+        '<div style="font-family:var(--bebas);font-size:28px;color:var(--parchment);letter-spacing:2px;margin-bottom:8px">' + s.title + '</div>' +
+      '</div>' +
+      '<div style="background:linear-gradient(135deg,rgba(74,159,212,0.06),rgba(74,159,212,0.02));border:1px solid var(--border2);border-left:3px solid var(--liberty);padding:16px 18px;margin-bottom:14px">' +
+        '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">WHAT YOU WILL BE ASSESSED ON</div>' +
+        '<div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">' + s.desc + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border:1px solid var(--border2);padding:12px 14px;margin-bottom:14px">' +
+        '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">STANDARDS</div>' +
+        '<div style="font-family:var(--dm);font-size:10px;color:var(--text2)">' + s.standards + '</div>' +
+      '</div>' +
+      (function(){
+        var pool=QUESTION_BANK.filter(function(q){return q.section===(idx+1);});
+        var stimCount=Math.min(2,pool.filter(function(q){return q.stimulus_type==='image'||q.stimulus_type==='text';}).length);
+        var nonCount=Math.min(6,pool.length-stimCount);
+        var totalQ=stimCount+nonCount;
+        var stimLabel=stimCount>0?stimCount+'+'+nonCount:''+totalQ;
+        var stimSub=stimCount>0?'STIM+KNOW':'QUESTIONS';
+        return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">' +
+          '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:20px;color:var(--gold)">'+totalQ+'</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">QUESTIONS</div></div>' +
+          '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:20px;color:var(--gold)">'+stimLabel+'</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">'+stimSub+'</div></div>' +
+        '</div>';
+      })();
+  }
+  showScreen('section-intro-screen');
+  window.scrollTo(0, 0);
+}
+
+function startSection() {
+  var pool = QUESTION_BANK.filter(function(q) { return q.section === (_secIdx + 1); });
+  var stimPool = shuffle(pool.filter(function(q) { return q.stimulus_type === 'image' || q.stimulus_type === 'text'; }));
+  var nonPool  = shuffle(pool.filter(function(q) { return q.stimulus_type === 'none'; }));
+  var stimCount = Math.min(2, stimPool.length);
+  var totalTarget = Math.min(8, pool.length);
+  var picked = stimPool.slice(0, stimCount).concat(nonPool.slice(0, totalTarget - stimCount));
+  _secQuestions = shuffle(picked);
+  _qIdx = 0;
+  _qAnswered = false;
+  renderQuestion();
+  showScreen('question-screen');
+  window.scrollTo(0, 0);
+}
+
+function renderQuestion() {
+  if (_qIdx >= _secQuestions.length) { finishSection(); return; }
+  var q = _secQuestions[_qIdx];
+  _qAnswered = false;
+
+  var pct = Math.round((_qIdx / _secQuestions.length) * 100);
+  document.getElementById('q-progress-fill').style.width = pct + '%';
+
+  var secName = 'Section ' + (_secIdx + 1) + ' - ' + SECTIONS[_secIdx].era;
+  var diffClass = 'diff-' + q.difficulty;
+  document.getElementById('q-meta').innerHTML =
+    '<span style="color:var(--text3)">' + secName + '</span> - Q' + (_qIdx + 1) + ' of ' + _secQuestions.length +
+    '<span class="diff-pill ' + diffClass + '">' + q.difficulty.toUpperCase() + '</span>';
+
+  var stimEl = document.getElementById('stimulus-container');
+  stimEl.innerHTML = '';
+  if (q.stimulus_type === 'image' && q.stimulus_path) {
+    stimEl.innerHTML =
+      '<div class="stimulus-block">' +
+        '<img class="stimulus-img" src="' + q.stimulus_path + '" alt="stimulus" onclick="openImgModal(\'' + q.stimulus_path + '\')">' +
+        (q.stimulus_caption ? '<div class="stimulus-caption">' + q.stimulus_caption + '</div>' : '') +
+      '</div>';
+  } else if (q.stimulus_type === 'text' && q.stimulus_text) {
+    stimEl.innerHTML =
+      '<div class="stimulus-block" style="padding:0">' +
+        '<div style="background:var(--bg3);border-left:3px solid var(--gold);padding:12px 16px 10px 16px;margin-bottom:2px">' +
+          '<div style="font-family:var(--dm);font-size:8px;color:var(--gold2);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">' +
+            (q.stimulus_caption || 'Primary Source') +
+          '</div>' +
+          '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream);line-height:1.75;font-style:italic">' +
+            q.stimulus_text +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  document.getElementById('q-text').textContent = q.question;
+
+  var letters = ['A', 'B', 'C', 'D'];
+  var correctText = q.choices[letters.indexOf(q.correct_answer)];
+  _shuffledChoices = shuffle(q.choices.slice());
+  _correctChoiceIdx = _shuffledChoices.indexOf(correctText);
+
+  var choicesEl = document.getElementById('q-choices');
+  choicesEl.innerHTML = _shuffledChoices.map(function(c, i) {
+    return '<button class="choice-btn" id="qc-' + i + '" onclick="selectChoice(' + i + ')" ' +
+      'style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.5">' +
+      '<span style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-right:8px">' + String.fromCharCode(65 + i) + '.</span>' +
+      c + '</button>';
+  }).join('');
+
+  document.getElementById('q-feedback').innerHTML = '';
+}
+
+function selectChoice(idx) {
+  if (_qAnswered) return;
+  _qAnswered = true;
+  var isCorrect = (idx === _correctChoiceIdx);
+  var q = _secQuestions[_qIdx];
+
+  for (var i = 0; i < _shuffledChoices.length; i++) {
+    var btn = document.getElementById('qc-' + i);
+    if (!btn) continue;
+    if (i === idx) {
+      btn.className = 'choice-btn ' + (isCorrect ? 'correct' : 'incorrect');
+    } else if (i === _correctChoiceIdx) {
+      btn.className = 'choice-btn correct';
+    }
+    btn.onclick = null;
+  }
+
+  G.totalAnswers = (G.totalAnswers || 0) + 1;
+  if (isCorrect) {
+    _secScores[_secIdx]++;
+    G.correctAnswers = (G.correctAnswers || 0) + 1;
+    G.score = (G.score || 0) + 100;
+    notify('+100 pts', 'green');
+  } else {
+    notify('Incorrect - see explanation', 'red');
+  }
+
+  var verdictClass = isCorrect ? 'correct' : 'incorrect';
+  var verdictText = isCorrect ? 'CORRECT - Good Thinking' : 'INCORRECT - Here is Why';
+  var fb = document.getElementById('q-feedback');
+  fb.innerHTML =
+    '<div class="feedback-panel show ' + verdictClass + '" style="margin-top:10px">' +
+      '<div class="feedback-verdict ' + verdictClass + '">' + verdictText + '</div>' +
+      '<div class="feedback-text">' + q.explanation + '</div>' +
+      '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);border-top:1px solid var(--border);padding-top:8px;margin-top:8px">' +
+        '<span style="display:inline-block;font-family:var(--dm);font-size:8px;color:var(--text3);border:1px solid var(--border2);padding:2px 6px;margin:2px;border-radius:2px">' +
+        SECTIONS[_secIdx].standards.split(',')[0].trim() + '</span> Standards alignment</div>' +
+    '</div>' +
+    '<button onclick="nextQuestion()" class="btn full gold" style="margin-top:10px"><span>' +
+      (_qIdx + 1 < _secQuestions.length ? 'Next Question ->' : 'Finish Section ->') +
+    '</span></button>';
+  fb.scrollIntoView({behavior:'smooth', block:'nearest'});
+  saveGame();
+  updateHUD();
+}
+
+function nextQuestion() { _qIdx++; renderQuestion(); }
+
+function finishSection() {
+  var score = _secScores[_secIdx];
+  var secPool = QUESTION_BANK.filter(function(q){return q.section===(_secIdx+1);});
+  var secTotal = Math.min(8, secPool.length);
+  var acc = secTotal>0 ? Math.round((score/secTotal)*100) : 0;
+  var passed = score >= Math.ceil(secTotal*0.75);
+  if (G._sectionBest[_secIdx]===null || score>G._sectionBest[_secIdx]) G._sectionBest[_secIdx]=score;
+  if (passed && _secIdx+1<SECTIONS.length) G._sectionUnlocked[_secIdx+1]=true;
+  saveGame();
+  var secData = SECTIONS[_secIdx];
+  var tierColor = passed ? 'var(--green2)' : acc>=50 ? 'var(--gold)' : 'var(--red2)';
+  var tierMsg = passed ? 'Section passed! Next section unlocked.' :
+                acc>=50 ? 'Almost there - score 75% to unlock the next section.' :
+                'Below target - review this section carefully before retrying.';
+  var el = document.getElementById('section-summary-content');
+  if (el) {
+    el.innerHTML =
+      '<div style="text-align:center;margin-bottom:16px">' +
+        '<div style="font-size:42px;margin-bottom:8px">' + secData.icon + '</div>' +
+        '<div class="era-badge" style="color:var(--gold);border-color:var(--gold2)">SECTION ' + secData.num + ' COMPLETE</div>' +
+        '<div style="font-family:var(--bebas);font-size:22px;color:var(--parchment);letter-spacing:2px;margin-top:8px">' + secData.title + '</div>' +
+      '</div>' +
+      '<div class="sec-complete-block">' +
+        '<div class="sec-score-grid">' +
+          '<div class="sec-score-cell"><div class="sec-score-val" style="color:' + tierColor + '">' + score + '/'+secTotal+'</div><div class="sec-score-lbl">CORRECT</div></div>' +
+          '<div class="sec-score-cell"><div class="sec-score-val">' + acc + '%</div><div class="sec-score-lbl">ACCURACY</div></div>' +
+          '<div class="sec-score-cell"><div class="sec-score-val" style="color:var(--gold)">' + (score * 100) + '</div><div class="sec-score-lbl">POINTS</div></div>' +
+        '</div>' +
+        '<div style="font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;text-align:center;padding:10px 0">' + tierMsg + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border:1px solid var(--border2);padding:14px 16px;margin-bottom:14px">' +
+        '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">PROGRESS SO FAR</div>' +
+        SECTIONS.map(function(s, i) {
+          var done = i <= _secIdx;
+          var sc = done ? _secScores[i] : null;
+          var sp=QUESTION_BANK.filter(function(q){return q.section===s.num;});
+          var st=Math.min(8,sp.length);
+          var unlk = G._sectionUnlocked[i];
+          var opacity = done ? 1 : (unlk ? 0.6 : 0.25);
+          var lockIcon = !unlk && !done ? ' &#128274;' : '';
+          return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;opacity:'+opacity+'">' +
+            '<span style="font-size:14px">' + s.icon + '</span>' +
+            '<div style="flex:1;font-family:var(--dm);font-size:9px;color:var(--text2)">' + s.title + lockIcon + '</div>' +
+            (done ? '<div style="font-family:var(--bebas);font-size:13px;color:var(--liberty)">' + sc + '/'+st+'</div>' :
+                    '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">--</div>') +
+          '</div>';
+        }).join('') +
+      '</div>';
+  }
+  var nextEl = document.getElementById('section-summary-next-btn');
+  if (nextEl) {
+    var btnH = '';
+    if (!passed) {
+      btnH += '<div style="background:rgba(224,64,64,0.08);border:1px solid var(--red2);padding:10px 14px;margin-bottom:10px;font-family:var(--dm);font-size:11px;color:var(--red2)">Score '+Math.ceil(secTotal*0.75)+'/'+secTotal+' (75%) to unlock the next section.</div>';
+      btnH += '<button class="btn full" style="font-size:14px;padding:14px;margin-bottom:8px" onclick="launchSection('+_secIdx+')"><span>&#8635; Retry This Section</span></button>';
+    }
+    btnH += '<button class="btn full gold" style="font-size:15px;padding:15px;margin-bottom:8px" onclick="renderHub();showScreen(\'hub-screen\');setActiveNav(0);"><span>&#8592; Back to Sections</span></button>';
+    if (_secIdx === SECTIONS.length-1) {
+      btnH += '<button class="btn full" onclick="showFinalResults()" style="margin-top:4px;border-color:var(--liberty2);color:var(--liberty2)"><span>&#128203; View Final Results</span></button>';
+    }
+    nextEl.innerHTML = btnH;
+  }
+  showScreen('section-summary-screen');
+  window.scrollTo(0, 0);
+}
+
+function showFinalResults() {
+  var total = _secScores.reduce(function(a,b){return a+b;},0);
+  var maxPoss = SECTIONS.reduce(function(a,s){var p=QUESTION_BANK.filter(function(q){return q.section===s.num;});return a+Math.min(8,p.length);},0);
+  var acc = maxPoss>0 ? Math.round((total/maxPoss)*100) : 0;
+  var tier, tierColor, tierBg, tierDesc;
+  var eocLevel, eocLevelColor, eocLevelDesc;
+  if (total >= 22) {
+    tier = 'Above EOC Expectations'; tierColor = 'var(--green2)'; tierBg = 'rgba(56,160,80,0.06)';
+    tierDesc = 'Strong command of Semester 1 content through the Roaring Twenties. Well-positioned heading into the second half of the course.';
+    eocLevel = 5; eocLevelColor = 'var(--green2)'; eocLevelDesc = 'Mastery';
+  } else if (total >= 19) {
+    tier = 'Above EOC Expectations'; tierColor = 'var(--green2)'; tierBg = 'rgba(56,160,80,0.06)';
+    tierDesc = 'Strong command of Semester 1 content through the Roaring Twenties. Well-positioned heading into the second half of the course.';
+    eocLevel = 4; eocLevelColor = '#7ec8f0'; eocLevelDesc = 'Strong';
+  } else if (total >= 16) {
+    tier = 'Approaching EOC Expectations'; tierColor = 'var(--gold)'; tierBg = 'rgba(212,160,23,0.06)';
+    tierDesc = 'Solid foundational understanding with some gaps. Review missed sections before Unit Arc 4.';
+    eocLevel = 3; eocLevelColor = 'var(--gold)'; eocLevelDesc = 'Passing';
+  } else if (total >= 13) {
+    tier = 'Approaching EOC Expectations'; tierColor = 'var(--gold)'; tierBg = 'rgba(212,160,23,0.06)';
+    tierDesc = 'Solid foundational understanding with some gaps. Review missed sections before Unit Arc 4.';
+    eocLevel = 2; eocLevelColor = '#e07040'; eocLevelDesc = 'Below Standard';
+  } else {
+    tier = 'Below EOC Expectations'; tierColor = 'var(--red2)'; tierBg = 'rgba(224,64,64,0.06)';
+    tierDesc = 'Key content from Unit Arcs 1-3 needs review. Focus on Reconstruction, industrialization, and America\'s rise to global power.';
+    eocLevel = 1; eocLevelColor = 'var(--red2)'; eocLevelDesc = 'Needs Improvement';
+  }
+  G.checkpointAttempts = (G.checkpointAttempts || 0) + 1;
+  if (!G.checkpointBestScore || total > G.checkpointBestScore) { G.checkpointBestScore = total; G.checkpointBestLevel = eocLevel; }
+  if (!G.checkpointBestAccuracy || acc > G.checkpointBestAccuracy) G.checkpointBestAccuracy = acc;
+  G.checkpointCompleted = true;
+  G._prevRunScores = _secScores.slice();
+  G._sectionBest = _secScores.slice();
+  saveGame();
+  notifyShellComplete();
+  pushACResult();
+  // Show unit trophy reveal
+  var finalAcc = G.checkpointBestAccuracy || 0;
+  setTimeout(function(){ showUnitTrophy(finalAcc); }, 1200);
+
+  var el = document.getElementById('final-results-content');
+  if (el) {
+    el.innerHTML =
+      '<div style="text-align:center;margin-bottom:20px">' +
+        '<div class="era-badge" style="color:var(--gold);border-color:var(--gold2)">ASSESSMENT COMPLETE</div>' +
+        '<div style="font-family:var(--bebas);font-size:30px;color:var(--parchment);letter-spacing:3px;margin:8px 0">MIDTERM EOC<br>CHECKPOINT</div>' +
+        '<div class="deco-divider"><span class="deco-divider-icon">&#128203;</span></div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px;text-align:center">' +
+        '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">TOTAL SCORE &mdash; MIDTERM</div>' +
+        '<div style="font-family:var(--bebas);font-size:52px;color:var(--liberty);letter-spacing:2px;line-height:1">' + total + ' <span style="font-size:28px;color:var(--text3)">/ 24</span></div>' +
+        '<div style="font-family:var(--dm);font-size:13px;color:var(--text2);margin-top:4px">' + acc + '% Overall Accuracy</div>' +
+      '</div>' +
+      '<div class="tier-block" style="background:' + tierBg + ';border-color:' + tierColor + '">' +
+        '<div class="tier-label" style="color:' + tierColor + '">' + tier + '</div>' +
+        '<div class="tier-desc" style="color:var(--text2)">' + tierDesc + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border:2px solid ' + eocLevelColor + ';padding:18px 20px;margin-bottom:14px;text-align:center">' +
+        '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">EOC PERFORMANCE LEVEL</div>' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:16px">' +
+          '<div style="font-family:var(--bebas);font-size:64px;color:' + eocLevelColor + ';line-height:1">' + eocLevel + '</div>' +
+          '<div style="text-align:left">' +
+            '<div style="font-family:var(--bebas);font-size:22px;color:' + eocLevelColor + ';letter-spacing:2px">' + eocLevelDesc + '</div>' +
+            '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">Level ' + eocLevel + ' of 5 &bull; Semester 1 Midterm</div>' +
+            '<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:8px;width:160px">' +
+              '<div style="height:100%;width:' + Math.round((eocLevel/5)*100) + '%;background:' + eocLevelColor + ';border-radius:2px"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:10px">22-24 &rarr; Lv 5 &bull; 19-21 &rarr; Lv 4 &bull; 16-18 &rarr; Lv 3 &bull; 13-15 &rarr; Lv 2 &bull; 0-12 &rarr; Lv 1</div>' +
+      '</div>' +
+      '<div style="margin-bottom:14px">' +
+        '<div style="font-family:var(--bebas);font-size:13px;color:var(--text3);letter-spacing:2px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border2)">SECTION BREAKDOWN</div>' +
+        SECTIONS.map(function(s) {
+          var si=s.num-1;
+          var sp=QUESTION_BANK.filter(function(q){return q.section===s.num;});
+          var st=Math.min(8,sp.length);
+          var sc=_secScores[si]||0;
+          var p=st>0?Math.round((sc/st)*100):0;
+          var c=p>=75?'var(--green2)':p>=50?'var(--gold)':'var(--red2)';
+          var notTaken=G._sectionBest&&G._sectionBest[si]===null&&sc===0;
+          return '<div class="final-section-row">' +
+            '<div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:2px">SECTION '+s.num+' - '+s.era+'</div>' +
+            '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream)">'+s.title+'</div>' +
+            '<div style="height:3px;background:rgba(255,255,255,0.04);margin-top:6px;width:140px;border-radius:2px">' +
+              '<div style="height:100%;width:'+p+'%;background:'+c+';border-radius:2px"></div></div></div>' +
+            '<div style="text-align:right"><div style="font-family:var(--bebas);font-size:22px;color:'+c+'">'+(notTaken?'--':sc+'<span style="font-size:13px;color:var(--text3)">/'+st+'</span>')+'</div>' +
+            '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">'+( notTaken?'Not taken':p+'%')+'</div></div></div>';
+        }).join('')+
+      '</div>' +
+      '<div style="background:var(--bg2);border:1px solid var(--border2);padding:14px 16px;margin-bottom:16px">' +
+        '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR BEST ATTEMPT</div>' +
+        '<div style="display:flex;gap:12px">' +
+          '<div style="text-align:center;flex:1"><div style="font-family:var(--bebas);font-size:20px;color:var(--liberty)">' + (G.checkpointBestScore || 0) + '/24</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">BEST SCORE</div></div>' +
+          '<div style="text-align:center;flex:1"><div style="font-family:var(--bebas);font-size:20px;color:var(--liberty)">' + (G.checkpointBestAccuracy || 0) + '%</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">BEST ACCURACY</div></div>' +
+          '<div style="text-align:center;flex:1"><div style="font-family:var(--bebas);font-size:20px;color:var(--liberty)">' + (G.checkpointAttempts || 1) + '</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">ATTEMPTS</div></div>' +
+          '<div style="text-align:center;flex:1"><div style="font-family:var(--bebas);font-size:20px;color:var(--liberty)">Lv ' + (G.checkpointBestLevel || 1) + '</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px">BEST LEVEL</div></div>' +
+        '</div></div>' +
+      '<button class="btn full gold" style="font-size:15px;padding:15px;margin-bottom:8px" onclick="launchCheckpoint()"><span>Retake Checkpoint -></span></button>' +
+      '<button class="btn full" onclick="returnToShell()" style="border-color:var(--border2);color:var(--text2);font-size:11px;margin-bottom:8px"><span>&larr; Return to Hub</span></button>' +
+      '<button class="btn full" onclick="printCertificate()" style="border-color:var(--parchment2);color:var(--parchment2);font-size:11px"><span>Print Certificate</span></button>' +
+      '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:14px;font-style:italic;text-align:center">Semester 1 Midterm Checkpoint - Unit Arcs 1-3 (1860-1929). Not an official Florida EOC score.</div>';
+  }
+  renderHub();
+  showScreen('final-screen');
+  window.scrollTo(0, 0);
+  updateHUD();
+}
+
+function openImgModal(src) {
+  document.getElementById('img-modal-src').src = src;
+  document.getElementById('img-modal').classList.add('show');
+}
+function closeImgModal() { document.getElementById('img-modal').classList.remove('show'); }
+
+function printCertificate() {
+  if (!G) return;
+  var total = G._prevRunScores ? G._prevRunScores[0] + G._prevRunScores[1] + G._prevRunScores[2] : (G.checkpointBestScore || 0);
+  var acc = G.checkpointBestAccuracy || 0;
+  var certLevel = G.checkpointBestLevel || (total >= 22 ? 5 : total >= 19 ? 4 : total >= 16 ? 3 : total >= 13 ? 2 : 1);
+  var certLevelDesc = certLevel === 5 ? 'Mastery' : certLevel === 4 ? 'Strong' : certLevel === 3 ? 'Passing' : certLevel === 2 ? 'Below Standard' : 'Needs Improvement';
+  var certLevelColor = certLevel >= 4 ? '#38a050' : certLevel === 3 ? '#d4a017' : certLevel === 2 ? '#e07040' : '#e04040';
+  var tier = certLevel >= 4 ? 'Above EOC Expectations' : certLevel >= 3 ? 'Approaching EOC Expectations' : 'Below EOC Expectations';
+  var tierColor = certLevel >= 4 ? '#38a050' : certLevel >= 3 ? '#d4a017' : '#e04040';
+  var pd = G.period && G.period !== '0' ? ' - Period ' + G.period : '';
+  var w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate - ' + G.name + '</title>' +
+    '<style>body{font-family:Georgia,serif;background:#f0eadc;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;margin:0}' +
+    '.cert{width:680px;background:#f5ead8;border:3px solid #2d5a8a;padding:40px 50px;text-align:center;box-shadow:0 0 0 8px #f5ead8,0 0 0 10px #2d5a8a,0 0 0 14px #f5ead8,0 0 0 16px #4a7ab0}' +
+    'h1{font-size:24px;color:#0e1520;margin:8px 0}' +
+    '.divider{height:1px;background:linear-gradient(90deg,transparent,#2d5a8a,transparent);margin:14px auto;width:80%}' +
+    '.badge{display:inline-block;width:70px;height:70px;border-radius:50%;border:2px solid #2d5a8a;font-size:32px;line-height:70px;margin:10px auto}' +
+    '.stats{display:flex;justify-content:center;gap:24px;margin:16px 0;padding:12px;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.1)}' +
+    '.stat-val{font-size:20px;font-weight:700;color:#2d5a8a}.stat-lbl{font-size:8px;letter-spacing:2px;color:#2d5a8a;margin-top:2px}' +
+    '.level{font-size:32px;font-weight:700;color:' + certLevelColor + '}' +
+    '.sigs{display:flex;justify-content:space-around;margin-top:20px;padding-top:14px;border-top:1px solid rgba(0,0,0,.2)}' +
+    '.sig-line{width:140px;height:1px;background:#2d5a8a;margin:0 auto 4px}.sig-name{font-size:11px;color:#0e1520;font-weight:700}.sig-title{font-size:8px;color:#2d5a8a;letter-spacing:1px}' +
+    '.nbtn{text-align:center;margin-top:18px}button{padding:10px 24px;background:#2d5a8a;border:none;color:#f5ead8;font-size:13px;cursor:pointer;margin:0 6px}' +
+    '@media print{.nbtn{display:none!important}}</style></head><body>' +
+    '<div class="cert">' +
+    '<div style="font-size:10px;letter-spacing:4px;color:#2d5a8a;margin-bottom:8px">MIDTERM EOC CHECKPOINT - AMERICAN CHRONICLES</div>' +
+    '<div class="badge">&#128203;</div>' +
+    '<h1>Certificate of Completion</h1>' +
+    '<div class="divider"></div>' +
+    '<div style="font-size:13px;color:#3a3020;margin:8px 0">This certifies that</div>' +
+    '<div style="font-size:28px;font-style:italic;color:#2d5a8a;margin:10px 0;border-bottom:2px solid #2d5a8a;padding-bottom:8px;display:inline-block">' + G.name + '</div>' +
+    '<div style="font-size:13px;color:#3a3020;margin:8px 0;line-height:1.7">has completed<br><strong style="font-size:18px;color:#2d5a8a">American Chronicles: Midterm Checkpoint</strong><br><span style="font-size:11px;color:#2d5a8a">Unit Arcs 1&ndash;3 &middot; Through the Roaring Twenties - 30 Questions - Three Sections</span></div>' +
+    '<div style="margin:16px 0;padding:14px;background:rgba(45,90,138,.06);border:2px solid ' + certLevelColor + ';display:inline-block;min-width:200px"><div style="font-size:9px;letter-spacing:3px;color:#2d5a8a;margin-bottom:4px">EOC PERFORMANCE LEVEL</div><div style="font-size:52px;font-weight:700;color:' + certLevelColor + '">' + certLevel + '</div><div style="font-size:18px;font-weight:700;color:' + certLevelColor + '">' + certLevelDesc + '</div><div style="font-size:12px;color:#3a3020;margin-top:6px">Score: ' + (G.checkpointBestScore || 0) + '/24 - Accuracy: ' + acc + '%</div></div>' +
+    '<div class="stats">' +
+    SECTIONS.map(function(s){
+      var cp=QUESTION_BANK.filter(function(q){return q.section===s.num;});
+      var ct=Math.min(8,cp.length);
+      var cb=G._sectionBest&&G._sectionBest[s.num-1]!==null?G._sectionBest[s.num-1]:0;
+      return '<div style="text-align:center"><div class="stat-val">'+cb+'/'+ct+'</div><div class="stat-lbl">Sec '+s.num+'</div></div>';
+    }).join('')+
+    '</div>' +
+    '<div class="divider"></div>' +
+    '<div class="sigs">' +
+    '<div><div class="sig-line"></div><div class="sig-name">' + G.name + '</div><div class="sig-title">STUDENT' + pd + '</div></div>' +
+    '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">U.S. HISTORY TEACHER</div></div>' +
+    '<div><div class="sig-line"></div><div class="sig-name">' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) + '</div><div class="sig-title">DATE COMPLETED</div></div>' +
+    '</div></div>' +
+    '<div class="nbtn"><button onclick="window.print()">Print / Save as PDF</button><button onclick="window.close()" style="background:#3a3020">Close</button></div>' +
+    '<' + '!-- UNIT TROPHY REVEAL OVERLAY -->' + `
+<div id="unit-trophy-overlay">
+  <div class="utr-eyebrow">UNIT COMPLETE</div>
+  <div class="utr-name" id="utr-name"></div>
+  <div class="utr-icon" id="utr-icon"></div>
+  <div class="utr-trophy-name" id="utr-trophy-name"></div>
+  <div class="utr-msg" id="utr-msg"></div>
+  <div class="utr-acc" id="utr-acc"></div>
+  <button class="utr-btn" id="utr-btn" onclick="closeUnitTrophy()"></button>
+</div>
+</body></html>`);
+  w.document.close();
+}
+
+function openLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.add('show');
+  loadLeaderboard();
+}
+
+function setLBPeriod(p) {
+  _lbPeriod = p;
+  document.getElementById('lb-tab-all').classList.toggle('active', p === 'all');
+  document.getElementById('lb-tab-class').classList.toggle('active', p === 'class');
+  renderLeaderboard(_lbAllData);
+}
+
+async function loadLeaderboard() {
+  document.getElementById('lb-content').innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--text3)">Loading...</div>';
+  try {
+    var r = await fetch(AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + SHELL_UNIT_ID + '&order=best_score.desc&limit=200', {headers: AC_HEADERS});
+    _lbAllData = await r.json() || [];
+    renderLeaderboard(_lbAllData);
+  } catch(e) {
+    document.getElementById('lb-content').innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--text3)">Could not load leaderboard.</div>';
+  }
+}
+
+function renderLeaderboard(data) {
+  var filtered = data;
+  if (_lbPeriod === 'class' && G && G.period && G.period !== '0') {
+    filtered = data.filter(function(s) { return s.period === G.period; });
+  }
+  if (!filtered.length) {
+    document.getElementById('lb-content').innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--text3);padding:20px 0;text-align:center">No scores yet.</div>';
+    return;
+  }
+  var rows = filtered.slice(0, 50).map(function(s, i) {
+    var isMe = G && s.name === G.name && s.period === G.period;
+    var delBtn = _lbDeleteUnlocked ? '<td><button class="lb-del-btn" data-name="' + s.name + '" data-period="' + s.period + '" style="font-family:var(--bebas);font-size:10px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:3px 8px;cursor:pointer">X</button></td>' : '';
+    return '<tr class="' + (isMe ? 'lb-you' : '') + '">' +
+      '<td style="font-family:var(--dm);font-size:10px;color:var(--text3)">' + (i + 1) + '</td>' +
+      '<td><div class="lb-name">' + (s.name || '--') + (isMe ? ' &lt;--' : '') + '</div></td>' +
+      '<td style="font-family:var(--dm);font-size:10px;color:var(--text2)">' + (s.period && s.period !== '0' ? 'Pd ' + s.period : '--') + '</td>' +
+      '<td class="lb-score">' + (s.best_score || 0) + '/24</td>' +
+      '<td style="font-family:var(--dm);font-size:10px;color:var(--gold)">' + (s.best_accuracy != null ? s.best_accuracy + '%' : '--') + '</td>' +
+      delBtn + '</tr>';
+  }).join('');
+  document.getElementById('lb-content').innerHTML =
+    '<table class="lb-table"><thead><tr><th>#</th><th>STUDENT</th><th>PD</th><th>SCORE</th><th>ACCURACY</th>' + (_lbDeleteUnlocked ? '<th></th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  if (_lbDeleteUnlocked) {
+    document.querySelectorAll('.lb-del-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { lbDeleteEntry(btn.dataset.name, btn.dataset.period); });
+    });
+  }
+}
+
+async function unlockLBDelete() {
+  var pw = prompt('Enter teacher code to unlock delete controls:');
+  if (!pw) return;
+  var valid = false;
+  for (var k in TEACHERS) {
+    if (pw.toUpperCase() === TEACHERS[k].teacherCode.toUpperCase()) { valid = true; break; }
+  }
+  if (!valid) { notify('Incorrect code', 'red'); return; }
+  _lbDeleteUnlocked = true;
+  var btn = document.getElementById('lb-teacher-unlock');
+  if (btn) { btn.textContent = 'Unlocked'; btn.style.borderColor = 'var(--liberty)'; btn.style.color = 'var(--liberty)'; }
+  notify('Delete controls unlocked', 'green');
+  renderLeaderboard(_lbAllData);
+}
+
+async function lbDeleteEntry(name, period) {
+  if (!confirm('Remove "' + name + '" from the leaderboard?')) return;
+  try {
+    await fetch(AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(name) + '&period=eq.' + encodeURIComponent(period) + '&unit_id=eq.' + SHELL_UNIT_ID, {method:'DELETE', headers:AC_HEADERS});
+    notify('Removed', 'green');
+    await loadLeaderboard();
+  } catch(e) { notify('Error removing entry', 'red'); }
+}
+
+function openProfile() {
+  document.getElementById('profile-overlay').classList.add('show');
+  var acc = G && G.totalAnswers > 0 ? Math.round((G.correctAnswers / G.totalAnswers) * 100) : 0;
+  var el = document.getElementById('profile-content');
+  if (el) {
+    el.innerHTML =
+      '<div style="text-align:center;margin-bottom:16px">' +
+        '<div style="width:80px;height:80px;margin:0 auto 12px">' + getPortraitSVG(G ? G.avatarId : 'scholar_f', 80) + '</div>' +
+        '<div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-style:italic">' + (G ? G.name : '--') + '</div>' +
+        '<div style="font-family:var(--dm);font-size:10px;color:var(--liberty3);margin-top:4px">' + getRank(G ? G.score || 0 : 0) + '</div>' +
+      '</div>' +
+      '<div class="profile-stat-grid">' +
+        '<div class="profile-stat"><div class="profile-stat-val">' + (G ? (G.score || 0).toLocaleString() : '0') + '</div><div class="profile-stat-lbl">TOTAL SCORE &mdash; MIDTERM</div></div>' +
+        '<div class="profile-stat"><div class="profile-stat-val">' + (G ? G.checkpointAttempts || 0 : 0) + '</div><div class="profile-stat-lbl">ATTEMPTS</div></div>' +
+        '<div class="profile-stat"><div class="profile-stat-val">' + acc + '%</div><div class="profile-stat-lbl">ACCURACY</div></div>' +
+        '<div class="profile-stat"><div class="profile-stat-val">' + (G ? G.checkpointBestScore || 0 : 0) + '/24</div><div class="profile-stat-lbl">BEST SCORE</div></div>' +
+      '</div>' +
+      '<div class="section-head" style="font-size:14px">Change Character</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">' +
+        AVATAR_LIST.map(function(a) {
+          var sel = G && G.avatarId === a.id;
+          return '<div onclick="setAvatar(\'' + a.id + '\')" style="background:var(--bg2);border:1.5px solid ' + (sel ? 'var(--liberty)' : 'var(--border2)') + ';padding:8px;text-align:center;cursor:pointer">' +
+            getPortraitSVG(a.id, 40) +
+            '<div style="font-family:var(--dm);font-size:7px;color:' + (sel ? 'var(--liberty)' : 'var(--text3)') + ';margin-top:4px;letter-spacing:1px">' + a.label + '</div></div>';
+        }).join('') +
+      '</div>' +
+      '<button class="btn full red" onclick="if(confirm(\'Reset all progress? This cannot be undone.\')){clearSave();location.reload();}" style="font-size:11px;margin-top:8px"><span>Reset Progress</span></button>';
+  }
+}
+
+function setAvatar(id) { if (G) { G.avatarId = id; saveGame(); updateHUD(); openProfile(); } }
+
+async function loadTeacherData() {
+  var el = document.getElementById('teacher-content');
+  if (el) el.innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--text3)">Loading...</div>';
+  try {
+    var r = await fetch(AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + SHELL_UNIT_ID + '&order=best_score.desc', {headers: AC_HEADERS});
+    var data = await r.json() || [];
+    var avg = data.length ? Math.round(data.reduce(function(a, s) { return a + (s.best_score || 0); }, 0) / data.length) : 0;
+    var above = data.filter(function(s) { return (s.best_score || 0) >= 24; }).length;
+    var below = data.filter(function(s) { return (s.best_score || 0) < 18; }).length;
+    var html =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">' +
+        '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:26px;color:var(--liberty)">' + data.length + '</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">STUDENTS</div></div>' +
+        '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:26px;color:var(--liberty)">' + avg + '/24</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">AVG SCORE</div></div>' +
+        '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:26px;color:var(--green2)">' + above + '</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">ABOVE EXP.</div></div>' +
+        '<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center"><div style="font-family:var(--bebas);font-size:26px;color:var(--red2)">' + below + '</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">BELOW EXP.</div></div>' +
+      '</div>' +
+      '<table class="lb-table"><thead><tr><th>#</th><th>STUDENT</th><th>PD</th><th>SCORE</th><th>ACC</th><th>TIER</th></tr></thead><tbody>' +
+      data.map(function(s, i) {
+        var t = (s.best_score || 0) >= 24 ? 'Above' : (s.best_score || 0) >= 18 ? 'Near' : 'Below';
+        var tc = (s.best_score || 0) >= 24 ? 'var(--green2)' : (s.best_score || 0) >= 18 ? 'var(--gold)' : 'var(--red2)';
+        return '<tr><td style="font-family:var(--dm);font-size:10px;color:var(--text3)">' + (i + 1) + '</td>' +
+          '<td><div class="lb-name">' + (s.name || '--') + '</div></td>' +
+          '<td style="font-family:var(--dm);font-size:10px;color:var(--text2)">' + (s.period && s.period !== '0' ? 'Pd ' + s.period : '--') + '</td>' +
+          '<td class="lb-score">' + (s.best_score || 0) + '/24</td>' +
+          '<td style="font-family:var(--dm);font-size:10px;color:var(--gold)">' + (s.best_accuracy || 0) + '%</td>' +
+          '<td style="font-family:var(--bebas);font-size:11px;color:' + tc + '">' + t + '</td></tr>';
+      }).join('') +
+      '</tbody></table>';
+    if (el) el.innerHTML = html;
+  } catch(e) {
+    if (el) el.innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--text3)">Could not load data.</div>';
+  }
+}
+
+async function pushACResult() {
+  if (!G || !G.name || G.teacher === 'guest') return;
+  var acc = G.checkpointBestAccuracy || 0;
+  var score = G.checkpointBestScore || 0;
+  var trophy = acc >= 90 ? 'gold' : acc >= 80 ? 'silver' : acc >= 70 ? 'bronze' : acc >= 60 ? 'completed' : 'tryagain';
+  try {
+    var prev = null;
+    try {
+      var pr = await fetch(AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(G.name) + '&period=eq.' + encodeURIComponent(G.period || '') + '&unit_id=eq.' + SHELL_UNIT_ID, {headers: AC_HEADERS});
+      var pd = await pr.json();
+      if (pd && pd.length) prev = pd[0];
+    } catch(e) {}
+    var bestScore = prev ? Math.max(prev.best_score || 0, score) : score;
+    var bestAcc = prev ? Math.max(prev.best_accuracy || 0, acc) : acc;
+    var bestTrophy = bestAcc >= 90 ? 'gold' : bestAcc >= 80 ? 'silver' : bestAcc >= 70 ? 'bronze' : bestAcc >= 60 ? 'completed' : 'tryagain';
+    var attempts = (prev ? prev.attempts || 1 : 0) + 1;
+    await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({name: G.name, period: G.period || '', unit_id: SHELL_UNIT_ID, best_score: bestScore, best_accuracy: bestAcc, trophy: bestTrophy, attempts: attempts, cards: 0, updated_at: new Date().toISOString()})
+    });
+  } catch(e) {}
+}
+
+(function() {
+  function isInput(t) { return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); }
+  document.addEventListener('contextmenu', function(e) { if (!isInput(e.target)) e.preventDefault(); });
+  document.addEventListener('copy', function(e) { if (!isInput(e.target)) e.preventDefault(); });
+  document.addEventListener('cut', function(e) { if (!isInput(e.target)) e.preventDefault(); });
+  document.addEventListener('keydown', function(e) {
+    if (isInput(e.target)) return;
+    var ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && ['c','x','a','C','X','A'].indexOf(e.key) !== -1) e.preventDefault();
+  });
+})();
+
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    var saved = loadGame();
+    if (saved) G = saved;
+    // Check for shell session — skip login gate if already logged in
+    var shellRaw = localStorage.getItem('ac_shell_state');
+    var hasSession = false;
+    if (shellRaw) {
+      try {
+        var shell = JSON.parse(shellRaw);
+        if (shell && shell.name && shell.name !== 'Guest') {
+          G = Object.assign({}, G || {}, { name: shell.name, period: shell.period || '', fromShell: true });
+          normalizeG();
+          hasSession = true;
+        }
+      } catch(se) {}
+    }
+    if (hasSession) {
+      afterLogin();
+    } else {
+      // No shell session — redirect to shell to login with Google
+      window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+    }
+  } catch(e) {
+    // Show error visibly if JS fails
+    document.body.innerHTML = '<div style="position:fixed;inset:0;background:#0d0a08;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif;color:#e8a020;padding:20px;text-align:center">' +
+      '<div style="font-size:24px;margin-bottom:12px">American Chronicles</div>' +
+      '<div style="font-size:14px;color:#a09080;margin-bottom:8px">Midterm Checkpoint</div>' +
+      '<div style="font-size:11px;color:#584840;max-width:400px">Error loading: ' + e.message + '</div>' +
+      '<div style="margin-top:20px"><a href="." style="color:#e8a020;font-size:13px">Reload</a></div>' +
+    '</div>';
+  }
+});
+
+</script>
+</body>
+</html>

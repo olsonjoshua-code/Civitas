@@ -1,0 +1,3106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crash and Recovery — Unit 4B: The Great Depression and New Deal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0b08;--bg2:#141009;--bg3:#1a150c;--panel:#1e180e;
+  --border:#2e2416;--border2:#3d3020;
+  --gold:#c8a050;--gold2:#a07828;--gold3:#ddb860;
+  --red:#7a2010;--red2:#a03020;
+  --green:#2a3a18;--green2:#3a5828;
+  --teal:#1a4838;--teal2:#246048;
+  --blue:#182030;--blue2:#243850;
+  --text:#e8dfc8;--text2:#a89878;--text3:#685840;--cream:#f0e8d0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-height:100vh;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse at 50% 0%,   rgba(160,120,40,.25)  0%,  transparent 60%),
+    radial-gradient(ellipse at 15% 60%,  rgba(120, 80,20,.16)  0%,  transparent 55%),
+    radial-gradient(ellipse at 85% 85%,  rgba( 80, 50,10,.14)  0%,  transparent 50%),
+    linear-gradient(175deg, #1a1208 0%, #130e06 40%, #0e0a04 100%);}
+/* Dust Bowl / Depression watermark — falling ticker tape */
+body::after{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' width='400' height='400'%3E%3Cg opacity='0.08' fill='none' stroke='rgba(200,160,80,1)'%3E%3Ccircle cx='200' cy='200' r='150' stroke-width='2.5'/%3E%3Ccircle cx='200' cy='200' r='120' stroke-width='1.5' stroke-dasharray='8,6'/%3E%3Cline x1='200' y1='50' x2='200' y2='350' stroke-width='2' stroke-dasharray='4,8'/%3E%3Cline x1='50' y1='200' x2='350' y2='200' stroke-width='2' stroke-dasharray='4,8'/%3E%3Ctext x='200' y='215' font-family='serif' font-size='72' text-anchor='middle' fill='rgba(200,160,80,0.7)' stroke='none'%3E%24%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-size:500px 500px;
+  background-position:center center;
+  background-repeat:no-repeat;
+  pointer-events:none;z-index:0;opacity:1;}
+/* Noise texture on top of everything */
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+  pointer-events:none;z-index:9998;opacity:0.7;}
+/* Scanline effect */
+#root::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.012) 3px,rgba(0,0,0,0.012) 4px);
+  pointer-events:none;z-index:9999;}
+
+/* ── ROOT / LAYOUT ── */
+#root{max-width:860px;margin:0 auto;padding:0 24px 100px;min-height:100vh;position:relative;z-index:1;}
+/* When HUD is visible, push content down so it isn't hidden behind the fixed bar */
+body.hud-active #root{padding-top:68px;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-70px)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(200,48,32,.3)}50%{box-shadow:0 0 40px rgba(200,48,32,.7)}}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none;padding-top:16px;}
+.screen.active{display:block;animation:fadeIn .4s ease;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--bebas);font-size:15px;letter-spacing:2px;background:transparent;
+  border:1.5px solid var(--gold);color:var(--gold);padding:12px 28px;cursor:pointer;
+  transition:all .2s;display:inline-block;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0;pointer-events:none;}
+.btn:hover{color:var(--bg);box-shadow:0 0 25px rgba(200,48,32,.4);}
+.btn:hover::before{transform:scaleX(1);}
+.btn span{position:relative;z-index:1;}
+.btn:active{transform:scale(.97);}
+.btn.full{display:block;width:100%;text-align:center;margin:6px 0;}
+.btn.sm{font-size:11px;padding:8px 18px;letter-spacing:1.5px;}
+.btn.green{border-color:var(--green2);color:var(--green2);}
+.btn.green::before{background:var(--green2);}
+.btn.green:hover{color:#fff;}
+.btn.teal{border-color:#2aaa98;color:#2aaa98;}
+.btn.teal::before{background:#2aaa98;}
+.btn.teal:hover{color:#fff;}
+.btn:disabled{opacity:.25;cursor:not-allowed;pointer-events:none;}
+
+/* ── TOP HUD (sticky) ── */
+#game-hud{background:linear-gradient(180deg,rgba(8,6,8,.98),rgba(16,8,16,.95));
+  border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  padding:10px 14px;
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:860px;
+  z-index:200;backdrop-filter:blur(12px);
+  display:none;}
+.hud-inner{display:flex;align-items:center;gap:12px;}
+.hud-avatar{width:44px;height:44px;flex-shrink:0;border-radius:50%;overflow:hidden;}
+.hud-info{flex:1;min-width:0;}
+.hud-name{font-family:var(--playfair);font-size:12px;color:var(--gold);font-style:italic;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-rank{font-family:var(--dm);font-size:10px;color:var(--text2);}
+.hud-xp-bar{height:3px;background:rgba(255,255,255,.06);margin-top:4px;border-radius:2px;overflow:hidden;}
+.hud-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));transition:width .6s;border-radius:2px;}
+.hud-stats{display:flex;gap:10px;flex-shrink:0;}
+.hud-stat{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;}
+.hud-stat span{display:block;color:var(--gold);font-size:13px;font-weight:600;}
+.hud-back-btn{font-family:var(--dm);font-size:9px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer;
+  transition:all .15s;letter-spacing:.5px;flex-shrink:0;}
+.hud-back-btn:hover{border-color:var(--gold2);color:var(--gold);}
+
+/* ── NOTIFICATIONS ── */
+.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--gold2);padding:10px 20px;
+  font-family:var(--dm);font-size:11px;color:var(--gold);z-index:1000;
+  animation:pop .3s,floatUp 2.5s .8s forwards;white-space:nowrap;max-width:90vw;text-align:center;}
+
+/* ── SECTION HEADING ── */
+.section-head{font-family:var(--bebas);font-size:18px;letter-spacing:2px;color:var(--gold);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;}
+.section-head::before{content:'';display:block;width:3px;height:18px;background:var(--gold);}
+
+
+/* ════════════════════════════════
+   UNIT HUB — civil rights style
+════════════════════════════════ */
+.hub-banner{background:var(--bg2);border:1px solid var(--border2);
+  border-radius:2px;padding:14px 16px;margin-bottom:12px;}
+.hub-banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hub-banner-label{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:3px;}
+.hub-banner-count{font-family:var(--bebas);font-size:13px;color:var(--gold);}
+.hub-progress-bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.hub-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .6s;}
+
+.eq-banner{background:linear-gradient(135deg,rgba(26,8,8,.15),rgba(42,10,10,.08));
+  border:1px solid var(--border2);border-left:3px solid var(--gold);
+  padding:12px 16px;margin-bottom:16px;
+  font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;}
+.eq-banner strong{color:var(--gold);font-style:normal;}
+
+.deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);}
+.deco-divider-icon{font-size:14px;color:var(--text3);}
+
+/* Chapter cards */
+.unit-card{background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:10px;overflow:hidden;transition:border-color .2s;cursor:pointer;}
+.unit-card.available:hover{border-color:var(--gold2);}
+.unit-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.unit-card.completed{border-color:var(--green);}
+.unit-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.unit-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.unit-icon{font-size:28px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-number{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.unit-name{font-family:var(--playfair);font-size:15px;color:var(--cream);margin:2px 0;}
+.unit-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;}
+.unit-status{font-family:var(--dm);font-size:8px;padding:4px 10px;border:1px solid;}
+.unit-status.available{color:var(--gold);border-color:var(--gold2);background:rgba(200,48,32,.08);}
+.unit-status.locked{color:var(--text3);border-color:var(--border);}
+.unit-status.completed{color:var(--green2);border-color:var(--green);background:rgba(56,160,80,.08);}
+.unit-progress-bar{height:2px;background:rgba(255,255,255,.04);}
+.unit-progress-fill{height:100%;background:var(--gold2);transition:width .5s;}
+.unit-card-meta{padding:0 16px 8px;font-family:var(--dm);font-size:9px;color:var(--text3);}
+.unit-card-unlock{padding:0 16px 8px;font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;}
+
+
+
+/* ════════════════════════════════
+   LAYER 3: BRIEFING MODAL
+════════════════════════════════ */
+#briefing-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);
+  z-index:500;overflow-y:auto;padding:20px 16px 60px;}
+#briefing-modal.show{display:block;animation:fadeIn .3s ease;}
+.briefing-inner{max-width:760px;margin:0 auto;}
+.briefing-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin-bottom:20px;padding-top:10px;}
+.briefing-eyebrow{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:4px;}
+.briefing-title{font-family:var(--playfair);font-size:clamp(20px,4vw,28px);
+  color:var(--cream);font-style:italic;line-height:1.2;}
+.briefing-close-btn{font-family:var(--dm);font-size:10px;background:var(--bg2);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 12px;cursor:pointer;
+  transition:all .2s;flex-shrink:0;margin-top:4px;}
+.briefing-close-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+.briefing-scene{width:100%;margin-bottom:16px;border:1px solid var(--border2);overflow:hidden;}
+.briefing-location-row{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);}
+.briefing-location{font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;}
+.briefing-date{font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;}
+
+.briefing-text{font-family:var(--crimson);font-size:16px;line-height:1.75;color:var(--text);
+  padding:18px;background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:14px;position:relative;}
+.briefing-text::before{content:'\201C';font-family:var(--playfair);font-size:70px;
+  color:rgba(200,48,32,.06);position:absolute;top:-8px;left:10px;line-height:1;pointer-events:none;}
+
+.briefing-quote{font-family:var(--playfair);font-size:14px;color:var(--gold);
+  font-style:italic;border-left:3px solid var(--gold2);padding:10px 14px;
+  background:rgba(200,48,32,.04);margin-bottom:16px;line-height:1.6;}
+
+.briefing-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.briefing-tag{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:3px 8px;border-radius:2px;}
+
+.briefing-proceed-row{display:flex;flex-direction:column;gap:8px;}
+
+/* ════════════════════════════════
+   LAYER 3: QUESTION SCREEN
+════════════════════════════════ */
+#question-screen{padding-top:0;}
+.q-progress-bar-wrap{height:3px;background:rgba(255,255,255,.05);margin-bottom:20px;border-radius:2px;}
+.q-progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  transition:width .4s;border-radius:2px;}
+
+.q-context-pill{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(200,48,32,.06);border:1px solid var(--border2);
+  padding:5px 10px;margin-bottom:16px;}
+.q-context-lesson{font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;}
+.q-context-sep{width:1px;height:10px;background:var(--border2);}
+.q-context-topic{font-family:var(--crimson);font-size:11px;color:var(--text2);font-style:italic;}
+
+/* THE QUESTION — primary visual weight */
+.q-block{background:var(--bg2);border:1px solid var(--border2);
+  border-left:3px solid var(--gold);padding:24px 22px;margin-bottom:18px;}
+.q-number{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.q-text{font-family:var(--playfair);font-size:clamp(16px,2.4vw,20px);
+  color:var(--cream);line-height:1.6;}
+
+/* Answer choices */
+.choices-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.choice-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);padding:16px 20px;cursor:pointer;text-align:left;
+  transition:all .2s;position:relative;overflow:hidden;}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--gold);transform:scaleY(0);transition:transform .2s;pointer-events:none;}
+.choice-btn:hover:not(.answered){border-color:var(--gold2);background:rgba(200,48,32,.04);}
+.choice-btn:hover:not(.answered)::before{transform:scaleY(1);}
+.choice-btn.correct{border-color:var(--green2)!important;background:rgba(40,80,32,.08)!important;animation:pop .3s;}
+.choice-btn.correct::before{background:var(--green2)!important;transform:scaleY(1)!important;}
+.choice-btn.incorrect{border-color:var(--red2)!important;background:rgba(128,16,16,.06)!important;opacity:.6;}
+.choice-btn.incorrect::before{background:var(--red2)!important;transform:scaleY(1)!important;}
+.choice-btn.answered{cursor:default;}
+.choice-letter{font-family:var(--bebas);font-size:14px;color:var(--gold2);
+  margin-right:12px;display:inline-block;width:20px;}
+.choice-text{font-family:var(--crimson);font-size:17px;line-height:1.5;}
+
+/* Feedback */
+.feedback-panel{display:none;border-left:3px solid var(--gold);
+  padding:16px 16px 16px 20px;margin-bottom:14px;animation:slideUp .3s;
+  background:var(--bg2);border:1px solid var(--border);}
+.feedback-panel.show{display:block;}
+.feedback-panel.correct{border-left-color:var(--green2)!important;border-color:rgba(56,160,80,.2);}
+.feedback-panel.incorrect{border-left-color:var(--red2)!important;border-color:rgba(192,32,32,.2);}
+.feedback-verdict{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:8px;}
+.feedback-verdict.correct{color:var(--green2);}
+.feedback-verdict.incorrect{color:var(--red2);}
+.feedback-text{font-family:var(--crimson);font-size:15px;line-height:1.65;
+  color:var(--text);margin-bottom:8px;}
+.feedback-standard{font-family:var(--dm);font-size:9px;color:var(--text3);
+  border-top:1px solid var(--border);padding-top:8px;margin-top:8px;}
+
+/* Momentum tracker */
+.momentum-display{display:flex;align-items:center;gap:12px;background:var(--bg2);
+  border:1px solid var(--border);padding:10px 14px;margin-bottom:14px;}
+.momentum-label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;flex-shrink:0;}
+.momentum-track{flex:1;height:6px;background:rgba(255,255,255,.05);
+  border-radius:3px;overflow:hidden;}
+.momentum-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  border-radius:3px;transition:width .5s;}
+.momentum-val{font-family:var(--playfair);font-size:13px;color:var(--gold);
+  font-style:italic;flex-shrink:0;min-width:60px;text-align:right;}
+
+/* ════════════════════════════════
+   LESSON COMPLETE OVERLAY
+════════════════════════════════ */
+#lesson-complete{display:none;position:fixed;inset:0;background:#080608;
+  z-index:600;overflow-y:auto;text-align:center;}
+#lesson-complete.show{display:block;animation:fadeIn .4s;}
+.complete-inner{max-width:480px;margin:0 auto;padding:30px 16px 100px;}
+.complete-badge{width:100px;height:100px;margin:0 auto 16px;border:2px solid var(--gold);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:48px;animation:glowPulse 2s infinite;background:var(--bg2);}
+.complete-unit-lbl{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:6px;}
+.complete-lesson-title{font-family:var(--playfair);font-size:24px;color:var(--cream);
+  font-style:italic;margin-bottom:4px;}
+.complete-tier{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:20px;}
+.complete-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;}
+.complete-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.complete-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.complete-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);
+  letter-spacing:1px;margin-top:2px;}
+.complete-btn-group{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;}
+
+/* ════════════════════════════════
+   LOGIN GATE
+════════════════════════════════ */
+#login-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);
+  z-index:900;align-items:center;justify-content:center;padding:20px;}
+#login-gate.show{display:flex;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);max-width:380px;width:100%;padding:28px 24px;}
+.login-logo{font-family:var(--bebas);font-size:clamp(28px,6vw,40px);color:var(--gold);
+  letter-spacing:4px;margin-bottom:4px;text-align:center;}
+.login-sub{font-family:var(--playfair);font-size:13px;color:var(--text2);
+  font-style:italic;text-align:center;margin-bottom:20px;}
+.login-field{margin-bottom:10px;}
+.login-field label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;display:block;margin-bottom:5px;}
+.login-input{font-family:var(--playfair);font-size:15px;font-style:italic;
+  background:var(--bg3);border:1.5px solid var(--border2);color:var(--cream);
+  padding:10px 14px;width:100%;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--gold);}
+.login-input::placeholder{color:var(--text3);}
+.login-notice{font-family:var(--dm);font-size:9px;color:var(--text3);
+  text-align:center;margin-top:8px;line-height:1.5;}
+
+/* ════════════════════════════════
+   WELCOME BACK MODAL
+════════════════════════════════ */
+#welcome-back-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+  z-index:950;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+#welcome-back-overlay.show{display:flex;}
+.wb-box{background:var(--bg2);border:1px solid var(--border2);max-width:420px;width:100%;
+  padding:28px 24px;text-align:center;animation:slideUp .3s ease both;}
+.wb-avatar{width:70px;height:70px;margin:0 auto 14px;border-radius:50%;overflow:hidden;}
+.wb-greeting{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:4px;margin-bottom:6px;}
+.wb-name{font-family:var(--playfair);font-size:24px;color:var(--cream);font-style:italic;margin-bottom:4px;}
+.wb-sub{font-family:var(--dm);font-size:10px;color:var(--gold2);margin-bottom:4px;}
+.wb-progress{font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:20px;}
+
+
+/* ── Standard tag on question block ── */
+.q-standard-tag{font-family:var(--dm);font-size:9px;letter-spacing:2px;
+  color:var(--gold);border:1px solid var(--gold2);
+  background:rgba(0,0,0,.25);
+  display:inline-block;padding:3px 9px;margin-bottom:8px;
+  text-transform:uppercase;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold2);}
+
+/* ════════════════════════════════
+   BOTTOM NAV (carried from v1)
+════════════════════════════════ */
+#bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:640px;background:rgba(8,6,8,.97);
+  border-top:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  display:none;z-index:300;backdrop-filter:blur(12px);}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:8px 4px;background:none;border:none;color:var(--text3);cursor:pointer;
+  font-family:var(--dm);font-size:8px;letter-spacing:.5px;transition:color .15s;}
+.bn-btn:hover,.bn-btn.active{color:var(--gold);}
+.bn-icon{font-size:18px;display:block;}
+
+/* ════════════════════════════════
+   OVERLAYS (carried from v1)
+════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);
+  z-index:400;overflow-y:auto;padding:20px 16px 80px;}
+.overlay.show{display:block;animation:fadeIn .2s;}
+.overlay-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;position:sticky;top:0;background:rgba(8,6,8,.97);
+  padding:10px 0;border-bottom:1px solid var(--border2);z-index:10;}
+.overlay-title{font-family:var(--bebas);font-size:22px;color:var(--gold);letter-spacing:2px;}
+.overlay-close{font-family:var(--dm);font-size:10px;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;transition:all .2s;}
+.overlay-close:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Leaderboard */
+.lb-wrap{background:var(--bg2);border:1px solid var(--border2);padding:20px;}
+.lb-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.lb-tab{font-family:var(--bebas);font-size:10px;letter-spacing:1px;padding:5px 12px;
+  cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all .15s;}
+.lb-tab.active{border-color:var(--gold);color:var(--bg);background:var(--gold);}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);
+  padding:7px 8px;border-bottom:1px solid var(--border2);text-align:left;}
+.lb-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.025);
+  font-family:var(--dm);font-size:11px;color:var(--text2);vertical-align:middle;}
+.lb-table tr.lb-you td{background:rgba(200,48,32,.05);color:var(--text);}
+.lb-name{font-family:var(--playfair);font-size:13px;color:var(--cream);font-style:italic;}
+.lb-score{font-family:var(--bebas);font-size:16px;color:var(--gold);}
+
+/* Profile overlay */
+.profile-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.profile-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.profile-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.profile-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.badges-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.badge-pill{background:var(--bg2);border:1px solid var(--border);padding:6px 10px;
+  display:flex;align-items:center;gap:6px;font-family:var(--dm);font-size:9px;color:var(--text2);}
+.badge-pill.earned{border-color:var(--gold2);color:var(--gold);background:rgba(200,48,32,.06);}
+.badge-icon{font-size:16px;filter:grayscale(1);}
+.badge-pill.earned .badge-icon{filter:none;}
+
+/* Historical figure cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.hist-card{background:var(--bg2);border:1px solid var(--gold2);padding:14px;position:relative;overflow:hidden;}
+.hist-card::before{content:'';position:absolute;inset:4px;border:1px solid rgba(200,48,32,.12);pointer-events:none;}
+.hist-card-icon{font-size:36px;text-align:center;margin-bottom:8px;}
+.hist-card-name{font-family:var(--bebas);font-size:13px;color:var(--gold);letter-spacing:1px;margin-bottom:2px;}
+.hist-card-role{font-family:var(--dm);font-size:9px;color:#2aaa98;margin-bottom:6px;}
+.hist-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.5;}
+.hist-card-unlock{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:6px;}
+.locked-card{opacity:.35;}
+
+/* ════════════════════════════════
+   TROPHY / EOC DISPLAY
+════════════════════════════════ */
+.trophy-display{background:var(--bg2);border:1px solid var(--border2);
+  padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.trophy-icon{font-size:36px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(200,48,32,.4));}
+.trophy-info{flex:1;}
+.trophy-tier-name{font-family:var(--bebas);font-size:18px;letter-spacing:2px;margin-bottom:2px;}
+.trophy-stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+.trophy-stat{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.trophy-stat strong{color:var(--text2);}
+.eoc-rating-badge{font-family:var(--bebas);font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;display:inline-block;margin-top:5px;}
+
+/* ════════════════════════════════
+   BADGE & CARD REWARD CHIPS
+════════════════════════════════ */
+.reward-section{background:var(--bg2);border:1px solid var(--border2);
+  padding:12px 14px;margin-bottom:14px;}
+.reward-section-lbl{font-family:var(--bebas);font-size:9px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.reward-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.reward-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--border2);background:var(--bg3);}
+.reward-chip.earned{border-color:var(--gold2);background:rgba(200,48,32,.06);
+  animation:pop .4s ease;}
+.reward-chip-icon{font-size:16px;}
+.reward-chip-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.reward-chip.earned .reward-chip-lbl{color:var(--gold);}
+.reward-chip.locked-chip{opacity:.35;}
+
+/* Lesson card rewards preview */
+.lesson-card-rewards{padding:0 16px 10px;display:flex;gap:5px;flex-wrap:wrap;}
+.lesson-reward-pip{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:2px 6px;display:inline-flex;align-items:center;gap:3px;}
+.lesson-reward-pip.earned{border-color:var(--gold2);color:var(--gold);}
+
+/* Next-lesson unlock indicator on cards */
+.lesson-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.lesson-card-unlock-note{font-family:var(--dm);font-size:8px;color:var(--text3);
+  padding:0 16px 8px;font-style:italic;}
+
+/* ════════════════════════════════
+   CERTIFICATE / PRINT
+════════════════════════════════ */
+#print-area{display:none;}
+@media print{
+  body>*:not(#print-area){display:none!important;}
+  #print-area{display:block!important;padding:40px;}
+  .cert-body{font-family:Georgia,serif;}
+}
+/* ── Unit Trophy Reveal Overlay ── */
+#unit-trophy-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(4,3,2,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+#unit-trophy-overlay.show{display:flex;animation:fadeIn .5s ease;}
+.utr-eyebrow{font-family:var(--bebas);font-size:11px;letter-spacing:4px;color:var(--text3);margin-bottom:10px;}
+.utr-name{font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:18px;}
+.utr-icon{font-size:72px;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(200,160,32,.5));}
+.utr-trophy-name{font-family:var(--bebas);font-size:32px;letter-spacing:4px;margin-bottom:6px;}
+.utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
+.utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
+.utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+</style>
+<script>
+// Instant redirect if no shell session
+(function(){
+  try{
+    var s=localStorage.getItem('ac_shell_state');
+    if(!s){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+    var p=JSON.parse(s);
+    // Just need a real name — setupDone may not be set with Google auth
+    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');}
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     STICKY HUD (shows after login)
+═══════════════════════════════ -->
+<div id="game-hud">
+  <div class="hud-inner">
+    <div class="hud-avatar" id="hud-avatar-wrap"></div>
+    <div class="hud-info">
+      <div class="hud-name" id="hud-player-name">—</div>
+      <div class="hud-rank" id="hud-player-rank">—</div>
+      <div class="hud-xp-bar"><div class="hud-xp-fill" id="hud-xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat">🪙 GOLD<span id="hud-score" style="color:#f5c842;">0</span></div>
+      <div class="hud-stat">STREAK<span id="hud-streak">0</span></div>
+    </div>
+    <button class="hud-back-btn" id="hud-back-unit" onclick="returnToUnitHub()">← Unit Hub</button>
+    <button class="hud-back-btn" id="hud-back-shell" onclick="returnToShell()">🏛 A.C.</button>
+  </div>
+</div>
+
+<div id="root">
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 2: UNIT HUB
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="unit-hub-screen">
+
+  <!-- Player banner — name, rank, progress -->
+  <div id="hub-player-banner"></div>
+
+  <!-- Shell return (shown when arriving from American Chronicles) -->
+  <div id="shell-return-btn" style="display:none;margin-bottom:12px;">
+    <button class="btn full" onclick="returnToShell()" style="border-color:var(--teal2);color:var(--teal2);">
+      <span>← Return to American Chronicles Hub</span>
+    </button>
+  </div>
+
+  <!-- Unit title header -->
+  <div class="section-head" style="margin-top:4px;">Unit 4B — The Great Depression and New Deal</div>
+
+  <!-- Essential question -->
+  <div class="eq-banner">
+    <strong>Essential Question:</strong> How did the Great Depression transform American life, reshape the role of government, and redefine the nation’s expectations of economic security?
+  </div>
+
+  <!-- Lesson / chapter cards — rendered by JS -->
+  <div id="hub-chapters"></div>
+
+  <!-- Divider -->
+  <div class="deco-divider"><span class="deco-divider-icon">💵</span></div>
+
+  <!-- Badges row — rendered by JS -->
+  <div class="section-head" style="font-size:14px;">Badges</div>
+  <div class="badges-row" id="hub-badges"></div>
+
+  <!-- Trophy / EOC block — rendered by JS -->
+  <div id="hub-trophy-section" style="display:none;"></div>
+
+  <!-- Print certificate — shown when unit complete -->
+  <div id="hub-cert-row" style="display:none;margin-top:4px;">
+    <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
+      <span>🖨️ Print Certificate</span>
+    </button>
+    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+  </div>
+
+</div><!-- /unit-hub-screen -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 3a: QUESTION SCREEN
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="question-screen">
+
+  <!-- Progress bar across the top -->
+  <div class="q-progress-bar-wrap" style="margin-top:16px;">
+    <div class="q-progress-bar-fill" id="q-progress-fill" style="width:0%"></div>
+  </div>
+
+  <!-- Context pill — small reminder of which lesson/topic -->
+  <div class="q-context-pill">
+    <div class="q-context-lesson" id="q-context-lesson">LESSON 38</div>
+    <div class="q-context-sep"></div>
+    <div class="q-context-topic" id="q-context-topic">A World Divided</div>
+  </div>
+
+  <!-- Momentum display -->
+  <div class="momentum-display">
+    <div class="momentum-label">MOMENTUM</div>
+    <div class="momentum-track">
+      <div class="momentum-fill" id="momentum-fill" style="width:0%"></div>
+    </div>
+    <div class="momentum-val" id="momentum-val">Ready</div>
+  </div>
+
+  <!-- THE QUESTION — primary visual weight -->
+  <div class="q-block">
+    <div class="q-standard-tag" id="q-standard-tag" style="display:none;"></div>
+    <div class="q-number" id="q-number">QUESTION 1 OF 4</div>
+    <div class="q-text" id="q-text">Question text loads here.</div>
+  </div>
+
+  <!-- Answer choices -->
+  <div class="choices-list" id="choices-list"></div>
+
+  <!-- Feedback panel (hidden until answered) -->
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-verdict" id="feedback-verdict"></div>
+    <div class="feedback-text" id="feedback-text"></div>
+    <div class="feedback-standard" id="feedback-standard"></div>
+  </div>
+
+  <!-- Next/Proceed button (hidden until answered) -->
+  <div id="next-btn-wrap" style="display:none;">
+    <button class="btn full" onclick="nextQuestion()"><span id="next-btn-label">Next Question →</span></button>
+  </div>
+
+</div><!-- /question-screen -->
+
+</div><!-- #root -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     BRIEFING MODAL (shown before question screen)
+═══════════════════════════════════════════════════════ -->
+<div id="briefing-modal">
+  <div class="briefing-inner">
+    <div class="briefing-header">
+      <div>
+        <div class="briefing-eyebrow" id="briefing-eyebrow">LESSON 38 · MISSION BRIEFING</div>
+        <div class="briefing-title" id="briefing-title">The Great Depression</div>
+      </div>
+      <button class="briefing-close-btn" onclick="closeBriefing()">✕ Close</button>
+    </div>
+
+    <!-- Optional scene visual (rendered by JS) -->
+    <div class="briefing-scene" id="briefing-scene"></div>
+
+    <div class="briefing-location-row">
+      <div class="briefing-location" id="briefing-location">Washington D.C. and Europe</div>
+      <div class="briefing-date" id="briefing-date">1945–1949</div>
+    </div>
+    <div id="briefing-role" style="display:none;font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;padding:6px 12px;background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);margin-bottom:0;"></div>
+
+    <!-- Historical briefing text -->
+    <div class="briefing-text" id="briefing-text">Briefing text loads here.</div>
+
+    <!-- Optional pull quote -->
+    <div class="briefing-quote" id="briefing-quote" style="display:none;"></div>
+
+    <!-- Standards/tags -->
+    <div class="briefing-meta" id="briefing-meta"></div>
+
+    <div class="briefing-proceed-row">
+      <button class="btn full" onclick="proceedToQuestions()"><span>Proceed to Questions →</span></button>
+      <button class="btn full sm" style="border-color:var(--border2);color:var(--text3);" onclick="closeBriefing()"><span>← Back to Unit Hub</span></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LESSON COMPLETE OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div id="lesson-complete">
+  <div class="complete-inner">
+
+    <!-- Trophy badge -->
+    <div class="complete-badge" id="complete-badge">🏆</div>
+    <div class="complete-unit-lbl" id="complete-unit-lbl">UNIT 4B</div>
+    <div class="complete-lesson-title" id="complete-lesson-title">The Great Depression</div>
+    <div class="complete-tier" id="complete-tier" style="color:var(--gold)">GOLD — 90%</div>
+
+    <!-- Stats row -->
+    <div class="complete-stats" id="complete-stats"></div>
+
+    <!-- EOC Rating (shown on unit completion / EOC lesson) -->
+    <div id="complete-eoc-block" style="display:none;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;margin-bottom:6px;">EOC PRACTICE RATING</div>
+      <div id="complete-eoc-rating" style="font-family:var(--bebas);font-size:22px;letter-spacing:2px;"></div>
+      <div id="complete-eoc-label" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:3px;"></div>
+    </div>
+
+    <!-- Gold earned this run -->
+    <div id="complete-rewards" style="display:none;background:var(--bg2);border:1px solid var(--gold2);padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px;">GOLD EARNED THIS RUN</div>
+      <div id="complete-rewards-inner"></div>
+    </div>
+
+    <!-- Badges earned this lesson -->
+    <div id="complete-badges-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">BADGES</div>
+      <div class="reward-chips" id="complete-badges-chips"></div>
+    </div>
+
+    <!-- Cards earned this lesson -->
+    <div id="complete-cards-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">HISTORICAL FIGURE CARDS</div>
+      <div class="reward-chips" id="complete-cards-chips"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="complete-btn-group">
+      <!-- Retry same lesson -->
+      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
+      <!-- Replay entire unit from Lesson 30 (always visible) -->
+      <button class="btn full" id="btn-replay-all" onclick="replayFromBeginning()" style="border-color:var(--gold2);color:var(--gold2);display:none;"><span>⟳ Replay Unit From Beginning</span></button>
+      <!-- Return to unit hub -->
+      <button class="btn full green" onclick="returnToUnitHub()"><span>← Return to Unit Hub</span></button>
+      <!-- Return to shell -->
+      <button class="btn full teal" onclick="returnToShell()"><span>🏛 Return to American Chronicles</span></button>
+      <!-- Print certificate (shown when unit complete) -->
+      <button class="btn full" id="btn-print-cert" onclick="printCertificate()" style="display:none;border-color:var(--text3);color:var(--text3);"><span>🖨️ Print Certificate</span></button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Print area -->
+<div id="print-area"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN GATE
+═══════════════════════════════════════════════════════ -->
+<!-- WELCOME BACK MODAL -->
+<div id="welcome-back-overlay">
+  <div class="wb-box">
+    <div class="wb-avatar" id="wb-avatar"></div>
+    <div class="wb-greeting">WELCOME BACK</div>
+    <div class="wb-name" id="wb-name">Historian</div>
+    <div class="wb-sub" id="wb-sub">Curious Citizen</div>
+    <div class="wb-progress" id="wb-progress">No progress saved yet</div>
+    <button class="btn full" onclick="confirmWelcomeBack()" style="margin-bottom:8px;">
+      <span>Continue as This Student</span>
+    </button>
+    <button class="btn full" onclick="switchPlayer()"
+      style="border-color:var(--border2);color:var(--text3);font-size:11px;">
+      <span>That's Not Me — Switch Player</span>
+    </button>
+  </div>
+</div>
+
+<!-- UNIT TROPHY REVEAL OVERLAY -->
+<div id="unit-trophy-overlay">
+  <div class="utr-eyebrow">UNIT COMPLETE</div>
+  <div class="utr-name" id="utr-name"></div>
+  <div class="utr-icon" id="utr-icon"></div>
+  <div class="utr-trophy-name" id="utr-trophy-name"></div>
+  <div class="utr-msg" id="utr-msg"></div>
+  <div class="utr-acc" id="utr-acc"></div>
+  <button class="utr-btn" id="utr-btn" onclick="closeUnitTrophy()"></button>
+</div>
+<div id="login-gate">
+  <div class="login-box">
+    <div class="login-logo">CRASH &amp;<br>RECOVERY</div>
+    <div class="login-sub">Unit 4B — The Great Depression and New Deal</div>
+
+    <div class="login-field">
+      <label>Your Name</label>
+      <input type="text" class="login-input" id="login-name" placeholder="Enter your name" maxlength="40" autocomplete="off">
+    </div>
+
+    <div class="login-field">
+      <label>Class Period</label>
+      <div id="period-selector" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button class="btn full" onclick="submitLogin()"><span>Enter →</span></button>
+    </div>
+
+    <div class="login-notice">Returning from American Chronicles? Your profile loads automatically.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     BOTTOM NAV (carried from v1)
+════════════════════════════════════════════ -->
+<div id="bottom-nav">
+  <button class="bn-btn active" id="bn-hub" onclick="navToHub()">
+    <span class="bn-icon">🏠</span>Hub
+  </button>
+  <button class="bn-btn" onclick="openLeaderboard()">
+    <span class="bn-icon">🏆</span>Ranks
+  </button>
+  <button class="bn-btn" onclick="openProfile()">
+    <span class="bn-icon">👤</span>Profile
+  </button>
+  <button class="bn-btn" onclick="openCardCollection()">
+    <span class="bn-icon">🃏</span>Cards
+  </button>
+</div>
+
+<!-- LEADERBOARD OVERLAY -->
+<div class="overlay" id="leaderboard-overlay">
+  <div class="overlay-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="overlay-title">🏆 Leaderboard</div>
+      <button id="lb-teacher-unlock" onclick="unlockLBDelete()" style="font-family:var(--dm);font-size:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 8px;cursor:pointer;" title="Teacher: unlock delete">🔒</button>
+    </div>
+    <button class="overlay-close" onclick="closeLeaderboard()">CLOSE</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;" id="lb-type-tabs">
+    <button class="lb-tab active" onclick="setLbType('overall',this)">🌐 Overall</button>
+    <button class="lb-tab" onclick="setLbType('class',this)">🏫 My Class</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;" id="lb-period-tabs"></div>
+  <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px;" id="lb-sync-status">Loading…</div>
+  <div id="lb-content"></div>
+</div>
+
+<!-- PROFILE OVERLAY -->
+<div class="overlay" id="profile-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Your Profile</div>
+    <button class="overlay-close" onclick="closeProfile()">CLOSE</button>
+  </div>
+  <div id="profile-avatar-large" style="text-align:center;margin-bottom:16px;"></div>
+  <div class="profile-stat-grid" id="profile-stat-grid"></div>
+  <div class="section-head" style="font-size:13px;">Badges Earned</div>
+  <div class="badges-row" id="profile-badge-grid" style="margin-bottom:16px;"></div>
+  <div class="section-head" style="font-size:13px;margin-top:8px;">Card Collection</div>
+  <div class="card-grid" id="profile-card-grid"></div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- CARD COLLECTION OVERLAY -->
+<div class="overlay" id="cardcoll-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Historical Figures</div>
+    <button class="overlay-close" onclick="document.getElementById('cardcoll-overlay').classList.remove('show')">CLOSE</button>
+  </div>
+  <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);margin-bottom:16px;font-style:italic;">
+    Earn historical figure cards by completing lessons. Each card tells the story of a key The Great Depression figure.
+  </div>
+  <div class="card-grid" id="cardcoll-grid"></div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════
+// CONSTANTS & KEYS
+// ════════════════════════════════════════════
+const SHELL_KEY   = 'ac_shell_state';
+const SAVE_KEY   = 'crashrecovery_v1_save';
+const UNIT_ID     = 'unit4b';
+
+// ── GOLD ECONOMY ──────────────────────────────────────
+// These are the canonical reward values for UNIT 4B.
+// All gold earned here flows into the shell's global wallet
+// and from there into the RPG. Adjust by lesson type below.
+//
+// lesson      : 20 per correct · 25 completion · 25 perfect run
+// extension   : 20 per correct · 30 completion · 30 perfect run
+// capstone    : 25 per correct · 50 completion · 50 mastery (100% acc)
+// eoc         : 15 per correct · 50 completion · 50 high-score (≥90%)
+//
+const GOLD_RULES = {
+  lesson:    { perCorrect: 20, completionBonus: 25, perfectBonus: 25  },
+  extension: { perCorrect: 20, completionBonus: 30, perfectBonus: 30  },
+  capstone:  { perCorrect: 25, completionBonus: 50, masteryBonus: 50  },
+  eoc:       { perCorrect: 15, completionBonus: 50, highScoreBonus: 50 },
+};
+
+// Supabase credentials (carried over from original)
+const OLD_SUPA_URL = 'https://iluvuartxsenbgylogit.supabase.co';
+const OLD_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZ1YXJ0eHNlbmJneWxvZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTIsImV4cCI6MjA4OTQzNjY5Mn0.stAmdi5xy7ofDAB4AiRg78Eoky-7FXZEa-Ui1dgwHd0';
+const OLD_HEADERS = {'Content-Type':'application/json','apikey':OLD_SUPA_KEY,'Authorization':'Bearer '+OLD_SUPA_KEY};
+
+const AC_SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const AC_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AC_HEADERS  = {'Content-Type':'application/json','apikey':AC_SUPA_KEY,'Authorization':'Bearer '+AC_SUPA_KEY};
+
+// ════════════════════════════════════════════
+// LESSON DATA — TEMPLATE STRUCTURE
+// Replace briefings and question banks via JSON later.
+// ════════════════════════════════════════════
+
+/*
+  LESSON STRUCTURE CONTRACT:
+  Each lesson object has:
+    id         — unique string key
+    label      — e.g. "LESSON 38"
+    title      — thematic title
+    sub        — location · years
+    icon       — emoji
+    type       — 'lesson' | 'capstone' | 'eoc'
+    briefing   — { location, date, text, quote?, tags[] }
+    bank       — array of question objects (8–12 for lessons, 20–25 for EOC)
+    displayCount — number of questions to show per playthrough
+    cardEarned — optional string id
+
+  QUESTION STRUCTURE CONTRACT:
+  Each question in bank:
+    id         — unique string
+    text       — question text
+    choices    — array of { text, correct, feedback }
+    standard   — e.g. "SS.912.A.6.12"
+
+  NOTE: Answer choices are randomized on every playthrough.
+        displayCount questions are drawn randomly from bank each time.
+*/
+
+const LESSONS = [
+
+  // ==================================================
+  // LESSON 30 — Black Tuesday
+  // ==================================================
+  {
+    id: 'lesson30',
+    label: 'LESSON 30',
+    title: 'Black Tuesday',
+    sub: 'The Causes of the Great Depression · 1920s-1933',
+    icon: '📉',
+    type: 'lesson',
+    briefing: {
+      location: 'Wall Street and the American Economy',
+      date: '1920s-1933',
+      role: 'financial correspondent',
+      text: 'The stock market crash shocked the nation, but the Great Depression was caused by more than one terrible week on Wall Street. Weak banks, uneven wealth, risky speculation, overproduction, and a fragile credit system left the economy vulnerable long before panic spread. In this opening lesson, students trace how apparent prosperity collapsed into crisis.',
+      tags: ['SS.912.A.5.11']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Black Tuesday', cards: ['Stock Market Crash', 'Smoot-Hawley Tariff'] },
+    bank: [
+      {
+        id: '4B-L30-Q1',
+        text: 'Why did stock speculation make the economy more fragile in the late 1920s?',
+        choices: [
+          'Many investors bought stocks on borrowed money, so falling prices triggered a chain of panic selling and losses.',
+          'Speculation was dangerous mainly because it diverted capital away from productive businesses into purely speculative gambling with no underlying value.',
+          'Federal regulations required all citizens to invest a portion of their savings in stocks regardless of risk.',
+          'Speculation drove stock prices so high that companies could no longer afford to hire new workers.'
+        ],
+        correctAnswer: 'Many investors bought stocks on borrowed money, so falling prices triggered a chain of panic selling and losses.',
+        explanation: 'Buying "on margin" meant investors could purchase stocks with only a small down payment — when prices fell, brokers called in those loans, forcing panic selling that accelerated the collapse.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q2',
+        text: 'How did unequal distribution of wealth weaken the economy before the Great Depression?',
+        choices: [
+          'Too much purchasing power was concentrated at the top while many families could not sustain strong demand.',
+          'Wealthy Americans hoarded gold, which reduced the money supply and caused deflation across all sectors.',
+          'Inequality led working-class families to strike for higher wages, which caused factories to shut down early.',
+          'The rich invested all their money in foreign markets rather than supporting domestic consumption and growth.'
+        ],
+        correctAnswer: 'Too much purchasing power was concentrated at the top while many families could not sustain strong demand.',
+        explanation: 'By the late 1920s the wealthiest Americans held an enormous share of national income — meaning that if their spending slowed, the whole consumer economy could contract sharply.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q3',
+        text: 'Why did overproduction become a serious problem in the late 1920s?',
+        choices: [
+          'Factories and farms produced more goods than consumers could keep purchasing at profitable prices.',
+          'Overproduction was mainly a government problem — federal agencies printed too much paper currency.',
+          'Production outpaced demand mainly because immigration had reduced the American consumer population.',
+          'Factories overproduced mainly because high tariffs forced them to sell all their goods at home instead of abroad.'
+        ],
+        correctAnswer: 'Factories and farms produced more goods than consumers could keep purchasing at profitable prices.',
+        explanation: 'American factories were producing more cars, appliances, and agricultural products than the available market of consumers — especially those with stagnant or falling wages — could absorb.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q4',
+        text: 'What made the banking system especially vulnerable when the economy began to weaken?',
+        choices: [
+          'Many banks were poorly regulated and lacked enough reserves to survive waves of withdrawals.',
+          'Banks had invested heavily in foreign countries that defaulted on their loans once the war ended.',
+          'The Federal Reserve had deliberately reduced the money supply to control inflation in major cities.',
+          'Most American banks were owned by foreign investors who withdrew their money at the first sign of trouble.'
+        ],
+        correctAnswer: 'Many banks were poorly regulated and lacked enough reserves to survive waves of withdrawals.',
+        explanation: 'Thousands of small, unregulated banks had made risky loans and held insufficient reserves — when depositors panicked and demanded their money, banks failed, wiping out savings and destroying credit.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q5',
+        text: 'Why is Black Tuesday remembered as a defining moment in the Great Depression story?',
+        choices: [
+          'It symbolized the market collapse, even though deeper economic weaknesses had already made the system unstable.',
+          'Black Tuesday was the single cause of the Depression — the economy was healthy until that day in October.',
+          'The crash mattered mainly because it destroyed the savings of ordinary working families across the country.',
+          'It defined the era mainly because it was the first time in history that a stock market had ever declined sharply.'
+        ],
+        correctAnswer: 'It symbolized the market collapse, even though deeper economic weaknesses had already made the system unstable.',
+        explanation: 'The October 1929 crash was dramatic and symbolic, but historians emphasize that the Depression\'s root causes — overproduction, weak banks, unequal wealth, and fragile credit — predated it.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q6',
+        text: 'How could high tariffs make the Depression worse once the downturn had already begun?',
+        choices: [
+          'They reduced international trade and made it harder for countries to buy and sell goods to recover.',
+          'Tariffs made the Depression worse mainly by reducing the number of immigrants entering the workforce.',
+          'High tariffs increased government revenue, which crowded out private investment and slowed recovery.',
+          'They caused inflation so severe that American consumers could no longer afford basic household goods.'
+        ],
+        correctAnswer: 'They reduced international trade and made it harder for countries to buy and sell goods to recover.',
+        explanation: 'The Smoot-Hawley Tariff of 1930 triggered retaliatory tariffs from other nations, collapsing international trade at exactly the moment when economic recovery needed more commerce, not less.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q7',
+        text: 'Why did heavy use of consumer credit matter to the economy before the crash?',
+        choices: [
+          'It allowed spending to rise, but it also left many households vulnerable when incomes and jobs declined.',
+          'Most credit was used exclusively for real estate purchases rather than consumer goods, so its overall contribution to the crash was considered minimal.',
+          'Most credit was used for real estate rather than consumer goods, so its effect on the crash was minimal.',
+          'Heavy borrowing prevented savings, which meant banks had no money to lend to businesses for investment.'
+        ],
+        correctAnswer: 'It allowed spending to rise, but it also left many households vulnerable when incomes and jobs declined.',
+        explanation: 'Installment plans made 1920s prosperity feel more widespread than it was — when income fell, debt burdens crushed families who had no savings cushion and triggered a cascade of defaults.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L30-Q8',
+        text: 'What best explains the causes of the Great Depression?',
+        choices: [
+          'It grew from multiple weaknesses in finance, production, consumption, and banking, not from one cause alone.',
+          'Government intervention in the economy throughout the 1920s created serious market inefficiencies that ultimately prevented the economy from self-correcting.',
+          'Government intervention in the 1920s created inefficiencies that prevented the market from self-correcting.',
+          'It resulted mainly from the Smoot-Hawley Tariff, which single-handedly collapsed international trade.'
+        ],
+        correctAnswer: 'It grew from multiple weaknesses in finance, production, consumption, and banking, not from one cause alone.',
+        explanation: 'Historians emphasize that the Depression required multiple simultaneous failures — speculation, weak banks, overproduction, unequal wealth, and policy mistakes — all reinforcing each other.',
+        standard: 'SS.912.A.5.11'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 31 — Hoover to Roosevelt
+  // ==================================================
+  {
+    id: 'lesson31',
+    label: 'LESSON 31',
+    title: 'Hoover to Roosevelt',
+    sub: 'The Response to the Economic Collapse · 1929-1933',
+    icon: '🎙️',
+    type: 'lesson',
+    briefing: {
+      location: 'Washington D.C.',
+      date: '1929-1933',
+      role: 'political correspondent',
+      text: 'As banks fail and unemployment rises, Americans look to Washington for answers. Herbert Hoover believes recovery will come through limited federal action and voluntary cooperation, while growing desperation opens the door to Franklin Roosevelt\'s promise of bold experimentation. This lesson follows the turning point from Hoover\'s response to Roosevelt\'s political rise.',
+      tags: ['SS.912.A.5.11', 'SS.912.A.5.12']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Hoover to Roosevelt', cards: ['Herbert Hoover', 'New Deal Promise'] },
+    bank: [
+      {
+        id: '4B-L31-Q1',
+        text: 'Why was Herbert Hoover reluctant to use broad direct federal relief early in the Depression?',
+        choices: [
+          'He believed recovery should come mainly through local effort, private charity, and voluntary cooperation.',
+          'Hoover was reluctant mainly because Congress refused to pass any legislation he sent to the legislature.',
+          'His response seemed inadequate primarily because he had no previous experience whatsoever with economic policy before taking the presidency in 1929.',
+          'Hoover opposed relief primarily because he believed the Depression was already ending on its own.'
+        ],
+        correctAnswer: 'He believed recovery should come mainly through local effort, private charity, and voluntary cooperation.',
+        explanation: 'Hoover\'s philosophy of "rugged individualism" held that direct federal welfare would undermine self-reliance and create permanent dependency — recovery should come from communities and private organizations, not Washington.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L31-Q2',
+        text: 'Why did Hoover\'s response increasingly seem inadequate to many Americans?',
+        choices: [
+          'Conditions worsened so badly that limited measures no longer matched the scale of the crisis.',
+          'Hoover\'s policies were unpopular mainly because he refused to communicate with the public about his plans.',
+          'His response seemed inadequate primarily because he had no previous experience with economic policy.',
+          'Americans lost faith mainly because Hoover openly blamed workers and farmers for causing the Depression.'
+        ],
+        correctAnswer: 'Conditions worsened so badly that limited measures no longer matched the scale of the crisis.',
+        explanation: 'Unemployment climbed toward 25 percent, banks collapsed by the thousands, and families lost their homes while Hoover insisted that confidence and local charity were sufficient — the gap between prescription and reality became impossible to ignore.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L31-Q3',
+        text: 'What was the purpose of the Reconstruction Finance Corporation under Hoover?',
+        choices: [
+          'It was meant to support banks and major institutions in hopes that recovery would spread through the economy.',
+          'The RFC was established specifically to fund public works programs like highway construction and bridge building that would create immediate jobs.',
+          'It was established to fund public works programs like roads and bridges to create immediate jobs.',
+          'The RFC was designed to regulate the stock market and prevent further speculative crashes from occurring.'
+        ],
+        correctAnswer: 'It was meant to support banks and major institutions in hopes that recovery would spread through the economy.',
+        explanation: 'Hoover\'s most significant intervention was lending money to banks and railroads — a top-down approach that critics called "trickle-down" because it helped large institutions without directly aiding unemployed workers.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L31-Q4',
+        text: 'Why did the Bonus Army incident damage Hoover politically?',
+        choices: [
+          'The removal of protesting veterans made his administration appear harsh and out of touch with suffering.',
+          'The incident damaged Hoover mainly because it proved he had secretly ordered veterans to be paid their bonuses.',
+          'It hurt him politically because Congress overruled his decision and forced him to pay the veterans immediately.',
+          'The Bonus Army episode was damaging mainly because it revealed corruption inside the War Department.'
+        ],
+        correctAnswer: 'The removal of protesting veterans made his administration appear harsh and out of touch with suffering.',
+        explanation: 'When General MacArthur used cavalry, tanks, and tear gas to drive World War I veterans and their families from their camp in Washington D.C., the images horrified the public and became a symbol of Hoover\'s cold indifference.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L31-Q5',
+        text: 'Why did Franklin Roosevelt\'s message appeal to many voters in 1932?',
+        choices: [
+          'He promised energetic leadership and a willingness to try bold new responses to the crisis.',
+          'Roosevelt appealed mainly because he had a detailed, fully developed plan for fixing every economic problem.',
+          'Most voters supported him primarily because he promised to immediately end Prohibition nationwide.',
+          'His appeal was mainly regional — Roosevelt was overwhelmingly popular only in the South and West.'
+        ],
+        correctAnswer: 'He promised energetic leadership and a willingness to try bold new responses to the crisis.',
+        explanation: 'Roosevelt\'s campaign was deliberately vague on specifics but powerful in tone — he radiated optimism, promised action, and gave voters a sense that whatever had been tried was not enough and that something bolder was coming.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-L31-Q6',
+        text: 'Why was restoring confidence in banks one of Roosevelt\'s first priorities after taking office?',
+        choices: [
+          'Bank failures threatened savings, credit, and public trust, making wider recovery much harder.',
+          'Roosevelt targeted banks first mainly because banking reform was the only area Congress would support.',
+          'He prioritized banks primarily to protect wealthy depositors who had been the biggest supporters of his campaign.',
+          'Banking reform came first because Roosevelt\'s economic advisers believed all other problems stemmed from it.'
+        ],
+        correctAnswer: 'Bank failures threatened savings, credit, and public trust, making wider recovery much harder.',
+        explanation: 'With banks still closing and hoarding of cash widespread, Roosevelt\'s bank holiday and fireside chat about banking stability aimed to restore the public trust that the entire credit system depended on.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-L31-Q7',
+        text: 'What best explains the shift from Hoover to Roosevelt in public opinion?',
+        choices: [
+          'As hardship deepened, voters wanted stronger federal action than Hoover had been willing to provide.',
+          'The shift was mainly personal — voters disliked Hoover\'s personality while admiring Roosevelt\'s charm.',
+          'Roosevelt gained support primarily because he promised to cut federal spending and balance the budget.',
+          'The shift happened mainly because Hoover had been implicated in the Teapot Dome scandal.'
+        ],
+        correctAnswer: 'As hardship deepened, voters wanted stronger federal action than Hoover had been willing to provide.',
+        explanation: 'By 1932 unemployment was catastrophic and Hoover\'s incremental, voluntary approach had clearly failed — Roosevelt\'s willingness to use federal power actively made him the obvious alternative.',
+        standard: 'SS.912.A.5.11 · SS.912.A.5.12'
+      },
+      {
+        id: '4B-L31-Q8',
+        text: 'What is the clearest contrast between Hoover\'s response and Roosevelt\'s early approach?',
+        choices: [
+          'Hoover favored limited national relief, while Roosevelt embraced broader federal experimentation and action.',
+          'Roosevelt focused his attention entirely on foreign policy challenges while Hoover had been consumed entirely by domestic economic concerns throughout his presidency.',
+          'Roosevelt focused entirely on foreign policy while Hoover had been consumed by domestic economic concerns.',
+          'Hoover relied on the Federal Reserve while Roosevelt bypassed it entirely and printed new currency directly.'
+        ],
+        correctAnswer: 'Hoover favored limited national relief, while Roosevelt embraced broader federal experimentation and action.',
+        explanation: 'The core difference was philosophical: Hoover believed government action should be minimal and supplementary; Roosevelt believed government had to act decisively, even if that meant trying things that might fail.',
+        standard: 'SS.912.A.5.11 · SS.912.A.5.12'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 32 — Hard Times
+  // ==================================================
+  {
+    id: 'lesson32',
+    label: 'LESSON 32',
+    title: 'Hard Times',
+    sub: 'The Human Impact of the Great Depression · 1930s',
+    icon: '📷',
+    type: 'lesson',
+    briefing: {
+      location: 'Across America — Cities, Farms, and Open Roads',
+      date: '1930s',
+      role: 'documentary photographer',
+      text: 'The Depression was not only an economic crisis on paper. It reshaped everyday life for workers, farmers, families, migrants, and children across the country. Shantytowns, foreclosures, Dust Bowl migration, and hunger revealed how deeply the collapse reached into ordinary lives. This lesson centers the human experience behind the statistics.',
+      tags: ['SS.912.A.5.11']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Hard Times', cards: ['Dust Bowl', 'Hoovervilles'] },
+    bank: [
+      {
+        id: '4B-L32-Q1',
+        text: 'How did unemployment change everyday life for millions of Americans during the Great Depression?',
+        choices: [
+          'Families lost income, housing security, and confidence as joblessness spread through communities.',
+          'Unemployment affected mainly men in manufacturing — women and farmworkers retained most of their jobs.',
+          'Most unemployed Americans found alternative work quickly because the agricultural sector was still growing.',
+          'The impact was largely temporary since most workers were rehired within six months of losing their positions.'
+        ],
+        correctAnswer: 'Families lost income, housing security, and confidence as joblessness spread through communities.',
+        explanation: 'Peak unemployment reached roughly 25 percent nationally — meaning one in four workers had no job — with cascading effects on housing, nutrition, family stability, and psychological well-being.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q2',
+        text: 'What did Hoovervilles symbolize during the Depression?',
+        choices: [
+          'They symbolized visible poverty and public frustration with a government seen as unable to solve the crisis.',
+          'Hoovervilles were organized settlements built by the government to house families displaced by bank failures.',
+          'They were mainly temporary communities of migrants passing through cities on their way to farm work.',
+          'The settlements symbolized the self-reliance of Americans who built communities without government help.'
+        ],
+        correctAnswer: 'They symbolized visible poverty and public frustration with a government seen as unable to solve the crisis.',
+        explanation: 'The sarcastic name — attaching Hoover\'s name to the shantytowns of cardboard and scrap metal — captured public anger at a president who seemed unable or unwilling to address widespread homelessness.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q3',
+        text: 'Why did the Dust Bowl intensify suffering during the Great Depression?',
+        choices: [
+          'Environmental disaster combined with economic collapse, forcing many farming families to leave their land.',
+          'The Dust Bowl affected mainly the East Coast, adding agricultural failure to the industrial collapse there.',
+          'It intensified suffering mainly by destroying the crops that federal relief agencies were distributing to cities.',
+          'The Dust Bowl was a natural disaster entirely separate from the Depression with no connection to it.'
+        ],
+        correctAnswer: 'Environmental disaster combined with economic collapse, forcing many farming families to leave their land.',
+        explanation: 'Severe drought, poor farming practices, and the economic Depression combined in the Southern Plains to destroy crops, bury farms in dust, and drive thousands of "Okies" and "Arkies" westward toward California.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q4',
+        text: 'Why did many families migrate during the Depression years?',
+        choices: [
+          'They moved in search of work, relief, and survival when local opportunities disappeared.',
+          'Migration was encouraged by the federal government, which offered land grants in western states to poor families.',
+          'Families moved mainly to escape discrimination and segregation rather than for economic reasons.',
+          'Most migration was from urban to rural areas as city workers sought to grow their own food on farms.'
+        ],
+        correctAnswer: 'They moved in search of work, relief, and survival when local opportunities disappeared.',
+        explanation: 'Whether fleeing the Dust Bowl, foreclosed farms, or shuttered factories, millions of Americans hit the roads and railroads in search of any work — picking crops in California, building dams in the West, or seeking charity in other cities.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q5',
+        text: 'Why were farmers hit so hard during the Depression?',
+        choices: [
+          'They faced low prices, debt, and in many areas environmental disaster at the same time.',
+          'Farmers suffered mainly because New Deal programs deliberately excluded agricultural workers from aid.',
+          'Most farm hardship was caused by foreign competition that flooded American markets with cheap food.',
+          'Farmers were hit hard primarily because the government had forced them to produce too much during the 1920s.'
+        ],
+        correctAnswer: 'They faced low prices, debt, and in many areas environmental disaster at the same time.',
+        explanation: 'Crop prices had been falling since the early 1920s, mortgage debt was heavy, and in the plains states the Dust Bowl added environmental catastrophe — making farm life one of the Depression\'s most brutal experiences.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q6',
+        text: 'How did the Great Depression affect children and family life?',
+        choices: [
+          'Many children experienced hunger, interrupted schooling, and added family responsibilities during hardship.',
+          'The Depression mainly affected working adults — child labor laws that had been passed during the Progressive Era ensured that children continued attending school.',
+          'Most families stayed intact and children\'s lives were relatively unchanged due to strong community support.',
+          'The Depression mainly affected adults — child labor laws ensured that children continued in school throughout.'
+        ],
+        correctAnswer: 'Many children experienced hunger, interrupted schooling, and added family responsibilities during hardship.',
+        explanation: 'Children went to school hungry or not at all, took on work to help support families, and witnessed the psychological strain that financial desperation placed on parents and community life.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q7',
+        text: 'Why did the human impact of the Depression vary across different groups?',
+        choices: [
+          'Race, region, occupation, and access to land or work shaped how severely people suffered.',
+          'The Depression affected all Americans equally — its universal impact was what made it so politically powerful.',
+          'Variation was mainly geographic — people in cities suffered more while rural families were largely spared.',
+          'Differences in impact were mainly generational — young workers suffered most while older employees kept jobs.'
+        ],
+        correctAnswer: 'Race, region, occupation, and access to land or work shaped how severely people suffered.',
+        explanation: 'Black Americans faced discrimination in relief programs and job markets on top of economic collapse; industrial workers lost wages; farmers faced both market and environmental disaster — the Depression did not hit everyone equally.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-L32-Q8',
+        text: 'What best explains why the human impact of the Great Depression changed American politics?',
+        choices: [
+          'Visible suffering made more Americans believe government should play a stronger role in economic security.',
+          'The political change was mainly a reaction against Roosevelt — most Americans blamed him for the Depression.',
+          'Suffering led Americans to reject democracy in favor of stronger authoritarian leadership models from Europe.',
+          'The human cost of the Depression changed politics mainly by reducing voter turnout to its lowest level ever.'
+        ],
+        correctAnswer: 'Visible suffering made more Americans believe government should play a stronger role in economic security.',
+        explanation: 'The Depression shattered confidence that markets could self-correct and private charity could substitute for public support — creating the political opening for a dramatically expanded federal role in economic life.',
+        standard: 'SS.912.A.5.11'
+      },
+    ]
+  },
+
+  // ==================================================
+  // UNIT 4B CAPSTONE — The New Deal and Its Legacy
+  // ==================================================
+  {
+    id: 'capstone',
+    label: 'UNIT 4B CAPSTONE',
+    title: 'The New Deal and Its Legacy',
+    sub: 'The New Deal and Its Legacy · 1933 and beyond',
+    icon: '🏛️',
+    type: 'capstone',
+    briefing: {
+      location: 'Washington D.C. and Across America',
+      date: '1933 and beyond',
+      role: 'policy analyst',
+      text: 'Franklin Roosevelt\'s New Deal changed what many Americans expected from the federal government. Relief, recovery, and reform programs reshaped banking, labor, agriculture, public works, and social welfare. Yet the New Deal also sparked fierce debate over federal power, constitutional limits, and who was truly included in economic recovery. This capstone examines both its achievements and its lasting legacy.',
+      tags: ['SS.912.A.5.12']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 25, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'New Deal Legacy', cards: ['Franklin Roosevelt', 'Social Security Act'] },
+    bank: [
+      {
+        id: '4B-CAP-Q1',
+        text: 'What did Roosevelt mean by relief, recovery, and reform in the New Deal?',
+        choices: [
+          'He meant immediate aid, economic revival, and long-term changes meant to prevent another collapse.',
+          'Roosevelt\'s three goals were all essentially the same — different labels for the same policy of spending.',
+          'Relief meant military spending, recovery meant tax cuts, and reform meant cutting government programs.',
+          'The three goals were listed in order of importance — relief was the only real priority, while reform was symbolic.'
+        ],
+        correctAnswer: 'He meant immediate aid, economic revival, and long-term changes meant to prevent another collapse.',
+        explanation: 'Relief addressed immediate suffering; recovery aimed to restart the economy; reform sought to change the rules of banking, labor, and agriculture so that the conditions that caused the Depression could not recur.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q2',
+        text: 'Why were programs like the CCC and WPA important to the New Deal?',
+        choices: [
+          'They provided work and income while also building projects that left a visible public legacy.',
+          'The CCC and WPA were mainly important as propaganda programs to create the appearance of activity.',
+          'Both programs were designed primarily to train industrial workers for factory jobs in the private sector.',
+          'They were important mainly because they demonstrated that government could operate as efficiently as business.'
+        ],
+        correctAnswer: 'They provided work and income while also building projects that left a visible public legacy.',
+        explanation: 'The CCC and WPA employed millions of Americans who built roads, bridges, parks, post offices, and murals — addressing unemployment and leaving durable infrastructure that communities still use today.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q3',
+        text: 'Why was Social Security one of the New Deal\'s most lasting achievements?',
+        choices: [
+          'It established a federal system of support for older Americans and other vulnerable groups.',
+          'Social Security was important mainly because it immediately ended elderly poverty across the country.',
+          'It was significant primarily as a savings program — workers deposited money that was returned at retirement.',
+          'Social Security was lasting mainly because it was the first New Deal program that Congress approved easily.'
+        ],
+        correctAnswer: 'It established a federal system of support for older Americans and other vulnerable groups.',
+        explanation: 'Social Security established the principle that the federal government had a permanent responsibility to protect Americans from the economic risks of old age, disability, and unemployment — a principle that became foundational.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q4',
+        text: 'How did the New Deal change the relationship between the federal government and organized labor?',
+        choices: [
+          'Federal policy became more supportive of collective bargaining and union organizing than before.',
+          'The New Deal effectively ended unions by making federal welfare programs a substitute for union benefits.',
+          'Roosevelt personally opposed unions and tried to replace them with government-managed labor boards.',
+          'The government took a completely neutral position and refused to intervene in any labor disputes at all.'
+        ],
+        correctAnswer: 'Federal policy became more supportive of collective bargaining and union organizing than before.',
+        explanation: 'The National Labor Relations Act (Wagner Act) of 1935 guaranteed workers the right to organize and bargain collectively, backed by a federal agency — transforming the legal landscape for unions.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q5',
+        text: 'Why did the New Deal face criticism from both the political left and the political right?',
+        choices: [
+          'Some thought it expanded federal power too much, while others thought it did not go far enough.',
+          'Both sides criticized the New Deal mainly because its programs were too expensive and wasted money.',
+          'Left and right agreed it had failed — they only disagreed about what type of new government to create.',
+          'Critics from both sides mainly objected to the speed of the New Deal rather than its goals or methods.'
+        ],
+        correctAnswer: 'Some thought it expanded federal power too much, while others thought it did not go far enough.',
+        explanation: 'Conservatives like the Liberty League argued the New Deal was socialist tyranny, while radicals like Huey Long argued it had done too little for ordinary Americans and concentrated too much power in Washington.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q6',
+        text: 'Why did New Deal programs face major constitutional challenges?',
+        choices: [
+          'They expanded federal power in ways that raised questions about the limits of national authority.',
+          'The constitutional challenges were mostly frivolous — the Supreme Court upheld all New Deal programs.',
+          'Programs were challenged mainly because Roosevelt had passed them without any congressional approval.',
+          'Constitutional questions arose mainly because New Deal spending violated the balanced budget amendment.'
+        ],
+        correctAnswer: 'They expanded federal power in ways that raised questions about the limits of national authority.',
+        explanation: 'The Supreme Court struck down several early New Deal programs — including the NRA and AAA — ruling that Congress had exceeded its commerce clause powers, leading to Roosevelt\'s controversial court-packing proposal.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q7',
+        text: 'What was the New Deal coalition?',
+        choices: [
+          'It was the broad political alliance that helped keep Roosevelt and the Democratic Party in power.',
+          'The coalition was a formal treaty between the Democratic and Progressive parties to share government offices.',
+          'It referred to the group of economists and professors Roosevelt assembled to design New Deal programs.',
+          'The coalition was an agreement between labor unions, farm groups, and business to support moderate reform.'
+        ],
+        correctAnswer: 'It was the broad political alliance that helped keep Roosevelt and the Democratic Party in power.',
+        explanation: 'The New Deal coalition united urban workers, labor unions, ethnic minorities, southern whites, farmers, and progressive intellectuals — a cross-class, cross-regional alliance that dominated American politics for decades.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q8',
+        text: 'What was one major limit of the New Deal\'s achievements?',
+        choices: [
+          'Some programs excluded or underserved groups such as many women, minorities, and agricultural workers.',
+          'The New Deal\'s main limit was that it ended the Depression too quickly, preventing more lasting reform.',
+          'Most New Deal programs were immediately repealed by Congress after the 1938 midterm elections.',
+          'The major limit was that Roosevelt refused to create any new government agencies or regulatory bodies.'
+        ],
+        correctAnswer: 'Some programs excluded or underserved groups such as many women, minorities, and agricultural workers.',
+        explanation: 'To win southern Democratic support, many New Deal programs allowed racial discrimination — Social Security initially excluded domestic servants and farm laborers, categories that were predominantly Black.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q9',
+        text: 'What is the most important long-term legacy of the New Deal?',
+        choices: [
+          'It changed expectations about the federal government\'s responsibility for economic security and regulation.',
+          'The New Deal\'s legacy was primarily the network of physical infrastructure it built across the country.',
+          'Its most lasting effect was ending the Democratic Party\'s southern support base and reshaping politics.',
+          'The main legacy was proving that deficit spending always causes more economic problems than it solves.'
+        ],
+        correctAnswer: 'It changed expectations about the federal government\'s responsibility for economic security and regulation.',
+        explanation: 'After the New Deal, Americans came to expect that the federal government would regulate financial markets, provide a basic social safety net, and take action during economic crises — expectations that persist today.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-CAP-Q10',
+        text: 'Why do historians debate the full success of the New Deal even while recognizing its importance?',
+        choices: [
+          'It relieved suffering and changed government, but the Depression itself was not fully ended by reform alone.',
+          'Historians debate it mainly because there is no agreement on whether the New Deal hurt or helped the economy.',
+          'The debate exists mainly because most New Deal programs were secretly designed to benefit wealthy donors.',
+          'Historians question its success mainly because Roosevelt\'s political opponents proved more popular than he was.'
+        ],
+        correctAnswer: 'It relieved suffering and changed government, but the Depression itself was not fully ended by reform alone.',
+        explanation: 'Despite the New Deal\'s programs, unemployment remained high throughout the 1930s — it took World War II\'s massive government spending to finally end the Depression, prompting debate about what the New Deal actually accomplished.',
+        standard: 'SS.912.A.5.12'
+      },
+    ]
+  },
+
+  // ==================================================
+  // EOC REVIEW — Great Depression and New Deal
+  // ==================================================
+  {
+    id: 'eoc',
+    label: 'EOC REVIEW',
+    title: 'EOC Practice Quiz',
+    sub: 'Great Depression and New Deal Review · economic collapse through long-term reform',
+    icon: '📋',
+    type: 'eoc',
+    briefing: {
+      location: 'Great Depression and New Deal Review',
+      date: '',
+      role: 'state exam coach',
+      text: 'This review section pulls together the full Unit 4B arc. Expect questions that connect the causes of the Depression, Hoover\'s response, the human cost of economic collapse, and the New Deal\'s programs and legacy. The emphasis here is synthesis, so students should be prepared to connect economic causes, political decisions, and lived experience.',
+      tags: ['SS.912.A.5.11', 'SS.912.A.5.12']
+    },
+    displayCount: 15,
+    goldRules: { perCorrect: 15, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'Depression & New Deal Mastery', cards: ['CCC Workers', 'WPA Mural'] },
+    bank: [
+      {
+        id: '4B-EOC-Q1',
+        text: 'Why did stock speculation make the economy dangerously fragile before the crash?',
+        choices: [
+          'Investors were using borrowed money, so falling prices could trigger panic selling and deeper losses.',
+          'Speculation was dangerous mainly because it diverted money from legitimate businesses into gambling.',
+          'The federal government had guaranteed stock prices, creating massive liability when prices dropped.',
+          'Speculation caused inflation so severe that ordinary consumers could no longer afford manufactured goods.'
+        ],
+        correctAnswer: 'Investors were using borrowed money, so falling prices could trigger panic selling and deeper losses.',
+        explanation: 'Buying stocks "on margin" with as little as 10 percent down created an enormous chain of debt — when prices fell, margin calls forced mass selling that accelerated the collapse into a full crash.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q2',
+        text: 'How did unequal wealth distribution make the economy less stable before the Depression?',
+        choices: [
+          'Many consumers lacked the income needed to keep purchasing goods at the pace production required.',
+          'Wealthy Americans were paying too much in taxes, which discouraged them from investing in new businesses.',
+          'The income gap meant that most workers saved too much money, reducing consumer spending drastically.',
+          'Inequality made the economy unstable mainly by fueling resentment that led to disruptive labor strikes.'
+        ],
+        correctAnswer: 'Many consumers lacked the income needed to keep purchasing goods at the pace production required.',
+        explanation: 'When the top one percent of Americans held a huge share of national income, the purchasing power of the majority was insufficient to sustain the production levels of American factories.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q3',
+        text: 'Why was overproduction a problem in both industry and agriculture before the Depression?',
+        choices: [
+          'Businesses produced more than consumers could buy profitably, which pushed prices and incomes downward.',
+          'Overproduction was mainly a problem in agriculture — industrial output was actually too low to meet demand.',
+          'The problem was that American goods could not compete internationally because of high domestic wages.',
+          'Overproduction occurred mainly because the federal government was subsidizing factories to produce at maximum.'
+        ],
+        correctAnswer: 'Businesses produced more than consumers could buy profitably, which pushed prices and incomes downward.',
+        explanation: 'By the late 1920s, output exceeded effective demand in both manufacturing and farming — prices fell, profits shrank, and businesses began cutting wages and workers before the crash even happened.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q4',
+        text: 'Why did bank failures have such a devastating effect during the early 1930s?',
+        choices: [
+          'They wiped out savings, reduced credit, and spread fear that caused even more people to withdraw money.',
+          'Bank failures were devastating mainly because they forced the government to print new money and cause inflation.',
+          'The primary effect was on stock prices — bank closures directly caused the stock market to crash.',
+          'Bank failures mattered mainly to wealthy depositors and had little direct impact on ordinary working families.'
+        ],
+        correctAnswer: 'They wiped out savings, reduced credit, and spread fear that caused even more people to withdraw money.',
+        explanation: 'When banks failed, depositors lost their savings with no federal insurance to protect them — and the fear of further failures caused hoarding of cash that dried up the credit businesses needed to operate.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q5',
+        text: 'What is the best way to understand Black Tuesday in relation to the Great Depression?',
+        choices: [
+          'It was the dramatic crash point in a larger system that was already weakened by deeper problems.',
+          'Black Tuesday was the single cause of the Depression — without the crash, no recession would have occurred.',
+          'The crash was mainly symbolic and had almost no direct effect on ordinary working Americans.',
+          'Black Tuesday was important mainly because it caused the Smoot-Hawley Tariff to be passed in response.'
+        ],
+        correctAnswer: 'It was the dramatic crash point in a larger system that was already weakened by deeper problems.',
+        explanation: 'The stock market crash of October 1929 is the iconic starting point, but historians emphasize that the Depression required the pre-existing vulnerabilities of overproduction, unequal wealth, fragile banks, and risky credit.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q6',
+        text: 'Why did Hoover\'s philosophy shape his response to the Depression?',
+        choices: [
+          'He believed local institutions and voluntary cooperation should do more than direct federal relief.',
+          'Hoover\'s philosophy was that any government spending during a recession would make it permanently worse.',
+          'He believed the Depression was caused by foreign governments and required an international diplomatic solution.',
+          'His philosophy led him to nationalize the banking system to prevent further failures from occurring.'
+        ],
+        correctAnswer: 'He believed local institutions and voluntary cooperation should do more than direct federal relief.',
+        explanation: 'Hoover\'s deep commitment to individualism and voluntary action shaped every decision — he pressed businesses to maintain wages voluntarily, asked communities to provide charity, and resisted federal welfare programs.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q7',
+        text: 'Why did the Bonus Army episode hurt Hoover politically?',
+        choices: [
+          'The treatment of protesting veterans made the administration seem insensitive during a period of hardship.',
+          'The episode hurt Hoover because he had promised the veterans their bonus payments and then refused.',
+          'It was politically damaging mainly because Congress had authorized the payments and Hoover overruled them.',
+          'The incident hurt Hoover mainly because it revealed that the Army was loyal to General MacArthur, not the president.'
+        ],
+        correctAnswer: 'The treatment of protesting veterans made the administration seem insensitive during a period of hardship.',
+        explanation: 'Images of tear gas and cavalry driving World War I veterans and their hungry families from makeshift camps near the Capitol shocked the American public and crystallized the perception of Hoover as cold and heartless.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q8',
+        text: 'Why did Roosevelt\'s 1932 campaign message resonate with voters?',
+        choices: [
+          'He projected optimism and promised bold experimentation at a moment when many wanted stronger action.',
+          'Roosevelt won mainly because he promised to restore the gold standard that Hoover had abandoned.',
+          'His campaign succeeded primarily because he had a detailed plan for every economic problem the country faced.',
+          'Voters supported Roosevelt mainly because he was a military hero with credibility on national security issues.'
+        ],
+        correctAnswer: 'He projected optimism and promised bold experimentation at a moment when many wanted stronger action.',
+        explanation: 'With unemployment catastrophic and Hoover\'s cautious conservatism clearly exhausted, Roosevelt\'s cheerful willingness to "try something" and his famous promise of "a new deal for the American people" gave desperate voters hope.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q9',
+        text: 'Why was restoring confidence in the banking system central to Roosevelt\'s early program?',
+        choices: [
+          'Economic recovery required depositors, businesses, and borrowers to trust that banks would remain open.',
+          'Banking reform was central mainly because Roosevelt\'s major campaign donors were all prominent bankers.',
+          'Banks were the first priority because they were the only institutions that Congress was willing to regulate.',
+          'Restoring bank confidence was mainly a symbolic gesture that had little practical economic effect.'
+        ],
+        correctAnswer: 'Economic recovery required depositors, businesses, and borrowers to trust that banks would remain open.',
+        explanation: 'Roosevelt\'s bank holiday, emergency banking legislation, and first fireside chat all aimed to stop the panic withdrawals that were collapsing banks — and it worked, with deposits flowing back within days.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q10',
+        text: 'Why did the Dust Bowl become one of the defining images of the Depression era?',
+        choices: [
+          'It showed how environmental disaster and economic collapse could reinforce each other brutally.',
+          'The Dust Bowl became iconic mainly because it was the first natural disaster ever photographed for the press.',
+          'It defined the era primarily as a western regional event separate from the broader national economic crisis.',
+          'The Dust Bowl was defining mainly because it was the direct cause of the Depression in agricultural states.'
+        ],
+        correctAnswer: 'It showed how environmental disaster and economic collapse could reinforce each other brutally.',
+        explanation: 'The Dust Bowl combined ecological catastrophe — eroded soil, black blizzards, destroyed crops — with the economic Depression to create some of the era\'s most powerful images of human suffering and displacement.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q11',
+        text: 'What did Hoovervilles show about the human cost of the Depression?',
+        choices: [
+          'Poverty became highly visible as unemployment and homelessness spread into public view.',
+          'Hoovervilles showed that Americans were resourceful and preferred self-help over government assistance.',
+          'They demonstrated that the Depression affected mainly urban industrial workers rather than rural families.',
+          'The settlements proved that most displaced Americans had found a stable way of living despite the crisis.'
+        ],
+        correctAnswer: 'Poverty became highly visible as unemployment and homelessness spread into public view.',
+        explanation: 'Shantytowns in public parks and on city edges made poverty impossible to ignore — they brought the human cost of the Depression directly into the public eye and became powerful symbols of government failure.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q12',
+        text: 'Why did the human impact of the Depression change expectations about government?',
+        choices: [
+          'Widespread suffering convinced many Americans that relief and security required stronger public action.',
+          'The impact changed expectations mainly by proving that democratic governments always fail in economic crises.',
+          'Most Americans became more skeptical of government after seeing how poorly it responded to the Depression.',
+          'The suffering changed expectations mainly in rural areas — urban Americans already supported a strong state.'
+        ],
+        correctAnswer: 'Widespread suffering convinced many Americans that relief and security required stronger public action.',
+        explanation: 'The Depression made visible the inadequacy of private charity and local relief — and persuaded a generation of Americans that only the federal government had the resources and reach to provide basic economic security.',
+        standard: 'SS.912.A.5.11'
+      },
+      {
+        id: '4B-EOC-Q13',
+        text: 'What did the New Deal\'s three goals of relief, recovery, and reform mean together?',
+        choices: [
+          'Help people immediately, revive the economy, and change systems that had made collapse so destructive.',
+          'The three goals were all essentially identical — Roosevelt used different labels as a political strategy to make the same spending program appear more comprehensive.',
+          'Relief meant helping farmers, recovery meant helping banks, and reform meant helping industrial workers.',
+          'Together they signaled that Roosevelt intended to completely replace capitalism with a planned economy.'
+        ],
+        correctAnswer: 'Help people immediately, revive the economy, and change systems that had made collapse so destructive.',
+        explanation: 'Relief addressed present suffering, recovery restarted economic activity, and reform changed the structural rules — banking regulation, labor rights, and social insurance — to prevent the next Depression.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q14',
+        text: 'Why were public works and work-relief programs important to New Deal policy?',
+        choices: [
+          'They provided jobs and wages while improving infrastructure and public resources across the country.',
+          'Work-relief programs were mainly symbolic — they employed too few people to have any economic effect.',
+          'The programs were important mainly because they trained workers for jobs in the private defense industry.',
+          'Public works programs were significant primarily as a way to reduce immigration by employing native workers.'
+        ],
+        correctAnswer: 'They provided jobs and wages while improving infrastructure and public resources across the country.',
+        explanation: 'Programs like the CCC, PWA, and WPA employed millions — building thousands of roads, bridges, schools, and parks — providing income that boosted demand while leaving a physical legacy still visible today.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q15',
+        text: 'Why is Social Security often treated as a turning point in federal policy?',
+        choices: [
+          'It made long-term economic security a more direct and lasting responsibility of the national government.',
+          'Social Security was a turning point mainly because it was the first law Roosevelt signed as president.',
+          'It marked a major turning point in American history mainly because it gave women and racial minorities completely equal retirement and disability benefits for the very first time.',
+          'Social Security is significant primarily because it immediately eliminated poverty among the elderly.'
+        ],
+        correctAnswer: 'It made long-term economic security a more direct and lasting responsibility of the national government.',
+        explanation: 'Before Social Security, the elderly who lacked savings or family support faced poverty with no federal safety net. The 1935 act established a permanent federal commitment to protect Americans from the economic risks of old age.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q16',
+        text: 'How did New Deal policy affect labor unions?',
+        choices: [
+          'It strengthened organized labor by giving workers more support for collective bargaining.',
+          'The New Deal weakened unions by creating government-run wage boards that replaced union negotiations.',
+          'Roosevelt actively tried to destroy unions because he feared they would become too politically powerful.',
+          'New Deal policy had no meaningful effect on unions — labor law remained unchanged throughout the 1930s.'
+        ],
+        correctAnswer: 'It strengthened organized labor by giving workers more support for collective bargaining.',
+        explanation: 'The Wagner Act of 1935 guaranteed workers the right to organize, created the NLRB to enforce it, and banned employer interference in union elections — leading to a surge in union membership throughout the decade.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q17',
+        text: 'Why did the New Deal attract criticism from different sides of the political spectrum?',
+        choices: [
+          'Some critics said it expanded government too much, while others said it still did too little.',
+          'Both conservative and liberal critics agreed the New Deal had made the Depression significantly worse.',
+          'The criticism from both sides was mainly about personal dislike of Roosevelt rather than policy disagreements.',
+          'Left and right critics both focused mainly on the New Deal\'s failure to reform the banking system.'
+        ],
+        correctAnswer: 'Some critics said it expanded government too much, while others said it still did too little.',
+        explanation: 'The American Liberty League attacked the New Deal as socialist; Huey Long demanded more radical redistribution; the Communist Party said it preserved capitalism too gently — the range of criticism reflected the New Deal\'s middle position.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q18',
+        text: 'Why did constitutional questions matter so much during the New Deal era?',
+        choices: [
+          'Expanding federal economic power raised major debates about how far national authority should reach.',
+          'Constitutional questions arose mainly because Roosevelt was trying to amend the Bill of Rights.',
+          'The main constitutional issue was whether the president had the power to declare economic emergencies.',
+          'Constitutional debates centered mainly on whether states could reject federal money and programs.'
+        ],
+        correctAnswer: 'Expanding federal economic power raised major debates about how far national authority should reach.',
+        explanation: 'The Supreme Court struck down key New Deal programs, prompting Roosevelt\'s controversial court-packing plan and forcing a fundamental rethinking of how broadly Congress could use its commerce power.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q19',
+        text: 'What was the most lasting legacy of the New Deal?',
+        choices: [
+          'It permanently expanded expectations that the federal government should protect economic security and regulate key systems.',
+          'The New Deal\'s most lasting legacy was the physical infrastructure — dams, roads, and bridges — it left behind.',
+          'Its greatest legacy was ending the Democratic Party\'s dominance in southern states permanently.',
+          'The most lasting effect was demonstrating conclusively that aggressive deficit spending by the federal government can always end any economic recession if applied quickly and boldly enough.'
+        ],
+        correctAnswer: 'It permanently expanded expectations that the federal government should protect economic security and regulate key systems.',
+        explanation: 'Social Security, federal deposit insurance, securities regulation, and labor rights all established a new baseline for what Americans expected from government — a baseline that outlasted the New Deal itself by generations.',
+        standard: 'SS.912.A.5.12'
+      },
+      {
+        id: '4B-EOC-Q20',
+        text: 'Which theme best ties together the Great Depression and New Deal unit?',
+        choices: [
+          'Economic collapse changed how Americans thought about risk, hardship, and the role of government.',
+          'The unit\'s central theme is that free markets always recover on their own if government stays out of the way.',
+          'The Depression and New Deal proved that democratic societies will always turn to socialism during a crisis.',
+          'The central theme is that strong presidential leadership is the only thing that can end an economic depression.'
+        ],
+        correctAnswer: 'Economic collapse changed how Americans thought about risk, hardship, and the role of government.',
+        explanation: 'From the causes of the crash to the human cost of Depression to the New Deal\'s programs and legacy, the unit traces how the 1930s permanently reshaped American expectations about what government owes its citizens in a time of crisis.',
+        standard: 'SS.912.A.5.11 · SS.912.A.5.12'
+      },
+    ]
+  },
+
+];
+
+
+
+
+
+// ════════════════════════════════════════════
+// PLAYER STATE
+// ════════════════════════════════════════════
+
+let P = null; // player state object
+
+const DEFAULT_P = {
+  name: '',
+  period: null,
+  // Unit progress
+  lessonsCompleted: [], // array of lesson ids
+  lessonBestScores: {}, // lessonId -> { correct, total, accuracy }
+  totalCorrect: 0,
+  totalAnswered: 0,
+  // Collections earned in this unit
+  cardsEarned: [],
+  badgesEarned: [],
+  // Session state
+  lastLesson: null
+};
+
+function loadP() {
+  // 1. Try shell state first (seamless session from American Chronicles)
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) {
+      const shell = JSON.parse(raw);
+      if (shell && shell.name && shell.name !== 'Guest') {
+        // Build a P from shell identity
+        const saved = loadSavedUnit();
+        P = Object.assign({}, DEFAULT_P, saved || {}, {
+          name: shell.name,
+          period: shell.period || null,
+          avatar: shell.avatar || 'scholar_f',
+          globalRank: shell.rank || 'Curious Citizen',
+          fromShell: true
+        });
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // 2. Try local save
+  const saved = loadSavedUnit();
+  if (saved && saved.name) {
+    P = Object.assign({}, DEFAULT_P, saved);
+    return true;
+  }
+  return false;
+}
+
+function loadSavedUnit() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveP() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// PORTRAIT ENGINE (minimal — reads from shell or generates)
+// ════════════════════════════════════════════
+
+function svgMedallion(bg,ring,face,size=44){
+  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:50%;overflow:visible">
+    <circle cx="20" cy="20" r="19.5" fill="${ring}"/>
+    <circle cx="20" cy="20" r="17.5" fill="${darken(ring)}"/>
+    <circle cx="20" cy="20" r="15.5" fill="${bg}"/>
+    ${face}
+    <circle cx="20" cy="20" r="15.5" fill="none" stroke="${ring}" stroke-width=".35" opacity=".5"/>
+  </svg>`;
+}
+function darken(c){const m={'#c9a84c':'#a8863a','#208878':'#156658','#7a2010':'#4a1008','#2a4a8a':'#1a3060','#6a4a20':'#4a3010','#c07818':'#905010'};return m[c]||'#0a0808';}
+function face(skin,eyes,hair,outfit,extras=''){return `
+  <circle cx="20" cy="17" r="6" fill="${skin}"/>
+  <ellipse cx="20" cy="26" rx="8.5" ry="5.5" fill="${outfit}"/>
+  <rect x="13" y="21" width="14" height="8" fill="${outfit}"/>
+  <ellipse cx="17.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  <ellipse cx="22.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  ${hair}
+  ${extras}`;}
+function hair_short(c,y=12){return `<ellipse cx="20" cy="${y}" rx="6" ry="3.5" fill="${c}"/>`;}
+function hair_bun(c){return `<ellipse cx="20" cy="11.5" rx="5.5" ry="3" fill="${c}"/><circle cx="20" cy="9.5" r="2.5" fill="${c}"/>`;}
+function hair_long(c){return `<ellipse cx="20" cy="11" rx="6" ry="4" fill="${c}"/><path d="M14 14 Q12 20 14 25" fill="none" stroke="${c}" stroke-width="2.5"/><path d="M26 14 Q28 20 26 25" fill="none" stroke="${c}" stroke-width="2.5"/>`;}
+function hair_afro(c){return `<ellipse cx="20" cy="10" rx="8" ry="6" fill="${c}"/>`;}
+function hair_straight_long(c){return `<ellipse cx="20" cy="11" rx="6.5" ry="4" fill="${c}"/><path d="M13.5 14 Q12 22 13.5 27" fill="none" stroke="${c}" stroke-width="3"/><path d="M26.5 14 Q28 22 26.5 27" fill="none" stroke="${c}" stroke-width="3"/>`;}
+function beard(c,opacity=1){return `<path d="M15 20 Q16 24 20 25 Q24 24 25 20" fill="${c}" opacity="${opacity}"/>`;}
+function glasses(){return `<rect x="14.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><rect x="21.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><line x1="18.5" y1="15.5" x2="21.5" y2="15.5" stroke="#2a1a0a" stroke-width=".8"/>`;}
+function hat_top(c){return `<rect x="15" y="5.5" width="10" height="9" rx=".8" fill="${c}"/><rect x="12" y="14" width="16" height="2" rx=".5" fill="${c}"/>`;}
+function hat_military(c){return `<ellipse cx="20" cy="12" rx="6.5" ry="3.5" fill="${c}"/><rect x="16" y="8" width="8" height="4.5" rx=".5" fill="${c}"/>`;}
+function hat_cowboy(c){return `<ellipse cx="20" cy="12.5" rx="6" ry="3.2" fill="${c}"/><rect x="16" y="9" width="8" height="4" rx=".5" fill="${c}"/><path d="M13 13 Q12 15 14 16" fill="none" stroke="${c}" stroke-width="2"/><path d="M27 13 Q28 15 26 16" fill="none" stroke="${c}" stroke-width="2"/>`;}
+function detail_book(){return `<rect x="22" y="19" width="5" height="7" rx=".5" fill="#f5ead8" opacity=".8"/>`;}
+function detail_stars(){return `<text x="16" y="28" font-size="5" fill="#c9a84c" opacity=".7">★★</text>`;}
+
+// Starter characters for game HUD avatars
+const STARTERS = {
+  scholar_f:    ()=>svgMedallion('#0d1a2e','#c9a84c',face('#f0c8a0','#1a1a1a',hair_long('#3a2010'),'#1a3060',detail_book())),
+  activist_m:   ()=>svgMedallion('#100808','#c9a84c',face('#a06040','#1a1a1a',hair_afro('#1a0a0a'),'#3a0a0a')),
+  reporter_f:   ()=>svgMedallion('#0a0c08','#c9a84c',face('#8a5530','#0a0a0a',hair_straight_long('#2a1a0a'),'#1a2a1a')),
+  soldier_m:    ()=>svgMedallion('#2a3a1a','#c9a84c',face('#d4a870','#1a1a0a',hat_military('#556644'),'#3a4a2a',beard('#a07040',.35))),
+  pioneer_f:    ()=>svgMedallion('#0c0a06','#c9a84c',face('#c89870','#2a1a0a',hat_cowboy('#8b4513'),'#5a3010')),
+  worker_m_asian:()=>svgMedallion('#080a0a','#c9a84c',face('#d4b080','#1a0a00',hat_military('#555544'),'#1a1a1a')),
+};
+function getAvatarSVG(id, size=44){
+  const fn = STARTERS[id] || STARTERS.scholar_f;
+  const svg = fn();
+  return svg.replace(/width="\d+"/, `width="${size}"`).replace(/height="\d+"/, `height="${size}"`);
+}
+
+// ════════════════════════════════════════════
+// SESSION GAME STATE
+// ════════════════════════════════════════════
+
+let activeLesson = null;   // lesson object
+let activeQueue = [];      // randomized question subset for this playthrough
+let activeQIdx = 0;        // current question index in queue
+let sessionCorrect = 0;
+let sessionTotal = 0;
+let sessionScore = 0;
+let sessionGoldEarned = 0; // gold earned this specific run
+let momentum = 0;
+let streak = 0;
+let answeredCurrent = false;
+
+// ════════════════════════════════════════════
+// GOLD WALLET — reads/writes the shared shell state
+// The shell is the single source of truth for gold.
+// This file writes directly to SHELL_KEY so the balance
+// is immediately available when the student returns to shell.
+// ════════════════════════════════════════════
+
+/**
+ * Read current gold balance from shell state.
+ */
+function getShellGold() {
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) { const s = JSON.parse(raw); return s.gold || 0; }
+  } catch(e) {}
+  return 0;
+}
+
+/**
+ * Award gold directly into the shell wallet.
+ * Also pushes a ledger entry so it appears in the shell's Gold view.
+ * @param {number} amount
+ * @param {string} source  — human label shown in ledger
+ * @param {boolean} showParticle
+ */
+function awardGoldToShell(amount, source, showParticle = true) {
+  if (!amount || amount <= 0) return;
+  sessionGoldEarned += amount;
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    shell.gold        = (shell.gold        || 0) + amount;
+    shell.goldEarned  = (shell.goldEarned  || 0) + amount;
+    if (amount > (shell.goldBestRun || 0)) shell.goldBestRun = amount;
+    if (!Array.isArray(shell.goldLedger)) shell.goldLedger = [];
+    shell.goldLedger.unshift({ ts: Date.now(), source, unitId: UNIT_ID, amount, type: 'earn' });
+    if (shell.goldLedger.length > 50) shell.goldLedger = shell.goldLedger.slice(0, 50);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('Gold write failed', e); }
+  if (showParticle) spawnGoldParticle('+' + amount + ' 🪙');
+  // Update HUD gold display
+  updateHUDGold();
+}
+
+function spawnGoldParticle(text) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;font-family:'Bebas Neue',sans-serif;font-size:15px;
+    color:#f5c842;pointer-events:none;z-index:9200;
+    text-shadow:0 0 8px rgba(245,200,66,.7);
+    animation:_gpFloat 1.6s ease-out forwards;`;
+  el.textContent = text;
+  // Inject keyframe once
+  if (!document.getElementById('_gp-style')) {
+    const s = document.createElement('style');
+    s.id = '_gp-style';
+    s.textContent = `@keyframes _gpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.2)}}`;
+    document.head.appendChild(s);
+  }
+  const hudScore = document.getElementById('hud-score');
+  if (hudScore) {
+    const r = hudScore.getBoundingClientRect();
+    el.style.left = (r.left + r.width / 2 - 24) + 'px';
+    el.style.top  = (r.top - 8) + 'px';
+  } else { el.style.left = '50%'; el.style.top = '80px'; }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+
+function updateHUDGold() {
+  const g = getShellGold();
+  const el = document.getElementById('hud-score');
+  if (el) el.textContent = g.toLocaleString();
+}
+
+// ════════════════════════════════════════════
+// UTILITY
+// ════════════════════════════════════════════
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickSubset(bank, n) {
+  return shuffle(bank).slice(0, Math.min(n, bank.length));
+}
+
+function calcTier(acc) {
+  if (acc === 100) return {label:'Historian', color:'#e8d0ff', icon:'🏛️'};
+  if (acc >= 90)  return {label:'Gold',      color:'#ffd700', icon:'🥇'};
+  if (acc >= 80)  return {label:'Silver',    color:'#c8c8d8', icon:'🥈'};
+  if (acc >= 70)  return {label:'Bronze',    color:'#cd7f32', icon:'🥉'};
+  if (acc >= 60)  return {label:'Completed', color:'#38a050', icon:'✅'};
+  return              {label:'Try Again',    color:'#c02020', icon:'🔄'};
+}
+
+function notify(msg, col) {
+  const n = document.createElement('div');
+  n.className = 'notif' + (col ? ' ' + col : '');
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3500);
+}
+
+// ════════════════════════════════════════════
+// SCREEN ROUTING (Layer 2 and Layer 3)
+// ════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function showUnitHub() {
+  showScreen('unit-hub-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'none';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+  showBottomNav();
+  setActiveNav(0);
+  renderUnitHub();
+}
+
+function showQuestionScreen() {
+  showScreen('question-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'inline-block';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+}
+
+// ════════════════════════════════════════════
+// UNIT HUB RENDERING
+// ════════════════════════════════════════════
+
+function isLessonUnlocked(idx) {
+  if (idx === 0) return true;
+  return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
+}
+
+function renderUnitHub() {
+  updateHUD();
+
+  // ── Player banner ──────────────────────────
+  const done  = P.lessonsCompleted.length;
+  const total = LESSONS.length;
+  const pct   = Math.round(done / total * 100);
+  const bannerEl = document.getElementById('hub-player-banner');
+  if (bannerEl) {
+    bannerEl.innerHTML = `
+      <div class="hub-banner">
+        <div class="hub-banner-top">
+          <div class="hub-banner-label">UNIT 4B — THE GREAT DEPRESSION</div>
+          <div class="hub-banner-count">${done}/${total} LESSONS</div>
+        </div>
+        <div class="hub-progress-bar">
+          <div class="hub-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Shell return button — show if arrived from shell
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = P.fromShell ? 'block' : 'none';
+
+  // ── Chapter cards ──────────────────────────
+  const chEl = document.getElementById('hub-chapters');
+  if (!chEl) return;
+
+  chEl.innerHTML = LESSONS.map((lesson, idx) => {
+    const completed = P.lessonsCompleted.includes(lesson.id);
+    const unlocked  = isLessonUnlocked(idx);
+    const isNextUp  = unlocked && !completed && idx > 0;
+    const best      = P.lessonBestScores[lesson.id];
+
+    const statusLabel = completed ? '✓ COMPLETE' : unlocked ? '▶ PLAY' : '🔒 LOCKED';
+    const statusClass = completed ? 'completed'  : unlocked ? 'available' : 'locked';
+
+    let cardClass = 'unit-card ' + statusClass;
+    if (isNextUp) cardClass += ' next-up';
+
+    const metaRow = best
+      ? `<div class="unit-card-meta">Best: ${best.accuracy}% · ${best.correct}/${best.total} correct</div>`
+      : '';
+
+    const unlockNote = !unlocked
+      ? `<div class="unit-card-unlock">Complete ${LESSONS[idx-1].label} to unlock</div>`
+      : '';
+
+    return `<div class="${cardClass}" onclick="${unlocked ? `openBriefing('${lesson.id}')` : ''}">
+      <div class="unit-card-header">
+        <div class="unit-icon">${unlocked ? lesson.icon : '🔒'}</div>
+        <div class="unit-info">
+          <div class="unit-number">${lesson.label}</div>
+          <div class="unit-name">${lesson.title}</div>
+          <div class="unit-desc">${lesson.sub}</div>
+        </div>
+        <div class="unit-status ${statusClass}">${statusLabel}</div>
+      </div>
+      ${metaRow}
+      ${unlockNote}
+      <div class="unit-progress-bar">
+        <div class="unit-progress-fill" style="width:${completed ? 100 : 0}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Replay from beginning — show when all done
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDone) {
+    chEl.innerHTML += `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border2);">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:8px;text-align:center;">
+          UNIT COMPLETE — Want to improve your score?
+        </div>
+        <button class="btn full" onclick="replayFromBeginning()" style="border-color:var(--teal2);color:var(--teal2);">
+          <span>↺ Replay Unit from Lesson 30</span>
+        </button>
+      </div>`;
+  }
+
+  // ── Badges row ─────────────────────────────
+  const badgesEl = document.getElementById('hub-badges');
+  if (badgesEl) {
+    badgesEl.innerHTML = UNIT_BADGES.map(b => {
+      const earned = b.lessonId
+        ? P.lessonsCompleted.includes(b.lessonId)
+        : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      return `<div class="badge-pill ${earned ? 'earned' : ''}">
+        <span class="badge-icon">${b.icon}</span>${b.label}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Certificate row ─────────────────────────
+  const certRow = document.getElementById('hub-cert-row');
+  if (certRow) certRow.style.display = allDone ? 'block' : 'none';
+
+  // ── Trophy block ────────────────────────────
+  renderHubTrophySection();
+}
+
+// ── EOC Rating helpers (matches shell logic) ─────────────
+function eocLevel(acc) {
+  if (acc >= 90) return {level:5, label:'Level 5 — Historian Ready', color:'#38a050'};
+  if (acc >= 80) return {level:4, label:'Level 4 — Strong',          color:'#2aaa98'};
+  if (acc >= 70) return {level:3, label:'Level 3 — Developing',      color:'#c07818'};
+  if (acc >= 60) return {level:2, label:'Level 2 — Needs Review',    color:'#a01818'};
+  return              {level:1, label:'Level 1 — Try Again',         color:'#c02020'};
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  // Only show if at least one lesson completed
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const best = P.lessonBestScores;
+  const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+
+  // Unit overall trophy = best single-lesson accuracy
+  const bestAcc = Math.max(...scores.map(s => s.accuracy));
+  const unitTier = calcTier(bestAcc);
+
+  // EOC rating from the EOC lesson specifically, or overall avg
+  const eocScore = best['eoc'] ? best['eoc'].accuracy :
+    Math.round(scores.reduce((a, s) => a + s.accuracy, 0) / scores.length);
+  const eoc = eocLevel(eocScore);
+
+  el.innerHTML = `
+    <div class="sh" style="margin-top:20px;">Unit Performance</div>
+    <div class="trophy-display">
+      <div class="trophy-icon">${unitTier.icon}</div>
+      <div class="trophy-info">
+        <div class="trophy-tier-name" style="color:${unitTier.color}">${unitTier.label}</div>
+        <div class="trophy-stat-row">
+          <div class="trophy-stat">Best accuracy: <strong>${bestAcc}%</strong></div>
+          <div class="trophy-stat">Lessons done: <strong>${P.lessonsCompleted.length}/${LESSONS.length}</strong></div>
+        </div>
+        <div class="eoc-rating-badge" style="color:${eoc.color};border-color:${eoc.color};">
+          EOC ${eoc.label}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════════
+
+function updateHUD() {
+  if (!P) return;
+  document.getElementById('hud-player-name').textContent = P.name;
+  // RULE: Always show global rank from shell — never a unit-specific rank
+  document.getElementById('hud-player-rank').textContent = P.globalRank || 'Curious Citizen';
+  document.getElementById('hud-avatar-wrap').innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 44);
+  // Gold balance — reads from shared shell wallet
+  document.getElementById('hud-score').textContent = getShellGold().toLocaleString();
+  document.getElementById('hud-streak').textContent = streak;
+
+  const xpPct = Math.min(100, Math.round(((P.totalAnswered || 0) / 60) * 100));
+  document.getElementById('hud-xp-fill').style.width = xpPct + '%';
+}
+
+// ════════════════════════════════════════════
+// BRIEFING FLOW
+// ════════════════════════════════════════════
+
+function openBriefing(lessonId) {
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  if (!lesson) return;
+  activeLesson = lesson;
+
+  const b = lesson.briefing;
+
+  document.getElementById('briefing-eyebrow').textContent = lesson.label + ' · MISSION BRIEFING';
+  document.getElementById('briefing-title').textContent = lesson.title;
+  document.getElementById('briefing-location').textContent = b.location || '';
+  document.getElementById('briefing-date').textContent = b.date || '';
+  document.getElementById('briefing-text').textContent = b.text || '';
+
+  // Role line
+  const roleEl = document.getElementById('briefing-role');
+  if (roleEl) {
+    if (b.role) { roleEl.textContent = 'Your role: ' + b.role; roleEl.style.display = 'block'; }
+    else roleEl.style.display = 'none';
+  }
+
+  // Quote
+  const qEl = document.getElementById('briefing-quote');
+  if (b.quote) {
+    qEl.textContent = b.quote;
+    qEl.style.display = 'block';
+  } else {
+    qEl.style.display = 'none';
+  }
+
+  // Tags
+  document.getElementById('briefing-meta').innerHTML =
+    (b.tags || []).map(t => `<span class="briefing-tag">${t}</span>`).join('');
+
+  // Scene placeholder (could load SVG from SCENES object later)
+  const sceneEl = document.getElementById('briefing-scene');
+  sceneEl.innerHTML = `<div style="width:100%;height:60px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;">[SCENE ART LOADS FROM JSON]</div>`;
+
+  document.getElementById('briefing-modal').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+function closeBriefing() {
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+}
+
+function proceedToQuestions() {
+  if (!activeLesson) return;
+  document.getElementById('briefing-modal').classList.remove('show');
+  startLesson(activeLesson);
+}
+
+// ════════════════════════════════════════════
+// QUESTION ENGINE
+// ════════════════════════════════════════════
+
+function startLesson(lesson) {
+  activeLesson = lesson;
+  activeQueue = pickSubset(lesson.bank, lesson.displayCount);
+  activeQIdx = 0;
+  sessionCorrect = 0;
+  sessionTotal = 0;
+  sessionScore = 0;
+  sessionGoldEarned = 0;
+  momentum = 0;
+  streak = 0;
+  answeredCurrent = false;
+
+  showQuestionScreen();
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (activeQIdx >= activeQueue.length) {
+    finishLesson();
+    return;
+  }
+
+  const q = activeQueue[activeQIdx];
+  const total = activeQueue.length;
+  answeredCurrent = false;
+
+  // Progress bar
+  document.getElementById('q-progress-fill').style.width =
+    Math.round(activeQIdx / total * 100) + '%';
+
+  // Context pill
+  document.getElementById('q-context-lesson').textContent = activeLesson.label;
+  document.getElementById('q-context-topic').textContent = activeLesson.title;
+
+  // Momentum
+  updateMomentumDisplay();
+
+  // Question number
+  document.getElementById('q-number').textContent =
+    `QUESTION ${activeQIdx + 1} OF ${total}`;
+
+  // Question text
+  document.getElementById('q-text').textContent = q.text;
+
+  // Standard tag — shown if question has a standard code
+  const stdTag = document.getElementById('q-standard-tag');
+  if (stdTag) {
+    if (q.standard) {
+      stdTag.textContent = q.standard;
+      stdTag.style.display = 'inline-block';
+    } else {
+      stdTag.style.display = 'none';
+    }
+  }
+
+  // Shuffle choices at runtime.
+  // correctAnswer is a plain string matching one of the choices — no index assumptions.
+  const shuffledChoices = shuffle(q.choices.slice());
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  document.getElementById('choices-list').innerHTML = shuffledChoices.map((choiceText, i) => {
+    const isCorrect = (choiceText === q.correctAnswer);
+    // Encode explanation and standard safely for inline onclick
+    const safeExpl  = encodeURIComponent(q.explanation || '');
+    const safeStd   = encodeURIComponent(q.standard || '');
+    return `<button class="choice-btn"
+      data-correct="${isCorrect}"
+      data-explanation="${safeExpl}"
+      data-standard="${safeStd}"
+      onclick="selectChoice(this)">
+      <span class="choice-letter">${letters[i]}.</span>
+      <span class="choice-text">${choiceText}</span>
+    </button>`;
+  }).join('');
+
+  // Hide feedback and next btn
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel';
+  document.getElementById('next-btn-wrap').style.display = 'none';
+
+  updateHUD();
+}
+
+function selectChoice(btn) {
+  if (answeredCurrent) return;
+  answeredCurrent = true;
+
+  // Read correctness from data attribute — set during render, not passed through onclick
+  const isCorrect  = btn.dataset.correct === 'true';
+  const explanation = decodeURIComponent(btn.dataset.explanation || '');
+  const standard   = decodeURIComponent(btn.dataset.standard || '');
+
+  // Mark all buttons answered; highlight chosen and correct
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.add('answered');
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  if (!isCorrect) btn.classList.add('incorrect');
+
+  sessionTotal++;
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  if (isCorrect) {
+    sessionCorrect++;
+    streak++;
+    const pts = 100 + (streak > 1 ? (streak - 1) * 25 : 0);
+    sessionScore += pts;
+    momentum = Math.min(100, momentum + 20);
+    awardGoldToShell(rules.perCorrect, 'Correct Answer — ' + activeLesson.label, true);
+    notify(streak > 2 ? `🔥 ${streak} streak! +${rules.perCorrect} 🪙` : `✓ Correct! +${rules.perCorrect} 🪙`);
+  } else {
+    streak = 0;
+    momentum = Math.max(0, momentum - 10);
+    notify('✗ Incorrect');
+  }
+
+  P.totalAnswered = (P.totalAnswered || 0) + 1;
+  if (isCorrect) P.totalCorrect = (P.totalCorrect || 0) + 1;
+  saveP();
+
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel show ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').className =
+    'feedback-verdict ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+  document.getElementById('feedback-text').textContent = explanation;
+  document.getElementById('feedback-standard').textContent = standard ? `Standard: ${standard}` : '';
+
+  const nw = document.getElementById('next-btn-wrap');
+  nw.style.display = 'block';
+  const isLast = activeQIdx === activeQueue.length - 1;
+  document.getElementById('next-btn-label').textContent = isLast ? 'See Results →' : 'Next Question →';
+
+  updateMomentumDisplay();
+  updateHUD();
+}
+
+function nextQuestion() {
+  activeQIdx++;
+  renderQuestion();
+}
+
+function updateMomentumDisplay() {
+  document.getElementById('momentum-fill').style.width = momentum + '%';
+  const labels = ['Ready', 'Warming Up', 'On Track', 'Sharp!', 'On Fire 🔥'];
+  const idx = Math.floor(momentum / 25);
+  document.getElementById('momentum-val').textContent = labels[Math.min(idx, labels.length - 1)];
+}
+
+// ════════════════════════════════════════════
+// LESSON COMPLETE
+// ════════════════════════════════════════════
+
+function finishLesson() {
+  const acc = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+  const tier = calcTier(acc);
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  // ── Gold bonuses ─────────────────────────────────────
+  let bonusGold = 0, bonusLabel = '';
+  if (acc >= 60) {
+    awardGoldToShell(rules.completionBonus, 'Completion Bonus — ' + activeLesson.label, false);
+    bonusGold += rules.completionBonus; bonusLabel = 'Completion Bonus';
+  }
+  if ((activeLesson.type === 'lesson' || activeLesson.type === 'extension') && acc === 100 && rules.perfectBonus) {
+    awardGoldToShell(rules.perfectBonus, 'Perfect Run — ' + activeLesson.label, false);
+    bonusGold += rules.perfectBonus; bonusLabel = 'Perfect Run!';
+  } else if (activeLesson.type === 'capstone' && acc === 100 && rules.masteryBonus) {
+    awardGoldToShell(rules.masteryBonus, 'Mastery — ' + activeLesson.label, false);
+    bonusGold += rules.masteryBonus; bonusLabel = 'Mastery Achieved!';
+  } else if (activeLesson.type === 'eoc' && acc >= 90 && rules.highScoreBonus) {
+    awardGoldToShell(rules.highScoreBonus, 'High Score — ' + activeLesson.label, false);
+    bonusGold += rules.highScoreBonus; bonusLabel = 'High Score Bonus!';
+  }
+  if (sessionGoldEarned > 0) spawnGoldParticle('+' + sessionGoldEarned + ' 🪙 total');
+
+  // ── Save best score ───────────────────────────────────
+  const prev = P.lessonBestScores[activeLesson.id];
+  if (!prev || acc > prev.accuracy) {
+    P.lessonBestScores[activeLesson.id] = {
+      correct: sessionCorrect, total: sessionTotal, accuracy: acc, score: sessionScore
+    };
+  }
+  const passedThisRun = acc >= 60;
+  const alreadyCompleted = P.lessonsCompleted.includes(activeLesson.id);
+  if (passedThisRun && !alreadyCompleted) {
+    P.lessonsCompleted.push(activeLesson.id);
+    // Push badge and cards to shell archive
+    pushRewardsToShell(activeLesson);
+  }
+  saveP();
+
+  // Only push to Supabase when the entire unit is complete
+  const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDoneCheck) {
+    const allScores = Object.values(P.lessonBestScores);
+    const overallAcc = allScores.length
+      ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+      : acc;
+    pushACResult(overallAcc);
+    setTimeout(() => showUnitTrophy(overallAcc), 1200);
+  }
+
+  // ── Trophy badge ──────────────────────────────────────
+  document.getElementById('complete-badge').textContent = tier.icon;
+  document.getElementById('complete-unit-lbl').textContent = activeLesson.label;
+  document.getElementById('complete-lesson-title').textContent = activeLesson.title;
+  document.getElementById('complete-tier').textContent = tier.label + ' — ' + acc + '%';
+  document.getElementById('complete-tier').style.color = tier.color;
+
+  // ── Stats row ─────────────────────────────────────────
+  document.getElementById('complete-stats').innerHTML = [
+    { val: sessionCorrect + '/' + sessionTotal, lbl: 'CORRECT' },
+    { val: acc + '%',                            lbl: 'ACCURACY' },
+    { val: '🪙 ' + sessionGoldEarned.toLocaleString(), lbl: 'GOLD EARNED' },
+  ].map(s => `<div class="complete-stat">
+    <div class="complete-stat-val">${s.val}</div>
+    <div class="complete-stat-lbl">${s.lbl}</div>
+  </div>`).join('');
+
+  // ── EOC Rating (show on EOC lesson or unit completion) ──
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  const showEOC = activeLesson.type === 'eoc' || allDone;
+  const eocBlock = document.getElementById('complete-eoc-block');
+  if (showEOC) {
+    const eoc = eocLevel(acc);
+    document.getElementById('complete-eoc-rating').textContent = eoc.label;
+    document.getElementById('complete-eoc-rating').style.color = eoc.color;
+    document.getElementById('complete-eoc-label').textContent =
+      acc >= 60 ? 'This result has been saved to your American Chronicles profile.' :
+      'Score 60% or higher to record your EOC rating.';
+    eocBlock.style.display = 'block';
+  } else {
+    eocBlock.style.display = 'none';
+  }
+
+  // ── Gold reward block ─────────────────────────────────
+  const rewardsEl = document.getElementById('complete-rewards');
+  const rewardsIn = document.getElementById('complete-rewards-inner');
+  if (bonusGold > 0 && rewardsIn) {
+    rewardsIn.innerHTML = `
+      <div style="font-family:var(--bebas);font-size:18px;color:#f5c842;margin-bottom:4px;">
+        +${bonusGold} 🪙 ${bonusLabel}
+      </div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);">
+        This run: +${sessionGoldEarned} 🪙 · Shell balance: ${getShellGold().toLocaleString()} 🪙
+      </div>`;
+    rewardsEl.style.display = 'block';
+  } else {
+    rewardsEl.style.display = 'none';
+  }
+
+  // ── Badges earned ──────────────────────────────────────
+  const rewards = activeLesson.rewards || {};
+  const badgeNames = rewards.badge ? [rewards.badge] : [];
+  const cardNames  = rewards.cards || [];
+  const newlyEarned = passedThisRun && !alreadyCompleted;
+
+  const badgesBlock = document.getElementById('complete-badges-block');
+  const badgesChips = document.getElementById('complete-badges-chips');
+  if (badgeNames.length) {
+    badgesChips.innerHTML = badgeNames.map(b =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🏅</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${b}</span>
+      </div>`
+    ).join('');
+    badgesBlock.style.display = 'block';
+  } else {
+    badgesBlock.style.display = 'none';
+  }
+
+  // ── Cards earned ───────────────────────────────────────
+  const cardsBlock = document.getElementById('complete-cards-block');
+  const cardsChips = document.getElementById('complete-cards-chips');
+  if (cardNames.length) {
+    cardsChips.innerHTML = cardNames.map(c =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🃏</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${c}</span>
+      </div>`
+    ).join('');
+    cardsBlock.style.display = 'block';
+  } else {
+    cardsBlock.style.display = 'none';
+  }
+
+  // ── Button visibility ──────────────────────────────────
+  // "Replay from Beginning" — show when all lessons done or on the last lesson
+  const isLastLesson = activeLesson.id === LESSONS[LESSONS.length - 1].id;
+  const replayBtn = document.getElementById('btn-replay-all');
+  if (replayBtn) replayBtn.style.display = (allDone || isLastLesson) ? 'block' : 'none';
+
+  // Print certificate — show when full unit complete
+  const certBtn = document.getElementById('btn-print-cert');
+  if (certBtn) certBtn.style.display = allDone ? 'block' : 'none';
+
+  document.getElementById('lesson-complete').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+// ── Push earned rewards to shell archive ─────────────────
+function pushRewardsToShell(lesson) {
+  const rewards = lesson.rewards || {};
+  const badge = rewards.badge;
+  const cards = rewards.cards || [];
+
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    if (!shell.unitBadges) shell.unitBadges = {};
+    if (!shell.unitCards)  shell.unitCards  = {};
+    if (!shell.unitBadges[UNIT_ID]) shell.unitBadges[UNIT_ID] = [];
+    if (!shell.unitCards[UNIT_ID])  shell.unitCards[UNIT_ID]  = [];
+
+    // Badge — store as slugified id
+    if (badge) {
+      const badgeId = badge.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitBadges[UNIT_ID].includes(badgeId)) {
+        shell.unitBadges[UNIT_ID].push(badgeId);
+      }
+    }
+    // Cards
+    cards.forEach(c => {
+      const cardId = c.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitCards[UNIT_ID].includes(cardId)) {
+        shell.unitCards[UNIT_ID].push(cardId);
+      }
+    });
+
+    // Also mark unit as completed in shell if all lessons done
+    if (LESSONS.every(l => P.lessonsCompleted.includes(l.id))) {
+      if (!Array.isArray(shell.unitsCompleted)) shell.unitsCompleted = [];
+      if (!shell.unitsCompleted.includes(UNIT_ID)) shell.unitsCompleted.push(UNIT_ID);
+    }
+
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('pushRewardsToShell failed', e); }
+
+  // Also notify via postMessage for live shell sessions
+  try {
+    if (badge) window.parent.postMessage({type:'UNIT_BADGE_EARNED', unitId:UNIT_ID, badgeId: badge.toLowerCase().replace(/\s+/g,'_')}, '*');
+    cards.forEach(c => window.parent.postMessage({type:'UNIT_CARD_EARNED', unitId:UNIT_ID, cardId: c.toLowerCase().replace(/\s+/g,'_')}, '*'));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// BUTTON LOGIC (completion screen)
+// ════════════════════════════════════════════
+
+function retryLesson() {
+  // Replay same lesson — same briefing → questions
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(activeLesson.id);
+}
+
+function returnToUnitHub() {
+  // Go to Layer 2 — Unit Hub — NO re-login
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+  showUnitHub();
+}
+
+// ── UNIT TROPHY REVEAL ────────────────────────────────────
+function showUnitTrophy(overallAcc) {
+  const tier = calcTier(overallAcc);
+  const name = P.name || 'Historian';
+  const passed = overallAcc >= 60;
+  const messages = {
+    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
+    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
+    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
+    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
+    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
+  };
+  const tierKey = tier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages.tryagain;
+  document.getElementById('utr-name').textContent = name;
+  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
+  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
+  document.getElementById('utr-trophy-name').style.color = tier.color;
+  document.getElementById('utr-msg').textContent = msg;
+  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
+  const btn = document.getElementById('utr-btn');
+  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
+  btn.style.borderColor = tier.color;
+  btn.style.color = tier.color;
+  document.getElementById('unit-trophy-overlay').classList.add('show');
+}
+function closeUnitTrophy() {
+  document.getElementById('unit-trophy-overlay').classList.remove('show');
+  const acc = parseInt(document.getElementById('utr-acc').textContent.replace(/[^0-9]/g,''));
+  if (acc < 60) {
+    document.getElementById('lesson-complete') && document.getElementById('lesson-complete').classList.remove('show');
+    showUnitHub && showUnitHub();
+  }
+}
+function returnToShell() {
+  saveP();
+  if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
+  try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
+  notify('Returning to American Chronicles…');
+  const shellURL = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  setTimeout(() => { window.location.href = shellURL; }, 600);
+}
+
+function replayFromBeginning() {
+  // Reset all lesson progress and start from Lesson 30
+  P.lessonsCompleted = [];
+  P.lessonBestScores = {};
+  saveP();
+  document.getElementById('lesson-complete').classList.remove('show');
+  // Start the first lesson's briefing
+  openBriefing(LESSONS[0].id);
+}
+
+function printCertificate() {
+  const scores = P.lessonBestScores;
+  const allScores = Object.values(scores);
+  const avgAcc = allScores.length
+    ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+    : 0;
+  const tier = calcTier(avgAcc);
+  const eoc = eocLevel(avgAcc);
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const lessonRows = LESSONS.map(l => {
+    const s = scores[l.id];
+    return s
+      ? `<tr><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">${s.accuracy}%</td><td style="text-align:center">${s.correct}/${s.total}</td></tr>`
+      : `<tr style="opacity:.4"><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>`;
+  }).join('');
+  const w = window.open('','_blank','width=780,height=680');
+  if(!w){notify('Allow popups to print certificate.');return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;font-family:Georgia,serif}
+    .cert{width:700px;background:#faf7f0;border:3px double #c83020;padding:36px 44px;text-align:center}
+    .title{font-family:'Cinzel Decorative',serif;font-size:22px;color:#1a0a08;letter-spacing:.08em;margin:8px 0}
+    .divider{height:2px;background:linear-gradient(90deg,transparent,#c83020,transparent);margin:14px auto;width:80%}
+    .name{font-family:'Cinzel Decorative',serif;font-size:28px;color:#1a0a08;margin:8px 0}
+    .tier{font-family:'Cinzel',serif;font-size:18px;color:#c83020;letter-spacing:.1em;margin:8px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+    th{border-bottom:2px solid #c83020;padding:6px;text-align:left;font-family:'Cinzel',serif;letter-spacing:.05em}
+    td{padding:5px 6px;border-bottom:1px solid #e0d8c8}
+    .footer{font-size:10px;color:#888;margin-top:14px;border-top:1px solid #ddd;padding-top:10px}
+    .pbtn{margin-top:16px;padding:10px 24px;background:#c83020;border:none;color:#fff;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;letter-spacing:.06em}
+    @media print{.pbtn{display:none}}
+  </style></head><body>
+  <div class="cert">
+    <div style="font-size:10px;letter-spacing:.3em;color:#888;font-family:'Cinzel',serif">AMERICAN CHRONICLES · U.S. HISTORY</div>
+    <div style="font-size:40px;margin:10px 0">${tier.icon}</div>
+    <div class="title">Certificate of Completion</div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:#666;letter-spacing:.1em">THIS CERTIFIES THAT</div>
+    <div class="name">${P.name || 'Historian'}</div>
+    <div style="font-size:13px;color:#444;margin:6px 0">has successfully completed</div>
+    <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">Crash and Recovery — Unit 4B: The Great Depression and New Deal</div>
+    ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
+    <div class="divider"></div>
+    <div class="tier">${tier.label} · ${avgAcc}% Accuracy</div>
+    <div style="font-size:12px;color:#555;margin:4px 0">EOC Practice Rating: ${eoc.label}</div>
+    <table>
+      <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
+      <tbody>${lessonRows}</tbody>
+    </table>
+    <div class="footer">Issued ${date} · American Chronicles · Created by Joshua Olson · Brevard County, FL</div>
+  </div>
+  <button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+// ════════════════════════════════════════════
+// SUPABASE PUSH
+// ════════════════════════════════════════════
+
+async function pushACResult(acc) {
+  if (!P || !P.name || P.name === 'Guest') return;
+  const tier = calcTier(acc);
+  try {
+    const existing = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(P.name) +
+      '&period=eq.' + encodeURIComponent(P.period || '') +
+      '&unit_id=eq.' + UNIT_ID,
+      {headers: AC_HEADERS}
+    );
+    const rows = await existing.json();
+    const prev = rows && rows[0];
+    const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+    const tierKey = tier.label.toLowerCase().replace(' ','');
+    const bestTier = prev ?
+      (tierOrder.indexOf(tierKey) > tierOrder.indexOf(prev.trophy) ? tierKey : prev.trophy) :
+      tierKey;
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer':'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          name: P.name,
+          period: P.period || '',
+          unit_id: UNIT_ID,
+          best_score: Math.max(sessionScore, prev ? prev.best_score || 0 : 0),
+          best_accuracy: Math.max(acc, prev ? prev.best_accuracy || 0 : 0),
+          trophy: bestTier,
+          cards: Math.max(P.cardsEarned ? P.cardsEarned.length : 0, prev ? prev.cards || 0 : 0),
+          attempts: (prev ? prev.attempts || 0 : 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+  } catch(e) { console.log('AC push failed', e); }
+}
+
+// ════════════════════════════════════════════
+// LOGIN GATE
+// ════════════════════════════════════════════
+
+function buildPeriodSelector() {
+  const el = document.getElementById('period-selector');
+  el.innerHTML = [1,2,3,4,5,6,7].map(p =>
+    `<div onclick="selectPeriod(${p}, this)"
+      style="background:var(--bg3);border:1.5px solid var(--border2);color:var(--text3);
+      font-family:var(--bebas);font-size:18px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;"
+      id="period-opt-${p}">${p}</div>`
+  ).join('');
+}
+
+let selectedPeriod = null;
+function selectPeriod(p, el) {
+  selectedPeriod = p;
+  document.querySelectorAll('#period-selector div').forEach(d => {
+    d.style.borderColor = 'var(--border2)';
+    d.style.color = 'var(--text3)';
+    d.style.background = 'var(--bg3)';
+  });
+  el.style.borderColor = 'var(--gold)';
+  el.style.color = 'var(--gold)';
+  el.style.background = 'rgba(200,48,32,.08)';
+}
+
+function submitLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!selectedPeriod) { alert('Please select your class period.'); return; }
+
+  P = Object.assign({}, DEFAULT_P, loadSavedUnit() || {}, {
+    name,
+    period: selectedPeriod,
+    globalRank: 'Curious Citizen'
+  });
+  P.fromShell = false;
+  saveP();
+
+  document.getElementById('login-gate').classList.remove('show');
+  showUnitHub();
+}
+
+function showLoginGate() {
+  document.getElementById('login-gate').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// HISTORICAL CARDS & BADGES DATA
+// (carried from v1, adapted to new lesson structure)
+// ════════════════════════════════════════════
+
+const HIST_CARDS = {
+  fdr:         {icon:'🎙️', name:'Franklin D. Roosevelt',  role:'32nd President · 1933–1945',
+    desc:'Elected in 1932 on a promise of a New Deal for the American people. His First Hundred Days launched a wave of emergency legislation that transformed the federal government’s role in economic life.', unlockLesson:'lesson31'},
+  hoover:      {icon:'🏦', name:'Herbert Hoover',          role:'31st President · 1929–1933',
+    desc:'Blamed for the Depression he did not cause and for failing to act boldly enough to address it. His faith in voluntary action and limited government left millions without adequate relief as the crisis deepened.', unlockLesson:'lesson30'},
+  dorothea:    {icon:'📷', name:'Dorothea Lange',           role:'Photographer · Farm Security Administration',
+    desc:'Her photographs of migrant workers and Dust Bowl refugees put a human face on the Depression. The ‘Migrant Mother’ remains one of the most iconic images of American suffering and resilience.', unlockLesson:'lesson32'},
+  eleanor:     {icon:'🕊️', name:'Eleanor Roosevelt',      role:'First Lady · Activist · Diplomat',
+    desc:'Redefined the role of First Lady by advocating for the poor, minorities, and women. She pressured FDR to include African Americans in New Deal programs and later helped draft the Universal Declaration of Human Rights.', unlockLesson:'lesson31'},
+  huey_long:   {icon:'📢', name:'Huey Long',                role:'Senator from Louisiana · ‘Kingfish’',
+    desc:'Populist critic of the New Deal who argued it did not go far enough. His Share Our Wealth program demanded redistribution of income. Assassinated in 1935 before he could mount a presidential challenge to FDR.', unlockLesson:'capstone'},
+  frances:     {icon:'⚖️', name:'Frances Perkins',          role:'Secretary of Labor · First Female Cabinet Member',
+    desc:'The first woman to serve in a presidential cabinet. As FDR’s Secretary of Labor, she was the primary architect of the Social Security Act and championed labor protections throughout the New Deal era.', unlockLesson:'capstone'},
+  keynes:      {icon:'📊', name:'John Maynard Keynes',      role:'British Economist · Keynesian Theory',
+    desc:'His theory that government spending could stimulate a depressed economy provided the intellectual foundation for New Deal programs. His influence on economic policy shaped American government for decades.', unlockLesson:'lesson30'},
+};
+
+const UNIT_BADGES = [
+  {id:'black_tuesday',    icon:'📉', label:'Black Tuesday',         desc:'Completed Black Tuesday',                  lessonId:'lesson30'},
+  {id:'hoover_to_fdr',    icon:'🎙️', label:'Hoover to Roosevelt',   desc:'Completed Hoover to Roosevelt',            lessonId:'lesson31'},
+  {id:'hard_times',       icon:'📷', label:'Hard Times',             desc:'Completed Hard Times',                     lessonId:'lesson32'},
+  {id:'new_deal_legacy',  icon:'🏛️', label:'New Deal Legacy',        desc:'Completed the Capstone',                   lessonId:'capstone'},
+  {id:'depression_done',  icon:'📋', label:'Depression Complete',    desc:'Completed EOC Review',                     lessonId:'eoc'},
+  {id:'unit4b_complete',  icon:'⭐', label:'Unit 4B Complete',       desc:'Completed all lessons',                    lessonId:null},
+];
+
+// ════════════════════════════════════════════
+// BOTTOM NAV & OVERLAY FUNCTIONS
+// ════════════════════════════════════════════
+
+function navToHub() {
+  // Close any open overlays and return to unit hub
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  setActiveNav(0);
+  returnToUnitHub();
+}
+
+function setActiveNav(idx) {
+  document.querySelectorAll('.bn-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+function showBottomNav() {
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+// ── LEADERBOARD ──────────────────────────────
+let _lbAllData = [];
+let _lbType = 'overall';
+let _lbPeriodFilter = 'all';
+let _lbDeleteUnlocked = false;
+
+function openLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.add('show');
+  setActiveNav(1);
+  loadLeaderboard();
+}
+function closeLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+async function loadLeaderboard() {
+  if (!P) return;
+  document.getElementById('lb-sync-status').textContent = 'Loading…';
+  try {
+    const r = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + UNIT_ID + '&order=best_score.desc&limit=200',
+      {headers: AC_HEADERS}
+    );
+    _lbAllData = await r.json() || [];
+    renderLeaderboard();
+  } catch(e) {
+    document.getElementById('lb-sync-status').textContent = 'Could not load scores.';
+    _lbAllData = [];
+    renderLeaderboard();
+  }
+}
+
+function setLbType(type, btn) {
+  _lbType = type;
+  _lbPeriodFilter = 'all';
+  document.querySelectorAll('#lb-type-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function setLbPeriod(p, btn) {
+  _lbPeriodFilter = p;
+  document.querySelectorAll('#lb-period-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const medals = ['🥇','🥈','🥉'];
+  const periods = [...new Set(_lbAllData.map(s => s.period).filter(p => p && p !== '0'))].sort((a,b) => +a - +b);
+  if (_lbType === 'class') {
+    document.getElementById('lb-period-tabs').innerHTML = periods.map(p =>
+      `<button class="lb-tab ${_lbPeriodFilter===p?'active':''}" onclick="setLbPeriod('${p}',this)">Period ${p}</button>`
+    ).join('');
+  } else {
+    document.getElementById('lb-period-tabs').innerHTML = '';
+  }
+  let filtered = _lbAllData;
+  if (_lbType === 'class') {
+    filtered = filtered.filter(s => s.period && s.period !== '0');
+    if (_lbPeriodFilter !== 'all') filtered = filtered.filter(s => String(s.period) === String(_lbPeriodFilter));
+  }
+  document.getElementById('lb-sync-status').textContent = filtered.length + ' students — Unit 4B: The Great Depression and New Deal';
+  if (!filtered.length) {
+    document.getElementById('lb-content').innerHTML =
+      '<div style="font-family:var(--crimson);color:var(--text3);font-style:italic;padding:16px;">No results yet.</div>';
+    return;
+  }
+  const showDelete = _lbDeleteUnlocked;
+  const headerCols = `<th>#</th><th>STUDENT</th><th>SCORE</th><th>ACCURACY</th><th>ATTEMPTS</th>${showDelete?'<th></th>':''}`;
+  const rows = filtered.slice(0, 50).map((s, i) => {
+    const isMe = P && s.name === P.name && String(s.period) === String(P.period);
+    const medal = i < 3 ? medals[i] : '#' + (i+1);
+    const mc = i===0?'var(--gold)':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text3)';
+    const delBtn = showDelete
+      ? `<td><button onclick="lbDeleteEntry('${s.name.replace(/'/g,"\\'")}','${s.period}')" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:2px 6px;cursor:pointer;">X</button></td>`
+      : '';
+    return `<tr class="${isMe?'lb-you':''}">
+      <td style="font-family:var(--dm);font-size:12px;color:${mc};">${medal}</td>
+      <td><div class="lb-name">${s.name||'--'}${isMe?' ◀':''}</div></td>
+      <td class="lb-score">${(s.best_score||0).toLocaleString()}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--gold);">${s.best_accuracy!=null?s.best_accuracy+'%':'--'}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--text3);">${s.attempts||1}</td>
+      ${delBtn}
+    </tr>`;
+  }).join('');
+  document.getElementById('lb-content').innerHTML =
+    `<table class="lb-table"><thead><tr>${headerCols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function unlockLBDelete() {
+  const code = prompt('Teacher delete code:');
+  if (code === 'olson219') {
+    _lbDeleteUnlocked = true;
+    document.getElementById('lb-teacher-unlock').textContent = '🔓';
+    renderLeaderboard();
+  }
+}
+
+async function lbDeleteEntry(name, period) {
+  if (!confirm(`Remove "${name}" from leaderboard?`)) return;
+  try {
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(name) +
+      '&period=eq.' + encodeURIComponent(period) + '&unit_id=eq.' + UNIT_ID,
+      {method:'DELETE', headers: AC_HEADERS}
+    );
+    notify('Removed');
+    loadLeaderboard();
+  } catch(e) { notify('Error removing entry'); }
+}
+
+// ── PROFILE ──────────────────────────────────
+function openProfile() {
+  if (!P) return;
+  setActiveNav(2);
+  // Avatar
+  document.getElementById('profile-avatar-large').innerHTML =
+    `<div style="width:80px;height:80px;margin:0 auto;">${getAvatarSVG(P.avatar||'scholar_f', 80)}</div>
+     <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-style:italic;margin-top:8px;">${P.name}</div>
+     <div style="font-family:var(--dm);font-size:10px;color:var(--gold2);margin-top:3px;">${P.globalRank||'Curious Citizen'}${P.period?' · Period '+P.period:''}</div>`;
+
+  // Stats
+  const scores = Object.values(P.lessonBestScores || {});
+  const totalCorrect = scores.reduce((a, s) => a + (s.correct||0), 0);
+  const totalAnswered = scores.reduce((a, s) => a + (s.total||0), 0);
+  const avgAcc = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0;
+  const bestAcc = scores.length ? Math.max(...scores.map(s => s.accuracy)) : 0;
+  const tier = calcTier(bestAcc);
+  document.getElementById('profile-stat-grid').innerHTML = [
+    {val: P.lessonsCompleted.length + '/' + LESSONS.length, lbl: 'LESSONS DONE'},
+    {val: avgAcc + '%',       lbl: 'OVERALL ACCURACY'},
+    {val: tier.icon + ' ' + tier.label, lbl: 'TROPHY TIER'},
+    {val: getShellGold().toLocaleString() + ' 🪙', lbl: 'GOLD BALANCE'},
+  ].map(s =>
+    `<div class="profile-stat"><div class="profile-stat-val">${s.val}</div><div class="profile-stat-lbl">${s.lbl}</div></div>`
+  ).join('');
+
+  // Badges
+  document.getElementById('profile-badge-grid').innerHTML = UNIT_BADGES.map(b => {
+    const earned = b.lessonId
+      ? P.lessonsCompleted.includes(b.lessonId)
+      : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+    return `<div class="badge-pill ${earned?'earned':''}">
+      <span class="badge-icon">${b.icon}</span>${b.label}
+    </div>`;
+  }).join('');
+
+  // Cards
+  document.getElementById('profile-card-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock.'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profile-overlay').classList.add('show');
+}
+function closeProfile() {
+  document.getElementById('profile-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+// ── CARD COLLECTION ──────────────────────────
+function openCardCollection() {
+  setActiveNav(3);
+  document.getElementById('cardcoll-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P && P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock this card.'}</div>
+      ${!earned ? `<div class="hist-card-unlock">🔒 Locked</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('cardcoll-overlay').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildPeriodSelector();
+
+  // Try loading from shell session first
+  const hasSession = loadP();
+
+  if (hasSession) {
+    // Shell handles auth — skip all gates, go straight in
+    document.getElementById('login-gate').classList.remove('show');
+    const wbo = document.getElementById('welcome-back-overlay');
+    if (wbo) wbo.classList.remove('show');
+    showUnitHub();
+  } else {
+  // No shell session — redirect to shell to login with Google
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  }
+});
+
+// ════════════════════════════════════════════
+// WELCOME BACK MODAL
+// ════════════════════════════════════════════
+
+function showWelcomeBack() {
+  if (!P) { window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; return; }
+
+  // Populate avatar
+  const avatarEl = document.getElementById('wb-avatar');
+  if (avatarEl) avatarEl.innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 70);
+
+  // Name
+  const nameEl = document.getElementById('wb-name');
+  if (nameEl) nameEl.textContent = P.name || 'Historian';
+
+  // Rank / teacher / period line
+  const subEl = document.getElementById('wb-sub');
+  if (subEl) {
+    const parts = [];
+    if (P.globalRank) parts.push(P.globalRank);
+    if (P.period) parts.push('Period ' + P.period);
+    subEl.textContent = parts.join(' — ') || 'Curious Citizen';
+  }
+
+  // Progress line
+  const progEl = document.getElementById('wb-progress');
+  if (progEl) {
+    const done = (P.lessonsCompleted || []).length;
+    const total = LESSONS.length;
+    progEl.textContent = done > 0
+      ? done + ' of ' + total + ' lessons completed'
+      : 'No progress saved yet';
+  }
+
+  document.getElementById('welcome-back-overlay').classList.add('show');
+}
+
+function confirmWelcomeBack() {
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  showUnitHub();
+}
+
+function switchPlayer() {
+  // Clear saved unit state so a new player can log in fresh
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  P = null;
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; // redirect to shell login
+}
+
+// ── Anti-copy
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+
+</script>
+</body>
+</html>

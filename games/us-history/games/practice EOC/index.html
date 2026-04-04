@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U.S. History EOC Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none; box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; overflow:hidden; font-family:'Crimson Text',Georgia,serif; background:#e8e8e8; color:#111; font-size:16px; }
+
+    .header { background:#fff; border-bottom:2px solid #222; padding:10px 28px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; height:52px; }
+    .header-title { font-family:'Bebas Neue',sans-serif; font-size:1.15rem; letter-spacing:0.08em; }
+    .header-sub { font-family:'DM Sans',sans-serif; font-size:0.68rem; color:#666; margin-top:1px; letter-spacing:0.03em; }
+    .header-right { text-align:right; font-family:'DM Sans',sans-serif; font-size:0.75rem; color:#444; }
+    .progress-bar-wrap { width:200px; height:5px; background:#ddd; border-radius:3px; margin-top:5px; margin-left:auto; }
+    .progress-bar-fill { height:100%; background:#333; border-radius:3px; transition:width 0.3s ease; }
+
+    #app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+    #quiz-wrap { display:none; flex:1; overflow:hidden; padding:12px 16px; }
+
+    .question-card { background:#fff; border:1px solid #bbb; height:100%; display:grid; grid-template-columns:1fr; grid-template-rows:auto 1fr auto; overflow:hidden; }
+    .question-card.has-stimulus { grid-template-columns:1fr 1fr; }
+
+    .col-left { border-right:1px solid #ddd; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; }
+    .question-card:not(.has-stimulus) .col-left { display:none; }
+    .col-right { display:flex; flex-direction:column; overflow:hidden; grid-column:1; }
+    .question-card.has-stimulus .col-right { grid-column:2; }
+    .col-right-inner { flex:1; overflow-y:auto; padding:18px 20px 10px; }
+
+    .excerpt-box { border:1px solid #aaa; background:#fafafa; font-size:0.88rem; line-height:1.7; flex:1; }
+    .excerpt-label { background:#e8e8e8; border-bottom:1px solid #aaa; padding:6px 12px; font-family:'DM Sans',sans-serif; font-size:0.65rem; font-weight:600; letter-spacing:0.08em; color:#333; text-transform:uppercase; }
+    .excerpt-body { padding:12px 14px; color:#222; white-space:pre-line; font-family:'Crimson Text',Georgia,serif; font-size:0.95rem; line-height:1.7; }
+    .excerpt-source { padding:5px 12px 8px; font-family:'DM Sans',sans-serif; font-size:0.65rem; color:#777; font-style:italic; border-top:1px solid #ddd; }
+    .excerpt-headline .excerpt-body { font-family:'Playfair Display',Georgia,serif; font-size:1.1rem; font-weight:700; text-align:center; padding:24px 14px; line-height:1.5; letter-spacing:0.02em; }
+
+    .stimulus-img { width:100%; max-height:calc(100vh - 220px); object-fit:contain; display:block; border:1px solid #ccc; background:#fff; cursor:zoom-in; }
+    .img-missing { padding:16px; background:#f5f5f5; border:1px dashed #ccc; font-size:0.8rem; color:#888; font-style:italic; }
+    .zoom-hint { font-size:0.68rem; color:#999; margin-top:4px; font-style:italic; }
+    .no-stimulus { flex:1; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:0.85rem; font-style:italic; text-align:center; padding:20px; }
+
+    .question-text { font-family:'Crimson Text',Georgia,serif; font-size:1.05rem; line-height:1.65; margin-bottom:14px; }
+    .hint { font-family:'DM Sans',sans-serif; font-size:0.68rem; color:#999; font-style:italic; margin-bottom:12px; }
+
+    .options { display:flex; flex-direction:column; gap:8px; }
+    .option { display:flex; align-items:flex-start; gap:10px; padding:9px 12px; border:1px solid #ccc; background:#fafafa; cursor:pointer; transition:background 0.15s, border-color 0.15s; }
+    .option:hover:not(.selected):not(.struck) { background:#f0f0f0; border-color:#999; }
+    .option.selected { background:#e8f0fe; border-color:#3a5fcb; }
+    .option.struck { opacity:0.45; }
+    .option.struck .option-text { text-decoration:line-through; color:#999; }
+    .option-bubble { width:20px; height:20px; border:2px solid #555; border-radius:50%; flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; font-family:'DM Sans',sans-serif; font-size:0.65rem; font-weight:600; color:#333; transition:all 0.15s; }
+    .option.selected .option-bubble { background:#3a5fcb; border-color:#3a5fcb; color:#fff; }
+    .option.struck .option-bubble { border-color:#bbb; color:#bbb; }
+    .option-text { font-family:'Crimson Text',Georgia,serif; font-size:1rem; line-height:1.5; flex:1; }
+    .strike-btn { font-family:'DM Sans',sans-serif; font-size:0.6rem; color:#aaa; background:none; border:1px solid #ddd; padding:2px 6px; cursor:pointer; flex-shrink:0; margin-top:2px; transition:color 0.15s, border-color 0.15s; letter-spacing:0.03em; }
+    .strike-btn:hover { color:#c0392b; border-color:#c0392b; }
+    .option.struck .strike-btn { color:#3a5fcb; border-color:#3a5fcb; }
+
+    .controls { grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; border-top:1px solid #e0e0e0; background:#fafafa; flex-shrink:0; }
+    .btn-review { font-family:'DM Sans',sans-serif; font-size:0.75rem; padding:8px 14px; border:1px solid #bbb; cursor:pointer; background:#fff; color:#555; transition:all 0.2s; letter-spacing:0.02em; }
+    .btn-review:hover { border-color:#e6a817; color:#b07c00; }
+    .btn-review.flagged { background:#fff8e1; border-color:#e6a817; color:#b07c00; font-weight:600; }
+    .btn-next { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:0.1em; padding:10px 28px; border:none; cursor:pointer; background:#222; color:#fff; transition:background 0.2s; }
+    .btn-next:hover:not(:disabled) { background:#444; }
+    .btn-next:disabled { background:#aaa; cursor:default; }
+
+    .q-number-bar { grid-column:1/-1; background:#222; color:#fff; padding:7px 20px; display:flex; align-items:center; gap:12px; font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.05em; }
+    .q-num-badge { background:#fff; color:#222; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:700; flex-shrink:0; }
+
+    #zoom-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; align-items:center; justify-content:center; cursor:zoom-out; }
+    #zoom-overlay.open { display:flex; }
+    #zoom-overlay img { max-width:92vw; max-height:90vh; object-fit:contain; }
+
+    #start-screen { flex:1; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .start-box { background:#fff; border:1px solid #bbb; padding:44px 48px; text-align:center; max-width:600px; width:100%; }
+    .start-title { font-family:'Playfair Display',Georgia,serif; font-size:1.4rem; font-weight:700; margin-bottom:10px; }
+    .start-sub { font-family:'Crimson Text',Georgia,serif; font-size:1rem; color:#555; margin-bottom:22px; line-height:1.7; }
+    .start-rules { list-style:none; text-align:left; max-width:420px; margin:0 auto 28px; display:flex; flex-direction:column; gap:9px; }
+    .start-rules li { font-family:'Crimson Text',Georgia,serif; font-size:0.95rem; color:#444; padding-left:20px; position:relative; }
+    .start-rules li::before { content:"•"; position:absolute; left:5px; color:#222; }
+    .start-note { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:#999; margin-bottom:24px; font-style:italic; }
+    .btn-start { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:0.1em; padding:12px 40px; border:none; cursor:pointer; background:#222; color:#fff; }
+    .btn-start:hover { background:#444; }
+
+    #review-screen { display:none; flex:1; overflow-y:auto; padding:28px; }
+    .review-box { background:#fff; border:1px solid #bbb; padding:28px; max-width:900px; margin:0 auto; }
+    .review-title { font-family:'Playfair Display',Georgia,serif; font-size:1.2rem; font-weight:700; margin-bottom:6px; }
+    .review-sub { font-family:'Crimson Text',Georgia,serif; font-size:0.95rem; color:#666; margin-bottom:20px; }
+    .review-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:7px; margin-bottom:24px; }
+    .review-item { padding:7px 4px; border:1px solid #ccc; text-align:center; font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:600; cursor:pointer; background:#fafafa; }
+    .review-item:hover { border-color:#333; background:#f0f0f0; }
+    .review-item.answered { background:#e8f0fe; border-color:#3a5fcb; color:#3a5fcb; }
+    .review-item.flagged { background:#fff8e1; border-color:#e6a817; color:#b07c00; }
+    .review-item.flagged.answered { background:#fff3cd; border-color:#e6a817; }
+    .review-legend { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:20px; font-family:'DM Sans',sans-serif; font-size:0.72rem; color:#555; }
+    .legend-dot { display:inline-block; width:12px; height:12px; border:1px solid; margin-right:4px; vertical-align:middle; }
+    .legend-dot.answered { background:#e8f0fe; border-color:#3a5fcb; }
+    .legend-dot.flagged { background:#fff8e1; border-color:#e6a817; }
+    .legend-dot.unanswered { background:#fafafa; border-color:#ccc; }
+    .review-actions { display:flex; gap:10px; justify-content:flex-end; }
+    .btn-submit { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:0.1em; padding:11px 32px; border:none; cursor:pointer; background:#222; color:#fff; }
+    .btn-submit:hover { background:#444; }
+
+    #results-screen { display:none; flex:1; overflow-y:auto; padding:28px; }
+    .results-box { background:#fff; border:1px solid #bbb; padding:40px; text-align:center; max-width:700px; margin:0 auto; }
+    .results-title { font-family:'Playfair Display',Georgia,serif; font-size:1.4rem; font-weight:700; margin-bottom:20px; }
+    .results-score { font-family:'Bebas Neue',sans-serif; font-size:4rem; letter-spacing:0.05em; color:#222; margin-bottom:6px; }
+    .results-pct { font-family:'DM Sans',sans-serif; font-size:0.9rem; color:#555; margin-bottom:24px; letter-spacing:0.04em; }
+    .results-bar-wrap { width:100%; max-width:380px; height:14px; background:#e0e0e0; border-radius:7px; margin:0 auto 28px; overflow:hidden; }
+    .results-bar-fill { height:100%; border-radius:7px; background:#222; transition:width 1s ease; }
+    .eoc-scores { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:360px; margin:0 auto 22px; }
+    .eoc-box { padding:14px; border:2px solid #222; text-align:center; }
+    .eoc-box-label { font-family:'DM Sans',sans-serif; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; color:#888; margin-bottom:4px; }
+    .eoc-box-value { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:0.04em; color:#222; line-height:1; }
+    .eoc-box-sub { font-family:'DM Sans',sans-serif; font-size:0.68rem; color:#888; margin-top:4px; }
+    .results-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:360px; margin:0 auto 24px; text-align:left; }
+    .breakdown-item { padding:12px 16px; border:1px solid #ddd; background:#fafafa; }
+    .breakdown-label { font-family:'DM Sans',sans-serif; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; color:#888; margin-bottom:4px; }
+    .breakdown-value { font-family:'Bebas Neue',sans-serif; font-size:1.7rem; letter-spacing:0.04em; }
+    .breakdown-value.correct { color:#2e7d4f; }
+    .breakdown-value.incorrect { color:#b0231a; }
+    .results-msg { font-family:'Crimson Text',Georgia,serif; font-size:1rem; color:#555; margin-bottom:28px; max-width:440px; margin-left:auto; margin-right:auto; line-height:1.6; }
+    .btn-restart { font-family:'Bebas Neue',sans-serif; font-size:0.95rem; letter-spacing:0.08em; padding:11px 28px; border:none; cursor:pointer; background:#222; color:#fff; }
+    .btn-restart:hover { background:#444; }
+  </style>
+</head>
+<body oncontextmenu="return false;">
+<div id="app">
+
+  <div class="header" id="main-header" style="display:none;">
+    <div>
+      <div class="header-title">U.S. History EOC Practice</div>
+      <div class="header-sub">Select one answer per question</div>
+    </div>
+    <div class="header-right">
+      <div id="header-counter">Question 1 of 50</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:2%"></div></div>
+    </div>
+  </div>
+
+  <div id="start-screen">
+    <div class="start-box">
+      <div class="start-title">U.S. History End-of-Course Practice</div>
+      <p class="start-sub">50 multiple choice questions covering U.S. History from Reconstruction through the modern era.</p>
+      <ul class="start-rules">
+        <li>You must answer each question before moving forward.</li>
+        <li>Click an answer bubble to select it, then click <strong>Next</strong>.</li>
+        <li>Click <strong>Mark for Review</strong> to flag a question and come back to it.</li>
+        <li>Click the <strong>ABC</strong> button next to any choice to strike it out.</li>
+        <li>After the last question a review screen lets you revisit before submitting.</li>
+        <li>Your score and EOC achievement level will be shown when you submit.</li>
+      </ul>
+      <p class="start-note">Some questions include images — click any image to zoom in.</p>
+      <button class="btn-start" onclick="startQuiz()">Begin Practice Test</button>
+    </div>
+  </div>
+
+  <div id="quiz-wrap"></div>
+
+  <div id="review-screen">
+    <div class="review-box">
+      <div class="review-title">Review Your Answers</div>
+      <p class="review-sub">Click any question number to go back and review it. Submit when you are ready.</p>
+      <div class="review-legend">
+        <span><span class="legend-dot answered"></span>Answered</span>
+        <span><span class="legend-dot flagged"></span>Flagged for Review</span>
+        <span><span class="legend-dot unanswered"></span>Not yet answered</span>
+      </div>
+      <div class="review-grid" id="review-grid"></div>
+      <div class="review-actions"><button class="btn-submit" onclick="submitQuiz()">Submit Test</button></div>
+    </div>
+  </div>
+
+  <div id="results-screen">
+    <div class="results-box">
+      <div class="results-title">Practice Test Complete</div>
+      <div class="results-score" id="results-score">--/50</div>
+      <div class="results-pct" id="results-pct">--%</div>
+      <div class="results-bar-wrap"><div class="results-bar-fill" id="results-bar" style="width:0%"></div></div>
+      <div class="eoc-scores">
+        <div class="eoc-box"><div class="eoc-box-label">Estimated Scale Score</div><div class="eoc-box-value" id="res-scale">—</div><div class="eoc-box-sub">Range: 325–475</div></div>
+        <div class="eoc-box"><div class="eoc-box-label">Achievement Level</div><div class="eoc-box-value" id="res-level" style="display:flex;align-items:baseline;justify-content:center;gap:4px;"><span style="font-family:'DM Sans',sans-serif;font-size:0.7rem;letter-spacing:0.08em;color:#888;">LEVEL</span><span id="res-level-num">—</span></div><div class="eoc-box-sub" id="res-level-desc">—</div></div>
+      </div>
+      <div class="results-breakdown">
+        <div class="breakdown-item"><div class="breakdown-label">Correct</div><div class="breakdown-value correct" id="res-correct">0</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Incorrect</div><div class="breakdown-value incorrect" id="res-incorrect">0</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Total Questions</div><div class="breakdown-value">50</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Passing (Level 3+)</div><div class="breakdown-value">397+</div></div>
+      </div>
+      <p class="results-msg" id="results-msg"></p>
+      <!-- Gold reward block -->
+      <div id="results-gold-block" style="display:none;margin:0 auto 22px;max-width:380px;padding:14px 18px;background:#fffdf0;border:2px solid #e6a817;text-align:center;">
+        <div id="results-gold-amount" style="font-size:1.3rem;font-weight:bold;color:#b07c00;margin-bottom:3px;"></div>
+        <div id="results-gold-detail" style="font-size:0.72rem;color:#888;"></div>
+      </div>
+      <!-- Trophy block -->
+      <div id="results-trophy-block" style="display:none;margin:0 auto 22px;max-width:380px;padding:16px 18px;border:2px solid #ccc;text-align:center;">
+        <div id="results-trophy-icon" style="font-size:2.5rem;margin-bottom:6px;"></div>
+        <div id="results-trophy-label" style="font-size:1rem;font-weight:bold;margin-bottom:4px;"></div>
+        <div id="results-trophy-msg" style="font-size:0.8rem;color:#555;"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-restart" onclick="restartQuiz()">↺ Try Again</button>
+        <button id="btn-print-cert" class="btn-restart" onclick="printEOCCertificate()" style="display:none;background:#5a4520;">🏆 Print Certificate</button>
+        <button class="btn-restart" onclick="returnToShell()" style="background:#5a4520;">← Return to Shell</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="zoom-overlay" onclick="closeZoom()">
+  <img id="zoom-img" src="" alt="Zoomed" />
+</div>
+
+<script>
+  const IMG="images/", LABELS=["A","B","C","D"];
+  function rawToScale(r){return Math.round(325+(r/50)*150);}
+  function getLevel(s){if(s>=453)return[5,"Advanced"];if(s>=432)return[4,"Above Average"];if(s>=397)return[3,"Satisfactory (Passing)"];if(s>=375)return[2,"Below Average"];return[1,"Inadequate"];}
+  function p(label,text,source){return{passageLabel:label,passageText:text,passageSource:source};}
+
+  const questions=[
+    {img:IMG+"q01-victory-garden-poster.jpg",text:"Why did the U.S. government promote the type of practice featured on this poster during wartime?",options:["to reduce the effects of shortages caused by severe drought","to reduce the effects of shortages caused by mandatory rationing","to increase the physical fitness of the public by stressing outdoor activities","to increase the physical fitness of the public by emphasizing proper nutrition"],correct:1},
+    {text:"What was the primary purpose of the Woman's Christian Temperance Union when it was founded in 1874?",options:["to promote racial equality","to limit foreign immigration","to ban alcoholic consumption","to ensure economic opportunity"],correct:2},
+    {text:"Which characteristic of the Vietnam War was central to changing public opinion about the war?",options:["financial costs of the war","television images of the war","communist forces entering the war","presidential speeches discussing the war"],correct:1},
+    {...p("Article 232 — Treaty of Versailles","The Allied and Associated Governments, however, require, and Germany undertakes, that she will make compensation for all damage done to the civilian population of the Allied and Associated Powers and to their property during the period of the belligerency of each as an Allied or Associated Power against Germany by such aggression by land, by sea and from the air. . . .\n\n. . . Germany undertakes, in addition to the compensation for damage elsewhere . . . , to make reimbursement of all sums which Belgium has borrowed from the Allied and Associated Governments up to November 11, 1918, together with interest at the rate of five per cent.","Source: Library of Congress / Public Domain"),text:"Why did President Woodrow Wilson initially oppose this provision of the Treaty of Versailles?",options:["It would weaken German economic recovery.","German property was also damaged by enemy action.","It would give European allied nations excessive power.","European allied nations were also responsible for wartime damage."],correct:0},
+    {...p("Secretary of State John Hay, Circular Letter, 1899","The Government of the United States . . . is desirous of seeing the existing treaties with China respected by all Powers having leased territory or spheres of influence in China . . . and of helping to bring about permanent safety and peace to China, to preserve Chinese territorial and administrative entity, protect all rights guaranteed to friendly Powers by treaty and international law, and safeguard for the world the principle of equal and impartial trade with all parts of the Chinese Empire.","Source: Public Domain / U.S. State Department"),text:"Why did the U.S. government pursue this foreign policy with the leading world powers in 1899?",options:["The United States wanted to deter military conflicts between European powers in China.","The United States hoped to prevent territorial expansion by Japanese forces in China.","The United States hoped to secure equal economic opportunities in China.","The United States wanted to build new naval bases in China."],correct:2},
+    {img:IMG+"q06-harlem-renaissance-timeline.jpg",text:"What change in society can be identified from the events in the timeline?",options:["The Harlem Renaissance broadened interest in African-American culture.","The Harlem Renaissance funded programs for African-American writers.","The Great Migration integrated northern communities.","The Great Migration furthered economic equality."],correct:0},
+    {text:"Which change occurred to the status of U.S. women immediately after World War II?",options:["Most women were expected to learn new skills for employment.","Most women were able to use their financial resources to start businesses.","Many women were expected to leave their jobs and return to homemaking.","Many women were able to exercise political power and participate in government."],correct:2},
+    {img:IMG+"q08-marshall-plan-diagram.jpg",text:"Which outcome completes this diagram?",options:["The United States established a long-term presence in Western Europe.","The United States established multiparty governments in Western Europe.","The United States agreed to station conventional and nuclear weapons in Europe.","The United States agreed to conduct long-term industrial research and development in Europe."],correct:3},
+    {text:"How did George Westinghouse's invention of air brakes in 1868 change transportation in the United States?",options:["by limiting the demand for steel rails","by expanding the number of railroad routes","by reducing the number of railroad accidents","by increasing the demand for refrigerated boxcars"],correct:2},
+    {...p("President Rutherford B. Hayes, Diary Entry, 1877","The permanent pacification of the country upon such principles and by such measures as will secure the complete protection of all its citizens in the free enjoyment of all their constitutional rights is now the one subject in our public affairs which all thoughtful and patriotic citizens regard as of supreme importance.","Source: Public Domain / Library of Congress"),text:"Which development was President Hayes referencing in this excerpt?",options:["the beginning of the Second Industrial Revolution","the onset of Manifest Destiny","the end of the Indian Wars","the end of Reconstruction"],correct:3},
+    {img:IMG+"q11-florida-photo.jpg",text:"Which outcome in Florida resulted from developments such as the one shown in the photograph?",options:["decreased racial segregation","decreased population density","increased economic expansion","increased environmental protection"],correct:2},
+    {...p("Populist Party Platform, 1892","We meet in the midst of a nation brought to the verge of moral, political, and material ruin. Corruption dominates the ballot-box, the Legislatures, the Congress, and touches even the ermine of the bench. The people are demoralized . . . The newspapers are largely subsidized or muzzled, public opinion silenced, business prostrated, homes covered with mortgages, labor impoverished, and the land concentrating in the hands of capitalists.","Source: Public Domain / Library of Congress"),text:"Based on this excerpt, which conclusion can be drawn concerning the state of U.S. society during the late 1800s?",options:["U.S. bankers controlled legal proceedings under the judicial system.","U.S. industrialists exerted minimal influence over the political process.","Economic challenges afflicting U.S. farmers gained national prominence.","Monetary instability affecting U.S. businesses raised international concern."],correct:2},
+    {text:"Which characteristic distinguished the Second Industrial Revolution from the First Industrial Revolution?",options:["the use of electricity in factories","the employment of women in factories","the use of steamboats to transport goods","the acquisition of patents to protect inventions"],correct:0},
+    {...p("President Dwight D. Eisenhower, Message to Congress, 1955","Our unity as a nation is sustained by free communication of thought and by easy transportation of people and goods. The ceaseless flow of information throughout the Republic is matched by individual and commercial movement over a vast system of interconnected highways . . . Together, the uniting forces of our communication and transportation systems are dynamic elements in the very name we bear — United States. Without them, we would be a mere alliance of many separate parts.","Source: Public Domain / Eisenhower Presidential Library"),text:"What was the result of this project?",options:["development of the aerospace industry","considerable expansion of the railway system","development of the interstate highway system","considerable expansion of the nuclear energy industry"],correct:2},
+    {img:IMG+"q15-neutrality-act-chart.jpg",text:"Based on this chart, why did President Franklin Roosevelt urge Congress to revise the Neutrality Act of 1937?",options:["President Roosevelt wanted to stimulate European trade while resisting increased tariffs.","President Roosevelt wanted to aid European democracies while avoiding direct involvement in the growing conflict.","President Roosevelt wanted to increase the country's military readiness while keeping spending low.","President Roosevelt wanted to increase economic output while reducing government oversight."],correct:1},
+    {...p("Five-Power Naval Treaty, Washington Naval Conference, 1922","The Contracting Powers agree to limit their respective naval armament as provided in the present Treaty . . . The present Treaty shall remain in force for ten years from the date it shall take effect, and, unless one of the Contracting Powers shall have given notice two years before the expiration of the said period of its intention to terminate the Treaty, it shall continue in force until the expiration of two years from the date on which notice of termination shall be given by one of the Contracting Powers.","Source: Public Domain / U.S. State Department"),text:"Which U.S. foreign policy goal aligned to the Five-Power Treaty that resulted from the Washington Naval Conference?",options:["to avoid future wars by limiting military strength","to deter future wars by forming military alliances","to respect the sovereignty of countries under zones of influence","to acknowledge the rights of neutrals under freedom of the seas"],correct:0},
+    {img:IMG+"q17-new-deal-cartoon.jpg",text:"Which historical development during the 1930s is portrayed by this cartoon?",options:["The federal government expanded its role in the economy and social welfare.","The federal government assumed an active leadership in domestic and foreign policies.","President Franklin Roosevelt and Congress failed to find a compromise on social issues.","President Franklin Roosevelt and Congress struggled to define a vision for economic recovery."],correct:0},
+    {text:"During the 1920s, how did the boom in the U.S. economy help Florida's economy?",options:["by establishing Florida as a destination for leisure travel","by establishing Florida as a model for suburban development","by making Florida the center of movie production","by making Florida the base of automobile production"],correct:0},
+    {text:"Which was a purpose of the Nuremberg Trials held from 1945 to 1946?",options:["to prevent countries from building weapons of mass destruction","to prevent countries from committing crimes against humanity in the future","to prevent countries from establishing powerful militaries","to prevent countries from empowering radical leaders"],correct:1},
+    {text:"What was the purpose of the Thirteenth, Fourteenth, and Fifteenth Amendments?",options:["to extend civil rights to former slaves","to offer economic protection to former slaves","to guarantee equal treatment for former Confederates","to secure political representation for former Confederates"],correct:0},
+    {text:"Which 1964 congressional action gave the U.S. President nearly unlimited authority to oppose communist aggression in Southeast Asia?",options:["Congress passed the Tonkin Gulf Resolution.","Congress passed the War Powers Act.","Congress ratified the Treaty of Manila.","Congress ratified the Paris Accords."],correct:0},
+    {img:IMG+"q22-homeland-security-diagram.jpg",text:"Which statement completes the diagram?",options:["State governments assume responsibility for border security.","The federal government assumes responsibility for aviation security.","State governments cooperate with the federal government in forming foreign policy.","The federal government cooperates with state governments in gathering foreign intelligence."],correct:1},
+    {img:IMG+"q23-urban-population-table.jpg",text:"Why did the population of these three major U.S. cities change during the period shown in the table?",options:["Immigrants came for industrial employment.","Immigrants came for educational opportunities.","Western settlers came to escape wars on the plains.","Western pioneers came to escape debt from farming."],correct:0},
+    {img:IMG+"q24-zimmermann-cartoon.jpg",text:"Which event influenced the perspective illustrated in this cartoon?",options:["the raid of a U.S. border town by Pancho Villa","the promise of the Sussex Pledge by the German government","the release of the Zimmermann Telegram by the U.S. government","the publication of a Spanish ambassador's letter by William Randolph Hearst"],correct:2},
+    {...p("President Harry S. Truman, Statement on Atomic Energy, 1946","The release of atomic energy constitutes a new force too revolutionary to consider in the framework of old ideas. We can no longer rely on the slow progress of time to develop a program of control among nations. Civilization demands that we make the effort, and make it now . . . The hope of civilization lies in international arrangements looking, if possible, to the renunciation of the use and development of the atomic bomb.","Source: Public Domain / Harry S. Truman Presidential Library"),text:"In 1946, why did many people in the United States disagree with President Truman's opinion about nuclear technology?",options:["They feared how other countries would use nuclear technology.","They recognized the economic costs associated with nuclear energy.","They dreaded how other countries would protest nuclear technology.","They acknowledged the environmental hazards associated with nuclear energy."],correct:0},
+    {img:IMG+"q26-wwi-unemployment-chart.jpg",text:"In the years immediately following World War I, what conclusion about demobilization can be made from the unemployment rates?",options:["Factories failed to produce consumer goods for veterans.","The government failed to provide economic opportunities for veterans.","Factories failed to complete government contracts for industrial goods.","The government failed to support economic protections for business investments."],correct:1},
+    {text:"In the 1970s, how were organizations for Hispanics, such as the National Council for La Raza, similar to the women's movement?",options:["Both sought to achieve equal voting rights in America.","Both sought to fight continuing discriminatory practices.","Both demanded a government settlement to address past injustices.","Both demanded a Constitutional amendment to safeguard individual rights."],correct:1},
+    {img:IMG+"q28-consumer-culture-chart.jpg",text:"What conclusion can be made about the effect these changes had on U.S. society?",options:["They led to the passage of consumer protection laws.","They helped create an unequal distribution of wealth.","They helped create a mass consumer culture.","They led to the rejection of traditional norms."],correct:2},
+    {text:"How was the 1963 March on Washington important to furthering civil rights legislation?",options:["by demonstrating the high degree of personal sacrifice by civil rights activists","by revealing the broad range of public support for civil rights reforms","by demonstrating the public speaking skills of civil rights leaders","by revealing the economic potential of civil rights associations"],correct:1},
+    {...p("Florida Times-Union, 1896","The extension of the Florida East Coast Railway to Miami will be one of the most important events in the history of that section of Florida . . . The enterprise of Mr. Flagler in building this road opens up for settlement and development a vast tract of rich agricultural lands, and gives to the people of that region direct communication with the markets of the world . . . The building of this railroad will give a great impetus to the development of Dade County, and will add materially to the taxable wealth of the State of Florida.","Source: Public Domain / Florida Memory"),text:"Based on this information, which headline would be appropriate for this excerpt?",options:["Flagler's Railroad Will Improve Travel Safety","Flagler's Efforts Will Add to National Security","Flagler's Railroad Will Invigorate Steel Industry","Flagler's Efforts Will Contribute to National Economy"],correct:3},
+    {img:IMG+"q31-wwii-factory-poster.jpg",text:"Based on this poster, which activity would have been discouraged during the war?",options:["women laborers seeking factory assembly jobs","union leaders promoting factory work stoppages","government officials conducting factory safety inspections","minority activists encouraging factory integration programs"],correct:1},
+    {text:"How did the Radical Republicans and moderate Republicans differ during the early years of post-Civil War Reconstruction?",options:["Radical Republicans supported state control of programs for former slaves in the South, while moderate Republicans favored federal control of programs for former slaves in the South.","Radical Republicans supported the resettlement of former slaves in the West, while moderate Republicans favored general economic improvements for former slaves in the South.","Radical Republicans favored limited land redistribution to former slaves, while moderate Republicans supported wholesale land confiscation for former slaves.","Radical Republicans favored full citizenship rights for former slaves, while moderate Republicans supported limited civil equality for former slaves."],correct:3},
+    {...p("Description of the U.S. Mosquito Fleet, World War II","These small, fast boats patrolled the coastal waters of the United States, watching for enemy submarines that threatened merchant and naval vessels traveling along the Atlantic and Gulf coasts. Operating close to shore and in shallow waters where larger vessels could not go, they served as the first line of defense against the German U-boat threat during the early years of the war.","Source: Public Domain / U.S. Navy"),text:"Based on this description, which role did the Mosquito Fleet perform during the war?",options:["charting reefs","searching for smugglers","escorting merchant ships","monitoring for enemy submarines"],correct:3},
+    {img:IMG+"q34-panama-canal-cartoon.jpg",text:"Which connection does the political cartoon make between President Theodore Roosevelt and the Panama Canal?",options:["Roosevelt's willingness to establish a naval base in Panama to protect the canal","Roosevelt's determination to build the canal despite Panamanian alliances","Roosevelt's determination to build the canal despite Colombian objections","Roosevelt's willingness to defend the rights of Colombia to use the canal"],correct:2},
+    {text:"Which development in the 1880s affected the Chinese-immigrant population in the United States?",options:["Chinese workers began earning lower wages than union workers.","Federal law granted voting rights to existing Chinese residents.","Chinese residents gained protection from discriminatory laws.","Federal law banned the arrival of additional Chinese workers."],correct:3},
+    {...p("Dawes Severalty Act, 1887","Be it enacted . . . That in all cases where any tribe or band of Indians has been, or shall hereafter be, located upon any reservation . . . the President of the United States . . . is hereby authorized . . . to allot the lands in said reservation in severalty to any Indian . . . And every Indian born within the territorial limits of the United States . . . who has voluntarily taken up . . . his residence separate and apart from any tribe of Indians therein, and has adopted the habits of civilized life, is hereby declared to be a citizen of the United States.","Source: Public Domain / Library of Congress"),text:"Based on the excerpt, which effect did this policy have on American Indians?",options:["Their standard of living improved over time.","Important aspects of their culture disappeared over time.","Their remaining lands were protected from western settlers.","Established leaders in their tribes were replaced by government agents."],correct:1},
+    {...p("Fifth Amendment to the U.S. Constitution","No person shall be held to answer for a capital, or otherwise infamous crime, unless on a presentment or indictment of a Grand Jury . . . nor shall any person be subject for the same offence to be twice put in jeopardy of life or limb; nor shall be compelled in any criminal case to be a witness against himself, nor be deprived of life, liberty, or property, without due process of law . . .","Source: Public Domain / National Archives"),text:"Which 1966 U.S. Supreme Court decision expanded this amendment's protection to individuals detained and questioned by the police?",options:["Schenck v. United States","United States v. Nixon","Gideon v. Wainwright","Miranda v. Arizona"],correct:3},
+    {text:"At the onset of the Great Depression, why did President Herbert Hoover believe raising tariffs would help the U.S. economy?",options:["Entrepreneurs would be interested in creating investment opportunities.","Consumers would be encouraged to buy domestically produced goods.","Businesses would be encouraged to ship manufactured goods overseas.","Investors would be interested in buying industrial stocks."],correct:1},
+    {img:IMG+"q39-wwi-trenches-photo.jpg",text:"Which combat need caused armies to adopt the strategy shown in the photograph?",options:["forcing tanks to advance slowly","allowing troops to maneuver quickly","providing cover from aerial surveillance","protecting troops from automatic weapons"],correct:3},
+    {...p("Muller v. Oregon, U.S. Supreme Court, 1908","That woman's physical structure and the performance of maternal functions place her at a disadvantage in the struggle for subsistence is obvious . . . as healthy mothers are essential to vigorous offspring, the physical well-being of woman becomes an object of public interest and care in order to preserve the strength and vigor of the race . . . The limitations which this statute places upon her contractual powers . . . are not imposed solely for her benefit, but also largely for the benefit of all.","Source: Public Domain / Library of Congress"),text:"Which conclusion can be reached about how the Court's decision affected the federal and state governments?",options:["The decision allowed the federal and state governments to limit the power of monopolies.","The decision allowed the federal and state governments to limit the growth of labor unions.","The decision recognized the right of the federal and state governments to protect the interests of workers.","The decision recognized the right of the federal and state governments to ensure equality in the workplace."],correct:2},
+    {img:IMG+"q41-political-machines-diagram.jpg",text:"Which title completes this diagram?",options:["How Third Parties Gained Power","Efforts of the Progressive Movement","Efforts of the Fundamentalist Movement","How Political Machines Maintained Power"],correct:3},
+    {text:"Which event led the United States to declare war on Spain on April 25, 1898?",options:["the imprisonment of U.S. journalists in Cuba","the sinking of a U.S. warship in Havana Harbor","the naval attack on Spanish fortifications in Manila Harbor","the colonial misrule by Spanish authorities in the Philippines"],correct:1},
+    {text:"How did the Transcontinental Railroad impact the U.S. economy during the nineteenth century?",options:["It aided the growth of U.S. business.","It reduced the crop yield of U.S. farms.","It encouraged competition between the states.","It decreased competition in the manufacturing sector."],correct:0},
+    {text:"After World War I, what did the U.S. government hope to achieve by lending money to Germany?",options:["technological and military assistance from Europe","political and economic stability in Europe","investments for United States industries","profits for United States banks"],correct:1},
+    {img:IMG+"q45-nixon-china-photo.jpg",text:"What was a long-term consequence of the event shown in the photograph?",options:["the easing of Cold War tensions","the easing of Vietnam War protests","a commitment to preserve historical landmarks","a commitment to continue humanitarian missions"],correct:0},
+    {img:IMG+"q46-great-migration-table.jpg",text:"Which condition in society was primarily responsible for the change in urban population?",options:["absence of agricultural employment in Southern communities","lack of political representation in Southern communities","availability of job opportunities in Northern cities","prevalence of racial equality in Northern cities"],correct:2},
+    {img:IMG+"q47-lusitania-cartoon.jpg",text:"How did this event contribute to the United States' entry into World War I?",options:["It furthered anti-government protests in the United States.","It encouraged anti-immigration campaigns in the United States.","It became necessary for President Wilson to propose a plan for peace.","It became difficult for President Wilson to defend a policy of neutrality."],correct:3},
+    {img:IMG+"q48-big-business-cartoon.jpg",text:"With which social issue is this cartoon associated?",options:["the power of political machines during the Second Industrial Revolution","the power of big businesses during the Second Industrial Revolution","the influence of immigration quotas during the Gilded Age","the influence of suffrage reformers during the Gilded Age"],correct:1},
+    {img:IMG+"q49-oil-reserves-chart.jpg",text:"How has the relationship between oil reserves, production, and consumption influenced U.S. foreign policy?",options:["The United States maintains military bases in Western European countries.","The United States contributes humanitarian aid to Central African countries.","The United States is committed to trade relations with Central Asian countries.","The United States is interested in maintaining stability in Middle Eastern countries."],correct:3},
+    {text:"Which development best represents the impact of industrialization on U.S. labor in the late 1800s?",options:["The government passed laws limiting the workday to eight hours.","Workers organized unions to advocate for better wages and conditions.","Factories voluntarily reduced hours to attract more skilled workers.","Immigration declined as industrial wages improved living standards."],correct:1}
+  ];
+
+  let current=0,score=0,selected=null;
+  let answers=new Array(questions.length).fill(null);
+  let flagged=new Array(questions.length).fill(false);
+  let strikes=questions.map(()=>new Array(4).fill(false));
+
+  function startQuiz(){
+    document.getElementById("start-screen").style.display="none";
+    document.getElementById("main-header").style.display="flex";
+    document.getElementById("quiz-wrap").style.display="block";
+    renderQuestion(0);
+  }
+
+  function buildStimulus(q,idx){
+    if(q.passageLabel){
+      const hcls=q.isHeadline?' excerpt-headline':'';
+      return`<div class="excerpt-box${hcls}"><div class="excerpt-label">${q.passageLabel}</div><div class="excerpt-body">${q.passageText}</div>${q.passageSource?`<div class="excerpt-source">${q.passageSource}</div>`:''}</div>`;
+    }
+    if(q.img){
+      return`<img class="stimulus-img" src="${q.img}" alt="Stimulus" onerror="this.style.display='none';document.getElementById('imgmiss${idx}').style.display='block';" onclick="openZoom('${q.img}')" /><div id="imgmiss${idx}" class="img-missing" style="display:none;">[Image not loaded]</div><div class="zoom-hint">Click image to zoom</div>`;
+    }
+    return`<div class="no-stimulus">No stimulus for this question</div>`;
+  }
+
+  function renderQuestion(idx){
+    current=idx; selected=answers[idx];
+    document.getElementById("header-counter").textContent=`Question ${idx+1} of ${questions.length}`;
+    document.getElementById("progressFill").style.width=`${((idx+1)/questions.length)*100}%`;
+    const q=questions[idx];
+    const opts=q.options.map((o,i)=>{
+      const s=strikes[idx][i],sel=selected===i;
+      return`<div class="option${sel?' selected':''}${s?' struck':''}" id="opt${i}" onclick="selectOpt(${i})"><div class="option-bubble">${LABELS[i]}</div><div class="option-text">${o}</div><button class="strike-btn" id="sbtn${i}" onclick="toggleStrike(event,${i})">${s?'↺':'ABC'}</button></div>`;
+    }).join("");
+    const hasStim = !!(q.passageLabel||q.img);
+    document.getElementById("quiz-wrap").innerHTML=`
+      <div class="question-card${hasStim?' has-stimulus':''}">
+        <div class="q-number-bar"><div class="q-num-badge">${idx+1}</div><span>Question ${idx+1} of ${questions.length}</span></div>
+        <div class="col-left">${buildStimulus(q,idx)}</div>
+        <div class="col-right">
+          <div class="col-right-inner">
+            <div class="question-text">${q.text}</div>
+            <p class="hint">Tip: Click <strong>ABC</strong> next to any choice to strike it out.</p>
+            <div class="options">${opts}</div>
+          </div>
+          <div class="controls">
+            <button class="btn-review${flagged[idx]?' flagged':''}" onclick="toggleFlag()" id="flagBtn">${flagged[idx]?'🚩 Flagged':'🏳 Mark for Review'}</button>
+            <button class="btn-next" id="nextBtn" onclick="nextQ()" ${answers[idx]!==null?'':'disabled'}>${idx===questions.length-1?'Review →':'Next →'}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function selectOpt(i){
+    if(strikes[current][i])return;
+    selected=i; answers[current]=i;
+    for(let j=0;j<4;j++){const o=document.getElementById(`opt${j}`);if(o)o.classList.remove("selected");}
+    document.getElementById(`opt${i}`).classList.add("selected");
+    document.getElementById("nextBtn").disabled=false;
+  }
+
+  function toggleStrike(e,i){
+    e.stopPropagation();
+    strikes[current][i]=!strikes[current][i];
+    const opt=document.getElementById(`opt${i}`),btn=document.getElementById(`sbtn${i}`);
+    if(strikes[current][i]){opt.classList.add("struck");opt.classList.remove("selected");btn.textContent="↺";if(selected===i){selected=null;answers[current]=null;document.getElementById("nextBtn").disabled=true;}}
+    else{opt.classList.remove("struck");btn.textContent="ABC";}
+  }
+
+  function toggleFlag(){
+    flagged[current]=!flagged[current];
+    const btn=document.getElementById("flagBtn");
+    btn.textContent=flagged[current]?'🚩 Flagged':'🏳 Mark for Review';
+    btn.classList.toggle("flagged",flagged[current]);
+  }
+
+  function nextQ(){
+    if(answers[current]===null)return;
+    if(current<questions.length-1)renderQuestion(current+1);
+    else showReview();
+  }
+
+  function showReview(){
+    document.getElementById("quiz-wrap").style.display="none";
+    document.getElementById("main-header").style.display="none";
+    document.getElementById("review-screen").style.display="block";
+    document.getElementById("review-grid").innerHTML=questions.map((q,i)=>{
+      let cls="review-item";
+      if(answers[i]!==null)cls+=" answered";
+      if(flagged[i])cls+=" flagged";
+      return`<div class="${cls}" onclick="goToQuestion(${i})">${i+1}</div>`;
+    }).join("");
+  }
+
+  function goToQuestion(idx){
+    document.getElementById("review-screen").style.display="none";
+    document.getElementById("main-header").style.display="flex";
+    document.getElementById("quiz-wrap").style.display="block";
+    renderQuestion(idx);
+  }
+
+  function submitQuiz(){
+    score=answers.filter((a,i)=>a===questions[i].correct).length;
+    document.getElementById("review-screen").style.display="none";
+    showResults();
+  }
+
+  // ── Trophy tier helper (matches shell/unit game logic) ──────────────
+  function calcEOCTier(pct){
+    if(pct===100)return{label:'Historian',color:'#7a40c8',icon:'🏛️'};
+    if(pct>=90) return{label:'Gold',     color:'#b07c00',icon:'🥇'};
+    if(pct>=80) return{label:'Silver',   color:'#666',   icon:'🥈'};
+    if(pct>=70) return{label:'Bronze',   color:'#8a4a10',icon:'🥉'};
+    if(pct>=60) return{label:'Completed',color:'#2e7d4f',icon:'✅'};
+    return            {label:'Try Again',color:'#b0231a',icon:'🔄'};
+  }
+
+  // ── Gold wallet helpers (writes to same SHELL_KEY the unit games use) ─
+  const SHELL_KEY='ac_shell_state';
+  function getShellGold(){
+    try{const r=localStorage.getItem(SHELL_KEY);if(r){const s=JSON.parse(r);return s.gold||0;}}catch(e){}return 0;
+  }
+  function awardGoldToShell(amount,source){
+    if(!amount||amount<=0)return;
+    try{
+      const raw=localStorage.getItem(SHELL_KEY);
+      const shell=raw?JSON.parse(raw):{};
+      shell.gold=(shell.gold||0)+amount;
+      shell.goldEarned=(shell.goldEarned||0)+amount;
+      if(!Array.isArray(shell.goldLedger))shell.goldLedger=[];
+      shell.goldLedger.unshift({ts:Date.now(),source,unitId:'eoc_practice',amount,type:'earn'});
+      if(shell.goldLedger.length>50)shell.goldLedger=shell.goldLedger.slice(0,50);
+      localStorage.setItem(SHELL_KEY,JSON.stringify(shell));
+    }catch(e){console.warn('Gold write failed',e);}
+  }
+  function spawnGoldParticle(text){
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:18px;font-weight:bold;color:#b07c00;pointer-events:none;z-index:9200;animation:_gpf 1.8s ease-out forwards;`;
+    el.textContent=text;
+    if(!document.getElementById('_gp-style')){const s=document.createElement('style');s.id='_gp-style';s.textContent=`@keyframes _gpf{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-70px) scale(1.3)}}`;document.head.appendChild(s);}
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2000);
+  }
+
+  function showResults(){
+    document.getElementById("quiz-wrap").style.display="none";
+    document.getElementById("main-header").style.display="none";
+    document.getElementById("results-screen").style.display="block";
+    const pct=Math.round((score/questions.length)*100),scale=rawToScale(score),[level,levelDesc]=getLevel(scale);
+    document.getElementById("results-score").textContent=`${score}/${questions.length}`;
+    document.getElementById("results-pct").textContent=`${pct}% Correct`;
+    document.getElementById("res-correct").textContent=score;
+    document.getElementById("res-incorrect").textContent=questions.length-score;
+    document.getElementById("res-scale").textContent=scale;
+    document.getElementById("res-level-num").textContent=level;
+    // Color the level number by achievement
+    const levelColors={5:'#2e7d4f',4:'#2aaa98',3:'#b07c00',2:'#b0231a',1:'#888'};
+    document.getElementById("res-level-num").style.color=levelColors[level]||'#222';
+    document.getElementById("res-level-desc").textContent=levelDesc;
+    setTimeout(()=>{document.getElementById("results-bar").style.width=`${pct}%`;},100);
+    const msgs=[[453,"Achievement Level 5 — Excellent! You have an advanced command of U.S. History."],[432,"Achievement Level 4 — Great work! You are above average and well prepared for the EOC."],[397,"Achievement Level 3 — Passing! You met the standard. Review any weak areas to aim higher."],[375,"Achievement Level 2 — Below passing. Focus on the topics you missed and try again."],[0,"Achievement Level 1 — Keep studying! Review your notes and briefings, then give it another try."]];
+    document.getElementById("results-msg").textContent=msgs.find(([t])=>scale>=t)[1];
+
+    // ── Trophy tier display ──────────────────────────────────────────────
+    const tier=calcEOCTier(pct);
+    const trophyBlock=document.getElementById('results-trophy-block');
+    document.getElementById('results-trophy-icon').textContent=tier.icon;
+    document.getElementById('results-trophy-label').textContent=tier.label+' — '+pct+'%';
+    document.getElementById('results-trophy-label').style.color=tier.color;
+    document.getElementById('results-trophy-msg').textContent=
+      pct>=60?'Trophy earned! This result has been saved to your American Chronicles profile.':
+              'Score 60% or higher to earn a trophy. Keep studying and try again!';
+    trophyBlock.style.borderColor=tier.color;
+    trophyBlock.style.display='block';
+
+    // ── Gold awarding ────────────────────────────────────────────────────
+    // Per correct answer: 5 gold each; completion bonus if ≥60%; high score bonus if ≥90%
+    const perCorrectGold=5;
+    const totalCorrectGold=score*perCorrectGold;
+    let bonusGold=0,bonusLabel='';
+    if(pct>=90){bonusGold=150;bonusLabel='High Score Bonus!';}
+    else if(pct>=60){bonusGold=75;bonusLabel='Completion Bonus';}
+    const totalGold=totalCorrectGold+bonusGold;
+
+    awardGoldToShell(totalCorrectGold,'EOC Practice — Correct Answers');
+    if(bonusGold>0)awardGoldToShell(bonusGold,bonusLabel+' — EOC Practice');
+    if(totalGold>0){
+      const goldBlock=document.getElementById('results-gold-block');
+      document.getElementById('results-gold-amount').textContent='+'+totalGold+' 🪙 Gold Earned';
+      document.getElementById('results-gold-detail').textContent=
+        score+' correct × '+perCorrectGold+' 🪙'+(bonusGold>0?' + '+bonusGold+' 🪙 '+bonusLabel:'')+' · Shell balance: '+getShellGold().toLocaleString()+' 🪙';
+      goldBlock.style.display='block';
+      setTimeout(()=>spawnGoldParticle('+'+totalGold+' 🪙'),500);
+    }
+
+    // ── Show print certificate button if passing ─────────────────────────
+    const certBtn=document.getElementById('btn-print-cert');
+    if(certBtn)certBtn.style.display=pct>=60?'inline-block':'none';
+
+    // ── Push to shell state ──────────────────────────────────────────────
+    try{
+      const ss=localStorage.getItem(SHELL_KEY);
+      const s=ss?JSON.parse(ss):{};
+      s.unitsCompleted=s.unitsCompleted||[];
+      if(!s.unitsCompleted.includes('eoc_practice'))s.unitsCompleted.push('eoc_practice');
+      // Save best EOC score
+      if(!s.eocBest||pct>s.eocBest)s.eocBest=pct;
+      if(!s.eocBestScale||scale>s.eocBestScale)s.eocBestScale=scale;
+      localStorage.setItem(SHELL_KEY,JSON.stringify(s));
+      if(window.opener)window.opener.postMessage({type:'unitComplete',unitId:'eoc_practice'},'*');
+      if(window.parent!==window)window.parent.postMessage({type:'unitComplete',unitId:'eoc_practice'},'*');
+    }catch(e){}
+  }
+
+  // ── Print certificate ────────────────────────────────────────────────────
+  function printEOCCertificate(){
+    const pct=Math.round((score/questions.length)*100);
+    const scale=rawToScale(score);
+    const [level,levelDesc]=getLevel(scale);
+    const tier=calcEOCTier(pct);
+    let studentName='Student';
+    try{const raw=localStorage.getItem(SHELL_KEY);if(raw){const s=JSON.parse(raw);studentName=s.name||'Student';}}catch(e){}
+    const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const w=window.open('','_blank','width=800,height=680');
+    if(!w){alert('Allow popups to print your certificate.');return;}
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>EOC Certificate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box;}
+      body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:Georgia,serif;}
+      .cert{width:720px;background:#faf7f0;border:4px double #7a4010;padding:44px 52px;text-align:center;position:relative;}
+      .cert::before{content:'';position:absolute;inset:10px;border:1px solid rgba(122,64,16,.25);pointer-events:none;}
+      .ac-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.2em;color:#888;text-transform:uppercase;margin-bottom:6px;}
+      .seal{font-size:52px;margin:0 0 10px;}
+      .cert-title{font-family:'Cinzel Decorative',serif;font-size:20px;color:#1a0a08;letter-spacing:.06em;margin-bottom:6px;}
+      .divider{height:2px;background:linear-gradient(90deg,transparent,#7a4010,transparent);margin:14px auto;width:75%;}
+      .presents{font-family:'Crimson Text',serif;font-style:italic;font-size:15px;color:#666;margin-bottom:6px;}
+      .student-name{font-family:'Cinzel Decorative',serif;font-size:30px;color:#1a0a08;margin:8px 0;}
+      .achievement{font-family:'Cinzel',serif;font-size:13px;color:#7a4010;letter-spacing:.08em;margin:6px 0 16px;}
+      .score-row{display:flex;justify-content:center;gap:32px;margin:16px 0;}
+      .score-box{text-align:center;}
+      .score-val{font-family:'Cinzel',serif;font-size:28px;color:#1a0a08;}
+      .score-lbl{font-family:'Cinzel',serif;font-size:8px;color:#888;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+      .trophy-row{font-size:36px;margin:12px 0 6px;}
+      .trophy-label{font-family:'Cinzel',serif;font-size:14px;color:${tier.color};letter-spacing:.1em;margin-bottom:16px;}
+      .sig-line{margin-top:24px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:flex-end;}
+      .sig-block{text-align:center;min-width:160px;}
+      .sig-name{font-family:'Cinzel',serif;font-size:11px;color:#333;letter-spacing:.05em;}
+      .sig-title{font-family:'Crimson Text',serif;font-style:italic;font-size:11px;color:#888;margin-top:2px;}
+      .date-block{font-family:'Crimson Text',serif;font-style:italic;font-size:11px;color:#888;text-align:center;}
+      .print-btn{margin-top:20px;padding:12px 36px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em;background:#7a4010;color:#fff;border:none;cursor:pointer;}
+      @media print{.print-btn{display:none;}}
+    </style></head><body>
+    <div class="cert">
+      <div class="ac-label">American Chronicles</div>
+      <div class="seal">🎓</div>
+      <div class="cert-title">U.S. History End-of-Course</div>
+      <div class="cert-title" style="font-size:15px;margin-top:4px;">Practice Assessment Certificate</div>
+      <div class="divider"></div>
+      <div class="presents">This certifies that</div>
+      <div class="student-name">${studentName}</div>
+      <div class="achievement">has successfully completed the EOC Practice Test</div>
+      <div class="score-row">
+        <div class="score-box"><div class="score-val">${score}/${questions.length}</div><div class="score-lbl">Score</div></div>
+        <div class="score-box"><div class="score-val">${pct}%</div><div class="score-lbl">Accuracy</div></div>
+        <div class="score-box"><div class="score-val">${scale}</div><div class="score-lbl">Scale Score</div></div>
+      </div>
+      <div class="trophy-row">${tier.icon}</div>
+      <div class="trophy-label">${tier.label} — Achievement Level ${level}</div>
+      <div class="divider"></div>
+      <div class="sig-line">
+        <div class="sig-block">
+          <div class="sig-name">American Chronicles</div>
+          <div class="sig-title">U.S. History Course Platform</div>
+        </div>
+        <div class="date-block">Issued ${date}</div>
+        <div class="sig-block">
+          <div class="sig-name">${levelDesc}</div>
+          <div class="sig-title">EOC Achievement Level ${level}</div>
+        </div>
+      </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Print Certificate</button>
+    </body></html>`);
+    w.document.close();
+  }
+
+  function restartQuiz(){
+    current=0;score=0;selected=null;
+    answers=new Array(questions.length).fill(null);
+    flagged=new Array(questions.length).fill(false);
+    strikes=questions.map(()=>new Array(4).fill(false));
+    document.getElementById("results-screen").style.display="none";
+    document.getElementById("start-screen").style.display="flex";
+  }
+
+  function returnToShell(){try{const u=localStorage.getItem('ac_shell_url');if(u){window.location.href=u;return;}}catch(e){}window.location.href='../index.html';}
+  function openZoom(src){document.getElementById("zoom-img").src=src;document.getElementById("zoom-overlay").classList.add("open");}
+  function closeZoom(){document.getElementById("zoom-overlay").classList.remove("open");}
+
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape")closeZoom();
+    if(e.ctrlKey&&["c","u","s","p","a"].includes(e.key))e.preventDefault();
+    if(["F12","PrintScreen"].includes(e.key))e.preventDefault();
+  });
+</script>
+</body>
+</html>

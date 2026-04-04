@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camelot — Unit 7A: The 1960s</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080e;--bg2:#0c1020;--bg3:#121828;--panel:#101625;
+  --border:#1a2438;--border2:#263450;
+  --gold:#4898e0;--gold2:#2870c0;--gold3:#78baf0;
+  --red:#c03030;--red2:#e04040;
+  --green:#2a7a3a;--green2:#38a050;
+  --teal:#208878;--teal2:#2aaa90;
+  --blue:#2850a0;--blue2:#4878d0;
+  --text:#e8eef8;--text2:#8898b8;--text3:#485870;--cream:#dce8f5;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-height:100vh;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse at 50% 0%,   rgba(40,100,200,.32)  0%,  transparent 60%),
+    radial-gradient(ellipse at 15% 60%,  rgba(20, 60,160,.18)  0%,  transparent 55%),
+    radial-gradient(ellipse at 85% 85%,  rgba(10, 30,100,.16)  0%,  transparent 50%),
+    linear-gradient(175deg, #060c1e 0%, #040a18 40%, #030812 100%);}
+/* Peace symbol watermark (1960s) */
+body::after{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' width='400' height='400'%3E%3Cg transform='translate(200,200)' opacity='0.09' stroke='rgba(80,150,230,1)' fill='none'%3E%3Ccircle cx='0' cy='0' r='140' stroke-width='14'/%3E%3Ccircle cx='0' cy='0' r='155' stroke-width='3' stroke-opacity='0.4'/%3E%3Cline x1='0' y1='-140' x2='0' y2='140' stroke-width='14'/%3E%3Cline x1='0' y1='0' x2='-121' y2='99' stroke-width='14'/%3E%3Cline x1='0' y1='0' x2='121' y2='99' stroke-width='14'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:500px 500px;
+  background-position:center center;
+  background-repeat:no-repeat;
+  pointer-events:none;z-index:0;opacity:1;}
+/* Noise texture on top of everything */
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+  pointer-events:none;z-index:9998;opacity:0.7;}
+/* Scanline effect */
+#root::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.012) 3px,rgba(0,0,0,0.012) 4px);
+  pointer-events:none;z-index:9999;}
+
+/* ── ROOT / LAYOUT ── */
+#root{max-width:860px;margin:0 auto;padding:0 24px 100px;min-height:100vh;position:relative;z-index:1;}
+/* When HUD is visible, push content down so it isn't hidden behind the fixed bar */
+body.hud-active #root{padding-top:68px;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-70px)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(200,48,32,.3)}50%{box-shadow:0 0 40px rgba(200,48,32,.7)}}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none;padding-top:16px;}
+.screen.active{display:block;animation:fadeIn .4s ease;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--bebas);font-size:15px;letter-spacing:2px;background:transparent;
+  border:1.5px solid var(--gold);color:var(--gold);padding:12px 28px;cursor:pointer;
+  transition:all .2s;display:inline-block;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0;pointer-events:none;}
+.btn:hover{color:var(--bg);box-shadow:0 0 25px rgba(200,48,32,.4);}
+.btn:hover::before{transform:scaleX(1);}
+.btn span{position:relative;z-index:1;}
+.btn:active{transform:scale(.97);}
+.btn.full{display:block;width:100%;text-align:center;margin:6px 0;}
+.btn.sm{font-size:11px;padding:8px 18px;letter-spacing:1.5px;}
+.btn.green{border-color:var(--green2);color:var(--green2);}
+.btn.green::before{background:var(--green2);}
+.btn.green:hover{color:#fff;}
+.btn.teal{border-color:#2aaa98;color:#2aaa98;}
+.btn.teal::before{background:#2aaa98;}
+.btn.teal:hover{color:#fff;}
+.btn:disabled{opacity:.25;cursor:not-allowed;pointer-events:none;}
+
+/* ── TOP HUD (sticky) ── */
+#game-hud{background:linear-gradient(180deg,rgba(8,6,8,.98),rgba(16,8,16,.95));
+  border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  padding:10px 14px;
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:860px;
+  z-index:200;backdrop-filter:blur(12px);
+  display:none;}
+.hud-inner{display:flex;align-items:center;gap:12px;}
+.hud-avatar{width:44px;height:44px;flex-shrink:0;border-radius:50%;overflow:hidden;}
+.hud-info{flex:1;min-width:0;}
+.hud-name{font-family:var(--playfair);font-size:12px;color:var(--gold);font-style:italic;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-rank{font-family:var(--dm);font-size:10px;color:var(--text2);}
+.hud-xp-bar{height:3px;background:rgba(255,255,255,.06);margin-top:4px;border-radius:2px;overflow:hidden;}
+.hud-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));transition:width .6s;border-radius:2px;}
+.hud-stats{display:flex;gap:10px;flex-shrink:0;}
+.hud-stat{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;}
+.hud-stat span{display:block;color:var(--gold);font-size:13px;font-weight:600;}
+.hud-back-btn{font-family:var(--dm);font-size:9px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer;
+  transition:all .15s;letter-spacing:.5px;flex-shrink:0;}
+.hud-back-btn:hover{border-color:var(--gold2);color:var(--gold);}
+
+/* ── NOTIFICATIONS ── */
+.notif{position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--gold2);padding:10px 20px;
+  font-family:var(--dm);font-size:11px;color:var(--gold);z-index:1000;
+  animation:pop .3s,floatUp 2.5s .8s forwards;white-space:nowrap;max-width:90vw;text-align:center;}
+
+/* ── SECTION HEADING ── */
+.section-head{font-family:var(--bebas);font-size:18px;letter-spacing:2px;color:var(--gold);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;}
+.section-head::before{content:'';display:block;width:3px;height:18px;background:var(--gold);}
+
+
+/* ════════════════════════════════
+   UNIT HUB — civil rights style
+════════════════════════════════ */
+.hub-banner{background:var(--bg2);border:1px solid var(--border2);
+  border-radius:2px;padding:14px 16px;margin-bottom:12px;}
+.hub-banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hub-banner-label{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:3px;}
+.hub-banner-count{font-family:var(--bebas);font-size:13px;color:var(--gold);}
+.hub-progress-bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.hub-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .6s;}
+
+.eq-banner{background:linear-gradient(135deg,rgba(26,8,8,.15),rgba(42,10,10,.08));
+  border:1px solid var(--border2);border-left:3px solid var(--gold);
+  padding:12px 16px;margin-bottom:16px;
+  font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;}
+.eq-banner strong{color:var(--gold);font-style:normal;}
+
+.deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);}
+.deco-divider-icon{font-size:14px;color:var(--text3);}
+
+/* Chapter cards */
+.unit-card{background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:10px;overflow:hidden;transition:border-color .2s;cursor:pointer;}
+.unit-card.available:hover{border-color:var(--gold2);}
+.unit-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.unit-card.completed{border-color:var(--green);}
+.unit-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.unit-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.unit-icon{font-size:28px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-number{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.unit-name{font-family:var(--playfair);font-size:15px;color:var(--cream);margin:2px 0;}
+.unit-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;}
+.unit-status{font-family:var(--dm);font-size:8px;padding:4px 10px;border:1px solid;}
+.unit-status.available{color:var(--gold);border-color:var(--gold2);background:rgba(200,48,32,.08);}
+.unit-status.locked{color:var(--text3);border-color:var(--border);}
+.unit-status.completed{color:var(--green2);border-color:var(--green);background:rgba(56,160,80,.08);}
+.unit-progress-bar{height:2px;background:rgba(255,255,255,.04);}
+.unit-progress-fill{height:100%;background:var(--gold2);transition:width .5s;}
+.unit-card-meta{padding:0 16px 8px;font-family:var(--dm);font-size:9px;color:var(--text3);}
+.unit-card-unlock{padding:0 16px 8px;font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;}
+
+
+
+/* ════════════════════════════════
+   LAYER 3: BRIEFING MODAL
+════════════════════════════════ */
+#briefing-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);
+  z-index:500;overflow-y:auto;padding:20px 16px 60px;}
+#briefing-modal.show{display:block;animation:fadeIn .3s ease;}
+.briefing-inner{max-width:760px;margin:0 auto;}
+.briefing-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin-bottom:20px;padding-top:10px;}
+.briefing-eyebrow{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:4px;}
+.briefing-title{font-family:var(--playfair);font-size:clamp(20px,4vw,28px);
+  color:var(--cream);font-style:italic;line-height:1.2;}
+.briefing-close-btn{font-family:var(--dm);font-size:10px;background:var(--bg2);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 12px;cursor:pointer;
+  transition:all .2s;flex-shrink:0;margin-top:4px;}
+.briefing-close-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+.briefing-scene{width:100%;margin-bottom:16px;border:1px solid var(--border2);overflow:hidden;}
+.briefing-location-row{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);}
+.briefing-location{font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;}
+.briefing-date{font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;}
+
+.briefing-text{font-family:var(--crimson);font-size:16px;line-height:1.75;color:var(--text);
+  padding:18px;background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:14px;position:relative;}
+.briefing-text::before{content:'\201C';font-family:var(--playfair);font-size:70px;
+  color:rgba(200,48,32,.06);position:absolute;top:-8px;left:10px;line-height:1;pointer-events:none;}
+
+.briefing-quote{font-family:var(--playfair);font-size:14px;color:var(--gold);
+  font-style:italic;border-left:3px solid var(--gold2);padding:10px 14px;
+  background:rgba(200,48,32,.04);margin-bottom:16px;line-height:1.6;}
+
+.briefing-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.briefing-tag{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:3px 8px;border-radius:2px;}
+
+.briefing-proceed-row{display:flex;flex-direction:column;gap:8px;}
+
+/* ════════════════════════════════
+   LAYER 3: QUESTION SCREEN
+════════════════════════════════ */
+#question-screen{padding-top:0;}
+.q-progress-bar-wrap{height:3px;background:rgba(255,255,255,.05);margin-bottom:20px;border-radius:2px;}
+.q-progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  transition:width .4s;border-radius:2px;}
+
+.q-context-pill{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(200,48,32,.06);border:1px solid var(--border2);
+  padding:5px 10px;margin-bottom:16px;}
+.q-context-lesson{font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;}
+.q-context-sep{width:1px;height:10px;background:var(--border2);}
+.q-context-topic{font-family:var(--crimson);font-size:11px;color:var(--text2);font-style:italic;}
+
+/* THE QUESTION — primary visual weight */
+.q-block{background:var(--bg2);border:1px solid var(--border2);
+  border-left:3px solid var(--gold);padding:24px 22px;margin-bottom:18px;}
+.q-number{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.q-text{font-family:var(--playfair);font-size:clamp(16px,2.4vw,20px);
+  color:var(--cream);line-height:1.6;}
+
+/* Answer choices */
+.choices-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.choice-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);padding:16px 20px;cursor:pointer;text-align:left;
+  transition:all .2s;position:relative;overflow:hidden;}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--gold);transform:scaleY(0);transition:transform .2s;pointer-events:none;}
+.choice-btn:hover:not(.answered){border-color:var(--gold2);background:rgba(200,48,32,.04);}
+.choice-btn:hover:not(.answered)::before{transform:scaleY(1);}
+.choice-btn.correct{border-color:var(--green2)!important;background:rgba(40,80,32,.08)!important;animation:pop .3s;}
+.choice-btn.correct::before{background:var(--green2)!important;transform:scaleY(1)!important;}
+.choice-btn.incorrect{border-color:var(--red2)!important;background:rgba(128,16,16,.06)!important;opacity:.6;}
+.choice-btn.incorrect::before{background:var(--red2)!important;transform:scaleY(1)!important;}
+.choice-btn.answered{cursor:default;}
+.choice-letter{font-family:var(--bebas);font-size:14px;color:var(--gold2);
+  margin-right:12px;display:inline-block;width:20px;}
+.choice-text{font-family:var(--crimson);font-size:17px;line-height:1.5;}
+
+/* Feedback */
+.feedback-panel{display:none;border-left:3px solid var(--gold);
+  padding:16px 16px 16px 20px;margin-bottom:14px;animation:slideUp .3s;
+  background:var(--bg2);border:1px solid var(--border);}
+.feedback-panel.show{display:block;}
+.feedback-panel.correct{border-left-color:var(--green2)!important;border-color:rgba(56,160,80,.2);}
+.feedback-panel.incorrect{border-left-color:var(--red2)!important;border-color:rgba(192,32,32,.2);}
+.feedback-verdict{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:8px;}
+.feedback-verdict.correct{color:var(--green2);}
+.feedback-verdict.incorrect{color:var(--red2);}
+.feedback-text{font-family:var(--crimson);font-size:15px;line-height:1.65;
+  color:var(--text);margin-bottom:8px;}
+.feedback-standard{font-family:var(--dm);font-size:9px;color:var(--text3);
+  border-top:1px solid var(--border);padding-top:8px;margin-top:8px;}
+
+/* Momentum tracker */
+.momentum-display{display:flex;align-items:center;gap:12px;background:var(--bg2);
+  border:1px solid var(--border);padding:10px 14px;margin-bottom:14px;}
+.momentum-label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;flex-shrink:0;}
+.momentum-track{flex:1;height:6px;background:rgba(255,255,255,.05);
+  border-radius:3px;overflow:hidden;}
+.momentum-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  border-radius:3px;transition:width .5s;}
+.momentum-val{font-family:var(--playfair);font-size:13px;color:var(--gold);
+  font-style:italic;flex-shrink:0;min-width:60px;text-align:right;}
+
+/* ════════════════════════════════
+   LESSON COMPLETE OVERLAY
+════════════════════════════════ */
+#lesson-complete{display:none;position:fixed;inset:0;background:#080608;
+  z-index:600;overflow-y:auto;text-align:center;}
+#lesson-complete.show{display:block;animation:fadeIn .4s;}
+.complete-inner{max-width:480px;margin:0 auto;padding:30px 16px 100px;}
+.complete-badge{width:100px;height:100px;margin:0 auto 16px;border:2px solid var(--gold);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:48px;animation:glowPulse 2s infinite;background:var(--bg2);}
+.complete-unit-lbl{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:6px;}
+.complete-lesson-title{font-family:var(--playfair);font-size:24px;color:var(--cream);
+  font-style:italic;margin-bottom:4px;}
+.complete-tier{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:20px;}
+.complete-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;}
+.complete-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.complete-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.complete-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);
+  letter-spacing:1px;margin-top:2px;}
+.complete-btn-group{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;}
+
+/* ════════════════════════════════
+   LOGIN GATE
+════════════════════════════════ */
+#login-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);
+  z-index:900;align-items:center;justify-content:center;padding:20px;}
+#login-gate.show{display:flex;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);max-width:380px;width:100%;padding:28px 24px;}
+.login-logo{font-family:var(--bebas);font-size:clamp(28px,6vw,40px);color:var(--gold);
+  letter-spacing:4px;margin-bottom:4px;text-align:center;}
+.login-sub{font-family:var(--playfair);font-size:13px;color:var(--text2);
+  font-style:italic;text-align:center;margin-bottom:20px;}
+.login-field{margin-bottom:10px;}
+.login-field label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;display:block;margin-bottom:5px;}
+.login-input{font-family:var(--playfair);font-size:15px;font-style:italic;
+  background:var(--bg3);border:1.5px solid var(--border2);color:var(--cream);
+  padding:10px 14px;width:100%;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--gold);}
+.login-input::placeholder{color:var(--text3);}
+.login-notice{font-family:var(--dm);font-size:9px;color:var(--text3);
+  text-align:center;margin-top:8px;line-height:1.5;}
+
+/* ════════════════════════════════
+   WELCOME BACK MODAL
+════════════════════════════════ */
+#welcome-back-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+  z-index:950;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+#welcome-back-overlay.show{display:flex;}
+.wb-box{background:var(--bg2);border:1px solid var(--border2);max-width:420px;width:100%;
+  padding:28px 24px;text-align:center;animation:slideUp .3s ease both;}
+.wb-avatar{width:70px;height:70px;margin:0 auto 14px;border-radius:50%;overflow:hidden;}
+.wb-greeting{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:4px;margin-bottom:6px;}
+.wb-name{font-family:var(--playfair);font-size:24px;color:var(--cream);font-style:italic;margin-bottom:4px;}
+.wb-sub{font-family:var(--dm);font-size:10px;color:var(--gold2);margin-bottom:4px;}
+.wb-progress{font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:20px;}
+
+
+/* ── Standard tag on question block ── */
+.q-standard-tag{font-family:var(--dm);font-size:9px;letter-spacing:2px;
+  color:var(--gold);border:1px solid var(--gold2);
+  background:rgba(0,0,0,.25);
+  display:inline-block;padding:3px 9px;margin-bottom:8px;
+  text-transform:uppercase;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold2);}
+
+/* ════════════════════════════════
+   BOTTOM NAV (carried from v1)
+════════════════════════════════ */
+#bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:640px;background:rgba(8,6,8,.97);
+  border-top:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  display:none;z-index:300;backdrop-filter:blur(12px);}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:8px 4px;background:none;border:none;color:var(--text3);cursor:pointer;
+  font-family:var(--dm);font-size:8px;letter-spacing:.5px;transition:color .15s;}
+.bn-btn:hover,.bn-btn.active{color:var(--gold);}
+.bn-icon{font-size:18px;display:block;}
+
+/* ════════════════════════════════
+   OVERLAYS (carried from v1)
+════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);
+  z-index:400;overflow-y:auto;padding:20px 16px 80px;}
+.overlay.show{display:block;animation:fadeIn .2s;}
+.overlay-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;position:sticky;top:0;background:rgba(8,6,8,.97);
+  padding:10px 0;border-bottom:1px solid var(--border2);z-index:10;}
+.overlay-title{font-family:var(--bebas);font-size:22px;color:var(--gold);letter-spacing:2px;}
+.overlay-close{font-family:var(--dm);font-size:10px;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;transition:all .2s;}
+.overlay-close:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Leaderboard */
+.lb-wrap{background:var(--bg2);border:1px solid var(--border2);padding:20px;}
+.lb-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.lb-tab{font-family:var(--bebas);font-size:10px;letter-spacing:1px;padding:5px 12px;
+  cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all .15s;}
+.lb-tab.active{border-color:var(--gold);color:var(--bg);background:var(--gold);}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);
+  padding:7px 8px;border-bottom:1px solid var(--border2);text-align:left;}
+.lb-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.025);
+  font-family:var(--dm);font-size:11px;color:var(--text2);vertical-align:middle;}
+.lb-table tr.lb-you td{background:rgba(200,48,32,.05);color:var(--text);}
+.lb-name{font-family:var(--playfair);font-size:13px;color:var(--cream);font-style:italic;}
+.lb-score{font-family:var(--bebas);font-size:16px;color:var(--gold);}
+
+/* Profile overlay */
+.profile-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.profile-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.profile-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.profile-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.badges-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.badge-pill{background:var(--bg2);border:1px solid var(--border);padding:6px 10px;
+  display:flex;align-items:center;gap:6px;font-family:var(--dm);font-size:9px;color:var(--text2);}
+.badge-pill.earned{border-color:var(--gold2);color:var(--gold);background:rgba(200,48,32,.06);}
+.badge-icon{font-size:16px;filter:grayscale(1);}
+.badge-pill.earned .badge-icon{filter:none;}
+
+/* Historical figure cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.hist-card{background:var(--bg2);border:1px solid var(--gold2);padding:14px;position:relative;overflow:hidden;}
+.hist-card::before{content:'';position:absolute;inset:4px;border:1px solid rgba(200,48,32,.12);pointer-events:none;}
+.hist-card-icon{font-size:36px;text-align:center;margin-bottom:8px;}
+.hist-card-name{font-family:var(--bebas);font-size:13px;color:var(--gold);letter-spacing:1px;margin-bottom:2px;}
+.hist-card-role{font-family:var(--dm);font-size:9px;color:#2aaa98;margin-bottom:6px;}
+.hist-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.5;}
+.hist-card-unlock{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:6px;}
+.locked-card{opacity:.35;}
+
+/* ════════════════════════════════
+   TROPHY / EOC DISPLAY
+════════════════════════════════ */
+.trophy-display{background:var(--bg2);border:1px solid var(--border2);
+  padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.trophy-icon{font-size:36px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(200,48,32,.4));}
+.trophy-info{flex:1;}
+.trophy-tier-name{font-family:var(--bebas);font-size:18px;letter-spacing:2px;margin-bottom:2px;}
+.trophy-stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+.trophy-stat{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.trophy-stat strong{color:var(--text2);}
+.eoc-rating-badge{font-family:var(--bebas);font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;display:inline-block;margin-top:5px;}
+
+/* ════════════════════════════════
+   BADGE & CARD REWARD CHIPS
+════════════════════════════════ */
+.reward-section{background:var(--bg2);border:1px solid var(--border2);
+  padding:12px 14px;margin-bottom:14px;}
+.reward-section-lbl{font-family:var(--bebas);font-size:9px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.reward-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.reward-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--border2);background:var(--bg3);}
+.reward-chip.earned{border-color:var(--gold2);background:rgba(200,48,32,.06);
+  animation:pop .4s ease;}
+.reward-chip-icon{font-size:16px;}
+.reward-chip-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.reward-chip.earned .reward-chip-lbl{color:var(--gold);}
+.reward-chip.locked-chip{opacity:.35;}
+
+/* Lesson card rewards preview */
+.lesson-card-rewards{padding:0 16px 10px;display:flex;gap:5px;flex-wrap:wrap;}
+.lesson-reward-pip{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:2px 6px;display:inline-flex;align-items:center;gap:3px;}
+.lesson-reward-pip.earned{border-color:var(--gold2);color:var(--gold);}
+
+/* Next-lesson unlock indicator on cards */
+.lesson-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.lesson-card-unlock-note{font-family:var(--dm);font-size:8px;color:var(--text3);
+  padding:0 16px 8px;font-style:italic;}
+
+/* ════════════════════════════════
+   CERTIFICATE / PRINT
+════════════════════════════════ */
+#print-area{display:none;}
+@media print{
+  body>*:not(#print-area){display:none!important;}
+  #print-area{display:block!important;padding:40px;}
+  .cert-body{font-family:Georgia,serif;}
+}
+/* ── Unit Trophy Reveal Overlay ── */
+#unit-trophy-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(4,3,2,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+#unit-trophy-overlay.show{display:flex;animation:fadeIn .5s ease;}
+.utr-eyebrow{font-family:var(--bebas);font-size:11px;letter-spacing:4px;color:var(--text3);margin-bottom:10px;}
+.utr-name{font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:18px;}
+.utr-icon{font-size:72px;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(200,160,32,.5));}
+.utr-trophy-name{font-family:var(--bebas);font-size:32px;letter-spacing:4px;margin-bottom:6px;}
+.utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
+.utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
+.utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+</style>
+<script>
+// Instant redirect if no shell session
+(function(){
+  try{
+    var s=localStorage.getItem('ac_shell_state');
+    if(!s){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+    var p=JSON.parse(s);
+    // Just need a real name — setupDone may not be set with Google auth
+    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');}
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     AC ENGAGEMENT TRACKING MODULE v1.0
+═══════════════════════════════════════════════ -->
+<script>
+(function(){
+  const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+  const _SUPA_H   = {'Content-Type':'application/json','apikey':_SUPA_KEY,'Authorization':'Bearer '+_SUPA_KEY};
+  function _getStudent(){
+    try{ const s=JSON.parse(localStorage.getItem('ac_shell_state')||'{}'); return{name:s.name||'',period:s.period||''}; }catch(e){return{name:'',period:''};}
+  }
+  window._acEngQueue = window._acEngQueue || [];
+  window.acLogEvent = function(eventType, unitId, deckId, data, durationSeconds){
+    const st=_getStudent(); if(!st.name)return;
+    window._acEngQueue.push({student_name:st.name,period:st.period,event_type:eventType,unit_id:unitId||null,deck_id:deckId||null,data:data||null,duration_seconds:durationSeconds||null,created_at:new Date().toISOString()});
+  };
+  async function _flush(){
+    if(!window._acEngQueue.length)return;
+    const batch=window._acEngQueue.splice(0);
+    try{ await fetch(_SUPA_URL+'/rest/v1/ac_engagement',{method:'POST',headers:{..._SUPA_H,'Prefer':'return=minimal'},body:JSON.stringify(batch)}); }catch(e){}
+  }
+  setInterval(_flush,15000);
+  window.addEventListener('beforeunload',()=>{
+    if(!window._acEngQueue.length)return;
+    navigator.sendBeacon(_SUPA_URL+'/rest/v1/ac_engagement',new Blob([JSON.stringify(window._acEngQueue)],{type:'application/json'}));
+  });
+  window.acFlushEngagement=_flush;
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     STICKY HUD (shows after login)
+═══════════════════════════════ -->
+<div id="game-hud">
+  <div class="hud-inner">
+    <div class="hud-avatar" id="hud-avatar-wrap"></div>
+    <div class="hud-info">
+      <div class="hud-name" id="hud-player-name">—</div>
+      <div class="hud-rank" id="hud-player-rank">—</div>
+      <div class="hud-xp-bar"><div class="hud-xp-fill" id="hud-xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat">🪙 GOLD<span id="hud-score" style="color:#f5c842;">0</span></div>
+      <div class="hud-stat">STREAK<span id="hud-streak">0</span></div>
+    </div>
+    <button class="hud-back-btn" id="hud-back-unit" onclick="returnToUnitHub()">← Unit Hub</button>
+    <button class="hud-back-btn" id="hud-back-shell" onclick="returnToShell()">🏛 A.C.</button>
+  </div>
+</div>
+
+<div id="root">
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 2: UNIT HUB
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="unit-hub-screen">
+
+  <!-- Player banner — name, rank, progress -->
+  <div id="hub-player-banner"></div>
+
+  <!-- Shell return (shown when arriving from American Chronicles) -->
+  <div id="shell-return-btn" style="display:none;margin-bottom:12px;">
+    <button class="btn full" onclick="returnToShell()" style="border-color:var(--teal2);color:var(--teal2);">
+      <span>← Return to American Chronicles Hub</span>
+    </button>
+  </div>
+
+  <!-- Unit title header -->
+  <div class="section-head" style="margin-top:4px;">Unit 7A — The 1960s</div>
+
+  <!-- Essential question -->
+  <div class="eq-banner">
+    <strong>Essential Question:</strong> How did the promises and crises of the 1960s reshape American politics, society, and foreign policy?
+  </div>
+
+  <!-- Lesson / chapter cards — rendered by JS -->
+  <div id="hub-chapters"></div>
+
+  <!-- Divider -->
+  <div class="deco-divider"><span class="deco-divider-icon">☮️</span></div>
+
+  <!-- Badges row — rendered by JS -->
+  <div class="section-head" style="font-size:14px;">Badges</div>
+  <div class="badges-row" id="hub-badges"></div>
+
+  <!-- Trophy / EOC block — rendered by JS -->
+  <div id="hub-trophy-section" style="display:none;"></div>
+
+  <!-- Print certificate — shown when unit complete -->
+  <div id="hub-cert-row" style="display:none;margin-top:4px;">
+    <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
+      <span>🖨️ Print Certificate</span>
+    </button>
+    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+  </div>
+
+</div><!-- /unit-hub-screen -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 3a: QUESTION SCREEN
+═══════════════════════════════════════════════════════ -->
+<div class="screen" id="question-screen">
+
+  <!-- Progress bar across the top -->
+  <div class="q-progress-bar-wrap" style="margin-top:16px;">
+    <div class="q-progress-bar-fill" id="q-progress-fill" style="width:0%"></div>
+  </div>
+
+  <!-- Context pill — small reminder of which lesson/topic -->
+  <div class="q-context-pill">
+    <div class="q-context-lesson" id="q-context-lesson">LESSON 38</div>
+    <div class="q-context-sep"></div>
+    <div class="q-context-topic" id="q-context-topic">A World Divided</div>
+  </div>
+
+  <!-- Momentum display -->
+  <div class="momentum-display">
+    <div class="momentum-label">MOMENTUM</div>
+    <div class="momentum-track">
+      <div class="momentum-fill" id="momentum-fill" style="width:0%"></div>
+    </div>
+    <div class="momentum-val" id="momentum-val">Ready</div>
+  </div>
+
+  <!-- THE QUESTION — primary visual weight -->
+  <div class="q-block">
+    <div class="q-standard-tag" id="q-standard-tag" style="display:none;"></div>
+    <div class="q-number" id="q-number">QUESTION 1 OF 4</div>
+    <div class="q-text" id="q-text">Question text loads here.</div>
+  </div>
+
+  <!-- Answer choices -->
+  <div class="choices-list" id="choices-list"></div>
+
+  <!-- Feedback panel (hidden until answered) -->
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-verdict" id="feedback-verdict"></div>
+    <div class="feedback-text" id="feedback-text"></div>
+    <div class="feedback-standard" id="feedback-standard"></div>
+  </div>
+
+  <!-- Next/Proceed button (hidden until answered) -->
+  <div id="next-btn-wrap" style="display:none;">
+    <button class="btn full" onclick="nextQuestion()"><span id="next-btn-label">Next Question →</span></button>
+  </div>
+
+</div><!-- /question-screen -->
+
+</div><!-- #root -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     BRIEFING MODAL (shown before question screen)
+═══════════════════════════════════════════════════════ -->
+<div id="briefing-modal">
+  <div class="briefing-inner">
+    <div class="briefing-header">
+      <div>
+        <div class="briefing-eyebrow" id="briefing-eyebrow">LESSON 38 · MISSION BRIEFING</div>
+        <div class="briefing-title" id="briefing-title">The 1960s</div>
+      </div>
+      <button class="briefing-close-btn" onclick="closeBriefing()">✕ Close</button>
+    </div>
+
+    <!-- Optional scene visual (rendered by JS) -->
+    <div class="briefing-scene" id="briefing-scene"></div>
+
+    <div class="briefing-location-row">
+      <div class="briefing-location" id="briefing-location">Washington D.C. and Europe</div>
+      <div class="briefing-date" id="briefing-date">1945–1949</div>
+    </div>
+    <div id="briefing-role" style="display:none;font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;padding:6px 12px;background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);margin-bottom:0;"></div>
+
+    <!-- Historical briefing text -->
+    <div class="briefing-text" id="briefing-text">Briefing text loads here.</div>
+
+    <!-- Optional pull quote -->
+    <div class="briefing-quote" id="briefing-quote" style="display:none;"></div>
+
+    <!-- Standards/tags -->
+    <div class="briefing-meta" id="briefing-meta"></div>
+
+    <div class="briefing-proceed-row">
+      <button class="btn full" onclick="proceedToQuestions()"><span>Proceed to Questions →</span></button>
+      <button class="btn full sm" style="border-color:var(--border2);color:var(--text3);" onclick="closeBriefing()"><span>← Back to Unit Hub</span></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LESSON COMPLETE OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div id="lesson-complete">
+  <div class="complete-inner">
+
+    <!-- Trophy badge -->
+    <div class="complete-badge" id="complete-badge">🏆</div>
+    <div class="complete-unit-lbl" id="complete-unit-lbl">UNIT 7A</div>
+    <div class="complete-lesson-title" id="complete-lesson-title">The 1960s</div>
+    <div class="complete-tier" id="complete-tier" style="color:var(--gold)">GOLD — 90%</div>
+
+    <!-- Stats row -->
+    <div class="complete-stats" id="complete-stats"></div>
+
+    <!-- EOC Rating (shown on unit completion / EOC lesson) -->
+    <div id="complete-eoc-block" style="display:none;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;margin-bottom:6px;">EOC PRACTICE RATING</div>
+      <div id="complete-eoc-rating" style="font-family:var(--bebas);font-size:22px;letter-spacing:2px;"></div>
+      <div id="complete-eoc-label" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:3px;"></div>
+    </div>
+
+    <!-- Gold earned this run -->
+    <div id="complete-rewards" style="display:none;background:var(--bg2);border:1px solid var(--gold2);padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px;">GOLD EARNED THIS RUN</div>
+      <div id="complete-rewards-inner"></div>
+    </div>
+
+    <!-- Badges earned this lesson -->
+    <div id="complete-badges-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">BADGES</div>
+      <div class="reward-chips" id="complete-badges-chips"></div>
+    </div>
+
+    <!-- Cards earned this lesson -->
+    <div id="complete-cards-block" style="display:none;" class="reward-section">
+      <div class="reward-section-lbl">HISTORICAL FIGURE CARDS</div>
+      <div class="reward-chips" id="complete-cards-chips"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="complete-btn-group">
+      <!-- Retry same lesson -->
+      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
+      <!-- Replay entire unit from Lesson 47 (always visible) -->
+      <button class="btn full" id="btn-replay-all" onclick="replayFromBeginning()" style="border-color:var(--gold2);color:var(--gold2);display:none;"><span>⟳ Replay Unit From Beginning</span></button>
+      <!-- Return to unit hub -->
+      <button class="btn full green" onclick="returnToUnitHub()"><span>← Return to Unit Hub</span></button>
+      <!-- Return to shell -->
+      <button class="btn full teal" onclick="returnToShell()"><span>🏛 Return to American Chronicles</span></button>
+      <!-- Print certificate (shown when unit complete) -->
+      <button class="btn full" id="btn-print-cert" onclick="printCertificate()" style="display:none;border-color:var(--text3);color:var(--text3);"><span>🖨️ Print Certificate</span></button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Print area -->
+<div id="print-area"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN GATE
+═══════════════════════════════════════════════════════ -->
+<!-- WELCOME BACK MODAL -->
+<div id="welcome-back-overlay">
+  <div class="wb-box">
+    <div class="wb-avatar" id="wb-avatar"></div>
+    <div class="wb-greeting">WELCOME BACK</div>
+    <div class="wb-name" id="wb-name">Historian</div>
+    <div class="wb-sub" id="wb-sub">Curious Citizen</div>
+    <div class="wb-progress" id="wb-progress">No progress saved yet</div>
+    <button class="btn full" onclick="confirmWelcomeBack()" style="margin-bottom:8px;">
+      <span>Continue as This Student</span>
+    </button>
+    <button class="btn full" onclick="switchPlayer()"
+      style="border-color:var(--border2);color:var(--text3);font-size:11px;">
+      <span>That's Not Me — Switch Player</span>
+    </button>
+  </div>
+</div>
+
+<!-- UNIT TROPHY REVEAL OVERLAY -->
+<div id="unit-trophy-overlay">
+  <div class="utr-eyebrow">UNIT COMPLETE</div>
+  <div class="utr-name" id="utr-name"></div>
+  <div class="utr-icon" id="utr-icon"></div>
+  <div class="utr-trophy-name" id="utr-trophy-name"></div>
+  <div class="utr-msg" id="utr-msg"></div>
+  <div class="utr-acc" id="utr-acc"></div>
+  <button class="utr-btn" id="utr-btn" onclick="closeUnitTrophy()"></button>
+</div>
+<div id="login-gate">
+  <div class="login-box">
+    <div class="login-logo">CAMELOT</div>
+    <div class="login-sub">Unit 7A — The 1960s</div>
+
+    <div class="login-field">
+      <label>Your Name</label>
+      <input type="text" class="login-input" id="login-name" placeholder="Enter your name" maxlength="40" autocomplete="off">
+    </div>
+
+    <div class="login-field">
+      <label>Class Period</label>
+      <div id="period-selector" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button class="btn full" onclick="submitLogin()"><span>Enter →</span></button>
+    </div>
+
+    <div class="login-notice">Returning from American Chronicles? Your profile loads automatically.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     BOTTOM NAV (carried from v1)
+════════════════════════════════════════════ -->
+<div id="bottom-nav">
+  <button class="bn-btn active" id="bn-hub" onclick="navToHub()">
+    <span class="bn-icon">🏠</span>Hub
+  </button>
+  <button class="bn-btn" onclick="openLeaderboard()">
+    <span class="bn-icon">🏆</span>Ranks
+  </button>
+  <button class="bn-btn" onclick="openProfile()">
+    <span class="bn-icon">👤</span>Profile
+  </button>
+  <button class="bn-btn" onclick="openCardCollection()">
+    <span class="bn-icon">🃏</span>Cards
+  </button>
+</div>
+
+<!-- LEADERBOARD OVERLAY -->
+<div class="overlay" id="leaderboard-overlay">
+  <div class="overlay-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="overlay-title">🏆 Leaderboard</div>
+      <button id="lb-teacher-unlock" onclick="unlockLBDelete()" style="font-family:var(--dm);font-size:8px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 8px;cursor:pointer;" title="Teacher: unlock delete">🔒</button>
+    </div>
+    <button class="overlay-close" onclick="closeLeaderboard()">CLOSE</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;" id="lb-type-tabs">
+    <button class="lb-tab active" onclick="setLbType('overall',this)">🌐 Overall</button>
+    <button class="lb-tab" onclick="setLbType('class',this)">🏫 My Class</button>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;" id="lb-period-tabs"></div>
+  <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px;" id="lb-sync-status">Loading…</div>
+  <div id="lb-content"></div>
+</div>
+
+<!-- PROFILE OVERLAY -->
+<div class="overlay" id="profile-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Your Profile</div>
+    <button class="overlay-close" onclick="closeProfile()">CLOSE</button>
+  </div>
+  <div id="profile-avatar-large" style="text-align:center;margin-bottom:16px;"></div>
+  <div class="profile-stat-grid" id="profile-stat-grid"></div>
+  <div class="section-head" style="font-size:13px;">Badges Earned</div>
+  <div class="badges-row" id="profile-badge-grid" style="margin-bottom:16px;"></div>
+  <div class="section-head" style="font-size:13px;margin-top:8px;">Card Collection</div>
+  <div class="card-grid" id="profile-card-grid"></div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- CARD COLLECTION OVERLAY -->
+<div class="overlay" id="cardcoll-overlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Historical Figures</div>
+    <button class="overlay-close" onclick="document.getElementById('cardcoll-overlay').classList.remove('show')">CLOSE</button>
+  </div>
+  <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);margin-bottom:16px;font-style:italic;">
+    Earn historical figure cards by completing lessons. Each card tells the story of a key The 1960s figure.
+  </div>
+  <div class="card-grid" id="cardcoll-grid"></div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════
+// CONSTANTS & KEYS
+// ════════════════════════════════════════════
+const SHELL_KEY   = 'ac_shell_state';
+const SAVE_KEY   = 'camelot_v1_save';
+const UNIT_ID     = 'unit7a';
+
+// ── GOLD ECONOMY ──────────────────────────────────────
+// These are the canonical reward values for UNIT 7A.
+// All gold earned here flows into the shell's global wallet
+// and from there into the RPG. Adjust by lesson type below.
+//
+// lesson      : 20 per correct · 25 completion · 25 perfect run
+// extension   : 20 per correct · 30 completion · 30 perfect run
+// capstone    : 25 per correct · 50 completion · 50 mastery (100% acc)
+// eoc         : 15 per correct · 50 completion · 50 high-score (≥90%)
+//
+const GOLD_RULES = {
+  lesson:    { perCorrect: 20, completionBonus: 25, perfectBonus: 25  },
+  extension: { perCorrect: 20, completionBonus: 30, perfectBonus: 30  },
+  capstone:  { perCorrect: 25, completionBonus: 50, masteryBonus: 50  },
+  eoc:       { perCorrect: 15, completionBonus: 50, highScoreBonus: 50 },
+};
+
+// Supabase credentials (carried over from original)
+const OLD_SUPA_URL = 'https://iluvuartxsenbgylogit.supabase.co';
+const OLD_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZ1YXJ0eHNlbmJneWxvZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTIsImV4cCI6MjA4OTQzNjY5Mn0.stAmdi5xy7ofDAB4AiRg78Eoky-7FXZEa-Ui1dgwHd0';
+const OLD_HEADERS = {'Content-Type':'application/json','apikey':OLD_SUPA_KEY,'Authorization':'Bearer '+OLD_SUPA_KEY};
+
+const AC_SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const AC_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AC_HEADERS  = {'Content-Type':'application/json','apikey':AC_SUPA_KEY,'Authorization':'Bearer '+AC_SUPA_KEY};
+
+// ════════════════════════════════════════════
+// LESSON DATA — TEMPLATE STRUCTURE
+// Replace briefings and question banks via JSON later.
+// ════════════════════════════════════════════
+
+/*
+  LESSON STRUCTURE CONTRACT:
+  Each lesson object has:
+    id         — unique string key
+    label      — e.g. "LESSON 38"
+    title      — thematic title
+    sub        — location · years
+    icon       — emoji
+    type       — 'lesson' | 'capstone' | 'eoc'
+    briefing   — { location, date, text, quote?, tags[] }
+    bank       — array of question objects (8–12 for lessons, 20–25 for EOC)
+    displayCount — number of questions to show per playthrough
+    cardEarned — optional string id
+
+  QUESTION STRUCTURE CONTRACT:
+  Each question in bank:
+    id         — unique string
+    text       — question text
+    choices    — array of { text, correct, feedback }
+    standard   — e.g. "SS.912.A.6.12"
+
+  NOTE: Answer choices are randomized on every playthrough.
+        displayCount questions are drawn randomly from bank each time.
+*/
+
+const LESSONS = [
+
+  // ==================================================
+  // LESSON 47 — Camelot
+  // ==================================================
+  {
+    id: 'lesson47',
+    label: 'LESSON 47',
+    title: 'Camelot',
+    sub: 'The Kennedy Years · 1961–1963',
+    icon: '🌙',
+    type: 'lesson',
+    briefing: {
+      location: 'Washington D.C. and the World',
+      date: '1961–1963',
+      role: 'White House correspondent',
+      text: 'In 1961, John F. Kennedy entered the presidency as a symbol of youth, confidence, and national renewal. Many Americans linked his administration to the image of Camelot—a brief shining moment filled with glamour, culture, and promise. But Kennedy\'s presidency was tested almost immediately by Cold War crises, legislative frustration, and the growing burden of Vietnam. Your task is to decide whether Camelot was mostly image, real achievement, or some uneasy mix of both.',
+      tags: ['SS.912.A.7.4', 'SS.912.A.7.11', 'SS.912.A.6.13']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Camelot', cards: ['Kennedy Space Race', 'Peace Corps'] },
+    bank: [
+      {
+        id: '7A-L47-Q1',
+        text: 'Why did many Americans associate Kennedy\'s White House with the idea of "Camelot"?',
+        choices: [
+          'His administration projected youth, style, culture, and optimism, creating the image of a brief but inspiring national moment.',
+          'Kennedy had personally commissioned and funded a Broadway musical about his presidency specifically to build broad public support for his entire legislative agenda.',
+          'The Camelot image was created entirely by the press, which exaggerated his achievements to boost newspaper sales.',
+          'Kennedy\'s Irish Catholic background connected him to the medieval European traditions that the Camelot legend represented.'
+        ],
+        correctAnswer: 'His administration projected youth, style, culture, and optimism, creating the image of a brief but inspiring national moment.',
+        explanation: 'The Camelot myth — cultivated by Jacqueline Kennedy after the assassination — captured the sense that the Kennedy White House had been a brief flowering of youthful idealism cut tragically short.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-L47-Q2',
+        text: 'What was the main idea behind Kennedy\'s New Frontier?',
+        choices: [
+          'Kennedy believed the United States needed to return to the aggressive territorial expansion that had defined and shaped most of its nineteenth-century continental growth.',
+          'It called for energetic federal action in areas such as poverty, education, science, and public service at home and abroad.',
+          'The New Frontier was primarily a foreign policy doctrine focused on containing communism in newly independent nations.',
+          'It described Kennedy\'s plan to deregulate American industry and reduce federal involvement in the economy.'
+        ],
+        correctAnswer: 'It called for energetic federal action in areas such as poverty, education, science, and public service at home and abroad.',
+        explanation: 'Kennedy\'s New Frontier rhetoric challenged Americans to tackle domestic poverty, advance scientific achievement, and serve their country — capturing the spirit of idealistic activism that defined his campaign.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-L47-Q3',
+        text: 'Why is the Bay of Pigs invasion usually seen as a major early failure of Kennedy\'s presidency?',
+        choices: [
+          'He approved a CIA-backed invasion of Cuba that collapsed quickly, embarrassing the United States and strengthening Castro.',
+          'The Bay of Pigs failed mainly because Congress refused to fund the operation at the last minute, leaving the invaders unsupported.',
+          'Kennedy\'s naval blockade of Cuba during the invasion accidentally prevented the CIA-trained forces from reaching the shore.',
+          'The invasion was launched by the Eisenhower administration without Kennedy\'s knowledge, but he received the blame for its failure.'
+        ],
+        correctAnswer: 'He approved a CIA-backed invasion of Cuba that collapsed quickly, embarrassing the United States and strengthening Castro.',
+        explanation: 'Kennedy inherited the CIA plan from Eisenhower but approved it with reduced air support — the resulting disaster at the Bay of Pigs humiliated the United States, emboldened Castro, and gave Khrushchev reason to question Kennedy\'s resolve.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-L47-Q4',
+        text: 'What did the building of the Berlin Wall symbolize during the Kennedy years?',
+        choices: [
+          'It became a powerful symbol of Cold War division between the communist East and the democratic West.',
+          'The wall symbolized Soviet military weakness, since building a barrier was an admission they could not stop people by force.',
+          'It symbolized Kennedy\'s success in forcing the Soviets to stop the flow of refugees out of East Germany permanently.',
+          'The Berlin Wall symbolized mainly an economic dispute over trade routes between East and West Germany.'
+        ],
+        correctAnswer: 'It became a powerful symbol of Cold War division between the communist East and the democratic West.',
+        explanation: 'The wall — built in August 1961 to stop the flood of East Germans fleeing to the West — became the most concrete physical expression of the Iron Curtain and of communist governments\' need to imprison their own people.',
+        standard: 'SS.912.A.7.4 · SS.912.A.6.13'
+      },
+      {
+        id: '7A-L47-Q5',
+        text: 'Why did Kennedy make the space race such a major national priority?',
+        choices: [
+          'He believed space achievement would demonstrate American technological strength and ideological leadership in the Cold War.',
+          'Kennedy made space exploration a top national priority mainly to create large numbers of high-paying jobs in the aerospace industry and thereby significantly reduce the stubborn postwar unemployment rate.',
+          'Space exploration was a Kennedy family passion, and he used the presidency to fund a program he had always admired.',
+          'He pushed the space race primarily because the military required orbital satellites to monitor Soviet nuclear sites.'
+        ],
+        correctAnswer: 'He believed space achievement would demonstrate American technological strength and ideological leadership in the Cold War.',
+        explanation: 'After Sputnik and Gagarin\'s orbit, the Soviets led the space race — Kennedy\'s 1961 moon commitment was as much a Cold War statement as a scientific one, meant to prove that free societies could out-innovate communist ones.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-L47-Q6',
+        text: 'What was the purpose of the Peace Corps under Kennedy?',
+        choices: [
+          'To send Americans abroad to support education, health, and development while also building goodwill in poorer nations.',
+          'The Peace Corps was primarily a covert military training program that sent American special forces soldiers abroad to train and equip the armies of strategically important developing nations.',
+          'It was designed primarily to gather intelligence in Third World countries for the CIA under civilian cover.',
+          'Kennedy created the Peace Corps mainly to give unemployed college graduates meaningful work in the domestic economy.'
+        ],
+        correctAnswer: 'To send Americans abroad to support education, health, and development while also building goodwill in poorer nations.',
+        explanation: 'The Peace Corps sent thousands of young Americans to work in developing countries — reflecting Kennedy\'s belief that soft power, idealism, and direct human contact could win the Cold War\'s battle for hearts and minds.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-L47-Q7',
+        text: 'Why do many historians see the Cuban Missile Crisis as both a success and a warning for Kennedy?',
+        choices: [
+          'He avoided nuclear war and forced missile removal, but the crisis revealed how close brinkmanship could bring the world to catastrophe.',
+          'It was a success because Kennedy forced Khrushchev to resign, but a warning because the Soviet military remained powerful.',
+          'Kennedy ultimately succeeded in his diplomatic objectives during the crisis but failed badly on the military side, since the U.S. Navy proved completely unable to enforce the blockade line effectively against Soviet submarines.',
+          'The crisis was a success for Kennedy personally but a warning for Congress, which had opposed his handling of the situation.'
+        ],
+        correctAnswer: 'He avoided nuclear war and forced missile removal, but the crisis revealed how close brinkmanship could bring the world to catastrophe.',
+        explanation: 'Kennedy navigated the crisis skillfully, but documents released decades later showed how close the world came to accidental nuclear war — making the outcome feel less like mastery and more like a very narrow escape.',
+        standard: 'SS.912.A.7.4 · SS.912.A.6.13'
+      },
+      {
+        id: '7A-L47-Q8',
+        text: 'Why was the Test Ban Treaty of 1963 significant?',
+        choices: [
+          'It showed that the United States and Soviet Union could cooperate by banning aboveground nuclear testing even amid Cold War rivalry.',
+          'The Test Ban Treaty was historically significant mainly because it permanently eliminated all nuclear weapons from European soil within five years of its formal signing by the major nuclear powers.',
+          'It was the first formal agreement between the superpowers ever — no diplomatic contact had existed before 1963.',
+          'The Test Ban Treaty mattered primarily because it gave the United Nations authority to inspect all nuclear facilities worldwide.'
+        ],
+        correctAnswer: 'It showed that the United States and Soviet Union could cooperate by banning aboveground nuclear testing even amid Cold War rivalry.',
+        explanation: 'The Limited Test Ban Treaty — signed just months after the Missile Crisis — banned nuclear tests in the atmosphere, oceans, and space, reducing radioactive fallout and signaling a modest thaw in superpower relations.',
+        standard: 'SS.912.A.7.4 · SS.912.A.6.13'
+      },
+      {
+        id: '7A-L47-Q9',
+        text: 'What was one major weakness of Kennedy\'s presidency on the domestic front?',
+        choices: [
+          'Much of his agenda stalled in Congress, showing that popularity and style did not automatically produce legislative success.',
+          'Kennedy\'s domestic weakness was mainly economic — his tax policies caused a severe recession in 1962 and 1963.',
+          'He refused to propose any domestic legislation at all, preferring to focus exclusively on foreign affairs and Cold War crises.',
+          'Kennedy was so unpopular with voters that he had no political capital to spend on any domestic reform agenda.'
+        ],
+        correctAnswer: 'Much of his agenda stalled in Congress, showing that popularity and style did not automatically produce legislative success.',
+        explanation: 'Despite his personal popularity, Kennedy struggled to pass major legislation — civil rights, Medicare, and education bills all faced determined conservative opposition in Congress that his charisma could not overcome.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-L47-Q10',
+        text: 'Why do historians continue to debate whether Kennedy was a great president?',
+        choices: [
+          'His presidency combined glamour, inspiration, and important Cold War moments with policy failures, unfinished goals, and an early death.',
+          'Historians continue to debate Kennedy mainly because newly declassified documents provide strong and compelling evidence that he had secretly planned to dramatically escalate American military involvement in the Vietnam War.',
+          'The debate exists primarily because Kennedy\'s personal scandals made it impossible to evaluate his policy record objectively.',
+          'Historians disagree mainly because Kennedy served too short a time for any policy to have any measurable lasting effect.'
+        ],
+        correctAnswer: 'His presidency combined glamour, inspiration, and important Cold War moments with policy failures, unfinished goals, and an early death.',
+        explanation: 'Kennedy\'s assassination at 46 froze his legacy in idealism — historians must weigh his genuine achievements against his failures, his unrealized potential against the myth, and ask what he might have accomplished.',
+        standard: 'SS.912.A.7.4'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 48 — The Great Society
+  // ==================================================
+  {
+    id: 'lesson48',
+    label: 'LESSON 48',
+    title: 'The Great Society',
+    sub: 'LBJ and Domestic Reform · 1963–1966',
+    icon: '🖊️',
+    type: 'lesson',
+    briefing: {
+      location: 'Washington D.C.',
+      date: '1963–1966',
+      role: 'policy journalist',
+      text: 'Lyndon Johnson is not interested in Camelot. He is interested in results. Using his mastery of Congress and the emotional momentum following Kennedy\'s assassination, he pushes through the most ambitious domestic reform program since the New Deal. But Johnson\'s Great Society will soon compete with Vietnam for money, attention, and the public\'s trust.',
+      tags: ['SS.912.A.7.4', 'SS.912.A.7.13', 'SS.912.A.7.16']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Great Society', cards: ['Medicare', 'War on Poverty'] },
+    bank: [
+      {
+        id: '7A-L48-Q1',
+        text: 'What was the central idea behind Lyndon Johnson\'s Great Society?',
+        choices: [
+          'The federal government should use its power to reduce poverty, expand opportunity, and improve the quality of American life.',
+          'Johnson believed the best way to improve American life was to reduce government spending and let private charities handle poverty.',
+          'The Great Society was primarily a foreign policy vision focused on spreading American prosperity to developing nations.',
+          'Johnson\'s central idea was that military preparedness was the foundation of domestic prosperity and social stability.'
+        ],
+        correctAnswer: 'The federal government should use its power to reduce poverty, expand opportunity, and improve the quality of American life.',
+        explanation: 'The Great Society represented the most ambitious expansion of federal domestic programs since the New Deal — built on the conviction that government had both the ability and the responsibility to attack poverty and inequality directly.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q2',
+        text: 'What was the main purpose of Johnson\'s War on Poverty?',
+        choices: [
+          'To attack the causes of poverty through federal programs that expanded education, training, and community support.',
+          'The War on Poverty was mainly a public relations campaign designed to distract attention from the growing war in Vietnam.',
+          'Johnson intended to eliminate poverty by giving every poor American a guaranteed minimum income paid directly by the Treasury.',
+          'Its primary goal was to encourage poor communities to leave economically depressed areas and relocate to prospering cities.'
+        ],
+        correctAnswer: 'To attack the causes of poverty through federal programs that expanded education, training, and community support.',
+        explanation: 'Programs like the Job Corps, VISTA, and community action agencies tried to address poverty\'s root causes — lack of skills, education, and economic opportunity — rather than simply providing relief payments.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q3',
+        text: 'Why was Head Start considered an important part of the Great Society?',
+        choices: [
+          'It tried to give disadvantaged young children educational support early in life so poverty would be less likely to shape their future.',
+          'Head Start was designed primarily as a federal jobs creation program for unemployed teachers that happened to provide some incidental educational benefits to the poor communities where those teachers worked.',
+          'The program aimed mainly to identify gifted poor children who could be selected for elite private school scholarships.',
+          'Head Start was designed mainly as a nutrition program, with educational components added later as a political compromise.'
+        ],
+        correctAnswer: 'It tried to give disadvantaged young children educational support early in life so poverty would be less likely to shape their future.',
+        explanation: 'Head Start embodied the belief that early childhood intervention — nutrition, stimulation, and pre-school learning — could break the intergenerational cycle of poverty before it took hold.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q4',
+        text: 'What was the significance of Medicare and Medicaid in Johnson\'s domestic reform program?',
+        choices: [
+          'They expanded access to health care by creating major federal programs for the elderly and for many low-income Americans.',
+          'Medicare and Medicaid were mainly significant as symbolic gestures — they covered too few people to have any real impact.',
+          'The programs were important primarily because they replaced private insurance entirely and created a single-payer system.',
+          'Their main significance was financial — both programs were fully funded by state governments rather than federal taxpayers.'
+        ],
+        correctAnswer: 'They expanded access to health care by creating major federal programs for the elderly and for many low-income Americans.',
+        explanation: 'Before Medicare and Medicaid, millions of elderly and poor Americans had no health insurance — these programs fundamentally changed the federal government\'s role in health care and created lasting expectations of coverage.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q5',
+        text: 'How did the Great Society try to use education as a tool of reform?',
+        choices: [
+          'It increased federal support for schools and students, reflecting the belief that education could reduce inequality and expand opportunity.',
+          'The Great Society fundamentally replaced all local and state control over school curriculum with a rigid national program of study designed exclusively by federal education bureaucrats and policy experts working in Washington D.C.',
+          'Johnson believed private religious schools were the most effective path out of poverty and redirected all funding to them.',
+          'Education reform focused mainly on universities because Johnson believed only college graduates could escape poverty permanently.'
+        ],
+        correctAnswer: 'It increased federal support for schools and students, reflecting the belief that education could reduce inequality and expand opportunity.',
+        explanation: 'The Elementary and Secondary Education Act of 1965 provided federal funding to schools based on the number of low-income students — a landmark shift in federal educational involvement that shaped school funding for generations.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q6',
+        text: 'Why was the Immigration and Nationality Act of 1965 a major turning point in U.S. history?',
+        choices: [
+          'It ended the older quota system and reshaped immigration by opening the door more widely to people from Asia, Latin America, and elsewhere.',
+          'The act was important mainly because it reduced total immigration to the United States to its lowest levels since the 1920s.',
+          'It created the first-ever path to citizenship for undocumented immigrants already living in the United States.',
+          'The law\'s main significance was eliminating the English-language requirement that had previously restricted immigration from non-English-speaking nations.'
+        ],
+        correctAnswer: 'It ended the older quota system and reshaped immigration by opening the door more widely to people from Asia, Latin America, and elsewhere.',
+        explanation: 'The 1924 system had heavily favored Northern and Western Europeans — the 1965 act replaced it with a family reunification and skills-based system that dramatically changed the national origins of future immigrants.',
+        standard: 'SS.912.A.7.13 · SS.912.A.7.16'
+      },
+      {
+        id: '7A-L48-Q7',
+        text: 'What does environmental reform reveal about the broader goals of the Great Society?',
+        choices: [
+          'Johnson\'s reform vision was not limited to poverty alone, but also included improving the physical quality of life and public resources.',
+          'Environmental laws were the Great Society\'s least important component and were passed mainly to satisfy a small activist minority.',
+          'Environmental reform revealed that Johnson\'s real priority was protecting corporate interests by reducing pollution lawsuits.',
+          'It showed that Great Society programs were mainly about rural America, where environmental problems caused the most harm.'
+        ],
+        correctAnswer: 'Johnson\'s reform vision was not limited to poverty alone, but also included improving the physical quality of life and public resources.',
+        explanation: 'The Clean Air Act, Water Quality Act, and creation of new national parks showed that the Great Society defined quality of life broadly — not just income and health care but also clean air, clean water, and preserved natural spaces.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q8',
+        text: 'Why is the Warren Court often connected to the reform spirit of the 1960s?',
+        choices: [
+          'Its decisions expanded civil liberties and rights, reinforcing the era\'s broader effort to make American democracy more equal and inclusive.',
+          'The Warren Court was connected to the 1960s mainly because it ruled the Great Society programs were unconstitutional violations of states\' rights.',
+          'Chief Justice Warren was a close personal friend of Johnson\'s who used his Court position to advance the president\'s agenda directly.',
+          'The Court was important mainly for its foreign policy rulings, which gave Johnson legal cover for escalation in Vietnam.'
+        ],
+        correctAnswer: 'Its decisions expanded civil liberties and rights, reinforcing the era\'s broader effort to make American democracy more equal and inclusive.',
+        explanation: 'From Gideon to Miranda to decisions on school prayer and legislative apportionment, the Warren Court expanded individual rights in ways that aligned with the decade\'s broader push for equality and democratic accountability.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q9',
+        text: 'What larger debate does the Great Society raise about the role of government in American life?',
+        choices: [
+          'Whether federal power can and should be used aggressively to solve social problems such as poverty, inequality, and exclusion.',
+          'The debate it raises is mainly about states\' rights — whether governors or the president should control anti-poverty spending.',
+          'It raises questions about whether presidents can pass any major legislation without facing a Supreme Court challenge.',
+          'The Great Society mainly raises questions about whether military spending should be reduced to fund domestic programs.'
+        ],
+        correctAnswer: 'Whether federal power can and should be used aggressively to solve social problems such as poverty, inequality, and exclusion.',
+        explanation: 'The Great Society extended a debate begun with the New Deal — critics argued it created dependency and overreached federal authority, while supporters argued only federal scale could address problems that states lacked the will or resources to solve.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-L48-Q10',
+        text: 'Why do historians often view the Great Society as both ambitious and unfinished?',
+        choices: [
+          'It created major lasting reforms, but poverty, inequality, and social conflict remained, leaving debate over how much it truly achieved.',
+          'The Great Society remains historically unfinished mainly because Johnson was forced to resign from the presidency in disgrace before the majority of his ambitious reform legislation could actually be signed into law.',
+          'Most historians believe the Great Society was a complete failure that worsened poverty by creating destructive dependency.',
+          'It was unfinished mainly because the Supreme Court struck down most Great Society programs before they could be implemented.'
+        ],
+        correctAnswer: 'It created major lasting reforms, but poverty, inequality, and social conflict remained, leaving debate over how much it truly achieved.',
+        explanation: 'Medicare, Medicaid, the Voting Rights Act, and federal education funding are lasting legacies — but Vietnam drained the Great Society\'s resources and political support, and poverty and racial inequality persisted, fueling debate about its ultimate success.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.13'
+      },
+    ]
+  },
+
+  // ==================================================
+  // LESSON 49 — The Times They Are A-Changin'
+  // ==================================================
+  {
+    id: 'lesson49',
+    label: 'LESSON 49',
+    title: 'The Times They Are A-Changin\'',
+    sub: 'Youth, Protest, and Counterculture · 1964–1969',
+    icon: '☮️',
+    type: 'lesson',
+    briefing: {
+      location: 'University Campuses and American Streets',
+      date: '1964–1969',
+      role: 'cultural critic',
+      text: 'As the 1960s unfold, many young Americans begin to reject the assumptions of the world their parents built. They criticize war, conformity, racism, and materialism. On college campuses, the New Left demands a more democratic society. Beyond politics, hippies and other counterculture youth experiment with music, style, language, drugs, and personal freedom. Your task is to decide what this rebellion changed—and what it only seemed to change.',
+      tags: ['SS.912.A.7.9']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 20, completionBonus: 25, perfectBonus: 25 },
+    rewards: { badge: 'Times A-Changin\'', cards: ['Woodstock', 'Students for a Democratic Society'] },
+    bank: [
+      {
+        id: '7A-L49-Q1',
+        text: 'Why did the baby boom generation play such a large role in the rise of the counterculture?',
+        choices: [
+          'They were a huge generation coming of age at the same time, giving youth protest and cultural rebellion unusual visibility and influence.',
+          'The baby boom generation was historically unique as the first cohort raised entirely without access to television in their formative years, which made them substantially more receptive to unconventional and alternative ways of thinking about society.',
+          'The generation\'s large size gave them overwhelming political power through the voting booth, making protest unnecessary.',
+          'Boomers played a large role mainly because their parents had encouraged them to question authority from an early age.'
+        ],
+        correctAnswer: 'They were a huge generation coming of age at the same time, giving youth protest and cultural rebellion unusual visibility and influence.',
+        explanation: 'The baby boom produced an unusually large cohort of young people all reaching college age simultaneously in the 1960s — their sheer numbers amplified every cultural and political statement they made.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q2',
+        text: 'How did the New Left differ from the older "Old Left" described in the lesson?',
+        choices: [
+          'The New Left rejected communism and instead tried to reform American society by expanding democracy and citizen participation.',
+          'The New Left differed mainly in tactics — it used armed protest rather than the legal and political approaches of the Old Left.',
+          'Old Left movements were mostly urban, while the New Left was primarily a rural and small-town phenomenon.',
+          'The New Left was focused entirely on foreign policy while the Old Left had concentrated mainly on economic reform.'
+        ],
+        correctAnswer: 'The New Left rejected communism and instead tried to reform American society by expanding democracy and citizen participation.',
+        explanation: 'The Old Left had been tied to Marxism and labor organizing; the New Left, articulated in the Port Huron Statement, rejected Soviet communism and sought a more participatory democracy within the American framework.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q3',
+        text: 'What was Students for a Democratic Society, or SDS, trying to achieve?',
+        choices: [
+          'It sought a more democratic and just society by challenging inequality, privilege, and the concentration of power.',
+          'SDS was primarily an anti-communist organization that wanted to root out Soviet influence on American university campuses.',
+          'The group sought mainly to replace the existing two-party system with a student-run third party that would contest elections.',
+          'SDS focused mainly on a single issue — ending the military draft — and had little broader political or social agenda.'
+        ],
+        correctAnswer: 'It sought a more democratic and just society by challenging inequality, privilege, and the concentration of power.',
+        explanation: 'The Port Huron Statement articulated SDS\'s vision of participatory democracy — a society where citizens had genuine power over decisions affecting their lives, not just periodic votes in a system controlled by elites.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q4',
+        text: 'Why was the Free Speech Movement at Berkeley historically important?',
+        choices: [
+          'It became a major victory for student activism and First Amendment rights on college campuses.',
+          'The Free Speech Movement was important mainly because it led to the permanent closure of the University of California system.',
+          'Berkeley was historically significant mainly as the first time a university president was removed by student protest.',
+          'The movement was important mainly as a model for student protests in the Soviet Union and Eastern Bloc countries.'
+        ],
+        correctAnswer: 'It became a major victory for student activism and First Amendment rights on college campuses.',
+        explanation: 'When UC Berkeley banned political organizing on campus in 1964, the resulting protest led by Mario Savio forced the university to reverse course — establishing the principle that students had free speech rights even in academic settings.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q5',
+        text: 'What does the term "counterculture" mean in the context of the 1960s?',
+        choices: [
+          'A group whose ideas and behaviors differed sharply from mainstream values, especially on war, conformity, and personal freedom.',
+          'The term counterculture specifically describes the organized conservative political movement that formed in direct reaction to the sweeping political and social reforms that characterized the turbulent decade of the 1960s.',
+          'Counterculture referred specifically to the underground music industry that competed with major record labels in the 1960s.',
+          'It describes the effort by older Americans to preserve traditional cultural institutions against the changes of the decade.'
+        ],
+        correctAnswer: 'A group whose ideas and behaviors differed sharply from mainstream values, especially on war, conformity, and personal freedom.',
+        explanation: 'The counterculture rejected the dominant culture\'s emphasis on material success, conformity, and Cold War militarism — proposing instead peace, communal living, personal liberation, and spiritual exploration.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q6',
+        text: 'What did many hippies believe or seek in the 1960s?',
+        choices: [
+          'They often rejected materialism and conventional authority in favor of peace, love, personal liberation, and doing their own thing.',
+          'The majority of hippies were in fact focused almost entirely on mainstream electoral politics and devoted most of their time and energy to working within the system to elect anti-war Democratic candidates to Congress.',
+          'Hippies mainly sought economic reform, arguing that American capitalism needed to be replaced with cooperative ownership.',
+          'They primarily sought legal reform, pushing for specific laws to protect free speech, drug use, and alternative lifestyles.'
+        ],
+        correctAnswer: 'They often rejected materialism and conventional authority in favor of peace, love, personal liberation, and doing their own thing.',
+        explanation: 'Hippie culture — expressed through communal living, psychedelic music, distinctive dress, and rejection of career-focused mainstream life — represented a wholesale rejection of the values of postwar consumer America.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q7',
+        text: 'What does the lesson mean by a "generation gap" in the 1960s?',
+        choices: [
+          'A widening difference in attitudes and behavior between many young people and their parents over values, war, and culture.',
+          'The generation gap described the growing economic inequality between baby boomers and their parents\' more prosperous generation.',
+          'It referred to the difference in educational attainment between the college-educated young and their less-educated parents.',
+          'The term described the political gap between young voters who supported Kennedy and older voters who had supported Eisenhower.'
+        ],
+        correctAnswer: 'A widening difference in attitudes and behavior between many young people and their parents over values, war, and culture.',
+        explanation: 'Many young people in the 1960s found themselves deeply at odds with parents who had lived through the Depression and World War II — the older generation valued stability, patriotism, and conformity that their children were actively rejecting.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q8',
+        text: 'Who or what did many counterculture youth mean by "the Establishment"?',
+        choices: [
+          'The dominant institutions and values of mainstream America, including authority figures, traditional norms, and political power.',
+          '"The Establishment" referred specifically to the network of defense contractors and military officials who supported the Vietnam War.',
+          'The term described the academic establishment — university administrators and professors who defended traditional curricula.',
+          'It was used mainly to describe wealthy businesspeople who funded conservative political candidates and causes.'
+        ],
+        correctAnswer: 'The dominant institutions and values of mainstream America, including authority figures, traditional norms, and political power.',
+        explanation: 'The Establishment — a deliberately vague term — captured everything the counterculture opposed: corporations, government, the military, the media, universities, and the general enforcement of conformity and obedience.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q9',
+        text: 'Why did Woodstock become such an important symbol of the counterculture?',
+        choices: [
+          'It represented the scale, music, communal spirit, and anti-Establishment mood of the youth culture at the end of the decade.',
+          'Woodstock was important mainly because it was the first outdoor music festival ever held in the United States.',
+          'The event became symbolic primarily because violence at Woodstock led Congress to pass new laws restricting public gatherings.',
+          'Woodstock symbolized the counterculture mainly because it raised millions of dollars for anti-war political campaigns.'
+        ],
+        correctAnswer: 'It represented the scale, music, communal spirit, and anti-Establishment mood of the youth culture at the end of the decade.',
+        explanation: 'Half a million people gathering peacefully for music in upstate New York in August 1969 seemed — at least to participants — to prove that the counterculture\'s vision of community, peace, and freedom was genuinely possible.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-L49-Q10',
+        text: 'What was one major impact of the counterculture on American society?',
+        choices: [
+          'It pushed new ideas about music, speech, identity, protest, and personal freedom into mainstream public debate and media.',
+          'The counterculture\'s main impact was that it permanently ended the conservative movement in American politics.',
+          'It transformed the American economy by creating an entirely new consumer market for youth-oriented goods and services.',
+          'The counterculture\'s greatest impact was political — it directly caused the passage of major civil rights and anti-poverty legislation.'
+        ],
+        correctAnswer: 'It pushed new ideas about music, speech, identity, protest, and personal freedom into mainstream public debate and media.',
+        explanation: 'Whether in rock music, language, fashion, sexual norms, or protest tactics, the counterculture permanently expanded what was considered acceptable in American public life — even as the specific movement faded.',
+        standard: 'SS.912.A.7.9'
+      },
+    ]
+  },
+
+  // ==================================================
+  // UNIT 7A CAPSTONE — Into Vietnam
+  // ==================================================
+  {
+    id: 'capstone',
+    label: 'UNIT 7A CAPSTONE',
+    title: 'Into Vietnam',
+    sub: 'Escalation and Debate · 1945–1968',
+    icon: '🌿',
+    type: 'capstone',
+    briefing: {
+      location: 'Washington D.C. and Southeast Asia',
+      date: '1945–1968',
+      role: 'foreign policy analyst',
+      text: 'Vietnam was not a sudden crisis. It was a chain of choices made by presidents who feared the political and strategic cost of appearing weak in the Cold War. What began as support for France became support for South Vietnam, then advisers, then bombing, then a widening war. Your task is to trace how containment, the domino theory, and the Gulf of Tonkin pushed the United States from caution into escalation.',
+      tags: ['SS.912.A.6.14', 'SS.912.A.7.10', 'SS.912.A.7.11']
+    },
+    displayCount: 5,
+    goldRules: { perCorrect: 25, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'Into Vietnam', cards: ['Gulf of Tonkin', 'Operation Rolling Thunder'] },
+    bank: [
+      {
+        id: '7A-CAP-Q1',
+        text: 'Why did President Truman support France in Vietnam during the First Indochina War?',
+        choices: [
+          'He viewed the conflict mainly through Cold War containment and feared that a Viet Minh victory would strengthen communism in Asia.',
+          'President Truman backed France in Indochina mainly to fulfill and honor the formal mutual defense military alliance between the two nations that stretched all the way back to their shared experience in World War I.',
+          'He acted primarily because American corporations had major investments in French Indochina that needed protection.',
+          'Truman backed France mainly because he believed Vietnamese independence would destabilize the entire Pacific region for decades.'
+        ],
+        correctAnswer: 'He viewed the conflict mainly through Cold War containment and feared that a Viet Minh victory would strengthen communism in Asia.',
+        explanation: 'Though Ho Chi Minh was as much nationalist as communist, Truman\'s Cold War framework led him to see any communist victory as a strategic threat — providing France with financial and military aid that committed the U.S. to the region.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q2',
+        text: 'What was Eisenhower\'s domino theory?',
+        choices: [
+          'The idea that if Vietnam fell to communism, other countries in Southeast Asia might fall in sequence as well.',
+          'Eisenhower believed that communist nations would inevitably collapse one after another as their economies failed.',
+          'The theory held that American military victories in one country would produce pro-American governments in neighboring nations.',
+          'Domino theory described Eisenhower\'s belief that nuclear deterrence in Europe would prevent conventional wars in Asia.'
+        ],
+        correctAnswer: 'The idea that if Vietnam fell to communism, other countries in Southeast Asia might fall in sequence as well.',
+        explanation: 'Eisenhower\'s domino metaphor — one falling domino toppling the next — expressed the fear that a communist Vietnam would trigger communist takeovers in Laos, Cambodia, Thailand, and beyond, making the entire region a Soviet or Chinese sphere.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q3',
+        text: 'What was the result of the Geneva Accords of 1954?',
+        choices: [
+          'Vietnam was temporarily divided at the 17th parallel, with the expectation that national elections would later reunify the country.',
+          'The Geneva Accords permanently and formally divided Vietnam into two entirely separate, fully independent, and internationally recognized sovereign nations with their own governments and armies.',
+          'Geneva ended the French war and gave the United States formal authority to administer South Vietnam as a protectorate.',
+          'The accords required all foreign troops to leave Vietnam immediately and established a UN peacekeeping force along the border.'
+        ],
+        correctAnswer: 'Vietnam was temporarily divided at the 17th parallel, with the expectation that national elections would later reunify the country.',
+        explanation: 'The accords ended French rule and divided Vietnam temporarily — but the U.S. and Diem\'s South Vietnam refused to hold the promised 1956 elections, fearing Ho Chi Minh would win, turning the temporary division into a permanent conflict.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q4',
+        text: 'How did Kennedy deepen U.S. involvement in Vietnam without committing to a full-scale war?',
+        choices: [
+          'He sharply increased the number of military advisers sent to South Vietnam while avoiding a major deployment of combat troops.',
+          'Kennedy deepened involvement by authorizing the CIA to conduct covert bombing raids against North Vietnamese supply routes.',
+          'He approved a formal mutual defense treaty with South Vietnam that committed the United States to its full military defense.',
+          'Kennedy deepened involvement mainly by funding South Vietnam\'s military through loans while withdrawing all American personnel.'
+        ],
+        correctAnswer: 'He sharply increased the number of military advisers sent to South Vietnam while avoiding a major deployment of combat troops.',
+        explanation: 'Kennedy expanded the American advisory presence from roughly 900 to over 16,000 — a significant escalation that blurred the line between advising and fighting, setting the stage for Johnson\'s far larger commitment.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q5',
+        text: 'Why was the Gulf of Tonkin Resolution such a turning point in the Vietnam War?',
+        choices: [
+          'It gave President Johnson broad authority to expand U.S. military involvement without a formal declaration of war.',
+          'The resolution was a turning point mainly because it finally gave Congress the power to override presidential war decisions.',
+          'It turned the war because it authorized the first use of nuclear weapons in a regional conflict by an American president.',
+          'The resolution was significant mainly because it required South Vietnam to take over all ground combat operations immediately.'
+        ],
+        correctAnswer: 'It gave President Johnson broad authority to expand U.S. military involvement without a formal declaration of war.',
+        explanation: 'Based on disputed accounts of attacks on U.S. ships in the Gulf of Tonkin, Congress handed Johnson a near-blank check — the resolution effectively transferred war-making authority from Congress to the president.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q6',
+        text: 'Why did Johnson launch Operation Rolling Thunder in 1965?',
+        choices: [
+          'He hoped sustained bombing would strengthen South Vietnam and pressure the North to stop supporting the war in the South.',
+          'Rolling Thunder was launched mainly to test American air power capabilities against a well-defended Soviet-supplied adversary.',
+          'Johnson authorized the bombing primarily to give the Air Force a combat mission and prevent military leaders from pushing for ground invasion.',
+          'The operation was launched mainly to destroy North Vietnamese nuclear facilities before they could become operational.'
+        ],
+        correctAnswer: 'He hoped sustained bombing would strengthen South Vietnam and pressure the North to stop supporting the war in the South.',
+        explanation: 'Johnson believed graduated air pressure would break Hanoi\'s will without requiring a massive ground commitment — but North Vietnam proved far more resilient than expected, and the bombing failed to stop infiltration or end the war.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q7',
+        text: 'What was the main difference between hawks and doves during the Vietnam debate?',
+        choices: [
+          'Hawks favored expanding military involvement, while doves urged negotiation and a more limited or peaceful response.',
+          'Hawks wanted to use nuclear weapons to end the war quickly, while doves supported only conventional military operations.',
+          'Doves supported the war effort but opposed the draft, while hawks favored both military escalation and conscription.',
+          'The main difference was generational — hawks were generally older veterans and doves were exclusively college students.'
+        ],
+        correctAnswer: 'Hawks favored expanding military involvement, while doves urged negotiation and a more limited or peaceful response.',
+        explanation: 'The hawk-dove divide cut across party lines — hawks argued more force would win; doves argued the war was unwinnable and morally wrong, and the cost in lives was too high for an unclear strategic goal.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-CAP-Q8',
+        text: 'What best explains why U.S. involvement in Vietnam deepened over time under three different presidents?',
+        choices: [
+          'Each administration feared that withdrawal would damage American credibility and encourage communist expansion elsewhere.',
+          'Each president personally believed in Vietnam\'s strategic importance and independently chose escalation over all other options.',
+          'Involvement deepened mainly because the military gave presidents optimistic assessments that convinced them victory was near.',
+          'Congress pushed each administration to escalate because members feared appearing soft on communism in their home districts.'
+        ],
+        correctAnswer: 'Each administration feared that withdrawal would damage American credibility and encourage communist expansion elsewhere.',
+        explanation: 'Truman, Eisenhower, Kennedy, and Johnson all made different decisions, but shared the same underlying fear — that pulling out of Vietnam would be seen as American weakness that would embolden the Soviets, alarm allies, and trigger further communist advances.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+    ]
+  },
+
+  // ==================================================
+  // EOC REVIEW — The 1960s
+  // ==================================================
+  {
+    id: 'eoc',
+    label: 'EOC REVIEW',
+    title: 'EOC Practice Quiz',
+    sub: 'The 1960s Review',
+    icon: '📋',
+    type: 'eoc',
+    briefing: {
+      location: 'The 1960s Review',
+      date: '',
+      role: 'state exam coach',
+      text: 'You have completed the major missions of the 1960s unit. Now review the full story: Kennedy\'s presidency, Johnson\'s Great Society, the counterculture, and America\'s deeper involvement in Vietnam. Expect questions from across the unit, not just one chapter.',
+      tags: ['SS.912.A.7.4', 'SS.912.A.7.9', 'SS.912.A.7.10', 'SS.912.A.7.11', 'SS.912.A.7.13']
+    },
+    displayCount: 15,
+    goldRules: { perCorrect: 15, completionBonus: 50, perfectBonus: 50 },
+    rewards: { badge: 'The 1960s Mastery', cards: ['LBJ Great Society', 'Vietnam Escalation'] },
+    bank: [
+      {
+        id: '7A-EOC-Q1',
+        text: 'Why did many Americans remember the Kennedy years as "Camelot"?',
+        choices: [
+          'The administration projected youth, culture, glamour, and optimism, creating the image of a brief but inspiring national moment.',
+          'Kennedy himself chose the Camelot label to describe his policy program and used it in every major speech.',
+          'The Camelot image was created mainly by foreign governments who admired Kennedy\'s handling of the Cuban Missile Crisis.',
+          'Most Americans strongly associated the entire Camelot image with Kennedy\'s unprecedented legislative record and the extraordinary volume of bills he signed into law.'
+        ],
+        correctAnswer: 'The administration projected youth, culture, glamour, and optimism, creating the image of a brief but inspiring national moment.',
+        explanation: 'The Camelot myth emerged powerfully after Kennedy\'s assassination — Jacqueline Kennedy connected the White House to the musical, and the image of a brief, shining moment of idealism captured a nation\'s grief.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-EOC-Q2',
+        text: 'What was Kennedy\'s New Frontier meant to represent?',
+        choices: [
+          'A call for energetic federal action in science, education, poverty, and public service during a new era of national challenge.',
+          'The New Frontier described Kennedy\'s plan to restore traditional American values that had been lost during the Eisenhower years.',
+          'It represented a return to the isolationist foreign policy that had kept the United States out of foreign conflicts before World War II.',
+          'Kennedy used the term mainly to describe his proposal for territorial expansion through acquisition of Caribbean island nations.'
+        ],
+        correctAnswer: 'A call for energetic federal action in science, education, poverty, and public service during a new era of national challenge.',
+        explanation: 'Kennedy\'s New Frontier rhetoric painted a portrait of an America ready to confront new challenges — poverty, space, communism, and civil rights — with the same energy that earlier generations had brought to geographical expansion.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-EOC-Q3',
+        text: 'Why was the Bay of Pigs a serious setback for Kennedy?',
+        choices: [
+          'A CIA-backed invasion of Cuba failed quickly, humiliating the United States and bolstering Castro\'s position domestically and internationally.',
+          'The Bay of Pigs was a setback mainly because it revealed that the CIA had been penetrated by Cuban spies who warned Castro.',
+          'It damaged Kennedy mainly because the invasion succeeded militarily but Congress refused to recognize the new Cuban government.',
+          'The setback was primarily domestic — the failed invasion caused a severe economic recession that lasted through 1963.'
+        ],
+        correctAnswer: 'A CIA-backed invasion of Cuba failed quickly, humiliating the United States and bolstering Castro\'s position domestically and internationally.',
+        explanation: 'The failed exile invasion at the Bay of Pigs in April 1961 left Kennedy politically embarrassed, strengthened Castro\'s nationalist credentials, and raised questions about American competence that Khrushchev would test months later in Berlin.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q4',
+        text: 'Why did Kennedy push the space race so strongly?',
+        choices: [
+          'He believed American success in space would prove technological strength and ideological leadership during the Cold War.',
+          'Kennedy was personally passionate about astronomy and used the presidency to fund research he had championed since college.',
+          'Space exploration was pushed mainly by the military, which needed satellites to replace the U-2 spy planes shot down over the USSR.',
+          'Kennedy prioritized space mainly because the aerospace industry was a major employer in the swing states he needed to win reelection.'
+        ],
+        correctAnswer: 'He believed American success in space would prove technological strength and ideological leadership during the Cold War.',
+        explanation: 'After Soviet cosmonauts beat Americans into orbit, Kennedy framed the moon goal as a Cold War imperative — proving that free societies could out-achieve communist ones in the most dramatic arena imaginable.',
+        standard: 'SS.912.A.7.4'
+      },
+      {
+        id: '7A-EOC-Q5',
+        text: 'What made the Cuban Missile Crisis both a success and a warning for Kennedy?',
+        choices: [
+          'He avoided nuclear war and won missile removal, but the crisis showed how close Cold War brinkmanship could come to catastrophe.',
+          'It was a success because Kennedy obtained Soviet disarmament, but a warning because Congress challenged his handling of the crisis.',
+          'Kennedy succeeded in the crisis diplomatically but failed militarily, since the Navy could not actually enforce the blockade at sea.',
+          'The crisis was a success for Kennedy\'s public image but a warning for his allies, who believed he had been too aggressive with Khrushchev.'
+        ],
+        correctAnswer: 'He avoided nuclear war and won missile removal, but the crisis showed how close Cold War brinkmanship could come to catastrophe.',
+        explanation: 'Kennedy\'s management of the crisis is widely praised, but later revelations — about a Soviet submarine near launching a nuclear torpedo, about the secret Turkey concession — showed how much luck and back-channel diplomacy the outcome depended on.',
+        standard: 'SS.912.A.7.4 · SS.912.A.6.13'
+      },
+      {
+        id: '7A-EOC-Q6',
+        text: 'What was the main goal of Johnson\'s Great Society?',
+        choices: [
+          'To use federal power to reduce poverty, expand opportunity, and improve the quality of American life.',
+          'Johnson\'s main goal was proving that democratic capitalism could outperform the Soviet model in raising living standards.',
+          'The Great Society was designed mainly to reward the Democratic Party\'s political coalition by funding urban infrastructure.',
+          'Its primary goal was military — Johnson believed a strong domestic economy was necessary to sustain the war in Vietnam.'
+        ],
+        correctAnswer: 'To use federal power to reduce poverty, expand opportunity, and improve the quality of American life.',
+        explanation: 'Johnson\'s vision was both personal and political — rooted in his Texas Hill Country upbringing and his belief that government could and should intervene directly to lift Americans out of poverty and expand the middle class.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-EOC-Q7',
+        text: 'What did Johnson\'s War on Poverty try to do?',
+        choices: [
+          'Attack the causes of poverty through education, training, and community-based federal programs rather than rely only on relief.',
+          "Johnson's War on Poverty functioned mainly as a massive federal public works program that prioritized the construction of roads, bridges, and hydroelectric dams in the most economically depressed rural and urban regions of the country.",
+          'Johnson believed he could end poverty permanently mainly by aggressively taxing the wealthiest Americans and distributing those collected funds directly and immediately to low-income households across the country.',
+          'The program aimed primarily to relocate poor families from rural areas into new federally constructed urban housing projects.'
+        ],
+        correctAnswer: 'Attack the causes of poverty through education, training, and community-based federal programs rather than rely only on relief.',
+        explanation: 'Programs like the Job Corps, VISTA, and Head Start tried to equip poor Americans with the skills and opportunities to escape poverty permanently — not just provide temporary assistance to maintain minimum living standards.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-EOC-Q8',
+        text: 'Why were Medicare and Medicaid major Great Society reforms?',
+        choices: [
+          'They greatly expanded access to health care for the elderly and for many low-income Americans.',
+          'Medicare and Medicaid were major mainly because they replaced the private insurance system entirely with a government program.',
+          'They mattered mainly because they were funded entirely through state sales taxes rather than the federal income tax.',
+          'Both programs were significant mainly because they provided free prescription drugs to all Americans below the poverty line.'
+        ],
+        correctAnswer: 'They greatly expanded access to health care for the elderly and for many low-income Americans.',
+        explanation: 'Before 1965, the elderly were the least insured age group in America and millions of poor families had no access to medical care — Medicare and Medicaid created a permanent federal commitment to healthcare access.',
+        standard: 'SS.912.A.7.13'
+      },
+      {
+        id: '7A-EOC-Q9',
+        text: 'Why was the Immigration and Nationality Act of 1965 historically important?',
+        choices: [
+          'It ended the old quota system and significantly reshaped immigration patterns to the United States.',
+          'The act was important mainly because it reduced overall immigration levels to protect American workers from job competition.',
+          'It established the first-ever guest worker program allowing seasonal laborers from Mexico to work legally in the United States.',
+          'The law was significant mainly because it granted immediate citizenship to all immigrants who had lived in the U.S. for five years.'
+        ],
+        correctAnswer: 'It ended the old quota system and significantly reshaped immigration patterns to the United States.',
+        explanation: 'The 1924 quota system had deliberately favored Northern and Western Europeans — the 1965 act\'s shift to family reunification preferences opened the door to millions from Asia, Latin America, and Africa who transformed American demographics.',
+        standard: 'SS.912.A.7.13 · SS.912.A.7.16'
+      },
+      {
+        id: '7A-EOC-Q10',
+        text: 'What does "counterculture" mean in the context of the 1960s?',
+        choices: [
+          'A youth movement whose values and behavior differed sharply from mainstream American culture, especially on war, conformity, and freedom.',
+          'The term counterculture specifically described the powerful conservative political movement that formed across American suburbs and small towns specifically to oppose both the civil rights movement and the growing anti-war protest marches.',
+          'The term refers specifically to the underground music and art scene that operated outside mainstream commercial media.',
+          'Counterculture described the effort by immigrant communities to preserve their own languages and traditions against Americanization.'
+        ],
+        correctAnswer: 'A youth movement whose values and behavior differed sharply from mainstream American culture, especially on war, conformity, and freedom.',
+        explanation: 'The counterculture was defined by what it rejected — consumer materialism, military conformity, political deference, and conventional career paths — as much as by what it proposed.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-EOC-Q11',
+        text: 'How did the New Left differ from the Old Left?',
+        choices: [
+          'It rejected communism and instead sought to reform American society by expanding democracy and citizen participation.',
+          'The New Left was more focused on electoral politics while the Old Left had relied mainly on strikes and union organizing.',
+          'The New Left was exclusively a student movement while the Old Left had been primarily organized around industrial workers.',
+          'New Left activists were mainly based in the South while the Old Left had been concentrated in northeastern industrial cities.'
+        ],
+        correctAnswer: 'It rejected communism and instead sought to reform American society by expanding democracy and citizen participation.',
+        explanation: 'The Port Huron Statement explicitly distanced SDS from the Soviet Union and from the class-based politics of the Old Left — the New Left sought participatory democracy, not proletarian revolution.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-EOC-Q12',
+        text: 'Why was Berkeley\'s Free Speech Movement important?',
+        choices: [
+          'It became a landmark victory for student activism and free expression on college campuses.',
+          'The movement was important mainly because it led to a federal law protecting political speech at all public universities.',
+          'Berkeley mattered mainly because it was the first campus where students successfully voted to end the military draft.',
+          'The Free Speech Movement was significant mainly because it inspired similar protests at Soviet and Eastern Bloc universities.'
+        ],
+        correctAnswer: 'It became a landmark victory for student activism and free expression on college campuses.',
+        explanation: 'The 1964 Berkeley protests forced the University of California to recognize students\' right to political advocacy on campus — a precedent that spread across American higher education and emboldened student activism nationwide.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-EOC-Q13',
+        text: 'What does the term "generation gap" describe in the 1960s?',
+        choices: [
+          'A growing divide between many young people and their parents over values, war, authority, and culture.',
+          'The generation gap described the wage difference between baby boomers entering the workforce and their more experienced parents.',
+          'The term referred to the difference in life expectancy between Americans born before and after World War II.',
+          'It described the political divide between young urban Democrats and older suburban Republicans during the 1960s elections.'
+        ],
+        correctAnswer: 'A growing divide between many young people and their parents over values, war, authority, and culture.',
+        explanation: 'The generation gap was most visible in arguments over Vietnam, drugs, sexual behavior, and respect for authority — producing real family conflicts that reflected the decade\'s broader cultural fractures.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-EOC-Q14',
+        text: 'Why did Woodstock become such a strong symbol of the 1960s counterculture?',
+        choices: [
+          'It captured the scale, music, communal spirit, and anti-Establishment mood of youth culture at the end of the decade.',
+          'Woodstock was symbolically important mainly because it ended in violence that marked the collapse of the entire counterculture.',
+          'The festival became a symbol mainly because it was televised live and reached a global audience of hundreds of millions.',
+          'Woodstock mattered mainly as a political event — it launched the careers of several prominent anti-war Congressional candidates.'
+        ],
+        correctAnswer: 'It captured the scale, music, communal spirit, and anti-Establishment mood of youth culture at the end of the decade.',
+        explanation: 'Four days of music, rain, and peaceful community in August 1969 — with half a million people — seemed to many participants like a glimpse of the world the counterculture was trying to build.',
+        standard: 'SS.912.A.7.9'
+      },
+      {
+        id: '7A-EOC-Q15',
+        text: 'Why did Truman first support France in Vietnam?',
+        choices: [
+          'He saw the conflict mainly through Cold War containment and feared communist expansion in Asia.',
+          'Truman supported France mainly because the two nations had a formal military alliance requiring mutual defense.',
+          'He backed France primarily to honor America\'s World War II debt to the French Resistance and Free French Forces.',
+          'Truman supported France mainly because American oil companies had major investments in French Indochina they needed protected.'
+        ],
+        correctAnswer: 'He saw the conflict mainly through Cold War containment and feared communist expansion in Asia.',
+        explanation: 'The fall of China to communism in 1949 and the Korean War beginning in 1950 pushed Truman to view every communist movement in Asia as a domino — and Ho Chi Minh\'s Viet Minh as part of a Soviet-Chinese expansion plan.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q16',
+        text: 'What was the domino theory?',
+        choices: [
+          'The belief that if Vietnam fell to communism, other countries in Southeast Asia might fall one after another.',
+          'A Cold War strategy that proposed knocking down one communist government at a time to gradually liberate Eastern Europe.',
+          'The theory that Soviet economic failures would cause communist states to collapse internally in a predictable sequence.',
+          'Eisenhower\'s prediction that massive nuclear retaliation would deter any conventional Soviet military attack in Europe.'
+        ],
+        correctAnswer: 'The belief that if Vietnam fell to communism, other countries in Southeast Asia might fall one after another.',
+        explanation: 'The domino theory provided the strategic rationale for American involvement in Vietnam — if one country fell, its neighbors would be vulnerable, making the entire region potentially a communist sphere of influence.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q17',
+        text: 'What did the Geneva Accords do in 1954?',
+        choices: [
+          'They temporarily divided Vietnam at the 17th parallel and called for future elections to reunify the country.',
+          'The Geneva Accords permanently recognized North and South Vietnam as two separate sovereign nations.',
+          'They formally ended the Korean War and established the armistice line that divided the Korean peninsula.',
+          'The accords granted Vietnam full independence from France while placing it under United Nations trusteeship for ten years.'
+        ],
+        correctAnswer: 'They temporarily divided Vietnam at the 17th parallel and called for future elections to reunify the country.',
+        explanation: 'The accords were meant to be temporary — but when the South Vietnamese government and its American backers blocked the 1956 reunification elections, the temporary line became a permanent front in the Cold War.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q18',
+        text: 'How did Kennedy increase U.S. involvement in Vietnam?',
+        choices: [
+          'He expanded the advisory mission significantly while avoiding a full-scale deployment of combat troops.',
+          'Kennedy increased involvement mainly by authorizing covert CIA bombing raids against North Vietnamese border supply routes.',
+          'He signed a formal mutual defense treaty with South Vietnam that legally committed the U.S. to its full military protection.',
+          'Kennedy expanded involvement mainly by providing South Vietnam with nuclear weapons to deter North Vietnamese attack.'
+        ],
+        correctAnswer: 'He expanded the advisory mission significantly while avoiding a full-scale deployment of combat troops.',
+        explanation: 'Kennedy grew the U.S. advisory presence from under 1,000 to over 16,000 — a significant but still limited commitment that deepened American investment in South Vietnam\'s survival without triggering full-scale war.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q19',
+        text: 'Why was the Gulf of Tonkin Resolution a major turning point?',
+        choices: [
+          'It gave Johnson broad authority to expand U.S. military involvement without a formal declaration of war.',
+          'The resolution required Congress to approve every specific military operation in Vietnam before it could be launched.',
+          'It formally ended American neutrality in the Vietnam War and transferred operational command to the United Nations.',
+          'The resolution was significant mainly because it authorized the deployment of nuclear weapons to bases in South Vietnam.'
+        ],
+        correctAnswer: 'It gave Johnson broad authority to expand U.S. military involvement without a formal declaration of war.',
+        explanation: 'Passed nearly unanimously in August 1964, the Gulf of Tonkin Resolution gave Johnson authority to "take all necessary measures" — a blank check he used to justify massive escalation without ever returning to Congress for a war declaration.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q20',
+        text: 'Why did Johnson launch Operation Rolling Thunder?',
+        choices: [
+          'He hoped bombing would pressure North Vietnam, aid the South, and disrupt enemy supply and staging areas.',
+          'Rolling Thunder was launched mainly to test new American precision bombing technology in a live combat environment.',
+          'Johnson ordered the bombing mainly to retaliate for a North Vietnamese attack on a U.S. Air Force base in Thailand.',
+          'The operation was launched mainly to reassure South Vietnamese military leaders who threatened a coup without more American support.'
+        ],
+        correctAnswer: 'He hoped bombing would pressure North Vietnam, aid the South, and disrupt enemy supply and staging areas.',
+        explanation: 'Rolling Thunder — a sustained bombing campaign from February 1965 to 1968 — reflected Johnson\'s belief that escalating air power would break Hanoi\'s will, but North Vietnam\'s resilience consistently confounded those expectations.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q21',
+        text: 'What was the difference between hawks and doves during the Vietnam War debate?',
+        choices: [
+          'Hawks favored greater military escalation, while doves preferred negotiation or a more limited response.',
+          'Hawks supported the use of nuclear weapons to end the war quickly, while doves wanted only conventional military operations.',
+          'Doves were mainly politicians who opposed the draft, while hawks were military officers who supported mandatory conscription.',
+          'The main difference was geographic — hawks came primarily from southern and western states while doves were northeastern liberals.'
+        ],
+        correctAnswer: 'Hawks favored greater military escalation, while doves preferred negotiation or a more limited response.',
+        explanation: 'The hawk-dove debate divided Americans, Congress, Johnson\'s own cabinet, and eventually the Democratic Party itself — with hawks arguing more force could win, and doves arguing the war was fundamentally unwinnable.',
+        standard: 'SS.912.A.7.10 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q22',
+        text: 'What best explains why U.S. involvement in Vietnam deepened under several presidents?',
+        choices: [
+          'Each administration feared that withdrawal would damage U.S. credibility and encourage communist expansion elsewhere.',
+          'Each president personally believed in the strategic necessity of Vietnam and independently concluded escalation was essential.',
+          'Congress insisted on escalation in each administration, threatening to cut off all foreign aid if presidents pulled back.',
+          'Military commanders provided each president with false intelligence showing that one more escalation would produce victory.'
+        ],
+        correctAnswer: 'Each administration feared that withdrawal would damage U.S. credibility and encourage communist expansion elsewhere.',
+        explanation: 'The credibility trap — the fear that any American retreat would be seen as weakness by the Soviets, Chinese, and American allies everywhere — drove successive presidents to escalate rather than accept the political cost of withdrawal.',
+        standard: 'SS.912.A.6.14 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q23',
+        text: 'What broad pattern connects Kennedy\'s and Johnson\'s foreign policy decisions in this unit?',
+        choices: [
+          'Both presidents tried to contain communism, but their decisions often deepened U.S. commitments and raised the risks of escalation.',
+          'Kennedy and Johnson actually shared a remarkably consistent and unified approach to the Vietnam conflict — both presidents privately and consistently preferred negotiated diplomatic settlements over any form of direct military action.',
+          'The two presidents had opposite foreign policies — Kennedy preferred engagement while Johnson favored isolation and deterrence.',
+          'Both presidents focused mainly on Europe and paid little attention to Vietnam until it became a domestic political problem.'
+        ],
+        correctAnswer: 'Both presidents tried to contain communism, but their decisions often deepened U.S. commitments and raised the risks of escalation.',
+        explanation: 'Neither Kennedy nor Johnson wanted a big war in Vietnam, but each decision to deepen involvement — advisers, then bombing, then ground troops — made withdrawal harder and escalation more likely for the next president.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.11'
+      },
+      {
+        id: '7A-EOC-Q24',
+        text: 'How did the Great Society and the counterculture differ in their approach to change?',
+        choices: [
+          'The Great Society worked mainly through federal reform, while the counterculture challenged values, lifestyle, and authority more broadly.',
+          'The Great Society was primarily a cultural movement while the counterculture was mainly focused on electoral and legislative change.',
+          'The Great Society and the counterculture were in fact essentially identical in their fundamental approach — both movements sought to use the concentrated power of the federal government to completely transform American institutions from the top down.',
+          'The main difference was generational — Great Society programs targeted the elderly while the counterculture appealed to the young.'
+        ],
+        correctAnswer: 'The Great Society worked mainly through federal reform, while the counterculture challenged values, lifestyle, and authority more broadly.',
+        explanation: 'Johnson\'s approach was top-down and institutional — pass laws, fund programs, change policy. The counterculture\'s approach was bottom-up and personal — change yourself, change your community, reject the system\'s premises entirely.',
+        standard: 'SS.912.A.7.9 · SS.912.A.7.13'
+      },
+      {
+        id: '7A-EOC-Q25',
+        text: 'Which statement best captures the overall story of this unit?',
+        choices: [
+          'The 1960s combined ambitious reform, cultural rebellion, Cold War pressure, and growing conflict over America\'s role at home and abroad.',
+          'The 1960s were primarily defined by Cold War success, as America contained communism and defeated the Soviet Union economically.',
+          'The decade\'s main story was cultural — political events like Vietnam and the Great Society had little lasting impact on American life.',
+          'The 1960s were primarily a story of failure — every major reform and protest movement was defeated or reversed before the decade ended.'
+        ],
+        correctAnswer: 'The 1960s combined ambitious reform, cultural rebellion, Cold War pressure, and growing conflict over America\'s role at home and abroad.',
+        explanation: 'The unit\'s arc — Kennedy\'s idealism, Johnson\'s Great Society, the counterculture, and Vietnam\'s escalation — shows a decade in which extraordinary ambition and achievement coexisted with deepening division and disillusionment.',
+        standard: 'SS.912.A.7.4 · SS.912.A.7.9 · SS.912.A.7.11 · SS.912.A.7.13'
+      },
+    ]
+  },
+
+];
+
+
+
+// ════════════════════════════════════════════
+// PLAYER STATE
+// ════════════════════════════════════════════
+
+let P = null; // player state object
+
+const DEFAULT_P = {
+  name: '',
+  period: null,
+  // Unit progress
+  lessonsCompleted: [], // array of lesson ids
+  lessonBestScores: {}, // lessonId -> { correct, total, accuracy }
+  totalCorrect: 0,
+  totalAnswered: 0,
+  // Collections earned in this unit
+  cardsEarned: [],
+  badgesEarned: [],
+  // Session state
+  lastLesson: null
+};
+
+function loadP() {
+  // 1. Try shell state first (seamless session from American Chronicles)
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) {
+      const shell = JSON.parse(raw);
+      if (shell && shell.name && shell.name !== 'Guest') {
+        // Build a P from shell identity
+        const saved = loadSavedUnit();
+        P = Object.assign({}, DEFAULT_P, saved || {}, {
+          name: shell.name,
+          period: shell.period || null,
+          avatar: shell.avatar || 'scholar_f',
+          globalRank: shell.rank || 'Curious Citizen',
+          fromShell: true
+        });
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // 2. Try local save
+  const saved = loadSavedUnit();
+  if (saved && saved.name) {
+    P = Object.assign({}, DEFAULT_P, saved);
+    return true;
+  }
+  return false;
+}
+
+function loadSavedUnit() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveP() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// PORTRAIT ENGINE (minimal — reads from shell or generates)
+// ════════════════════════════════════════════
+
+function svgMedallion(bg,ring,face,size=44){
+  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:50%;overflow:visible">
+    <circle cx="20" cy="20" r="19.5" fill="${ring}"/>
+    <circle cx="20" cy="20" r="17.5" fill="${darken(ring)}"/>
+    <circle cx="20" cy="20" r="15.5" fill="${bg}"/>
+    ${face}
+    <circle cx="20" cy="20" r="15.5" fill="none" stroke="${ring}" stroke-width=".35" opacity=".5"/>
+  </svg>`;
+}
+function darken(c){const m={'#c9a84c':'#a8863a','#208878':'#156658','#7a2010':'#4a1008','#2a4a8a':'#1a3060','#6a4a20':'#4a3010','#c07818':'#905010'};return m[c]||'#0a0808';}
+function face(skin,eyes,hair,outfit,extras=''){return `
+  <circle cx="20" cy="17" r="6" fill="${skin}"/>
+  <ellipse cx="20" cy="26" rx="8.5" ry="5.5" fill="${outfit}"/>
+  <rect x="13" y="21" width="14" height="8" fill="${outfit}"/>
+  <ellipse cx="17.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  <ellipse cx="22.5" cy="16" rx="1.1" ry="1.4" fill="${eyes}"/>
+  ${hair}
+  ${extras}`;}
+function hair_short(c,y=12){return `<ellipse cx="20" cy="${y}" rx="6" ry="3.5" fill="${c}"/>`;}
+function hair_bun(c){return `<ellipse cx="20" cy="11.5" rx="5.5" ry="3" fill="${c}"/><circle cx="20" cy="9.5" r="2.5" fill="${c}"/>`;}
+function hair_long(c){return `<ellipse cx="20" cy="11" rx="6" ry="4" fill="${c}"/><path d="M14 14 Q12 20 14 25" fill="none" stroke="${c}" stroke-width="2.5"/><path d="M26 14 Q28 20 26 25" fill="none" stroke="${c}" stroke-width="2.5"/>`;}
+function hair_afro(c){return `<ellipse cx="20" cy="10" rx="8" ry="6" fill="${c}"/>`;}
+function hair_straight_long(c){return `<ellipse cx="20" cy="11" rx="6.5" ry="4" fill="${c}"/><path d="M13.5 14 Q12 22 13.5 27" fill="none" stroke="${c}" stroke-width="3"/><path d="M26.5 14 Q28 22 26.5 27" fill="none" stroke="${c}" stroke-width="3"/>`;}
+function beard(c,opacity=1){return `<path d="M15 20 Q16 24 20 25 Q24 24 25 20" fill="${c}" opacity="${opacity}"/>`;}
+function glasses(){return `<rect x="14.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><rect x="21.5" y="14" width="4" height="3.5" rx="1.5" fill="none" stroke="#2a1a0a" stroke-width=".9"/><line x1="18.5" y1="15.5" x2="21.5" y2="15.5" stroke="#2a1a0a" stroke-width=".8"/>`;}
+function hat_top(c){return `<rect x="15" y="5.5" width="10" height="9" rx=".8" fill="${c}"/><rect x="12" y="14" width="16" height="2" rx=".5" fill="${c}"/>`;}
+function hat_military(c){return `<ellipse cx="20" cy="12" rx="6.5" ry="3.5" fill="${c}"/><rect x="16" y="8" width="8" height="4.5" rx=".5" fill="${c}"/>`;}
+function hat_cowboy(c){return `<ellipse cx="20" cy="12.5" rx="6" ry="3.2" fill="${c}"/><rect x="16" y="9" width="8" height="4" rx=".5" fill="${c}"/><path d="M13 13 Q12 15 14 16" fill="none" stroke="${c}" stroke-width="2"/><path d="M27 13 Q28 15 26 16" fill="none" stroke="${c}" stroke-width="2"/>`;}
+function detail_book(){return `<rect x="22" y="19" width="5" height="7" rx=".5" fill="#f5ead8" opacity=".8"/>`;}
+function detail_stars(){return `<text x="16" y="28" font-size="5" fill="#c9a84c" opacity=".7">★★</text>`;}
+
+// Starter characters for game HUD avatars
+const STARTERS = {
+  scholar_f:    ()=>svgMedallion('#0d1a2e','#c9a84c',face('#f0c8a0','#1a1a1a',hair_long('#3a2010'),'#1a3060',detail_book())),
+  activist_m:   ()=>svgMedallion('#100808','#c9a84c',face('#a06040','#1a1a1a',hair_afro('#1a0a0a'),'#3a0a0a')),
+  reporter_f:   ()=>svgMedallion('#0a0c08','#c9a84c',face('#8a5530','#0a0a0a',hair_straight_long('#2a1a0a'),'#1a2a1a')),
+  soldier_m:    ()=>svgMedallion('#2a3a1a','#c9a84c',face('#d4a870','#1a1a0a',hat_military('#556644'),'#3a4a2a',beard('#a07040',.35))),
+  pioneer_f:    ()=>svgMedallion('#0c0a06','#c9a84c',face('#c89870','#2a1a0a',hat_cowboy('#8b4513'),'#5a3010')),
+  worker_m_asian:()=>svgMedallion('#080a0a','#c9a84c',face('#d4b080','#1a0a00',hat_military('#555544'),'#1a1a1a')),
+};
+function getAvatarSVG(id, size=44){
+  const fn = STARTERS[id] || STARTERS.scholar_f;
+  const svg = fn();
+  return svg.replace(/width="\d+"/, `width="${size}"`).replace(/height="\d+"/, `height="${size}"`);
+}
+
+// ════════════════════════════════════════════
+// SESSION GAME STATE
+// ════════════════════════════════════════════
+
+let activeLesson = null;   // lesson object
+let activeQueue = [];      // randomized question subset for this playthrough
+let activeQIdx = 0;        // current question index in queue
+let sessionCorrect = 0;
+let sessionTotal = 0;
+let sessionScore = 0;
+let sessionGoldEarned = 0; // gold earned this specific run
+let momentum = 0;
+let streak = 0;
+let answeredCurrent = false;
+
+// ── ENGAGEMENT TRACKING VARS ──
+let _briefingOpenTime = null;
+let _lessonStartTime  = null;
+let _questionStartTime = null;
+
+
+// ════════════════════════════════════════════
+// GOLD WALLET — reads/writes the shared shell state
+// The shell is the single source of truth for gold.
+// This file writes directly to SHELL_KEY so the balance
+// is immediately available when the student returns to shell.
+// ════════════════════════════════════════════
+
+/**
+ * Read current gold balance from shell state.
+ */
+function getShellGold() {
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) { const s = JSON.parse(raw); return s.gold || 0; }
+  } catch(e) {}
+  return 0;
+}
+
+/**
+ * Award gold directly into the shell wallet.
+ * Also pushes a ledger entry so it appears in the shell's Gold view.
+ * @param {number} amount
+ * @param {string} source  — human label shown in ledger
+ * @param {boolean} showParticle
+ */
+function awardGoldToShell(amount, source, showParticle = true) {
+  if (!amount || amount <= 0) return;
+  sessionGoldEarned += amount;
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    shell.gold        = (shell.gold        || 0) + amount;
+    shell.goldEarned  = (shell.goldEarned  || 0) + amount;
+    if (amount > (shell.goldBestRun || 0)) shell.goldBestRun = amount;
+    if (!Array.isArray(shell.goldLedger)) shell.goldLedger = [];
+    shell.goldLedger.unshift({ ts: Date.now(), source, unitId: UNIT_ID, amount, type: 'earn' });
+    if (shell.goldLedger.length > 50) shell.goldLedger = shell.goldLedger.slice(0, 50);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('Gold write failed', e); }
+  if (showParticle) spawnGoldParticle('+' + amount + ' 🪙');
+  // Update HUD gold display
+  updateHUDGold();
+}
+
+function spawnGoldParticle(text) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;font-family:'Bebas Neue',sans-serif;font-size:15px;
+    color:#f5c842;pointer-events:none;z-index:9200;
+    text-shadow:0 0 8px rgba(245,200,66,.7);
+    animation:_gpFloat 1.6s ease-out forwards;`;
+  el.textContent = text;
+  // Inject keyframe once
+  if (!document.getElementById('_gp-style')) {
+    const s = document.createElement('style');
+    s.id = '_gp-style';
+    s.textContent = `@keyframes _gpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.2)}}`;
+    document.head.appendChild(s);
+  }
+  const hudScore = document.getElementById('hud-score');
+  if (hudScore) {
+    const r = hudScore.getBoundingClientRect();
+    el.style.left = (r.left + r.width / 2 - 24) + 'px';
+    el.style.top  = (r.top - 8) + 'px';
+  } else { el.style.left = '50%'; el.style.top = '80px'; }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+
+function updateHUDGold() {
+  const g = getShellGold();
+  const el = document.getElementById('hud-score');
+  if (el) el.textContent = g.toLocaleString();
+}
+
+// ════════════════════════════════════════════
+// UTILITY
+// ════════════════════════════════════════════
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickSubset(bank, n) {
+  return shuffle(bank).slice(0, Math.min(n, bank.length));
+}
+
+function calcTier(acc) {
+  if (acc === 100) return {label:'Historian', color:'#e8d0ff', icon:'🏛️'};
+  if (acc >= 90)  return {label:'Gold',      color:'#ffd700', icon:'🥇'};
+  if (acc >= 80)  return {label:'Silver',    color:'#c8c8d8', icon:'🥈'};
+  if (acc >= 70)  return {label:'Bronze',    color:'#cd7f32', icon:'🥉'};
+  if (acc >= 60)  return {label:'Completed', color:'#38a050', icon:'✅'};
+  return              {label:'Try Again',    color:'#c02020', icon:'🔄'};
+}
+
+function notify(msg, col) {
+  const n = document.createElement('div');
+  n.className = 'notif' + (col ? ' ' + col : '');
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3500);
+}
+
+// ════════════════════════════════════════════
+// SCREEN ROUTING (Layer 2 and Layer 3)
+// ════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function showUnitHub() {
+  showScreen('unit-hub-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'none';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+  showBottomNav();
+  setActiveNav(0);
+  renderUnitHub();
+}
+
+function showQuestionScreen() {
+  showScreen('question-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'inline-block';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+}
+
+// ════════════════════════════════════════════
+// UNIT HUB RENDERING
+// ════════════════════════════════════════════
+
+function isLessonUnlocked(idx) {
+  if (idx === 0) return true;
+  return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
+}
+
+function renderUnitHub() {
+  updateHUD();
+
+  // ── Player banner ──────────────────────────
+  const done  = P.lessonsCompleted.length;
+  const total = LESSONS.length;
+  const pct   = Math.round(done / total * 100);
+  const bannerEl = document.getElementById('hub-player-banner');
+  if (bannerEl) {
+    bannerEl.innerHTML = `
+      <div class="hub-banner">
+        <div class="hub-banner-top">
+          <div class="hub-banner-label">UNIT 7A — THE 1960S</div>
+          <div class="hub-banner-count">${done}/${total} LESSONS</div>
+        </div>
+        <div class="hub-progress-bar">
+          <div class="hub-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Shell return button — show if arrived from shell
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = P.fromShell ? 'block' : 'none';
+
+  // ── Chapter cards ──────────────────────────
+  const chEl = document.getElementById('hub-chapters');
+  if (!chEl) return;
+
+  chEl.innerHTML = LESSONS.map((lesson, idx) => {
+    const completed = P.lessonsCompleted.includes(lesson.id);
+    const unlocked  = isLessonUnlocked(idx);
+    const isNextUp  = unlocked && !completed && idx > 0;
+    const best      = P.lessonBestScores[lesson.id];
+
+    const statusLabel = completed ? '✓ COMPLETE' : unlocked ? '▶ PLAY' : '🔒 LOCKED';
+    const statusClass = completed ? 'completed'  : unlocked ? 'available' : 'locked';
+
+    let cardClass = 'unit-card ' + statusClass;
+    if (isNextUp) cardClass += ' next-up';
+
+    const metaRow = best
+      ? `<div class="unit-card-meta">Best: ${best.accuracy}% · ${best.correct}/${best.total} correct</div>`
+      : '';
+
+    const unlockNote = !unlocked
+      ? `<div class="unit-card-unlock">Complete ${LESSONS[idx-1].label} to unlock</div>`
+      : '';
+
+    return `<div class="${cardClass}" onclick="${unlocked ? `openBriefing('${lesson.id}')` : ''}">
+      <div class="unit-card-header">
+        <div class="unit-icon">${unlocked ? lesson.icon : '🔒'}</div>
+        <div class="unit-info">
+          <div class="unit-number">${lesson.label}</div>
+          <div class="unit-name">${lesson.title}</div>
+          <div class="unit-desc">${lesson.sub}</div>
+        </div>
+        <div class="unit-status ${statusClass}">${statusLabel}</div>
+      </div>
+      ${metaRow}
+      ${unlockNote}
+      <div class="unit-progress-bar">
+        <div class="unit-progress-fill" style="width:${completed ? 100 : 0}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Replay from beginning — show when all done
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDone) {
+    chEl.innerHTML += `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border2);">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:8px;text-align:center;">
+          UNIT COMPLETE — Want to improve your score?
+        </div>
+        <button class="btn full" onclick="replayFromBeginning()" style="border-color:var(--teal2);color:var(--teal2);">
+          <span>↺ Replay Unit from Lesson 47</span>
+        </button>
+      </div>`;
+  }
+
+  // ── Badges row ─────────────────────────────
+  const badgesEl = document.getElementById('hub-badges');
+  if (badgesEl) {
+    badgesEl.innerHTML = UNIT_BADGES.map(b => {
+      const earned = b.lessonId
+        ? P.lessonsCompleted.includes(b.lessonId)
+        : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      return `<div class="badge-pill ${earned ? 'earned' : ''}">
+        <span class="badge-icon">${b.icon}</span>${b.label}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Certificate row ─────────────────────────
+  const certRow = document.getElementById('hub-cert-row');
+  if (certRow) certRow.style.display = allDone ? 'block' : 'none';
+
+  // ── Trophy block ────────────────────────────
+  renderHubTrophySection();
+}
+
+// ── EOC Rating helpers (matches shell logic) ─────────────
+function eocLevel(acc) {
+  if (acc >= 90) return {level:5, label:'Level 5 — Historian Ready', color:'#38a050'};
+  if (acc >= 80) return {level:4, label:'Level 4 — Strong',          color:'#2aaa98'};
+  if (acc >= 70) return {level:3, label:'Level 3 — Developing',      color:'#c07818'};
+  if (acc >= 60) return {level:2, label:'Level 2 — Needs Review',    color:'#a01818'};
+  return              {level:1, label:'Level 1 — Try Again',         color:'#c02020'};
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  // Only show if at least one lesson completed
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const best = P.lessonBestScores;
+  const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+
+  // Unit overall trophy = best single-lesson accuracy
+  const bestAcc = Math.max(...scores.map(s => s.accuracy));
+  const unitTier = calcTier(bestAcc);
+
+  // EOC rating from the EOC lesson specifically, or overall avg
+  const eocScore = best['eoc'] ? best['eoc'].accuracy :
+    Math.round(scores.reduce((a, s) => a + s.accuracy, 0) / scores.length);
+  const eoc = eocLevel(eocScore);
+
+  el.innerHTML = `
+    <div class="sh" style="margin-top:20px;">Unit Performance</div>
+    <div class="trophy-display">
+      <div class="trophy-icon">${unitTier.icon}</div>
+      <div class="trophy-info">
+        <div class="trophy-tier-name" style="color:${unitTier.color}">${unitTier.label}</div>
+        <div class="trophy-stat-row">
+          <div class="trophy-stat">Best accuracy: <strong>${bestAcc}%</strong></div>
+          <div class="trophy-stat">Lessons done: <strong>${P.lessonsCompleted.length}/${LESSONS.length}</strong></div>
+        </div>
+        <div class="eoc-rating-badge" style="color:${eoc.color};border-color:${eoc.color};">
+          EOC ${eoc.label}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════════
+
+function updateHUD() {
+  if (!P) return;
+  document.getElementById('hud-player-name').textContent = P.name;
+  // RULE: Always show global rank from shell — never a unit-specific rank
+  document.getElementById('hud-player-rank').textContent = P.globalRank || 'Curious Citizen';
+  document.getElementById('hud-avatar-wrap').innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 44);
+  // Gold balance — reads from shared shell wallet
+  document.getElementById('hud-score').textContent = getShellGold().toLocaleString();
+  document.getElementById('hud-streak').textContent = streak;
+
+  const xpPct = Math.min(100, Math.round(((P.totalAnswered || 0) / 60) * 100));
+  document.getElementById('hud-xp-fill').style.width = xpPct + '%';
+}
+
+// ════════════════════════════════════════════
+// BRIEFING FLOW
+// ════════════════════════════════════════════
+
+function openBriefing(lessonId) {
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  if (!lesson) return;
+  activeLesson = lesson;
+
+  const b = lesson.briefing;
+
+  document.getElementById('briefing-eyebrow').textContent = lesson.label + ' · MISSION BRIEFING';
+  document.getElementById('briefing-title').textContent = lesson.title;
+  document.getElementById('briefing-location').textContent = b.location || '';
+  document.getElementById('briefing-date').textContent = b.date || '';
+  document.getElementById('briefing-text').textContent = b.text || '';
+
+  // Role line
+  const roleEl = document.getElementById('briefing-role');
+  if (roleEl) {
+    if (b.role) { roleEl.textContent = 'Your role: ' + b.role; roleEl.style.display = 'block'; }
+    else roleEl.style.display = 'none';
+  }
+
+  // Quote
+  const qEl = document.getElementById('briefing-quote');
+  if (b.quote) {
+    qEl.textContent = b.quote;
+    qEl.style.display = 'block';
+  } else {
+    qEl.style.display = 'none';
+  }
+
+  // Tags
+  document.getElementById('briefing-meta').innerHTML =
+    (b.tags || []).map(t => `<span class="briefing-tag">${t}</span>`).join('');
+
+  // Scene placeholder (could load SVG from SCENES object later)
+  const sceneEl = document.getElementById('briefing-scene');
+  sceneEl.innerHTML = `<div style="width:100%;height:60px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;">[SCENE ART LOADS FROM JSON]</div>`;
+
+  document.getElementById('briefing-modal').classList.add('show');
+  window.scrollTo(0, 0);
+  _briefingOpenTime = Date.now();
+  acLogEvent('briefing_opened', 'unit7a', null, {
+    lesson_id:    lesson.id,
+    lesson_label: lesson.label,
+    lesson_title: lesson.title
+  }, null);
+}
+
+function closeBriefing() {
+  document.getElementById('briefing-modal').classList.remove('show');
+  if (_briefingOpenTime) {
+    const briefSecs = Math.round((Date.now() - _briefingOpenTime) / 1000);
+    acLogEvent('briefing_closed_no_play', 'unit7a', null, {
+      lesson_id:    activeLesson ? activeLesson.id : null,
+      lesson_label: activeLesson ? activeLesson.label : null
+    }, briefSecs);
+    _briefingOpenTime = null;
+  }
+  activeLesson = null;
+}
+
+function proceedToQuestions() {
+  if (!activeLesson) return;
+  document.getElementById('briefing-modal').classList.remove('show');
+  const briefSecs = _briefingOpenTime ? Math.round((Date.now() - _briefingOpenTime) / 1000) : null;
+  acLogEvent('briefing_proceeded', 'unit7a', null, {
+    lesson_id:    activeLesson.id,
+    lesson_label: activeLesson.label
+  }, briefSecs);
+  _briefingOpenTime = null;
+  startLesson(activeLesson);
+}
+
+// ════════════════════════════════════════════
+// QUESTION ENGINE
+// ════════════════════════════════════════════
+
+function startLesson(lesson) {
+  activeLesson = lesson;
+  activeQueue = pickSubset(lesson.bank, lesson.displayCount);
+  activeQIdx = 0;
+  sessionCorrect = 0;
+  sessionTotal = 0;
+  sessionScore = 0;
+  sessionGoldEarned = 0;
+  momentum = 0;
+  streak = 0;
+  answeredCurrent = false;
+  _lessonStartTime = Date.now();
+  _questionStartTime = Date.now();
+  acLogEvent('lesson_started', 'unit7a', null, {
+    lesson_id:    lesson.id,
+    lesson_label: lesson.label,
+    lesson_title: lesson.title,
+    question_count: activeQueue.length
+  }, null);
+  showQuestionScreen();
+  renderQuestion();
+}
+
+function renderQuestion() {
+  _questionStartTime = Date.now();
+  if (activeQIdx >= activeQueue.length) {
+    finishLesson();
+    return;
+  }
+
+  const q = activeQueue[activeQIdx];
+  const total = activeQueue.length;
+  answeredCurrent = false;
+
+  // Progress bar
+  document.getElementById('q-progress-fill').style.width =
+    Math.round(activeQIdx / total * 100) + '%';
+
+  // Context pill
+  document.getElementById('q-context-lesson').textContent = activeLesson.label;
+  document.getElementById('q-context-topic').textContent = activeLesson.title;
+
+  // Momentum
+  updateMomentumDisplay();
+
+  // Question number
+  document.getElementById('q-number').textContent =
+    `QUESTION ${activeQIdx + 1} OF ${total}`;
+
+  // Question text
+  document.getElementById('q-text').textContent = q.text;
+
+  // Standard tag — shown if question has a standard code
+  const stdTag = document.getElementById('q-standard-tag');
+  if (stdTag) {
+    if (q.standard) {
+      stdTag.textContent = q.standard;
+      stdTag.style.display = 'inline-block';
+    } else {
+      stdTag.style.display = 'none';
+    }
+  }
+
+  // Shuffle choices at runtime.
+  // correctAnswer is a plain string matching one of the choices — no index assumptions.
+  const shuffledChoices = shuffle(q.choices.slice());
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  document.getElementById('choices-list').innerHTML = shuffledChoices.map((choiceText, i) => {
+    const isCorrect = (choiceText === q.correctAnswer);
+    // Encode explanation and standard safely for inline onclick
+    const safeExpl  = encodeURIComponent(q.explanation || '');
+    const safeStd   = encodeURIComponent(q.standard || '');
+    return `<button class="choice-btn"
+      data-correct="${isCorrect}"
+      data-explanation="${safeExpl}"
+      data-standard="${safeStd}"
+      onclick="selectChoice(this)">
+      <span class="choice-letter">${letters[i]}.</span>
+      <span class="choice-text">${choiceText}</span>
+    </button>`;
+  }).join('');
+
+  // Hide feedback and next btn
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel';
+  document.getElementById('next-btn-wrap').style.display = 'none';
+
+  updateHUD();
+}
+
+function selectChoice(btn) {
+  if (answeredCurrent) return;
+  answeredCurrent = true;
+
+  // Read correctness from data attribute — set during render, not passed through onclick
+  const isCorrect  = btn.dataset.correct === 'true';
+  const explanation = decodeURIComponent(btn.dataset.explanation || '');
+  const standard   = decodeURIComponent(btn.dataset.standard || '');
+
+  // Mark all buttons answered; highlight chosen and correct
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.add('answered');
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  if (!isCorrect) btn.classList.add('incorrect');
+
+  sessionTotal++;
+  const _qSecs = _questionStartTime ? Math.round((Date.now() - _questionStartTime) / 1000) : null;
+  acLogEvent('question_answered', 'unit7a', null, {
+    lesson_id:    activeLesson.id,
+    lesson_label: activeLesson.label,
+    question_id:  activeQueue[activeQIdx] ? activeQueue[activeQIdx].id : null,
+    question_num: activeQIdx + 1,
+    total:        activeQueue.length,
+    correct:      isCorrect,
+    time_seconds: _qSecs
+  }, _qSecs);
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  if (isCorrect) {
+    sessionCorrect++;
+    streak++;
+    const pts = 100 + (streak > 1 ? (streak - 1) * 25 : 0);
+    sessionScore += pts;
+    momentum = Math.min(100, momentum + 20);
+    awardGoldToShell(rules.perCorrect, 'Correct Answer — ' + activeLesson.label, true);
+    notify(streak > 2 ? `🔥 ${streak} streak! +${rules.perCorrect} 🪙` : `✓ Correct! +${rules.perCorrect} 🪙`);
+  } else {
+    streak = 0;
+    momentum = Math.max(0, momentum - 10);
+    notify('✗ Incorrect');
+  }
+
+  P.totalAnswered = (P.totalAnswered || 0) + 1;
+  if (isCorrect) P.totalCorrect = (P.totalCorrect || 0) + 1;
+  saveP();
+
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel show ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').className =
+    'feedback-verdict ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+  document.getElementById('feedback-text').textContent = explanation;
+  document.getElementById('feedback-standard').textContent = standard ? `Standard: ${standard}` : '';
+
+  const nw = document.getElementById('next-btn-wrap');
+  nw.style.display = 'block';
+  const isLast = activeQIdx === activeQueue.length - 1;
+  document.getElementById('next-btn-label').textContent = isLast ? 'See Results →' : 'Next Question →';
+
+  updateMomentumDisplay();
+  updateHUD();
+}
+
+function nextQuestion() {
+  activeQIdx++;
+  renderQuestion();
+}
+
+function updateMomentumDisplay() {
+  document.getElementById('momentum-fill').style.width = momentum + '%';
+  const labels = ['Ready', 'Warming Up', 'On Track', 'Sharp!', 'On Fire 🔥'];
+  const idx = Math.floor(momentum / 25);
+  document.getElementById('momentum-val').textContent = labels[Math.min(idx, labels.length - 1)];
+}
+
+// ════════════════════════════════════════════
+// LESSON COMPLETE
+// ════════════════════════════════════════════
+
+function finishLesson() {
+  const acc = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+  const tier = calcTier(acc);
+  const lessonSecs = _lessonStartTime ? Math.round((Date.now() - _lessonStartTime) / 1000) : null;
+  acLogEvent('lesson_completed', 'unit7a', null, {
+    lesson_id:    activeLesson.id,
+    lesson_label: activeLesson.label,
+    lesson_title: activeLesson.title,
+    correct:      sessionCorrect,
+    total:        sessionTotal,
+    accuracy:     acc,
+    score:        sessionScore,
+    tier:         tier.label
+  }, lessonSecs);
+  acFlushEngagement && acFlushEngagement();
+  _lessonStartTime = null;
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  // ── Gold bonuses ─────────────────────────────────────
+  let bonusGold = 0, bonusLabel = '';
+  if (acc >= 60) {
+    awardGoldToShell(rules.completionBonus, 'Completion Bonus — ' + activeLesson.label, false);
+    bonusGold += rules.completionBonus; bonusLabel = 'Completion Bonus';
+  }
+  if ((activeLesson.type === 'lesson' || activeLesson.type === 'extension') && acc === 100 && rules.perfectBonus) {
+    awardGoldToShell(rules.perfectBonus, 'Perfect Run — ' + activeLesson.label, false);
+    bonusGold += rules.perfectBonus; bonusLabel = 'Perfect Run!';
+  } else if (activeLesson.type === 'capstone' && acc === 100 && rules.masteryBonus) {
+    awardGoldToShell(rules.masteryBonus, 'Mastery — ' + activeLesson.label, false);
+    bonusGold += rules.masteryBonus; bonusLabel = 'Mastery Achieved!';
+  } else if (activeLesson.type === 'eoc' && acc >= 90 && rules.highScoreBonus) {
+    awardGoldToShell(rules.highScoreBonus, 'High Score — ' + activeLesson.label, false);
+    bonusGold += rules.highScoreBonus; bonusLabel = 'High Score Bonus!';
+  }
+  if (sessionGoldEarned > 0) spawnGoldParticle('+' + sessionGoldEarned + ' 🪙 total');
+
+  // ── Save best score ───────────────────────────────────
+  const prev = P.lessonBestScores[activeLesson.id];
+  if (!prev || acc > prev.accuracy) {
+    P.lessonBestScores[activeLesson.id] = {
+      correct: sessionCorrect, total: sessionTotal, accuracy: acc, score: sessionScore
+    };
+  }
+  const passedThisRun = acc >= 60;
+  const alreadyCompleted = P.lessonsCompleted.includes(activeLesson.id);
+  if (passedThisRun && !alreadyCompleted) {
+    P.lessonsCompleted.push(activeLesson.id);
+    // Push badge and cards to shell archive
+    pushRewardsToShell(activeLesson);
+  }
+  saveP();
+
+  // Only push to Supabase when the entire unit is complete
+  const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDoneCheck) {
+    const allScores = Object.values(P.lessonBestScores);
+    const overallAcc = allScores.length
+      ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+      : acc;
+    pushACResult(overallAcc);
+    setTimeout(() => showUnitTrophy(overallAcc), 1200);
+  }
+
+  // ── Trophy badge ──────────────────────────────────────
+  document.getElementById('complete-badge').textContent = tier.icon;
+  document.getElementById('complete-unit-lbl').textContent = activeLesson.label;
+  document.getElementById('complete-lesson-title').textContent = activeLesson.title;
+  document.getElementById('complete-tier').textContent = tier.label + ' — ' + acc + '%';
+  document.getElementById('complete-tier').style.color = tier.color;
+
+  // ── Stats row ─────────────────────────────────────────
+  document.getElementById('complete-stats').innerHTML = [
+    { val: sessionCorrect + '/' + sessionTotal, lbl: 'CORRECT' },
+    { val: acc + '%',                            lbl: 'ACCURACY' },
+    { val: '🪙 ' + sessionGoldEarned.toLocaleString(), lbl: 'GOLD EARNED' },
+  ].map(s => `<div class="complete-stat">
+    <div class="complete-stat-val">${s.val}</div>
+    <div class="complete-stat-lbl">${s.lbl}</div>
+  </div>`).join('');
+
+  // ── EOC Rating (show on EOC lesson or unit completion) ──
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  const showEOC = activeLesson.type === 'eoc' || allDone;
+  const eocBlock = document.getElementById('complete-eoc-block');
+  if (showEOC) {
+    const eoc = eocLevel(acc);
+    document.getElementById('complete-eoc-rating').textContent = eoc.label;
+    document.getElementById('complete-eoc-rating').style.color = eoc.color;
+    document.getElementById('complete-eoc-label').textContent =
+      acc >= 60 ? 'This result has been saved to your American Chronicles profile.' :
+      'Score 60% or higher to record your EOC rating.';
+    eocBlock.style.display = 'block';
+  } else {
+    eocBlock.style.display = 'none';
+  }
+
+  // ── Gold reward block ─────────────────────────────────
+  const rewardsEl = document.getElementById('complete-rewards');
+  const rewardsIn = document.getElementById('complete-rewards-inner');
+  if (bonusGold > 0 && rewardsIn) {
+    rewardsIn.innerHTML = `
+      <div style="font-family:var(--bebas);font-size:18px;color:#f5c842;margin-bottom:4px;">
+        +${bonusGold} 🪙 ${bonusLabel}
+      </div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);">
+        This run: +${sessionGoldEarned} 🪙 · Shell balance: ${getShellGold().toLocaleString()} 🪙
+      </div>`;
+    rewardsEl.style.display = 'block';
+  } else {
+    rewardsEl.style.display = 'none';
+  }
+
+  // ── Badges earned ──────────────────────────────────────
+  const rewards = activeLesson.rewards || {};
+  const badgeNames = rewards.badge ? [rewards.badge] : [];
+  const cardNames  = rewards.cards || [];
+  const newlyEarned = passedThisRun && !alreadyCompleted;
+
+  const badgesBlock = document.getElementById('complete-badges-block');
+  const badgesChips = document.getElementById('complete-badges-chips');
+  if (badgeNames.length) {
+    badgesChips.innerHTML = badgeNames.map(b =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🏅</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${b}</span>
+      </div>`
+    ).join('');
+    badgesBlock.style.display = 'block';
+  } else {
+    badgesBlock.style.display = 'none';
+  }
+
+  // ── Cards earned ───────────────────────────────────────
+  const cardsBlock = document.getElementById('complete-cards-block');
+  const cardsChips = document.getElementById('complete-cards-chips');
+  if (cardNames.length) {
+    cardsChips.innerHTML = cardNames.map(c =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🃏</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${c}</span>
+      </div>`
+    ).join('');
+    cardsBlock.style.display = 'block';
+  } else {
+    cardsBlock.style.display = 'none';
+  }
+
+  // ── Button visibility ──────────────────────────────────
+  // "Replay from Beginning" — show when all lessons done or on the last lesson
+  const isLastLesson = activeLesson.id === LESSONS[LESSONS.length - 1].id;
+  const replayBtn = document.getElementById('btn-replay-all');
+  if (replayBtn) replayBtn.style.display = (allDone || isLastLesson) ? 'block' : 'none';
+
+  // Print certificate — show when full unit complete
+  const certBtn = document.getElementById('btn-print-cert');
+  if (certBtn) certBtn.style.display = allDone ? 'block' : 'none';
+
+  document.getElementById('lesson-complete').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+// ── Push earned rewards to shell archive ─────────────────
+function pushRewardsToShell(lesson) {
+  const rewards = lesson.rewards || {};
+  const badge = rewards.badge;
+  const cards = rewards.cards || [];
+
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    if (!shell.unitBadges) shell.unitBadges = {};
+    if (!shell.unitCards)  shell.unitCards  = {};
+    if (!shell.unitBadges[UNIT_ID]) shell.unitBadges[UNIT_ID] = [];
+    if (!shell.unitCards[UNIT_ID])  shell.unitCards[UNIT_ID]  = [];
+
+    // Badge — store as slugified id
+    if (badge) {
+      const badgeId = badge.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitBadges[UNIT_ID].includes(badgeId)) {
+        shell.unitBadges[UNIT_ID].push(badgeId);
+      }
+    }
+    // Cards
+    cards.forEach(c => {
+      const cardId = c.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitCards[UNIT_ID].includes(cardId)) {
+        shell.unitCards[UNIT_ID].push(cardId);
+      }
+    });
+
+    // Also mark unit as completed in shell if all lessons done
+    if (LESSONS.every(l => P.lessonsCompleted.includes(l.id))) {
+      if (!Array.isArray(shell.unitsCompleted)) shell.unitsCompleted = [];
+      if (!shell.unitsCompleted.includes(UNIT_ID)) shell.unitsCompleted.push(UNIT_ID);
+    }
+
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('pushRewardsToShell failed', e); }
+
+  // Also notify via postMessage for live shell sessions
+  try {
+    if (badge) window.parent.postMessage({type:'UNIT_BADGE_EARNED', unitId:UNIT_ID, badgeId: badge.toLowerCase().replace(/\s+/g,'_')}, '*');
+    cards.forEach(c => window.parent.postMessage({type:'UNIT_CARD_EARNED', unitId:UNIT_ID, cardId: c.toLowerCase().replace(/\s+/g,'_')}, '*'));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// BUTTON LOGIC (completion screen)
+// ════════════════════════════════════════════
+
+function retryLesson() {
+  // Replay same lesson — same briefing → questions
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(activeLesson.id);
+}
+
+function returnToUnitHub() {
+  // Go to Layer 2 — Unit Hub — NO re-login
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+  showUnitHub();
+}
+
+// ── UNIT TROPHY REVEAL ────────────────────────────────────
+function showUnitTrophy(overallAcc) {
+  const tier = calcTier(overallAcc);
+  const name = P.name || 'Historian';
+  const passed = overallAcc >= 60;
+  const messages = {
+    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
+    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
+    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
+    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
+    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
+  };
+  const tierKey = tier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages.tryagain;
+  document.getElementById('utr-name').textContent = name;
+  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
+  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
+  document.getElementById('utr-trophy-name').style.color = tier.color;
+  document.getElementById('utr-msg').textContent = msg;
+  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
+  const btn = document.getElementById('utr-btn');
+  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
+  btn.style.borderColor = tier.color;
+  btn.style.color = tier.color;
+  document.getElementById('unit-trophy-overlay').classList.add('show');
+}
+function closeUnitTrophy() {
+  document.getElementById('unit-trophy-overlay').classList.remove('show');
+  const acc = parseInt(document.getElementById('utr-acc').textContent.replace(/[^0-9]/g,''));
+  if (acc < 60) {
+    document.getElementById('lesson-complete') && document.getElementById('lesson-complete').classList.remove('show');
+    showUnitHub && showUnitHub();
+  }
+}
+function returnToShell() {
+  saveP();
+  if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
+  try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
+  notify('Returning to American Chronicles…');
+  const shellURL = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  setTimeout(() => { window.location.href = shellURL; }, 600);
+}
+
+function replayFromBeginning() {
+  // Reset all lesson progress and start from Lesson 47
+  P.lessonsCompleted = [];
+  P.lessonBestScores = {};
+  saveP();
+  document.getElementById('lesson-complete').classList.remove('show');
+  // Start the first lesson's briefing
+  openBriefing(LESSONS[0].id);
+}
+
+function printCertificate() {
+  const scores = P.lessonBestScores;
+  const allScores = Object.values(scores);
+  const avgAcc = allScores.length
+    ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+    : 0;
+  const tier = calcTier(avgAcc);
+  const eoc = eocLevel(avgAcc);
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const lessonRows = LESSONS.map(l => {
+    const s = scores[l.id];
+    return s
+      ? `<tr><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">${s.accuracy}%</td><td style="text-align:center">${s.correct}/${s.total}</td></tr>`
+      : `<tr style="opacity:.4"><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>`;
+  }).join('');
+  const w = window.open('','_blank','width=780,height=680');
+  if(!w){notify('Allow popups to print certificate.');return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;font-family:Georgia,serif}
+    .cert{width:700px;background:#faf7f0;border:3px double #c83020;padding:36px 44px;text-align:center}
+    .title{font-family:'Cinzel Decorative',serif;font-size:22px;color:#1a0a08;letter-spacing:.08em;margin:8px 0}
+    .divider{height:2px;background:linear-gradient(90deg,transparent,#c83020,transparent);margin:14px auto;width:80%}
+    .name{font-family:'Cinzel Decorative',serif;font-size:28px;color:#1a0a08;margin:8px 0}
+    .tier{font-family:'Cinzel',serif;font-size:18px;color:#c83020;letter-spacing:.1em;margin:8px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+    th{border-bottom:2px solid #c83020;padding:6px;text-align:left;font-family:'Cinzel',serif;letter-spacing:.05em}
+    td{padding:5px 6px;border-bottom:1px solid #e0d8c8}
+    .footer{font-size:10px;color:#888;margin-top:14px;border-top:1px solid #ddd;padding-top:10px}
+    .pbtn{margin-top:16px;padding:10px 24px;background:#c83020;border:none;color:#fff;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;letter-spacing:.06em}
+    @media print{.pbtn{display:none}}
+  </style>
+<!-- ═══════════════════════════════════════════════
+     AC ENGAGEMENT TRACKING MODULE v1.0
+═══════════════════════════════════════════════ -->
+<script>
+(function(){
+  const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+  const _SUPA_H   = {'Content-Type':'application/json','apikey':_SUPA_KEY,'Authorization':'Bearer '+_SUPA_KEY};
+  function _getStudent(){
+    try{ const s=JSON.parse(localStorage.getItem('ac_shell_state')||'{}'); return{name:s.name||'',period:s.period||''}; }catch(e){return{name:'',period:''};}
+  }
+  window._acEngQueue = window._acEngQueue || [];
+  window.acLogEvent = function(eventType, unitId, deckId, data, durationSeconds){
+    const st=_getStudent(); if(!st.name)return;
+    window._acEngQueue.push({student_name:st.name,period:st.period,event_type:eventType,unit_id:unitId||null,deck_id:deckId||null,data:data||null,duration_seconds:durationSeconds||null,created_at:new Date().toISOString()});
+  };
+  async function _flush(){
+    if(!window._acEngQueue.length)return;
+    const batch=window._acEngQueue.splice(0);
+    try{ await fetch(_SUPA_URL+'/rest/v1/ac_engagement',{method:'POST',headers:{..._SUPA_H,'Prefer':'return=minimal'},body:JSON.stringify(batch)}); }catch(e){}
+  }
+  setInterval(_flush,15000);
+  window.addEventListener('beforeunload',()=>{
+    if(!window._acEngQueue.length)return;
+    navigator.sendBeacon(_SUPA_URL+'/rest/v1/ac_engagement',new Blob([JSON.stringify(window._acEngQueue)],{type:'application/json'}));
+  });
+  window.acFlushEngagement=_flush;
+})();
+</script>
+</head><body>
+  <div class="cert">
+    <div style="font-size:10px;letter-spacing:.3em;color:#888;font-family:'Cinzel',serif">AMERICAN CHRONICLES · U.S. HISTORY</div>
+    <div style="font-size:40px;margin:10px 0">${tier.icon}</div>
+    <div class="title">Certificate of Completion</div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:#666;letter-spacing:.1em">THIS CERTIFIES THAT</div>
+    <div class="name">${P.name || 'Historian'}</div>
+    <div style="font-size:13px;color:#444;margin:6px 0">has successfully completed</div>
+    <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">Camelot — Unit 7A: The 1960s</div>
+    ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
+    <div class="divider"></div>
+    <div class="tier">${tier.label} · ${avgAcc}% Accuracy</div>
+    <div style="font-size:12px;color:#555;margin:4px 0">EOC Practice Rating: ${eoc.label}</div>
+    <table>
+      <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
+      <tbody>${lessonRows}</tbody>
+    </table>
+    <div class="footer">Issued ${date} · American Chronicles · Created by Joshua Olson · Brevard County, FL</div>
+  </div>
+  <button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+// ════════════════════════════════════════════
+// SUPABASE PUSH
+// ════════════════════════════════════════════
+
+async function pushACResult(acc) {
+  if (!P || !P.name || P.name === 'Guest') return;
+  const tier = calcTier(acc);
+  try {
+    const existing = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(P.name) +
+      '&period=eq.' + encodeURIComponent(P.period || '') +
+      '&unit_id=eq.' + UNIT_ID,
+      {headers: AC_HEADERS}
+    );
+    const rows = await existing.json();
+    const prev = rows && rows[0];
+    const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+    const tierKey = tier.label.toLowerCase().replace(' ','');
+    const bestTier = prev ?
+      (tierOrder.indexOf(tierKey) > tierOrder.indexOf(prev.trophy) ? tierKey : prev.trophy) :
+      tierKey;
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer':'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          name: P.name,
+          period: P.period || '',
+          unit_id: UNIT_ID,
+          best_score: Math.max(sessionScore, prev ? prev.best_score || 0 : 0),
+          best_accuracy: Math.max(acc, prev ? prev.best_accuracy || 0 : 0),
+          trophy: bestTier,
+          cards: Math.max(P.cardsEarned ? P.cardsEarned.length : 0, prev ? prev.cards || 0 : 0),
+          attempts: (prev ? prev.attempts || 0 : 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+  } catch(e) { console.log('AC push failed', e); }
+}
+
+// ════════════════════════════════════════════
+// LOGIN GATE
+// ════════════════════════════════════════════
+
+function buildPeriodSelector() {
+  const el = document.getElementById('period-selector');
+  el.innerHTML = [1,2,3,4,5,6,7].map(p =>
+    `<div onclick="selectPeriod(${p}, this)"
+      style="background:var(--bg3);border:1.5px solid var(--border2);color:var(--text3);
+      font-family:var(--bebas);font-size:18px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;"
+      id="period-opt-${p}">${p}</div>`
+  ).join('');
+}
+
+let selectedPeriod = null;
+function selectPeriod(p, el) {
+  selectedPeriod = p;
+  document.querySelectorAll('#period-selector div').forEach(d => {
+    d.style.borderColor = 'var(--border2)';
+    d.style.color = 'var(--text3)';
+    d.style.background = 'var(--bg3)';
+  });
+  el.style.borderColor = 'var(--gold)';
+  el.style.color = 'var(--gold)';
+  el.style.background = 'rgba(200,48,32,.08)';
+}
+
+function submitLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!selectedPeriod) { alert('Please select your class period.'); return; }
+
+  P = Object.assign({}, DEFAULT_P, loadSavedUnit() || {}, {
+    name,
+    period: selectedPeriod,
+    globalRank: 'Curious Citizen'
+  });
+  P.fromShell = false;
+  saveP();
+
+  document.getElementById('login-gate').classList.remove('show');
+  showUnitHub();
+}
+
+function showLoginGate() {
+  document.getElementById('login-gate').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// HISTORICAL CARDS & BADGES DATA
+// (carried from v1, adapted to new lesson structure)
+// ════════════════════════════════════════════
+
+const HIST_CARDS = {
+  jfk:         {icon:'🌙', name:'John F. Kennedy',        role:'35th President · 1961–1963',
+    desc:'The youngest elected president, Kennedy embodied the New Frontier spirit — challenging Americans to service while navigating Cold War crises. His assassination in Dallas on November 22, 1963 transformed him into an enduring symbol.', unlockLesson:'lesson47'},
+  jackie:      {icon:'🌹', name:'Jacqueline Kennedy',      role:'First Lady · 1961–1963',
+    desc:'A cultural force who restored the White House and shaped the Camelot image. Her televised tour of the renovated White House drew 80 million viewers. After Dallas, her composure in grief defined a nation\'s mourning.', unlockLesson:'lesson47'},
+  khrushchev:  {icon:'⭐', name:'Nikita Khrushchev',       role:'Soviet Premier · 1958–1964',
+    desc:'Kennedy\'s Cold War adversary who placed missiles in Cuba and built the Berlin Wall. Their confrontations defined the most dangerous years of the nuclear age, culminating in the Cuban Missile Crisis of October 1962.', unlockLesson:'lesson47'},
+  lbj:         {icon:'🖊️', name:'Lyndon B. Johnson',        role:'36th President · 1963–1969',
+    desc:'Took the oath on Air Force One and used political mastery to pass the Civil Rights Act, Voting Rights Act, and Great Society programs. His escalation of Vietnam ultimately destroyed his presidency.', unlockLesson:'lesson48'},
+  mlk_march:   {icon:'✊', name:'Martin Luther King Jr.',  role:'Civil Rights Leader · March on Washington',
+    desc:'Delivered the "I Have a Dream" speech to 250,000 marchers in Washington in August 1963, just months before Kennedy\'s assassination. His moral authority shaped both administrations\' approach to civil rights.', unlockLesson:'lesson48'},
+  mario_savio: {icon:'📢', name:'Mario Savio',             role:'Free Speech Movement · UC Berkeley 1964',
+    desc:'Led the Berkeley Free Speech Movement, becoming the voice of student protest against institutional authority. His "put your bodies upon the gears" speech captured the generation\'s moral urgency.', unlockLesson:'lesson49'},
+  mcnamara:    {icon:'📊', name:'Robert McNamara',         role:'Secretary of Defense · 1961–1968',
+    desc:'The architect of Vietnam escalation who later admitted the war was unwinnable. His use of body counts and statistical management of the war came to symbolize the gap between policy and reality.', unlockLesson:'capstone'},
+  cronkite:    {icon:'📺', name:'Walter Cronkite',         role:'CBS News Anchor · 1962–1981',
+    desc:'"The most trusted man in America" whose February 1968 editorial declaring Vietnam a stalemate famously led LBJ to say: "If I\'ve lost Cronkite, I\'ve lost middle America."', unlockLesson:'capstone'},
+};
+
+const UNIT_BADGES = [
+  {id:'camelot',          icon:'🌙', label:'Camelot',            desc:'Completed The Kennedy Years',          lessonId:'lesson47'},
+  {id:'great_society',    icon:'🖊️', label:'Great Society',       desc:'Completed The Great Society',          lessonId:'lesson48'},
+  {id:'times_changin',    icon:'☮️', label:'Times A-Changin\'',   desc:'Completed The Times They Are A-Changin\'', lessonId:'lesson49'},
+  {id:'into_vietnam',     icon:'🌿', label:'Into Vietnam',        desc:'Completed the Capstone',               lessonId:'capstone'},
+  {id:'sixties_complete', icon:'📋', label:'The Sixties',         desc:'Completed EOC Review',                 lessonId:'eoc'},
+  {id:'unit7a_complete',  icon:'🌟', label:'Unit 7A Complete',    desc:'Completed all lessons',                lessonId:null},
+];
+
+// ════════════════════════════════════════════
+// BOTTOM NAV & OVERLAY FUNCTIONS
+// ════════════════════════════════════════════
+
+function navToHub() {
+  // Close any open overlays and return to unit hub
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  setActiveNav(0);
+  returnToUnitHub();
+}
+
+function setActiveNav(idx) {
+  document.querySelectorAll('.bn-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+function showBottomNav() {
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+// ── LEADERBOARD ──────────────────────────────
+let _lbAllData = [];
+let _lbType = 'overall';
+let _lbPeriodFilter = 'all';
+let _lbDeleteUnlocked = false;
+
+function openLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.add('show');
+  setActiveNav(1);
+  loadLeaderboard();
+}
+function closeLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+async function loadLeaderboard() {
+  if (!P) return;
+  document.getElementById('lb-sync-status').textContent = 'Loading…';
+  try {
+    const r = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + UNIT_ID + '&order=best_score.desc&limit=200',
+      {headers: AC_HEADERS}
+    );
+    _lbAllData = await r.json() || [];
+    renderLeaderboard();
+  } catch(e) {
+    document.getElementById('lb-sync-status').textContent = 'Could not load scores.';
+    _lbAllData = [];
+    renderLeaderboard();
+  }
+}
+
+function setLbType(type, btn) {
+  _lbType = type;
+  _lbPeriodFilter = 'all';
+  document.querySelectorAll('#lb-type-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function setLbPeriod(p, btn) {
+  _lbPeriodFilter = p;
+  document.querySelectorAll('#lb-period-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const medals = ['🥇','🥈','🥉'];
+  const periods = [...new Set(_lbAllData.map(s => s.period).filter(p => p && p !== '0'))].sort((a,b) => +a - +b);
+  if (_lbType === 'class') {
+    document.getElementById('lb-period-tabs').innerHTML = periods.map(p =>
+      `<button class="lb-tab ${_lbPeriodFilter===p?'active':''}" onclick="setLbPeriod('${p}',this)">Period ${p}</button>`
+    ).join('');
+  } else {
+    document.getElementById('lb-period-tabs').innerHTML = '';
+  }
+  let filtered = _lbAllData;
+  if (_lbType === 'class') {
+    filtered = filtered.filter(s => s.period && s.period !== '0');
+    if (_lbPeriodFilter !== 'all') filtered = filtered.filter(s => String(s.period) === String(_lbPeriodFilter));
+  }
+  document.getElementById('lb-sync-status').textContent = filtered.length + ' students — Unit 7A: The 1960s';
+  if (!filtered.length) {
+    document.getElementById('lb-content').innerHTML =
+      '<div style="font-family:var(--crimson);color:var(--text3);font-style:italic;padding:16px;">No results yet.</div>';
+    return;
+  }
+  const showDelete = _lbDeleteUnlocked;
+  const headerCols = `<th>#</th><th>STUDENT</th><th>SCORE</th><th>ACCURACY</th><th>ATTEMPTS</th>${showDelete?'<th></th>':''}`;
+  const rows = filtered.slice(0, 50).map((s, i) => {
+    const isMe = P && s.name === P.name && String(s.period) === String(P.period);
+    const medal = i < 3 ? medals[i] : '#' + (i+1);
+    const mc = i===0?'var(--gold)':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text3)';
+    const delBtn = showDelete
+      ? `<td><button onclick="lbDeleteEntry('${s.name.replace(/'/g,"\\'")}','${s.period}')" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:2px 6px;cursor:pointer;">X</button></td>`
+      : '';
+    return `<tr class="${isMe?'lb-you':''}">
+      <td style="font-family:var(--dm);font-size:12px;color:${mc};">${medal}</td>
+      <td><div class="lb-name">${s.name||'--'}${isMe?' ◀':''}</div></td>
+      <td class="lb-score">${(s.best_score||0).toLocaleString()}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--gold);">${s.best_accuracy!=null?s.best_accuracy+'%':'--'}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--text3);">${s.attempts||1}</td>
+      ${delBtn}
+    </tr>`;
+  }).join('');
+  document.getElementById('lb-content').innerHTML =
+    `<table class="lb-table"><thead><tr>${headerCols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function unlockLBDelete() {
+  const code = prompt('Teacher delete code:');
+  if (code === 'olson219') {
+    _lbDeleteUnlocked = true;
+    document.getElementById('lb-teacher-unlock').textContent = '🔓';
+    renderLeaderboard();
+  }
+}
+
+async function lbDeleteEntry(name, period) {
+  if (!confirm(`Remove "${name}" from leaderboard?`)) return;
+  try {
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(name) +
+      '&period=eq.' + encodeURIComponent(period) + '&unit_id=eq.' + UNIT_ID,
+      {method:'DELETE', headers: AC_HEADERS}
+    );
+    notify('Removed');
+    loadLeaderboard();
+  } catch(e) { notify('Error removing entry'); }
+}
+
+// ── PROFILE ──────────────────────────────────
+function openProfile() {
+  if (!P) return;
+  setActiveNav(2);
+  // Avatar
+  document.getElementById('profile-avatar-large').innerHTML =
+    `<div style="width:80px;height:80px;margin:0 auto;">${getAvatarSVG(P.avatar||'scholar_f', 80)}</div>
+     <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-style:italic;margin-top:8px;">${P.name}</div>
+     <div style="font-family:var(--dm);font-size:10px;color:var(--gold2);margin-top:3px;">${P.globalRank||'Curious Citizen'}${P.period?' · Period '+P.period:''}</div>`;
+
+  // Stats
+  const scores = Object.values(P.lessonBestScores || {});
+  const totalCorrect = scores.reduce((a, s) => a + (s.correct||0), 0);
+  const totalAnswered = scores.reduce((a, s) => a + (s.total||0), 0);
+  const avgAcc = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0;
+  const bestAcc = scores.length ? Math.max(...scores.map(s => s.accuracy)) : 0;
+  const tier = calcTier(bestAcc);
+  document.getElementById('profile-stat-grid').innerHTML = [
+    {val: P.lessonsCompleted.length + '/' + LESSONS.length, lbl: 'LESSONS DONE'},
+    {val: avgAcc + '%',       lbl: 'OVERALL ACCURACY'},
+    {val: tier.icon + ' ' + tier.label, lbl: 'TROPHY TIER'},
+    {val: getShellGold().toLocaleString() + ' 🪙', lbl: 'GOLD BALANCE'},
+  ].map(s =>
+    `<div class="profile-stat"><div class="profile-stat-val">${s.val}</div><div class="profile-stat-lbl">${s.lbl}</div></div>`
+  ).join('');
+
+  // Badges
+  document.getElementById('profile-badge-grid').innerHTML = UNIT_BADGES.map(b => {
+    const earned = b.lessonId
+      ? P.lessonsCompleted.includes(b.lessonId)
+      : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+    return `<div class="badge-pill ${earned?'earned':''}">
+      <span class="badge-icon">${b.icon}</span>${b.label}
+    </div>`;
+  }).join('');
+
+  // Cards
+  document.getElementById('profile-card-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock.'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profile-overlay').classList.add('show');
+}
+function closeProfile() {
+  document.getElementById('profile-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+// ── CARD COLLECTION ──────────────────────────
+function openCardCollection() {
+  setActiveNav(3);
+  document.getElementById('cardcoll-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P && P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock this card.'}</div>
+      ${!earned ? `<div class="hist-card-unlock">🔒 Locked</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('cardcoll-overlay').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildPeriodSelector();
+
+  // Try loading from shell session first
+  const hasSession = loadP();
+
+  if (hasSession) {
+    // Shell handles auth — skip all gates, go straight in
+    document.getElementById('login-gate').classList.remove('show');
+    const wbo = document.getElementById('welcome-back-overlay');
+    if (wbo) wbo.classList.remove('show');
+    showUnitHub();
+  } else {
+  // No shell session — redirect to shell to login with Google
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+  }
+});
+
+// ════════════════════════════════════════════
+// WELCOME BACK MODAL
+// ════════════════════════════════════════════
+
+function showWelcomeBack() {
+  if (!P) { window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; return; }
+
+  // Populate avatar
+  const avatarEl = document.getElementById('wb-avatar');
+  if (avatarEl) avatarEl.innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 70);
+
+  // Name
+  const nameEl = document.getElementById('wb-name');
+  if (nameEl) nameEl.textContent = P.name || 'Historian';
+
+  // Rank / teacher / period line
+  const subEl = document.getElementById('wb-sub');
+  if (subEl) {
+    const parts = [];
+    if (P.globalRank) parts.push(P.globalRank);
+    if (P.period) parts.push('Period ' + P.period);
+    subEl.textContent = parts.join(' — ') || 'Curious Citizen';
+  }
+
+  // Progress line
+  const progEl = document.getElementById('wb-progress');
+  if (progEl) {
+    const done = (P.lessonsCompleted || []).length;
+    const total = LESSONS.length;
+    progEl.textContent = done > 0
+      ? done + ' of ' + total + ' lessons completed'
+      : 'No progress saved yet';
+  }
+
+  document.getElementById('welcome-back-overlay').classList.add('show');
+}
+
+function confirmWelcomeBack() {
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  showUnitHub();
+}
+
+function switchPlayer() {
+  // Clear saved unit state so a new player can log in fresh
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  P = null;
+  document.getElementById('welcome-back-overlay').classList.remove('show');
+  window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'; // redirect to shell login
+}
+
+// ── Anti-copy
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+
+</script>
+</body>
+</html>
