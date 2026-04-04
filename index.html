@@ -3542,6 +3542,14 @@ async function boot(){
 
   if(returningFromGame||wasActive){
     if(S.name&&!S.isGuest){enterShell();return;}
+    // Restore teacher session if returning from a unit game
+    const savedName=localStorage.getItem('civitas_student_name');
+    const savedFull=localStorage.getItem('civitas_full_name');
+    if(savedName&&savedFull){
+      S.name=savedName; S.fullName=savedFull; S.setupDone=true;
+      if(savedFull==='Joshua Olson'){IS_TEACHER=true;S.isTeacher=true;}
+      enterShell();return;
+    }
   }
   if(S.setupDone&&!S.isGuest&&S.name){
     showContinueScreen();
@@ -4252,7 +4260,26 @@ function renderWallet(){
 function studentLogout(){
   if(!confirm('Log out? Your progress is saved.'))return;
   IS_TEACHER=false;
-  try{localStorage.removeItem('civitas_student_name');localStorage.removeItem('civitas_full_name');}catch(e){}
+  try{
+    sessionStorage.removeItem('civitas_shell_active');
+    if(S.isTeacher){
+      localStorage.removeItem('civitas_student_name');
+      localStorage.removeItem('civitas_full_name');
+      localStorage.removeItem(SHELL_KEY);
+    }
+  }catch(e){}
+  location.reload();
+}
+
+function teacherLogout(){
+  if(!confirm('Log out of teacher session?'))return;
+  IS_TEACHER=false;
+  try{
+    sessionStorage.removeItem('civitas_shell_active');
+    localStorage.removeItem('civitas_student_name');
+    localStorage.removeItem('civitas_full_name');
+    localStorage.removeItem(SHELL_KEY);
+  }catch(e){}
   location.reload();
 }
 
