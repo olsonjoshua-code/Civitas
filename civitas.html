@@ -866,7 +866,7 @@ const COURSE_CATALOG=[
   {id:'ap_ush',     name:'AP U.S. History',              grade:'AP',          group:'AP Courses',    icon:'📜', color:'var(--c-apush)',hasFRQ:true,  hasTimeline:true,  comingSoon:true},
   {id:'us_history',  name:'U.S. History',                  grade:'AP/Standard', group:'History',    icon:'🏛️', color:'#c8a020', hasFRQ:false, hasTimeline:true,  comingSoon:false, url:'games/us-history/'},
   {id:'ap_gov',     name:'AP U.S. Government',           grade:'AP',          group:'AP Courses',    icon:'⚖️', color:'var(--c-apgov)',hasFRQ:true,  hasTimeline:false, comingSoon:false},
-  {id:'ap_cmp',     name:'AP Comparative Government',    grade:'AP',          group:'AP Courses',    icon:'🌎', color:'var(--c-apcmp)',hasFRQ:true,  hasTimeline:false, comingSoon:true},
+  {id:'ap_cmp',     name:'AP Comparative Government',    grade:'AP',          group:'AP Courses',    icon:'🌎', color:'var(--c-apcmp)',hasFRQ:true,  hasTimeline:false, comingSoon:false},
   {id:'ap_sem',     name:'AP Seminar',                    grade:'AP',          group:'AP Courses',    icon:'💬', color:'#6090c0',       hasFRQ:true,  hasTimeline:false, comingSoon:true},
   {id:'ap_wh',      name:'AP World History',             grade:'AP',          group:'AP Courses',    icon:'🗺️', color:'var(--c-apwh)', hasFRQ:true,  hasTimeline:true,  comingSoon:true},
   {id:'ap_hg',      name:'AP Human Geography',           grade:'AP',          group:'AP Courses',    icon:'🧭', color:'var(--c-aphg)', hasFRQ:true,  hasTimeline:false, comingSoon:true},
@@ -955,6 +955,36 @@ const COURSE_UNITS = {
     {id:'ush_placeholder', num:'Course', title:'American Chronicles', icon:'⚔️', color:'#c07818',
      desc:'The full U.S. History course. Click to launch American Chronicles.',
      topics:[], hasFRQ:false, externalUrl:'https://olsonjoshua-code.github.io/American-Chronicles-Shell/'}
+  ],
+  ap_cmp: [
+    {id:'apcmp_u1', num:'Unit 1', title:'Introduction to Comparative Politics', icon:'🌐', color:'#38a050',
+     desc:'The foundations of comparative politics — what it means to compare governments, key concepts, and the six AP Comparative countries.',
+     topics:['Comparative method','Regime types','Legitimacy','Sovereignty','Political culture','Democratization'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit1-intro-comparative.html'},
+    {id:'apcmp_u2', num:'Unit 2', title:'United Kingdom', icon:'🇬🇧', color:'#38a050',
+     desc:'Parliamentary democracy, the unwritten constitution, and Westminster government.',
+     topics:['Parliamentary system','Prime Minister','House of Commons','Devolution','Brexit','Conservative & Labour'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit2-united-kingdom.html'},
+    {id:'apcmp_u3', num:'Unit 3', title:'Mexico', icon:'🇲🇽', color:'#38a050',
+     desc:'Transitioning democracy, federalism, and the legacy of one-party rule under the PRI.',
+     topics:['PRI dominance','Fox transition','Federalism','NAFTA/USMCA','Cartels & governance','MORENA'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit3-mexico.html'},
+    {id:'apcmp_u4', num:'Unit 4', title:'Russia', icon:'🇷🇺', color:'#38a050',
+     desc:'Authoritarian consolidation, superpresidentialism, and the post-Soviet state.',
+     topics:['Putin & superpresidentialism','Oligarchs','State capitalism','Siloviki','Soviet legacy','Civil society'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit4-russia.html'},
+    {id:'apcmp_u5', num:'Unit 5', title:'China', icon:'🇨🇳', color:'#38a050',
+     desc:'One-party rule, state-led development, and the Chinese Communist Party.',
+     topics:['CCP structure','Xi Jinping','State-owned enterprises','Special Economic Zones','Tiananmen','Hong Kong'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit5-china.html'},
+    {id:'apcmp_u6', num:'Unit 6', title:'Iran', icon:'🇮🇷', color:'#38a050',
+     desc:'Theocratic governance, the dual state, and the tension between clerical and democratic authority.',
+     topics:['Supreme Leader','Guardian Council','Velayat-e faqih','Reformers vs. hardliners','Nuclear program','Green Movement'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit6-iran.html'},
+    {id:'apcmp_u7', num:'Unit 7', title:'Nigeria', icon:'🇳🇬', color:'#38a050',
+     desc:'Federal democracy, ethnic and religious cleavages, and the challenges of development.',
+     topics:['Federalism','Ethnic cleavages','Oil & corruption','Boko Haram','PDP vs. APC','Military legacy'],
+     hasFRQ:true, url:CIVITAS_BASE+'games/ap-comparative/unit7-nigeria.html'},
   ]
 };
 
@@ -4368,7 +4398,7 @@ function enterCourse(courseId){
 
   _activeCourseId=courseId;
   // Show course cert button for AP Gov
-  try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display=courseId==='ap_gov'?'flex':'none';}catch(e){}
+  try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display=(courseId==='ap_gov'||courseId==='ap_cmp')?'flex':'none';}catch(e){}
 
   // Show course hub, hide main views
   document.getElementById('main-views').style.display='none';
@@ -4741,7 +4771,7 @@ function renderCourseTrophies(){
 }
 
 function printCourseCert(){
-  if(_activeCourseId!=='ap_gov'){notify('Course certificate only available for AP Gov.');return;}
+  if(_activeCourseId!=='ap_gov'&&_activeCourseId!=='ap_cmp'){notify('Course certificate only available for AP courses.');return;}
   const studentName=S.name||localStorage.getItem('civitas_student_name')||'Student';
   const progress=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
   const units=COURSE_UNITS['ap_gov']||[];
