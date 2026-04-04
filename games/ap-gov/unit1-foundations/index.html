@@ -3369,6 +3369,41 @@ function renderFRQTab() {
           </div>
         </div>
         <div id="frq-feedback-${frq.id}" style="display:${getFRQSessionFeedback(frq.id)?'block':'none'};padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">${getFRQSessionFeedback(frq.id)||''}</div>
+        <div style="padding:6px 16px 10px;border-top:1px solid var(--border)">
+          <div id="frq-report-${frq.id}" style="display:inline-block">
+            <button onclick="toggleFRQReport('${frq.id}')"
+              style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;padding:2px 0;opacity:.6"
+              onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">
+              ⚑ Report an issue with this question
+            </button>
+            <div id="frq-report-form-${frq.id}" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px;border-radius:2px">
+              <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">WHAT'S THE ISSUE?</div>
+              <select id="frq-report-type-${frq.id}"
+                style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">
+                <option value="">— Select an issue type —</option>
+                <option value="chart_unclear">Chart or image is unclear/wrong</option>
+                <option value="question_confusing">Question is confusing or poorly worded</option>
+                <option value="grading_wrong">AI grading seems incorrect</option>
+                <option value="answer_in_prompt">Prompt gives away the answer</option>
+                <option value="factual_error">Factual error in the question</option>
+                <option value="other">Other</option>
+              </select>
+              <textarea id="frq-report-note-${frq.id}" placeholder="Optional: describe the issue…"
+                style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitFRQReport('${frq.id}','${frq.title}')"
+                  style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">
+                  Submit Report
+                </button>
+                <button onclick="toggleFRQReport('${frq.id}')"
+                  style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">
+                  Cancel
+                </button>
+                <div id="frq-report-status-${frq.id}" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>`;
     });
   });
@@ -3382,6 +3417,49 @@ function renderFRQTab() {
       notify('⚠️ Pasting is disabled — write your own response.');
     });
   });
+}
+
+function toggleFRQReport(frqId) {
+  const form = document.getElementById('frq-report-form-' + frqId);
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitFRQReport(frqId, frqTitle) {
+  const typeEl = document.getElementById('frq-report-type-' + frqId);
+  const noteEl = document.getElementById('frq-report-note-' + frqId);
+  const statusEl = document.getElementById('frq-report-status-' + frqId);
+  const issueType = typeEl?.value || '';
+  if (!issueType) { if(statusEl) statusEl.textContent = 'Please select an issue type.'; statusEl.style.color='var(--red2)'; return; }
+
+  const studentName = localStorage.getItem('civitas_student_name') || 'Unknown';
+  const note = noteEl?.value?.trim() || '';
+  const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+
+  try {
+    if (statusEl) { statusEl.textContent = 'Sending…'; statusEl.style.color = 'var(--text3)'; }
+    await fetch(SUPA_URL + '/rest/v1/civitas_feedback', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal' },
+      body: JSON.stringify({
+        student_name: studentName,
+        course_id: 'ap_gov',
+        item_type: 'frq',
+        item_id: frqId,
+        item_title: frqTitle,
+        issue_type: issueType,
+        note: note,
+        unit_id: UNIT_ID,
+        submitted_at: new Date().toISOString()
+      })
+    });
+    if (statusEl) { statusEl.textContent = '✅ Reported — thanks!'; statusEl.style.color = 'var(--green2)'; }
+    if (typeEl) typeEl.value = '';
+    if (noteEl) noteEl.value = '';
+    setTimeout(() => { toggleFRQReport(frqId); if(statusEl) statusEl.textContent=''; }, 2000);
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = 'Failed to send. Try again.'; statusEl.style.color = 'var(--red2)'; }
+  }
 }
 
 function getFRQSessionFeedback(frqId) {
