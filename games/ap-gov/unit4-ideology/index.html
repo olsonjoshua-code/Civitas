@@ -689,12 +689,10 @@ const QUESTION_BANK = {
       desc:'Analyze a chart or graph on political ideology or public opinion and answer 4 questions that test your ability to read, interpret, and critically evaluate data.',
       sets:[
         {
-          id:'ideology_self_id_set', imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit4-ideology-self-id.png',
+          id:'ideology_self_id_set',
           title:'Selected Public Ideological Self-Identification',
           source:'Gallup and Pew Research Center summaries of ideological self-identification. Public data.',
-          chartType:'bar',
-          chartLabel:'% Identifying with Each Label',
-          data:{ labels:['Liberal','Moderate','Conservative'], values:[25,35,37] },
+          chartType:'ideology_self_id_svg',
           questions:[
             {id:'u4_data_id_001',topic:'4.5',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which ideological label has the highest share of respondents?',choices:[{id:'A',text:'Conservative'},{id:'B',text:'Moderate'},{id:'C',text:'Liberal'},{id:'D',text:'All three are equal'}],correct:'A',explanation:'The chart shows conservatives as the largest group among the three categories listed.'},
             {id:'u4_data_id_002',topic:'4.3',bigIdea:'PMCD',difficulty:'moderate',stem:'Which inference is best supported by the data?',choices:[{id:'A',text:'A substantial share of the public does not identify at either extreme, clustering toward the middle.'},{id:'B',text:'Most Americans have broadly rejected ideology as a useful framework for thinking about politics.'},{id:'C',text:'The data conclusively prove that conservatives and liberals support completely identical policies.'},{id:'D',text:'Self-identified moderates never vote for either of the two major political parties under any circumstances.'}],correct:'A',explanation:'The relatively large moderate category suggests that many people do not identify at ideological poles.'},
@@ -703,12 +701,10 @@ const QUESTION_BANK = {
           ]
         },
         {
-          id:'gov_services_poll_set', imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit4-gov-services-poll.png',
+          id:'gov_services_poll_set',
           title:'Selected Public Preferences on Government Services and Spending',
           source:'Pew Research Center public opinion summaries on the role of government. Public data.',
-          chartType:'bar',
-          chartLabel:'% Supporting Each Position',
-          data:{ labels:['More Services / Higher Spending','Fewer Services / Lower Spending'], values:[54,42] },
+          chartType:'gov_services_svg',
           questions:[
             {id:'u4_data_gs_001',topic:'4.9',bigIdea:'MPA',difficulty:'accessible',stem:'Based on the data, which preference is supported by a larger share of respondents?',choices:[{id:'A',text:'More services with higher government spending'},{id:'B',text:'Fewer services with lower government spending'},{id:'C',text:'Both options have equal support'},{id:'D',text:'The chart does not compare views on government spending'}],correct:'A',explanation:'The chart shows that the larger share supports more services with higher spending.'},
             {id:'u4_data_gs_002',topic:'4.10',bigIdea:'PMCD',difficulty:'moderate',stem:'Which broader ideological conflict is most directly reflected in the data?',choices:[{id:'A',text:'Competing beliefs about how active government should be in addressing public needs.'},{id:'B',text:'Competing beliefs about whether Supreme Court justices should continue to serve with life tenure.'},{id:'C',text:'Competing beliefs about precisely how many days Congress should formally meet in legislative session.'},{id:'D',text:'Competing beliefs about whether all states should be required to elect their senators by popular vote.'}],correct:'A',explanation:'The data reflect disagreement over the size and role of government, which is a core ideological divide.'},
@@ -724,7 +720,7 @@ const QUESTION_BANK = {
       desc:'Examine a political cartoon and answer 3 questions connecting the image to concepts in political ideology, public opinion, and policymaking.',
       sets:[
         {
-          id:'polling_cartoon_set', imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit4-cartoon-polling.png',
+          id:'polling_cartoon_set',
           title:'Political Cartoon: The Poll Meter',
           svgType:'poll_meter',
           source:'Original classroom-safe scenario inspired by public-domain cartoons about polling and elections.',
@@ -736,7 +732,7 @@ const QUESTION_BANK = {
           ]
         },
         {
-          id:'ideology_cartoon_set', imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit4-cartoon-ideology.png',
+          id:'ideology_cartoon_set',
           title:'Political Cartoon: Left, Right, and the Middle',
           svgType:'ideology_road',
           source:'Original classroom-safe scenario inspired by public-domain ideological cartoons.',
@@ -1455,9 +1451,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">📊 DATA STIMULUS</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${set.imageUrl
-        ? `<img src="${set.imageUrl}" alt="${set.title}" style="width:100%;max-width:620px;display:block;margin:10px auto;border:1px solid var(--border2);cursor:zoom-in" onclick="openImageZoom(this.src,this.alt)">`
-        : '<div id="chart-container"></div>'}
+      <div id="chart-container"></div>
       ${set.note?`<div class="stimulus-desc" style="margin-top:8px;font-size:10px">${set.note}</div>`:''}
     </div>`;
   } else if (round.type === 'visual_stimulus') {
@@ -1465,9 +1459,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${set.imageUrl
-        ? `<img src="${set.imageUrl}" alt="${set.title}" style="width:100%;max-width:620px;display:block;margin:10px auto;border:1px solid var(--border2);cursor:zoom-in" onclick="openImageZoom(this.src,this.alt)">`
-        : renderCartoonSVG(set)}
+      ${renderCartoonSVG(set)}
       <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
@@ -1476,151 +1468,219 @@ function renderStimulus(round, set) {
 
 function renderChart(set) {
   const container = document.getElementById('chart-container');
-  if (!container || !set.data) return;
-
-  if (set.chartType === 'grouped_bar') {
-    renderGroupedBar(container, set);
-  } else {
-    renderSimpleBar(container, set);
-  }
+  if (!container) return;
+  if (set.chartType === 'ideology_self_id_svg') container.innerHTML = ideologySelfIdSVG();
+  else if (set.chartType === 'gov_services_svg') container.innerHTML = govServicesSVG();
 }
 
-function renderSimpleBar(container, set) {
-  const { labels, values } = set.data;
-  const max = Math.max(...values);
-  const barColor = 'var(--blue)';
-  let html = `<div style="background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
-    <div style="font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:14px">${set.chartLabel||set.title||'DATA'}</div>
-    <div style="display:flex;align-items:flex-end;gap:8px;height:140px;border-bottom:2px solid var(--border2);margin-bottom:8px;padding-bottom:4px">`;
-  labels.forEach((lbl, i) => {
-    const pct = Math.round((values[i] / max) * 100);
-    const val = values[i];
-    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px">
-      <div style="font-family:var(--bebas);font-size:13px;color:var(--cream)">${val}%</div>
-      <div style="width:100%;background:${barColor};height:${pct}%;min-height:4px;border-radius:2px 2px 0 0;transition:height .5s"></div>
-    </div>`;
+function ideologySelfIdSVG() {
+  const labels = ['Liberal','Moderate','Conservative'];
+  const vals   = [25, 35, 37];
+  const colors = ['#4878d0','#2aaa98','#e04040'];
+  const max=100, chartH=200, yBase=255, bw=100;
+  const xs=[80,220,360];
+  let bars='', grids='';
+  vals.forEach((v,i)=>{
+    const h=Math.round((v/max)*chartH), y=yBase-h;
+    bars+=`<rect x="${xs[i]}" y="${y}" width="${bw}" height="${h}" fill="${colors[i]}" opacity=".85" rx="2"/>
+    <text x="${xs[i]+bw/2}" y="${y-6}" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="18" fill="${colors[i]}">${v}%</text>
+    <text x="${xs[i]+bw/2}" y="272" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="12" fill="#8090a8" letter-spacing="1">${labels[i].toUpperCase()}</text>`;
   });
-  html += `</div><div style="display:flex;gap:8px">`;
-  labels.forEach(lbl => {
-    html += `<div style="flex:1;font-family:var(--dm);font-size:10px;color:var(--text2);text-align:center;line-height:1.3">${lbl}</div>`;
+  [0,10,20,30,40].forEach(n=>{
+    const gy=yBase-Math.round((n/max)*chartH);
+    grids+=`<line x1="55" y1="${gy}" x2="490" y2="${gy}" stroke="#1e2a3e" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="48" y="${gy+4}" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" fill="#4a5a70">${n}%</text>`;
   });
-  html += `</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:8px;font-style:italic">Source: ${set.source||''}</div></div>`;
-  container.innerHTML = html;
+  return `<div onclick="openSVGZoom('ideology-self-id-svg')" style="cursor:zoom-in;position:relative">
+    <div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none">🔍 CLICK TO ENLARGE</div>
+    <svg id="ideology-self-id-svg" viewBox="0 0 540 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:540px;display:block;margin:10px auto;border:1px solid var(--border2)">
+      <rect width="540" height="300" fill="#0e1420" rx="4"/>
+      <text x="270" y="22" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#a0b0c8" letter-spacing="2">IDEOLOGICAL SELF-IDENTIFICATION (% OF RESPONDENTS)</text>
+      <line x1="55" y1="35" x2="55" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      <line x1="55" y1="${yBase}" x2="490" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      ${grids}${bars}
+      <text x="490" y="292" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Source: Gallup / Pew Research Center</text>
+    </svg>
+  </div>`;
 }
 
-function renderGroupedBar(container, set) {
-  const { labels, federal, stateLocal } = set.data;
-  const max = 100;
-  let html = `<div style="background:var(--bg3);border:1px solid var(--border2);padding:16px 20px">
-    <div style="font-family:var(--bebas);font-size:11px;color:var(--blue2);letter-spacing:2px;margin-bottom:10px">${set.title||'DATA'}</div>
-    <div style="display:flex;gap:16px;margin-bottom:12px;font-family:var(--dm);font-size:10px;color:var(--text2)">
-      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:var(--blue);display:inline-block;border-radius:2px"></span>Federal</span>
-      <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:var(--teal);display:inline-block;border-radius:2px"></span>State & Local</span>
-    </div>
-    <div style="display:flex;gap:12px;align-items:flex-end;height:160px;border-bottom:2px solid var(--border2);margin-bottom:8px">`;
-  labels.forEach((lbl, i) => {
-    const fp = Math.round((federal[i] / max) * 100);
-    const sp = Math.round((stateLocal[i] / max) * 100);
-    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0">
-      <div style="display:flex;align-items:flex-end;gap:3px;height:140px;width:100%">
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
-          <div style="font-family:var(--bebas);font-size:11px;color:var(--cream);margin-bottom:2px">${federal[i]}%</div>
-          <div style="width:100%;background:var(--blue);border-radius:2px 2px 0 0;height:${fp}%;min-height:4px"></div>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
-          <div style="font-family:var(--bebas);font-size:11px;color:var(--cream);margin-bottom:2px">${stateLocal[i]}%</div>
-          <div style="width:100%;background:var(--teal);border-radius:2px 2px 0 0;height:${sp}%;min-height:4px"></div>
-        </div>
-      </div>
-    </div>`;
+function govServicesSVG() {
+  const labels = ['More Services /\nHigher Spending','Fewer Services /\nLower Spending'];
+  const vals   = [54, 42];
+  const colors = ['#4878d0','#e8a020'];
+  const max=100, chartH=200, yBase=255, bw=130;
+  const xs=[100,300];
+  let bars='', grids='';
+  vals.forEach((v,i)=>{
+    const h=Math.round((v/max)*chartH), y=yBase-h;
+    const line1=labels[i].split('\n')[0], line2=labels[i].split('\n')[1];
+    bars+=`<rect x="${xs[i]}" y="${y}" width="${bw}" height="${h}" fill="${colors[i]}" opacity=".85" rx="2"/>
+    <text x="${xs[i]+bw/2}" y="${y-6}" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="20" fill="${colors[i]}">${v}%</text>
+    <text x="${xs[i]+bw/2}" y="268" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#8090a8">${line1}</text>
+    <text x="${xs[i]+bw/2}" y="280" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#8090a8">${line2}</text>`;
   });
-  html += `</div><div style="display:flex;gap:12px">`;
-  labels.forEach(lbl => {
-    html += `<div style="flex:1;font-family:var(--dm);font-size:10px;color:var(--text2);text-align:center;line-height:1.3">${lbl}</div>`;
+  [0,20,40,60].forEach(n=>{
+    const gy=yBase-Math.round((n/max)*chartH);
+    grids+=`<line x1="60" y1="${gy}" x2="480" y2="${gy}" stroke="#1e2a3e" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="53" y="${gy+4}" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" fill="#4a5a70">${n}%</text>`;
   });
-  html += `</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:8px;font-style:italic">Source: ${set.source||''}</div></div>`;
-  container.innerHTML = html;
+  return `<div onclick="openSVGZoom('gov-services-svg')" style="cursor:zoom-in;position:relative">
+    <div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none">🔍 CLICK TO ENLARGE</div>
+    <svg id="gov-services-svg" viewBox="0 0 540 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:540px;display:block;margin:10px auto;border:1px solid var(--border2)">
+      <rect width="540" height="300" fill="#0e1420" rx="4"/>
+      <text x="270" y="22" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#a0b0c8" letter-spacing="2">PUBLIC PREFERENCES: GOVERNMENT SERVICES &amp; SPENDING (%)</text>
+      <line x1="60" y1="35" x2="60" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      <line x1="60" y1="${yBase}" x2="480" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      ${grids}${bars}
+      <text x="480" y="294" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Source: Pew Research Center</text>
+    </svg>
+  </div>`;
 }
 
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
   if (!set.svgType) return '';
-  if (set.svgType === 'federalism_tug') return federalismTugSVG();
-  if (set.svgType === 'checks_balances') return checksBalancesSVG();
-  return '';
+  const svgId = 'cartoon-svg-' + set.svgType;
+  let svgContent = '';
+  if      (set.svgType === 'poll_meter')    svgContent = pollMeterSVG(svgId);
+  else if (set.svgType === 'ideology_road') svgContent = ideologyRoadSVG(svgId);
+  else return '';
+  return `<div onclick="openSVGZoom('${svgId}')" style="cursor:zoom-in;position:relative">
+    <div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div>
+    ${svgContent}
+  </div>`;
 }
 
-function federalismTugSVG() {
-  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
-    <!-- Background -->
-    <rect width="560" height="220" fill="rgba(14,20,32,.8)" rx="4"/>
-    <!-- National Govt figure (left) -->
-    <g>
-      <circle cx="80" cy="80" r="22" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
-      <text x="80" y="84" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">NATIONAL</text>
-      <text x="80" y="96" text-anchor="middle" font-family="'Bebas Neue'" font-size="9" fill="#6898e8" letter-spacing="1">GOVT</text>
-      <rect x="60" y="104" width="40" height="50" fill="#1e3a5a" stroke="#4878d0" stroke-width="1"/>
-      <line x1="60" y1="120" x2="42" y2="140" stroke="#4878d0" stroke-width="2.5"/>
-      <line x1="100" y1="120" x2="118" y2="105" stroke="#4878d0" stroke-width="2.5"/>
-    </g>
-    <!-- States figure (right) -->
-    <g>
-      <circle cx="480" cy="80" r="22" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1.5"/>
-      <text x="480" y="88" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#2aaa98" letter-spacing="1">STATES</text>
-      <rect x="460" y="104" width="40" height="50" fill="#1a3a2a" stroke="#2aaa98" stroke-width="1"/>
-      <line x1="460" y1="120" x2="442" y2="105" stroke="#2aaa98" stroke-width="2.5"/>
-      <line x1="500" y1="120" x2="518" y2="140" stroke="#2aaa98" stroke-width="2.5"/>
-    </g>
-    <!-- Rope -->
-    <path d="M118 110 Q140 118 160 112 Q200 100 240 108 Q280 116 320 108 Q360 100 400 112 Q420 118 442 110" fill="none" stroke="#a07840" stroke-width="4" stroke-linecap="round"/>
-    <!-- Policy box -->
-    <rect x="220" y="128" width="120" height="66" fill="#0e1420" stroke="#4a5a70" stroke-width="1.5" rx="3"/>
-    <text x="280" y="148" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">PUBLIC</text>
-    <text x="280" y="162" text-anchor="middle" font-family="'Bebas Neue'" font-size="11" fill="#e8f0f8" letter-spacing="2">POLICY</text>
-    <!-- Labels on box -->
-    <text x="248" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Education</text>
-    <text x="280" y="186" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Health Care</text>
-    <text x="313" y="177" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#4a5a70">Elections</text>
-    <!-- Caption -->
-    <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"Who Holds the Stronger Grip?"</text>
-  </svg>`;
+function openSVGZoom(svgId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const modal = document.getElementById('img-zoom-modal');
+  if (!modal) return;
+  const existing = modal.querySelector('svg.zoom-svg');
+  if (existing) existing.remove();
+  const clone = svg.cloneNode(true);
+  clone.classList.add('zoom-svg');
+  clone.style.cssText = 'max-width:95vw;max-height:88vh;width:auto;height:auto;border:1px solid rgba(255,255,255,.2)';
+  clone.removeAttribute('id');
+  const imgEl = modal.querySelector('img');
+  if (imgEl) imgEl.style.display = 'none';
+  modal.querySelector('div').appendChild(clone);
+  modal.style.display = 'flex';
+  modal.onclick = () => {
+    const zs = modal.querySelector('svg.zoom-svg');
+    if (zs) zs.remove();
+    if (imgEl) imgEl.style.display = '';
+    modal.style.display = 'none';
+  };
 }
 
-function checksBalancesSVG() {
-  return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
-    <rect width="560" height="230" fill="rgba(14,20,32,.8)" rx="4"/>
-    <!-- Canyon/beam -->
-    <rect x="80" y="150" width="400" height="8" fill="#2a3a54" stroke="#4a5a70" stroke-width="1" rx="2"/>
-    <path d="M80 158 L60 220 L180 220 L140 158Z" fill="#0a1018"/>
-    <path d="M480 158 L500 220 L380 220 L420 158Z" fill="#0a1018"/>
-    <path d="M180 158 L220 200 L340 200 L380 158Z" fill="#060c14"/>
-    <!-- Congress (left) -->
-    <g>
-      <circle cx="140" cy="128" r="20" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
-      <text x="140" y="126" text-anchor="middle" font-family="'Bebas Neue'" font-size="8" fill="#6898e8">CONGRESS</text>
-      <rect x="122" y="148" width="36" height="4" fill="#1e3a5a"/>
-    </g>
-    <!-- President (center) -->
-    <g>
-      <circle cx="280" cy="118" r="20" fill="#1a2a1a" stroke="#2aaa98" stroke-width="1.5"/>
-      <text x="280" y="114" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#2aaa98">PRESIDENT</text>
-      <rect x="262" y="138" width="36" height="4" fill="#1a2a1a"/>
-    </g>
-    <!-- Supreme Court (right) -->
-    <g>
-      <circle cx="420" cy="128" r="20" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
-      <text x="420" y="122" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">SUPREME</text>
-      <text x="420" y="134" text-anchor="middle" font-family="'Bebas Neue'" font-size="7" fill="#9080f0">COURT</text>
-      <rect x="402" y="148" width="36" height="4" fill="#2a1a3a"/>
-    </g>
-    <!-- Chains -->
-    <path d="M158 124 Q200 108 262 120" fill="none" stroke="#a07840" stroke-width="2" stroke-dasharray="4 2"/>
-    <path d="M298 120 Q360 108 402 124" fill="none" stroke="#a07840" stroke-width="2" stroke-dasharray="4 2"/>
-    <path d="M155 136 Q280 168 405 136" fill="none" stroke="#a07840" stroke-width="1.5" stroke-dasharray="4 2"/>
-    <!-- Banner -->
-    <rect x="150" y="178" width="260" height="28" fill="#0e1420" stroke="#4a5a70" stroke-width="1" rx="3"/>
-    <text x="280" y="196" text-anchor="middle" font-family="'Playfair Display'" font-size="11" fill="#8090a8" font-style="italic">"The Great American Balancing Act"</text>
-  </svg>`;
+function pollMeterSVG(id) {
+  return `<svg id="${id}" viewBox="0 0 560 290" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;display:block;margin:10px auto;border:1px solid var(--border2)">
+  <rect width="560" height="290" fill="#0a0e18" rx="4"/>
+  <text x="280" y="20" text-anchor="middle" font-family="'Playfair Display',serif" font-size="11" fill="#8090a8" font-style="italic">"Listening Closely"</text>
+  <!-- Dashboard panel -->
+  <rect x="50" y="35" width="460" height="170" rx="6" fill="#0e1828" stroke="#2a3a54" stroke-width="1.5"/>
+  <text x="280" y="55" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="14" fill="#6898e8" letter-spacing="3">PUBLIC OPINION DASHBOARD</text>
+  <!-- Meter 1: Approval -->
+  <rect x="70" y="65" width="120" height="80" rx="4" fill="#0a1420" stroke="#4878d0" stroke-width="1"/>
+  <text x="130" y="82" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="9" fill="#6898e8" letter-spacing="1">APPROVAL</text>
+  <path d="M90 130 A40 40 0 0 1 170 130" fill="none" stroke="#2a3a54" stroke-width="8" stroke-linecap="round"/>
+  <path d="M90 130 A40 40 0 0 1 155 100" fill="none" stroke="#40c870" stroke-width="8" stroke-linecap="round"/>
+  <line x1="130" y1="130" x2="150" y2="103" stroke="#e8f0f8" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="130" cy="130" r="4" fill="#6898e8"/>
+  <text x="130" y="148" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#40c870">62%</text>
+  <!-- Meter 2: Issue Salience -->
+  <rect x="210" y="65" width="140" height="80" rx="4" fill="#0a1420" stroke="#e8a020" stroke-width="1"/>
+  <text x="280" y="82" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="9" fill="#e8a020" letter-spacing="1">ISSUE SALIENCE</text>
+  <path d="M225 130 A55 55 0 0 1 335 130" fill="none" stroke="#2a3a54" stroke-width="8" stroke-linecap="round"/>
+  <path d="M225 130 A55 55 0 0 1 310 88" fill="none" stroke="#e8a020" stroke-width="8" stroke-linecap="round"/>
+  <line x1="280" y1="130" x2="308" y2="91" stroke="#e8f0f8" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="280" cy="130" r="4" fill="#e8a020"/>
+  <text x="280" y="148" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#e8a020">HIGH</text>
+  <!-- Meter 3: Independent Voters -->
+  <rect x="370" y="65" width="120" height="80" rx="4" fill="#0a1420" stroke="#9080f0" stroke-width="1"/>
+  <text x="430" y="75" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="8" fill="#9080f0" letter-spacing="1">INDEPENDENT</text>
+  <text x="430" y="84" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="8" fill="#9080f0" letter-spacing="1">VOTERS</text>
+  <path d="M390 130 A40 40 0 0 1 470 130" fill="none" stroke="#2a3a54" stroke-width="8" stroke-linecap="round"/>
+  <path d="M390 130 A40 40 0 0 1 430 92" fill="none" stroke="#9080f0" stroke-width="8" stroke-linecap="round"/>
+  <line x1="430" y1="130" x2="430" y2="94" stroke="#e8f0f8" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="430" cy="130" r="4" fill="#9080f0"/>
+  <text x="430" y="148" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#9080f0">35%</text>
+  <!-- Candidate A (left) adjusting speech with wrench -->
+  <circle cx="120" cy="228" r="16" fill="#1e3a5a" stroke="#4878d0" stroke-width="1.5"/>
+  <text x="120" y="222" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="7" fill="#6898e8">CAND.</text>
+  <text x="120" y="232" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="7" fill="#6898e8">A</text>
+  <!-- Speech/wrench -->
+  <rect x="140" y="218" width="40" height="22" rx="2" fill="#1a2a40" stroke="#4878d0" stroke-width="1"/>
+  <text x="160" y="226" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#6898e8">SPEECH</text>
+  <text x="160" y="235" text-anchor="middle" font-size="10">🔧</text>
+  <text x="120" y="256" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">Adjusting message</text>
+  <!-- Candidate B (right) repainting sign -->
+  <circle cx="440" cy="228" r="16" fill="#2a1a3a" stroke="#9080f0" stroke-width="1.5"/>
+  <text x="440" y="222" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="7" fill="#9080f0">CAND.</text>
+  <text x="440" y="232" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="7" fill="#9080f0">B</text>
+  <!-- Campaign sign with paint roller -->
+  <rect x="380" y="218" width="50" height="22" rx="2" fill="#1a1030" stroke="#9080f0" stroke-width="1"/>
+  <text x="405" y="226" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#9080f0">CAMPAIGN</text>
+  <text x="405" y="235" text-anchor="middle" font-size="10">🖌️</text>
+  <text x="440" y="256" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">Repainting message</text>
+  <!-- Arrow from dashboard to candidates -->
+  <line x1="180" y1="205" x2="145" y2="218" stroke="#4878d0" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <line x1="380" y1="205" x2="415" y2="218" stroke="#9080f0" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text x="280" y="280" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Original classroom scenario inspired by public-domain cartoons about polling and elections.</text>
+</svg>`;
+}
+
+function ideologyRoadSVG(id) {
+  return `<svg id="${id}" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;display:block;margin:10px auto;border:1px solid var(--border2)">
+  <rect width="560" height="300" fill="#0a0e18" rx="4"/>
+  <text x="280" y="20" text-anchor="middle" font-family="'Playfair Display',serif" font-size="11" fill="#8090a8" font-style="italic">"Same Country, Different Routes"</text>
+  <!-- Road base -->
+  <rect x="60" y="200" width="440" height="60" rx="3" fill="#1a1a28" stroke="#2a3a54" stroke-width="1"/>
+  <!-- Three lane dividers -->
+  <line x1="60" y1="220" x2="500" y2="220" stroke="#2a3a54" stroke-width="1" stroke-dasharray="10 6"/>
+  <line x1="60" y1="240" x2="500" y2="240" stroke="#2a3a54" stroke-width="1" stroke-dasharray="10 6"/>
+  <!-- Lane labels -->
+  <text x="175" y="213" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" fill="#4878d0" letter-spacing="1">LIBERAL</text>
+  <text x="280" y="233" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" fill="#2aaa98" letter-spacing="1">MODERATE</text>
+  <text x="395" y="253" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" fill="#e04040" letter-spacing="1">CONSERVATIVE</text>
+  <!-- Car icons in lanes -->
+  <rect x="120" y="205" width="30" height="14" rx="3" fill="#4878d0" opacity=".9"/>
+  <text x="135" y="215" text-anchor="middle" font-size="9">🚗</text>
+  <rect x="255" y="225" width="30" height="14" rx="3" fill="#2aaa98" opacity=".9"/>
+  <text x="270" y="235" text-anchor="middle" font-size="9">🚙</text>
+  <rect x="360" y="245" width="30" height="14" rx="3" fill="#e04040" opacity=".9"/>
+  <text x="375" y="255" text-anchor="middle" font-size="9">🚕</text>
+  <!-- Road signs on the side -->
+  <!-- Taxes sign -->
+  <rect x="65" y="120" width="70" height="34" rx="3" fill="#1e2a40" stroke="#4878d0" stroke-width="1.5"/>
+  <text x="100" y="133" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#6898e8" letter-spacing="1">TAXES</text>
+  <text x="100" y="147" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">↑ or ↓?</text>
+  <line x1="100" y1="154" x2="100" y2="200" stroke="#4a5a70" stroke-width="1.5"/>
+  <!-- Climate sign -->
+  <rect x="160" y="80" width="80" height="34" rx="3" fill="#1e3020" stroke="#40c870" stroke-width="1.5"/>
+  <text x="200" y="93" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#40c870" letter-spacing="1">CLIMATE</text>
+  <text x="200" y="107" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">Act or delay?</text>
+  <line x1="200" y1="114" x2="200" y2="200" stroke="#4a5a70" stroke-width="1.5"/>
+  <!-- Health Care sign -->
+  <rect x="280" y="100" width="95" height="34" rx="3" fill="#1e1a30" stroke="#9080f0" stroke-width="1.5"/>
+  <text x="327" y="113" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="10" fill="#9080f0" letter-spacing="1">HEALTH CARE</text>
+  <text x="327" y="127" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">Public or private?</text>
+  <line x1="327" y1="134" x2="327" y2="200" stroke="#4a5a70" stroke-width="1.5"/>
+  <!-- Tradition sign -->
+  <rect x="400" y="120" width="90" height="34" rx="3" fill="#2a1a10" stroke="#e8a020" stroke-width="1.5"/>
+  <text x="445" y="133" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#e8a020" letter-spacing="1">TRADITION</text>
+  <text x="445" y="147" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#4a5a70">Preserve or change?</text>
+  <line x1="445" y1="154" x2="445" y2="200" stroke="#4a5a70" stroke-width="1.5"/>
+  <!-- Arguing drivers (speech bubbles) -->
+  <ellipse cx="135" cy="178" rx="30" ry="14" fill="#1e2a40" stroke="#4878d0" stroke-width="1"/>
+  <text x="135" y="182" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#6898e8">More govt!</text>
+  <ellipse cx="270" cy="178" rx="30" ry="14" fill="#1e2a30" stroke="#2aaa98" stroke-width="1"/>
+  <text x="270" y="182" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#2aaa98">Balance it!</text>
+  <ellipse cx="390" cy="178" rx="32" ry="14" fill="#2a1a20" stroke="#e04040" stroke-width="1"/>
+  <text x="390" y="182" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#f06060">Less govt!</text>
+  <text x="280" y="290" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Original classroom scenario inspired by public-domain ideological cartoons.</text>
+</svg>`;
 }
 
 // ── ANSWER HANDLING ────────────────────────────────
