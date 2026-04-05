@@ -725,7 +725,7 @@ const QUESTION_BANK = {
           title:'Political Cartoon: Liberty and Order',
           source:'Original classroom-safe scenario inspired by public-domain free speech cartoons.',
           description:'A political cartoon shows a giant balance scale. On one side is a stack of newspapers, protest signs, and a microphone labeled "Free Speech." On the other side is a police badge, a courthouse, and a shield labeled "Public Order." A crowd watches as the scale tips back and forth. The caption reads, "How Much Freedom?"',
-          svgType:'liberty_order_scale',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit3-cartoon-speech-balance.png', svgType:'liberty_order_scale',
           questions:[
             {id:'u3_vis_speech_001',topic:'3.6',bigIdea:'LOR',difficulty:'accessible',stem:"The cartoonist's main argument is most likely that",choices:[{id:'A',text:'constitutional disputes involve balancing freedom of expression against government order interests.'},{id:'B',text:'maintaining public order always requires that potentially dangerous speech be restricted beforehand.'},{id:'C',text:'the First Amendment protects only printed newspapers and not any form of public protest activity.'},{id:'D',text:'courts may legally disregard constitutional protections when officials assert a safety concern.'}],correct:'A',explanation:'The scale imagery suggests tension between liberty and order rather than automatic priority for either side.'},
             {id:'u3_vis_speech_002',topic:'3.3',bigIdea:'CON',difficulty:'moderate',stem:'The protest signs and microphone in the cartoon most directly symbolize which constitutional protection?',choices:[{id:'A',text:'Freedom of speech and assembly'},{id:'B',text:'The right to bear arms'},{id:'C',text:'Protection against unreasonable search and seizure'},{id:'D',text:'The guarantee of equal representation in Congress'}],correct:'A',explanation:'Those symbols point directly to expressive freedoms protected by the First Amendment.'},
@@ -737,7 +737,7 @@ const QUESTION_BANK = {
           title:'Political Cartoon: Separate Doors',
           source:'Original classroom-safe scenario inspired by public-domain civil rights cartoons.',
           description:'A political cartoon shows two doors leading into the same public building. One door is wide, bright, and labeled "Opportunity," while the other is narrow, broken, and labeled "Denied Access." Above both doors is a banner reading "Equal Protection." Several citizens point to the obvious difference between the entrances. The caption reads, "Equal in Name Only."',
-          svgType:'separate_doors',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit3-cartoon-equal-protection.png', svgType:'separate_doors',
           questions:[
             {id:'u3_vis_equal_001',topic:'3.10',bigIdea:'CON',difficulty:'accessible',stem:"The cartoonist's main argument is most likely that",choices:[{id:'A',text:'formal claims of equality are meaningless if people face unequal treatment in practice.'},{id:'B',text:'the Constitution explicitly requires all government-owned public buildings to be identical.'},{id:'C',text:'the equal protection clause applies only to the federal government and not to any state.'},{id:'D',text:'civil rights laws are constitutionally impermissible because they interfere with local decisions.'}],correct:'A',explanation:'The contrast between the two doors illustrates the difference between nominal equality and actual equal treatment.'},
             {id:'u3_vis_equal_002',topic:'3.10',bigIdea:'CON',difficulty:'moderate',stem:'The two doors in the cartoon most clearly symbolize',choices:[{id:'A',text:'unequal treatment under law despite formal constitutional promises of equal protection.'},{id:'B',text:'the functional separation of powers and authority among the three federal branches.'},{id:'C',text:'the legal distinction between civil liberties claims and campaign finance regulations.'},{id:'D',text:'the formal constitutional process by which amendments are proposed and ratified by states.'}],correct:'A',explanation:'The unequal entrances represent discriminatory access or treatment in violation of equal protection ideals.'},
@@ -1460,7 +1460,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${renderCartoonSVG(set)}
+      ${(window._currentSVGSet=set,renderCartoonSVG(set))}
       <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
@@ -1579,6 +1579,15 @@ function scotusCivilLibertiesSVG() {
 
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
+  // Prefer real image if available, fall back to SVG
+  if (set.imageUrl) {
+    return `<div style="position:relative;margin:10px 0">
+      <img src="${set.imageUrl}" alt="${set.title||''}"
+        style="width:100%;max-width:620px;display:block;margin:0 auto;border:1px solid var(--border2);cursor:zoom-in"
+        onclick="openImageZoom(this.src,this.alt)"
+        onerror="this.parentElement.innerHTML=renderCartoonSVGFallback(window._currentSVGSet)">
+    </div>`;
+  }
   if (!set.svgType) return '';
   const svgId = 'cartoon-svg-' + set.svgType;
   let svgContent = '';
