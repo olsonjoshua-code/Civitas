@@ -884,7 +884,7 @@ function renderQuestion() {
     </div>
   </div>`;
   el.innerHTML = html;
-  if (G.currentSet?.chartType && G.questionIdx === 0) renderChart(G.currentSet);
+  if (G.currentSet?.chartType) { renderChart(G.currentSet); wrapChartZoom(); }
   el.scrollTop = 0;
 }
 
@@ -962,7 +962,7 @@ function renderCartoonSVG(set) {
 }
 
 function branchesRestraintSVG() {
-  return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+  return `<div onclick="openSVGZoom('svg-branches-restraint')" style="cursor:zoom-in;position:relative"><div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div><svg id="svg-branches-restraint" viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="230" fill="rgba(14,20,32,.85)" rx="4"/>
     <!-- Platform: Constitution -->
     <rect x="60" y="165" width="440" height="16" rx="3" fill="#1e2a3e" stroke="#7060d0" stroke-width="1.5"/>
@@ -993,11 +993,11 @@ function branchesRestraintSVG() {
     <text x="421" y="134" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#2aaa98">review</text>
     <!-- Caption -->
     <text x="280" y="222" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"Ambition Must Be Made to Counteract Ambition"</text>
-  </svg>`;
+  </svg></div>`;
 }
 
 function amendmentHillSVG() {
-  return `<svg viewBox="0 0 560 235" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+  return `<div onclick="openSVGZoom('svg-amendment-hill')" style="cursor:zoom-in;position:relative"><div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div><svg id="svg-amendment-hill" viewBox="0 0 560 235" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="235" fill="rgba(14,20,32,.85)" rx="4"/>
     <!-- Hill path -->
     <path d="M 30 200 Q 180 200 250 80 Q 300 20 500 20" fill="none" stroke="#2a3a54" stroke-width="18" stroke-linecap="round"/>
@@ -1031,10 +1031,56 @@ function amendmentHillSVG() {
     <text x="514" y="113" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#e04040">No agreement! ✗</text>
     <!-- Caption -->
     <text x="280" y="228" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"The Long Road to Constitutional Change"</text>
-  </svg>`;
+  </svg></div>`;
 }
 
 // ── ANSWER LOGIC ────────────────────────────────────────────────────────────────
+
+function openSVGZoom(svgId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const modal = document.getElementById('img-zoom-modal');
+  if (!modal) return;
+  const existing = modal.querySelector('svg.zoom-svg');
+  if (existing) existing.remove();
+  const clone = svg.cloneNode(true);
+  clone.classList.add('zoom-svg');
+  clone.style.cssText = 'max-width:95vw;max-height:88vh;width:auto;height:auto;border:1px solid rgba(255,255,255,.2)';
+  clone.removeAttribute('id');
+  const imgEl = modal.querySelector('img');
+  if (imgEl) imgEl.style.display = 'none';
+  modal.querySelector('div').appendChild(clone);
+  modal.style.display = 'flex';
+  modal.onclick = () => {
+    const zs = modal.querySelector('svg.zoom-svg');
+    if (zs) zs.remove();
+    if (imgEl) imgEl.style.display = '';
+    modal.style.display = 'none';
+  };
+}
+
+function wrapChartZoom() {
+  const container = document.getElementById('chart-container');
+  if (!container || !container.innerHTML) return;
+  // Find any svg inside and add zoom
+  const svg = container.querySelector('svg');
+  if (!svg) return;
+  if (!svg.id) svg.id = 'chart-svg-' + Date.now();
+  const sid = svg.id;
+  if (container.querySelector('.chart-zoom-wrap')) return; // already wrapped
+  const wrap = document.createElement('div');
+  wrap.className = 'chart-zoom-wrap';
+  wrap.style.cssText = 'cursor:zoom-in;position:relative';
+  wrap.onclick = () => openSVGZoom(sid);
+  const badge = document.createElement('div');
+  badge.style.cssText = 'position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1';
+  badge.textContent = '🔍 CLICK TO ENLARGE';
+  wrap.appendChild(badge);
+  // Move svg into wrap
+  container.insertBefore(wrap, svg);
+  wrap.appendChild(svg);
+}
+
 function selectChoice(id) { if (G.answered) return; G.selectedChoice = id; submitAnswer(); }
 
 function submitAnswer() {
