@@ -4383,8 +4383,6 @@ function showDashboard(){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
-  // Hide AP score — only relevant inside a specific AP course
-  try{const ap=document.getElementById('hstat-ap-wrap');if(ap)ap.style.display='none';}catch(e){}
   try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   // Deactivate all main views
@@ -4405,8 +4403,6 @@ function showMainView(v){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
-  // Hide AP score — only relevant inside a specific AP course
-  try{const ap=document.getElementById('hstat-ap-wrap');if(ap)ap.style.display='none';}catch(e){}
   try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   document.querySelectorAll('#main-views .view').forEach(el=>el.classList.remove('active'));
@@ -4492,8 +4488,6 @@ function enterCourse(courseId){
   if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   showCourseView('units');
-  // Refresh AP score HUD stat when entering a course
-  if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
 }
 
 function showCourseView(v){
@@ -4658,6 +4652,7 @@ function renderDashboard(){
             <div class="course-card-stat-val" style="color:${c.pct>=80?'var(--green2)':c.pct>=40?'var(--amber)':'var(--text3)'}">${c.pct}%</div>
             <div class="course-card-stat-lbl">Complete</div>
           </div>
+          ${c.hasFRQ?`<div class="course-card-stat" id="ap-score-card-${c.id}"><div class="course-card-stat-val" style="color:var(--text3)">—</div><div class="course-card-stat-lbl">AP Score</div></div>`:''}
         </div>
         <div class="course-card-bar">
           <div class="course-card-bar-fill" style="width:${c.pct}%;background:${c.color}"></div>
@@ -4691,10 +4686,11 @@ function renderCourseUnits(){
   if(intro){
     intro.innerHTML=`<div style="background:linear-gradient(135deg,rgba(10,10,18,.96),transparent);border:1px solid var(--border2);border-left:3px solid ${cat.color};padding:14px 18px;display:flex;align-items:center;gap:14px">
       <div style="font-size:36px">${cat.icon}</div>
-      <div>
+      <div style="flex:1">
         <div style="font-family:var(--bebas);font-size:20px;letter-spacing:3px;color:${cat.color}">${cat.name.toUpperCase()}</div>
         <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;margin-top:2px">${cat.grade} · ${units.length} Units · Click any unit to preview and launch</div>
       </div>
+      ${cat.hasFRQ?`<div id="cv-ap-score-badge" style="flex-shrink:0;text-align:center;min-width:60px"></div>`:''}
     </div>`;
   }
 
@@ -4715,7 +4711,12 @@ function renderCourseUnits(){
   const capstoneFull= [...capstone,...campaigns];
 
   function unitCard(u, size='normal'){
-    const done=(cp.unitsCompleted||[]).includes(u.id);
+    const doneFromState=(cp.unitsCompleted||[]).includes(u.id);
+    const doneFromLS=unitProg[u.id]&&unitProg[u.id].bestAccuracy!=null;
+    const done=doneFromState||doneFromLS;
+    const unitAcc=unitProg[u.id]?.bestAccuracy??null;
+    const unitTrophyColor=unitAcc===null?null:unitAcc===100?'var(--purple2)':unitAcc>=90?'var(--gold)':unitAcc>=75?'#c8c8d8':unitAcc>=60?'#cd7f32':'var(--green2)';
+    const unitTrophyLabel=unitAcc===null?'':unitAcc===100?'🏛️ Historian':unitAcc>=90?'🏆 Gold':unitAcc>=75?'⭐ Silver':unitAcc>=60?'🥉 Bronze':'✅ Completed';
     const isBigIdea=!!u.isBigIdea;
     const cardColor=isBigIdea?'var(--civitas)':u.color;
     const isCapstone=size==='wide';
@@ -4754,10 +4755,15 @@ function renderCourseUnits(){
         <div class="ucg-num" style="${isBigIdea?'color:var(--civitas2)':''}${size==='small'?';font-size:7px':''}">${u.num}</div>
         <div class="ucg-title" style="${isCapstone?'font-size:15px':size==='large'?'font-size:14px':size==='small'?'font-size:11px':''}">${u.title}</div>
         ${isCapstone&&u.desc?`<div style="font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;margin:4px 0 6px;line-height:1.5">${u.desc.slice(0,90)}…</div>`:''}
-        <div class="ucg-status ${done?'ucg-done':u.url?'ucg-play':'ucg-done'}"
-          style="${isBigIdea&&!done?'border-color:var(--civitas);color:var(--civitas2)':''}">
-          ${done?'✓ Completed':u.url?'▶ Play Now':'🔜 Coming Soon'}
-        </div>
+        ${done
+          ? `<div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
+               <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:${unitTrophyColor||'var(--green2)'};">${unitTrophyLabel||'✓ Completed'}${unitAcc!==null?' · '+unitAcc+'%':''}</div>
+               <div class="ucg-status" style="border-color:${unitTrophyColor||'var(--green)'};color:${unitTrophyColor||'var(--green2)'};background:rgba(0,0,0,.2)">↺ Play Again</div>
+             </div>`
+          : u.url
+            ? `<div class="ucg-status ucg-play" style="${isBigIdea?'border-color:var(--civitas);color:var(--civitas2)':''}">▶ Play Now</div>`
+            : `<div class="ucg-status ucg-done">🔜 Coming Soon</div>`
+        }
       </div>
     </div>`;
   }
@@ -4793,7 +4799,7 @@ function renderCourseUnits(){
           ${introUnit.topics&&introUnit.topics.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">
             ${introUnit.topics.map(t=>`<span style="font-size:9px;background:rgba(56,160,80,.1);border:1px solid rgba(56,160,80,.25);color:${cc};padding:2px 8px;border-radius:3px">${t}</span>`).join('')}
           </div>`:''}
-          <button class="unit-play-btn" style="margin-top:10px;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid ${cc};color:${cc};padding:4px 14px;cursor:pointer">▶ Play Now</button>
+          <button class="unit-play-btn" style="margin-top:10px;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid ${cc};color:${cc};padding:4px 14px;cursor:pointer">${introDone ? '↺ Play Again' : '▶ Play Now'}</button>
         </div>
         ${introDone?`<div style="flex-shrink:0;text-align:center"><div style="font-family:var(--bebas);font-size:11px;color:var(--green2);letter-spacing:1px">COMPLETE</div></div>`:''}
       </div>`;
@@ -5155,7 +5161,7 @@ function renderVocabMedals() {
   const el = document.getElementById('vocab-medal-grid');
   if (!el) return;
   // Hide vocab section for courses without quizzes yet
-  // vocabWrap removed — was using invalid CSS selector
+  const vocabWrap = el.closest('.\\s+') || el.parentElement;
   const printBtn = document.getElementById('print-vocab-cert-btn') ||
     document.querySelector('[onclick="printAllVocabCert()"]');
   if(_activeCourseId !== 'ap_gov'){
@@ -5666,6 +5672,13 @@ async function renderCourseAPScore(){
     // Update inline breakdown in course intro
     const badge=document.getElementById('cv-ap-score-badge');
     if(badge) badge.innerHTML=renderAPScoreBadge(d);
+    // Update AP score on dashboard course card
+    const cardStat=document.getElementById('ap-score-card-ap_gov');
+    if(cardStat&&d.apScore!==null){
+      const l=apScoreLabel(d.apScore);
+      cardStat.querySelector('.course-card-stat-val').textContent=d.apScore;
+      cardStat.querySelector('.course-card-stat-val').style.color=l.color;
+    }
   }catch(e){}
 }
 
