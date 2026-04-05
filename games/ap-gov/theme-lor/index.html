@@ -761,8 +761,20 @@ function renderQuestion() {
   G.selectedChoice = null; G.answered = false;
   document.getElementById('btn-submit').style.display = 'none';
   document.getElementById('btn-next').style.display = 'none';
-  let html = '';
-  if (G.questionIdx === 0 && G.currentSet) html += renderStimulus(round, G.currentSet);
+    let html = '';
+  if (G.currentSet) {
+    if (G.questionIdx === 0) {
+      html += renderStimulus(round, G.currentSet);
+    } else {
+      html += `<div style="margin-bottom:12px">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.textContent.includes(\'Show\')?\' ▲ Hide Stimulus\':\'▼ Show Stimulus\'"
+          style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.12);color:var(--acc2);padding:6px 14px;cursor:pointer;width:100%;text-align:left">
+          ▼ Show Stimulus — ${G.currentSet.document||G.currentSet.title||'Source'}
+        </button>
+        <div style="display:none">${renderStimulus(round, G.currentSet)}</div>
+      </div>`;
+    }
+  }
   let metaTags = `<div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>`;
   if (q.unit) metaTags += `<div class="q-tag unit">UNIT ${q.unit}</div>`;
   if (q.topic) metaTags += `<div class="q-tag topic">${q.topic}</div>`;
@@ -775,7 +787,7 @@ function renderQuestion() {
     </div>
   </div>`;
   el.innerHTML = html;
-  if (G.currentSet?.chartType && G.questionIdx === 0) renderChart(G.currentSet);
+  if (G.currentSet?.chartType) { renderChart(G.currentSet); wrapChartZoom(); }
   el.scrollTop = 0;
 }
 
@@ -836,7 +848,7 @@ function renderCartoonSVG(set) {
 }
 
 function speechScaleSVG() {
-  return `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+  return `<div onclick="openSVGZoom('svg-speech-scale')" style="cursor:zoom-in;position:relative"><div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div><svg id="svg-speech-scale" viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="230" fill="rgba(14,20,32,.85)" rx="4"/>
     <!-- Courthouse background -->
     <rect x="200" y="20" width="160" height="110" rx="3" fill="#0a0e16" stroke="#2a3a54" stroke-width="1"/>
@@ -871,11 +883,11 @@ function speechScaleSVG() {
     <text x="504" y="179" text-anchor="middle" font-family="'DM Sans'" font-size="7" fill="#e04040">Keep Order !</text>
     <!-- Caption -->
     <text x="280" y="222" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"Balancing Liberty Against the Need for Order"</text>
-  </svg>`;
+  </svg></div>`;
 }
 
 function equalDoorsSVG() {
-  return `<svg viewBox="0 0 560 235" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+  return `<div onclick="openSVGZoom('svg-equal-doors')" style="cursor:zoom-in;position:relative"><div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div><svg id="svg-equal-doors" viewBox="0 0 560 235" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="235" fill="rgba(14,20,32,.85)" rx="4"/>
     <!-- Building -->
     <rect x="40" y="50" width="480" height="155" rx="3" fill="#0a0e18" stroke="#2a3a54" stroke-width="1.5"/>
@@ -910,7 +922,53 @@ function equalDoorsSVG() {
     <text x="490" y="135" text-anchor="middle" font-family="'DM Sans'" font-size="6" fill="#2aaa50">protection</text>
     <!-- Caption -->
     <text x="280" y="225" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"Equal in Name Only"</text>
-  </svg>`;
+  </svg></div>`;
+}
+
+
+function openSVGZoom(svgId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const modal = document.getElementById('img-zoom-modal');
+  if (!modal) return;
+  const existing = modal.querySelector('svg.zoom-svg');
+  if (existing) existing.remove();
+  const clone = svg.cloneNode(true);
+  clone.classList.add('zoom-svg');
+  clone.style.cssText = 'max-width:95vw;max-height:88vh;width:auto;height:auto;border:1px solid rgba(255,255,255,.2)';
+  clone.removeAttribute('id');
+  const imgEl = modal.querySelector('img');
+  if (imgEl) imgEl.style.display = 'none';
+  modal.querySelector('div').appendChild(clone);
+  modal.style.display = 'flex';
+  modal.onclick = () => {
+    const zs = modal.querySelector('svg.zoom-svg');
+    if (zs) zs.remove();
+    if (imgEl) imgEl.style.display = '';
+    modal.style.display = 'none';
+  };
+}
+
+function wrapChartZoom() {
+  const container = document.getElementById('chart-container');
+  if (!container || !container.innerHTML) return;
+  // Find any svg inside and add zoom
+  const svg = container.querySelector('svg');
+  if (!svg) return;
+  if (!svg.id) svg.id = 'chart-svg-' + Date.now();
+  const sid = svg.id;
+  if (container.querySelector('.chart-zoom-wrap')) return; // already wrapped
+  const wrap = document.createElement('div');
+  wrap.className = 'chart-zoom-wrap';
+  wrap.style.cssText = 'cursor:zoom-in;position:relative';
+  wrap.onclick = () => openSVGZoom(sid);
+  const badge = document.createElement('div');
+  badge.style.cssText = 'position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1';
+  badge.textContent = '🔍 CLICK TO ENLARGE';
+  wrap.appendChild(badge);
+  // Move svg into wrap
+  container.insertBefore(wrap, svg);
+  wrap.appendChild(svg);
 }
 
 function selectChoice(id) { if (G.answered) return; G.selectedChoice = id; submitAnswer(); }
