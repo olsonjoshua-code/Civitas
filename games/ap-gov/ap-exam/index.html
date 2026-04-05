@@ -847,7 +847,19 @@ function renderQuestion(){
   document.getElementById('btn-submit').style.display='none';
   document.getElementById('btn-next').style.display='none';
   let html='';
-  if(G.questionIdx===0&&G.currentSet)html+=renderStimulus(round,G.currentSet);
+  if(G.currentSet){
+    if(G.questionIdx===0){
+      html+=renderStimulus(round,G.currentSet);
+    } else {
+      html+=`<div style="margin-bottom:12px">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.textContent.includes('Show')?'▲ Hide Stimulus':'▼ Show Stimulus'"
+          style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.12);color:var(--acc2);padding:6px 14px;cursor:pointer;width:100%;text-align:left">
+          ▼ Show Stimulus — ${G.currentSet.document||G.currentSet.title||'Source'}
+        </button>
+        <div style="display:none">${renderStimulus(round,G.currentSet)}</div>
+      </div>`;
+    }
+  }
   let meta=`<div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>`;
   if(q.unit)meta+=`<div class="q-tag unit">UNIT ${q.unit}</div>`;
   if(q.topic)meta+=`<div class="q-tag topic">${q.topic}</div>`;
@@ -855,8 +867,8 @@ function renderQuestion(){
   meta+=`<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
   html+=`<div class="question-card" id="qcard"><div class="q-meta">${meta}</div><div class="q-stem">${q.stem}</div><div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div><div style="text-align:right;margin-top:8px"><button onclick="submitExamQuestionReport(${JSON.stringify(q.stem)},${JSON.stringify(q.id||'')})" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">&#9873; Report question</button></div></div>`;
   el.innerHTML=html;
-  if(G.currentSet?.chartType&&G.questionIdx===0)renderBarChart(G.currentSet);
-  if(G.currentSet?.svgType&&G.questionIdx===0)renderCartoonSVG_inline(G.currentSet);
+  if(G.currentSet?.chartType){renderBarChart(G.currentSet);wrapChartZoom();}
+  // SVG cartoon already embedded in renderStimulus via moneyVoiceSVG()
   el.scrollTop=0;
 }
 
@@ -887,18 +899,43 @@ function renderCartoonSVG_inline(set){
 
 function renderBarChart(set){
   const container=document.getElementById('chart-container');if(!container||!set.data)return;
-  const{labels,values}=set.data;const max=Math.max(...values);
-  let html=`<div style="margin-top:14px"><div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-bottom:10px">${set.chartLabel||''}</div><div style="display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)">`;
-  labels.forEach((lbl,i)=>{const pct=Math.round((values[i]/max)*100);html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:2px 2px 0 0;transition:height .6s;height:0" data-target="${pct}%" title="${values[i]}%"></div></div>`;});
-  html+=`</div><div style="display:flex;gap:4px;margin-top:4px">`;
-  labels.forEach(lbl=>{html+=`<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center">${lbl}</div>`;});
-  html+=`</div><div class="chart-source">${set.source||''}</div></div>`;
+  const{labels,values}=set.data;
+  const max=Math.max(...values);
+  const chartH=180,yBase=230,bw=Math.min(80,Math.floor(440/labels.length)-8);
+  const totalW=520,gap=Math.floor((totalW-bw*labels.length)/(labels.length+1));
+  const colors=['#4878d0','#2aaa98','#9080f0','#e8a020','#e04040','#40c870'];
+  let bars='',grids='';
+  [0,20,40,60,80,100].forEach(n=>{
+    const gy=yBase-Math.round((n/100)*chartH);
+    grids+=`<line x1="44" y1="${gy}" x2="504" y2="${gy}" stroke="#1e2a3e" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="38" y="${gy+4}" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" fill="#4a5a70">${n}%</text>`;
+  });
+  values.forEach((v,i)=>{
+    const h=Math.round((v/max)*chartH);
+    const x=gap+(bw+gap)*i+44;
+    const y=yBase-h;
+    const col=colors[i%colors.length];
+    bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${col}" opacity=".85" rx="2"/>
+    <text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="13" fill="${col}">${v}%</text>
+    <text x="${x+bw/2}" y="${yBase+14}" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#8090a8">${labels[i]}</text>`;
+  });
+  const svgId='bar-chart-'+Date.now();
+  const html=`<div onclick="openSVGZoom('${svgId}')" style="cursor:zoom-in;position:relative;margin-top:10px">
+    <div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div>
+    <svg id="${svgId}" viewBox="0 0 548 265" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:548px;display:block;margin:0 auto;border:1px solid var(--border2)">
+      <rect width="548" height="265" fill="#0e1420" rx="4"/>
+      <text x="274" y="18" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#a0b0c8" letter-spacing="2">${set.chartLabel||''}</text>
+      <line x1="44" y1="28" x2="44" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      <line x1="44" y1="${yBase}" x2="504" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      ${grids}${bars}
+      <text x="504" y="258" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Source: ${set.source||''}</text>
+    </svg>
+  </div>`;
   container.innerHTML=html;
-  setTimeout(()=>{container.querySelectorAll('[data-target]').forEach(b=>{b.style.height=b.dataset.target;});},100);
 }
 
 function moneyVoiceSVG(){
-  return`<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
+  return`<div onclick="openSVGZoom('svg-money-voice')" style="cursor:zoom-in;position:relative"><div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div><svg id="svg-money-voice" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;margin:14px auto;display:block">
     <rect width="560" height="220" fill="rgba(14,20,32,.85)" rx="4"/>
     <!-- Banner -->
     <rect x="30" y="12" width="500" height="20" rx="3" fill="#0a1018" stroke="#4878d0" stroke-width="1"/>
@@ -943,6 +980,50 @@ function moneyVoiceSVG(){
     <defs><marker id="arrM" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8a020"/></marker></defs>
     <text x="280" y="210" text-anchor="middle" font-family="'Playfair Display'" font-size="10" fill="#8090a8" font-style="italic">"Money and Political Voice"</text>
   </svg>`;
+}
+
+
+function openSVGZoom(svgId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const modal = document.getElementById('img-zoom-modal');
+  if (!modal) return;
+  const existing = modal.querySelector('svg.zoom-svg');
+  if (existing) existing.remove();
+  const clone = svg.cloneNode(true);
+  clone.classList.add('zoom-svg');
+  clone.style.cssText = 'max-width:95vw;max-height:88vh;width:auto;height:auto;border:1px solid rgba(255,255,255,.2)';
+  clone.removeAttribute('id');
+  const imgEl = modal.querySelector('img');
+  if (imgEl) imgEl.style.display = 'none';
+  modal.querySelector('div').appendChild(clone);
+  modal.style.display = 'flex';
+  modal.onclick = () => {
+    const zs = modal.querySelector('svg.zoom-svg');
+    if (zs) zs.remove();
+    if (imgEl) imgEl.style.display = '';
+    modal.style.display = 'none';
+  };
+}
+
+function wrapChartZoom() {
+  const container = document.getElementById('chart-container');
+  if (!container || !container.innerHTML) return;
+  const svg = container.querySelector('svg');
+  if (!svg) return;
+  if (!svg.id) svg.id = 'chart-svg-' + Date.now();
+  const sid = svg.id;
+  if (container.querySelector('.chart-zoom-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'chart-zoom-wrap';
+  wrap.style.cssText = 'cursor:zoom-in;position:relative';
+  wrap.onclick = () => openSVGZoom(sid);
+  const badge = document.createElement('div');
+  badge.style.cssText = 'position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1';
+  badge.textContent = '🔍 CLICK TO ENLARGE';
+  wrap.appendChild(badge);
+  container.insertBefore(wrap, svg);
+  wrap.appendChild(svg);
 }
 
 function selectChoice(id){if(G.answered)return;G.selectedChoice=id;submitAnswer();}
@@ -1068,15 +1149,38 @@ function renderFRQWorkspace(frq,idx){
 
 function renderFRQChart(frq,idx){
   const container=document.getElementById(`frq-chart-container-${idx}`);if(!container)return;
-  const{labels,values}=frq.data;const max=Math.max(...values);
-  let html=`<div style="margin-bottom:16px;background:rgba(0,0,0,.2);border:1px solid var(--border);padding:14px">
-    <div style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-bottom:10px">${frq.chartLabel||''}</div>
-    <div style="display:flex;align-items:flex-end;gap:4px;height:100px;border-bottom:1px solid var(--border2)">`;
-  labels.forEach((lbl,i)=>{const pct=Math.round((values[i]/max)*100);html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:2px 2px 0 0;height:${pct}%" title="${values[i]}%"></div></div>`;});
-  html+=`</div><div style="display:flex;gap:4px;margin-top:4px">`;
-  labels.forEach(lbl=>{html+=`<div style="flex:1;font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center">${lbl}</div>`;});
-  html+=`</div><div class="chart-source">${frq.source||''}</div></div>`;
-  container.innerHTML=html;
+  const{labels,values}=frq.data;
+  const max=Math.max(...values);
+  const chartH=180,yBase=230,bw=Math.min(80,Math.floor(440/labels.length)-8);
+  const totalW=520,gap=Math.floor((totalW-bw*labels.length)/(labels.length+1));
+  const colors=['#4878d0','#2aaa98','#9080f0','#e8a020'];
+  let bars='',grids='';
+  [0,20,40,60,80,100].forEach(n=>{
+    const gy=yBase-Math.round((n/100)*chartH);
+    grids+=`<line x1="44" y1="${gy}" x2="504" y2="${gy}" stroke="#1e2a3e" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="38" y="${gy+4}" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" fill="#4a5a70">${n}%</text>`;
+  });
+  values.forEach((v,i)=>{
+    const h=Math.round((v/max)*chartH);
+    const x=gap+(bw+gap)*i+44;
+    const y=yBase-h;
+    const col=colors[i%colors.length];
+    bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${col}" opacity=".85" rx="2"/>
+    <text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="13" fill="${col}">${v}%</text>
+    <text x="${x+bw/2}" y="${yBase+14}" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#8090a8">${labels[i]}</text>`;
+  });
+  const svgId=`frq-chart-svg-${idx}`;
+  container.innerHTML=`<div onclick="openSVGZoom('${svgId}')" style="cursor:zoom-in;position:relative;margin-bottom:16px">
+    <div style="position:absolute;top:6px;right:6px;font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;background:rgba(0,0,0,.5);padding:2px 6px;pointer-events:none;z-index:1">🔍 CLICK TO ENLARGE</div>
+    <svg id="${svgId}" viewBox="0 0 548 265" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:548px;display:block;margin:0 auto;border:1px solid var(--border2)">
+      <rect width="548" height="265" fill="#0e1420" rx="4"/>
+      <text x="274" y="18" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="11" fill="#a0b0c8" letter-spacing="2">${frq.chartLabel||''}</text>
+      <line x1="44" y1="28" x2="44" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      <line x1="44" y1="${yBase}" x2="504" y2="${yBase}" stroke="#2a3a54" stroke-width="1"/>
+      ${grids}${bars}
+      <text x="504" y="258" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" fill="#3a4a60" font-style="italic">Source: ${frq.source||''}</text>
+    </svg>
+  </div>`;
 }
 
 async function submitFRQ(idx){
