@@ -720,7 +720,7 @@ const QUESTION_BANK = {
         {
           id:'voting_barriers_cartoon_set',
           title:'Political Cartoon: The Obstacle Course to the Ballot Box',
-          svgType:'obstacle_course',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit5-cartoon-voting-barriers.png', svgType:'obstacle_course',
           source:'Original classroom-safe scenario inspired by public-domain voting rights cartoons.',
           description:'A political cartoon shows citizens trying to reach a ballot box at the end of an obstacle course. Along the path are hurdles labeled "ID Rules," "Long Lines," "Registration Deadline," and "Polling Place Closure." Some voters clear the hurdles easily, while others struggle or turn back. The caption reads, "Same Election, Different Path."',
           questions:[
@@ -732,7 +732,7 @@ const QUESTION_BANK = {
         {
           id:'media_horse_race_cartoon_set',
           title:'Political Cartoon: The Campaign Scoreboard',
-          svgType:'campaign_scoreboard',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit5-cartoon-media-horse-race.png', svgType:'campaign_scoreboard',
           source:'Original classroom-safe scenario inspired by public-domain media cartoons.',
           description:'A political cartoon shows television anchors standing in front of a giant scoreboard labeled "Polls," "Momentum," and "Fundraising." In the corner of the screen, a tiny stack of papers labeled "Policy Plans" is barely visible. Viewers in the audience cheer as the numbers change. The caption reads, "Today\'s Big Story."',
           questions:[
@@ -1457,7 +1457,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${renderCartoonSVG(set)}
+      ${(window._currentSVGSet=set,renderCartoonSVG(set))}
       <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
@@ -1542,6 +1542,15 @@ function campaignSpendingSVG() {
 
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
+  // Prefer real image if available, fall back to SVG
+  if (set.imageUrl) {
+    return `<div style="position:relative;margin:10px 0">
+      <img src="${set.imageUrl}" alt="${set.title||''}"
+        style="width:100%;max-width:620px;display:block;margin:0 auto;border:1px solid var(--border2);cursor:zoom-in"
+        onclick="openImageZoom(this.src,this.alt)"
+        onerror="this.parentElement.innerHTML=renderCartoonSVGFallback(window._currentSVGSet)">
+    </div>`;
+  }
   if (!set.svgType) return '';
   const svgId = 'cartoon-svg-' + set.svgType;
   let svgContent = '';
