@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 6: Iran — AP Comparative · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080e0a;--bg2:#0f1a12;--bg3:#162018;--panel:#111d14;
+  --border:#1a3020;--border2:#244030;
+  --acc:#38a050;--acc2:#5dba7a;--acc3:#90d4a8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --text:#e0f0e4;--text2:#7a9888;--text3:#3a5848;--cream:#f0ede4;
+  --bebas:'Bebas Neue',sans-serif;--playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;--dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(56,160,80,.08) 0%,transparent 50%),radial-gradient(ellipse at 85% 100%,rgba(40,120,60,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--acc2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s;width:0}
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(56,160,80,.12) 0%,rgba(8,14,10,.98) 60%);border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(56,160,80,.02) 40px,rgba(56,160,80,.02) 80px)}
+.hub-flag{width:80px;height:auto;border-radius:4px;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--acc2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:560px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--acc2);font-weight:500}
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--acc2)}
+.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s;border-radius:2px}
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--acc2);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--acc);display:block}
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,14,10,.97);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--acc)}
+.gp-pip.active{background:var(--acc2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.stimulus-box{background:rgba(56,160,80,.05);border:1px solid rgba(56,160,80,.18);border-left:3px solid var(--acc);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:12px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;font-style:italic}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.topic{border-color:var(--acc);color:var(--acc2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(56,160,80,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--acc);background:rgba(56,160,80,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--acc2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(24px,5vw,36px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--acc);border:2px solid var(--acc);color:#fff}
+.uc-btn.primary:hover{background:var(--acc2);border-color:var(--acc2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.uc-btn.secondary:hover{border-color:var(--acc);color:var(--acc2)}
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+.frq-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all .2s}
+.frq-card:hover{border-color:var(--acc2);transform:translateY(-2px)}
+.frq-badge{font-family:var(--bebas);font-size:10px;padding:2px 8px;border:1px solid var(--acc);color:var(--acc2);display:none;margin-top:8px}
+.frq-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;margin-bottom:16px;font-style:italic;background:rgba(56,160,80,.04);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:14px 18px}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.frq-part-letter{font-family:var(--bebas);font-size:20px;color:var(--acc2);width:28px}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:10px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px 14px;resize:vertical;min-height:100px;outline:none}
+.frq-textarea:focus{border-color:var(--acc2)}
+.frq-submit-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--acc);border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;margin-top:12px}
+.frq-submit-btn:hover{background:var(--acc2)}
+.frq-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.frq-grading{display:none;animation:fadeIn .4s ease}
+.frq-score-banner{background:linear-gradient(135deg,rgba(56,160,80,.12),rgba(8,14,10,.95));border:1px solid var(--border2);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.frq-total-score{font-family:var(--bebas);font-size:52px;line-height:1;color:var(--acc2)}
+.frq-overall-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;background:rgba(56,160,80,.04);border:1px solid var(--border);padding:14px;margin-top:10px}
+@media(max-width:600px){.hub-hero{padding:20px;flex-direction:column;text-align:center}.hub-content{padding:16px 16px 60px}.activity-grid{grid-template-columns:1fr}#question-area{padding:14px}.question-card{padding:16px}}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="ld-icon">🇮🇷</div>
+  <div class="ld-title">Unit 6: Iran</div>
+  <div class="ld-sub">AP Comparative Government · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<div id="hub">
+  <div class="hub-hero">
+    <img class="hub-flag" src="https://flagcdn.com/w160/ir.png" alt="Iran flag">
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP COMPARATIVE GOVERNMENT · UNIT 6</div>
+      <div class="hub-title">Iran</div>
+      <div class="hub-desc">The world's only theocratic republic — where an unelected Supreme Leader backed by divine authority sits above a president and parliament chosen through filtered elections, producing a permanent tension between Islamic governance and democratic aspiration.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">🏛️ Regime: <span>Theocratic Republic (Hybrid)</span></div>
+        <div class="hub-meta-item">📋 Ideology: <span>Velayat-e Faqih</span></div>
+        <div class="hub-meta-item">🗺️ System: <span>Unitary</span></div>
+        <div class="hub-meta-item">🗳️ Elections: <span>Guardian Council–filtered</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to AP Comparative</button>
+  </div>
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📋 Overview</button>
+  </div>
+  <div class="hub-content">
+    <div id="tab-play" class="hub-panel active">
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-text">0 / 4 Rounds Complete</span></div>
+        <div class="prog-bar"><div id="prog-fill" class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="activity-grid" id="round-cards"></div>
+    </div>
+    <div id="tab-frq" class="hub-panel">
+      <div style="margin-bottom:20px">
+        <div class="sh">FRQ Practice — Iran</div>
+        <p style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7;margin-bottom:16px">Practice all four AP Comparative FRQ types with Iran-focused prompts. AI-graded against official rubrics.</p>
+      </div>
+      <div id="frq-list"></div>
+      <div id="frq-workspace-area"></div>
+    </div>
+    <div id="tab-overview" class="hub-panel">
+      <div class="sh">Key Institutions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px">
+        ${[
+          {icon:'☪️',title:'Supreme Leader (Faqih)',sub:'Head of State · Unelected',desc:'The apex of all power — religious, political, and military. Currently Ayatollah Ali Khamenei (since 1989). Commands armed forces including Revolutionary Guards; appoints half of Guardian Council, judiciary chief, IRIB (state TV). Serves for life. Derives authority from velayat-e faqih (guardianship of the Islamic jurist) — a theological claim to rule until the Hidden Imam returns.'},
+          {icon:'🏛️',title:'President',sub:'Head of Government · Elected',desc:'Directly elected by citizens (4-yr term, max 2 consecutive). Must be a Shia Muslim male approved by Guardian Council. Manages cabinet, implements laws, proposes budget. Currently Masoud Pezeshkian (2024 — reformist). Real power limited by Supreme Leader\'s authority. Second in state hierarchy after the faqih.'},
+          {icon:'📜',title:'Majles (Parliament)',sub:'290 seats · Unicameral',desc:'Directly elected; passes legislation, approves budget, can impeach president. All candidates vetted by Guardian Council — reformists and moderates routinely disqualified. Laws must pass Guardian Council review to take effect. Has been more conservative since 2020 mass candidate disqualification.'},
+          {icon:'⚖️',title:'Guardian Council',sub:'12 members · Unelected',desc:'The most powerful institution after the Supreme Leader. 6 Islamic jurists appointed by Supreme Leader + 6 lawyers nominated by judiciary (also controlled by Supreme Leader). Vets ALL election candidates. Reviews ALL legislation for compliance with Islam and the constitution. A bill rejected by Guardian Council dies unless the Expediency Council intervenes.'},
+          {icon:'📚',title:'Assembly of Experts',sub:'88 members · Elected (filtered)',desc:'Elected body of senior clerics. Theoretically appoints, supervises, and can remove the Supreme Leader. In practice has never challenged or disciplined a Supreme Leader. Candidates vetted by — the Guardian Council, making it circular: the Supreme Leader controls who can evaluate him. Meets twice yearly.'},
+          {icon:'⚡',title:'Islamic Revolutionary Guard Corps (IRGC)',sub:'Parallel Military · Economic Power',desc:'Created in 1979 to defend the revolution — a parallel military alongside the conventional army. Controls 20-40% of the Iranian economy through business conglomerates (construction, telecoms, oil). Designated a terrorist organization by the US (2019). Enforces domestic order, runs the Basij militia. A state within the state.'}
+        ].map(i=>`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">${i.icon}</span>
+            <div><div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">${i.title}</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">${i.sub}</div></div>
+          </div>
+          <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">${i.desc}</div>
+        </div>`).join('')}
+      </div>
+      <div class="sh">Key Vocabulary</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:24px">
+        ${['Velayat-e faqih','Supreme Leader (Faqih)','Guardian Council','Majles','Assembly of Experts','Expediency Council','IRGC','Basij militia','1979 Islamic Revolution','Green Movement (2009)','Mahsa Amini protests (2022)','Reformists vs. hardliners','Rentier state','JCPOA (nuclear deal)','Theocracy'].map(t=>
+          `<div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">${t}</div>`
+        ).join('')}
+      </div>
+      <div class="sh">Timeline</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+        ${[
+          {year:'1953',event:'US/UK-backed coup ousts PM Mossadegh — reinstates Shah; deepens anti-Western sentiment'},
+          {year:'1963',event:'Shah\'s White Revolution — land reform and women\'s suffrage; opposed by Khomeini'},
+          {year:'1979',event:'Islamic Revolution — Shah flees; Khomeini returns; Islamic Republic declared'},
+          {year:'1979–81',event:'US Embassy hostage crisis (444 days); constitution enshrines velayat-e faqih'},
+          {year:'1980–88',event:'Iran-Iraq War — up to 1 million dead; Revolutionary Guard consolidates power'},
+          {year:'1989',event:'Khomeini dies; Khamenei (lower-ranking cleric) becomes Supreme Leader'},
+          {year:'1997',event:'Reformist Khatami elected president — internet opens; civil society grows'},
+          {year:'2005',event:'Hardliner Ahmadinejad elected; confrontational foreign policy; nuclear program accelerates'},
+          {year:'2009',event:'Green Movement — disputed election sparks massive protests; Basij suppression'},
+          {year:'2013–21',event:'Rouhani (moderate) presidency; JCPOA nuclear deal (2015); US withdraws (2018)'},
+          {year:'2021',event:'Hardliner Raisi elected after Guardian Council disqualifies reformist candidates'},
+          {year:'2022',event:'Mahsa Amini dies in morality police custody — "Woman, Life, Freedom" protests nationwide'},
+          {year:'2024',event:'Raisi dies in helicopter crash; reformist Pezeshkian elected president'}
+        ].map(e=>`<div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;gap:14px;align-items:flex-start">
+          <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;min-width:44px;flex-shrink:0">${e.year}</div>
+          <div style="font-family:var(--dm);font-size:10px;color:var(--text2)">${e.event}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div class="gp-pips" id="game-pips"></div>
+      <div id="game-gold-disp">🪙 0</div>
+    </div>
+  </div>
+  <div id="round-intro">
+    <div class="ri-icon" id="ri-icon">🇮🇷</div>
+    <div class="ri-round" id="ri-round">ROUND 1</div>
+    <div class="ri-title" id="ri-title">Iran Country Profile</div>
+    <div class="ri-desc" id="ri-desc">Test your knowledge.</div>
+    <button class="ri-btn" onclick="beginRound()"><span>▶ Begin</span></button>
+  </div>
+  <div id="question-area" style="display:none"></div>
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">⭐</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score"></div>
+    <div class="rc-sub" id="rc-sub"></div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn">Continue →</button>
+  </div>
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal">🇮🇷</div>
+    <div class="uc-title">UNIT COMPLETE</div>
+    <div class="uc-name">Iran</div>
+    <div class="uc-score" id="uc-score" style="color:var(--acc2)">A</div>
+    <div class="uc-grade" id="uc-grade">EXCELLENT</div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="returnToShell()">✓ Back to AP Comparative</button>
+      <button class="uc-btn secondary" onclick="replayUnit()">↺ Play Again</button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+</div>
+
+<script>
+const UNIT_ID='apcmp_u6';
+const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
+
+const QUESTION_BANK={
+  rounds:[
+    {
+      id:'r1',label:'Round 1 — Iran Country Profile',type:'knowledge',icon:'🇮🇷',
+      desc:'The foundations of Iranian politics — the 1979 Revolution, velayat-e faqih, the dual power structure, key institutions, and how theocracy and republicanism coexist in tension.',
+      questions:[
+        {id:'r1_01',topic:'6.1',difficulty:'accessible',
+          stem:'Iran\'s political system is best classified as:',
+          choices:[{id:'A',text:'A parliamentary democracy with Islam as the state religion'},{id:'B',text:'A theocratic republic — combining an unelected Supreme Leader with divine authority above elected institutions like the president and parliament'},{id:'C',text:'A military dictatorship controlled by the Islamic Revolutionary Guard Corps'},{id:'D',text:'A semi-presidential democracy similar to France with a president and prime minister'}],
+          correct:'B',explanation:'Iran is uniquely classified as a theocratic republic — the only one in the world. It has genuine elections for president and parliament (republican elements), but an unelected Supreme Leader (faqih) holds ultimate authority over all branches based on the theological principle of velayat-e faqih. The Guardian Council filters candidates, ensuring the elected institutions cannot challenge clerical rule. This hybrid makes Iran impossible to fit neatly into standard regime typologies.'},
+        {id:'r1_02',topic:'6.1',difficulty:'accessible',
+          stem:'Velayat-e faqih (guardianship of the Islamic jurist) refers to:',
+          choices:[{id:'A',text:'The Iranian parliament\'s authority to pass laws consistent with Islamic principles'},{id:'B',text:'The theological principle that a supreme Islamic jurist should govern society until the return of the Hidden Imam — the foundation of Supreme Leader authority'},{id:'C',text:'The Guardian Council\'s power to veto legislation inconsistent with Islam'},{id:'D',text:'The principle that all Iranian citizens must follow Islamic law in their personal conduct'}],
+          correct:'B',explanation:'Velayat-e faqih is the theological cornerstone of Iran\'s political system, devised by Ayatollah Khomeini. In Twelver Shia Islam, the Hidden Imam (12th Imam) disappeared in 874 CE and will return at the end of times. Until then, Khomeini argued, a qualified Islamic jurist (faqih) must govern society. This transformed traditional Shia quietism (clerics stay out of politics) into revolutionary political theology — the basis for a cleric becoming head of state.'},
+        {id:'r1_03',topic:'6.1',difficulty:'moderate',
+          stem:'The Guardian Council\'s most significant power in Iranian politics is:',
+          choices:[{id:'A',text:'Its authority to declare war on behalf of Iran without presidential approval'},{id:'B',text:'Its power to vet all candidates for elected office — disqualifying anyone deemed insufficiently Islamic or politically threatening, determining who can actually compete in elections'},{id:'C',text:'Its authority to appoint the Supreme Leader when a vacancy occurs'},{id:'D',text:'Its role as the supreme court that reviews all criminal cases for compliance with Islamic law'}],
+          correct:'B',explanation:'Candidate vetting is the Guardian Council\'s most consequential power — it effectively pre-decides elections by controlling who can run. In 2021, it disqualified nearly all reformist and moderate candidates for president (including former Parliament Speaker Ali Larijani), ensuring a field dominated by hardliners. The result: Ebrahim Raisi won with record-low turnout (~49%). This vetting function means Iranian elections provide a choice between regime-approved options, not a genuine choice between the regime and its opponents.'},
+        {id:'r1_04',topic:'6.1',difficulty:'moderate',
+          stem:'The 1979 Iranian Revolution was distinctive compared to other 20th-century revolutions because:',
+          choices:[{id:'A',text:'It was the only revolution in history to succeed without violence'},{id:'B',text:'It replaced a secular monarchy with an Islamic theocracy — establishing Islam as the explicit basis of governance in a modern nation-state for the first time in the modern era'},{id:'C',text:'It was supported and facilitated by the United States as part of Cold War strategy'},{id:'D',text:'It was a communist revolution that later adopted Islamic ideology for popular appeal'}],
+          correct:'B',explanation:'The 1979 Revolution was genuinely unprecedented: a broad coalition (Marxists, nationalists, liberals, clerics) overthrew the US-backed Shah, but Khomeini\'s organizational superiority allowed the clerics to capture the state. The result — an explicitly Islamic state with a cleric as supreme authority — had no modern precedent. This challenged both Western liberal and Soviet Marxist models of modernity, asserting that Islamic governance was a legitimate modern alternative. Its success inspired Islamist movements globally.'},
+        {id:'r1_05',topic:'6.2',difficulty:'moderate',
+          stem:'Iran\'s dual executive structure means that:',
+          choices:[{id:'A',text:'Both the president and the parliament share executive power equally'},{id:'B',text:'The elected president manages day-to-day governance but all significant decisions require Supreme Leader approval or acquiescence — creating a system where presidential power is real but bounded by unelected religious authority above'},{id:'C',text:'Iran has both a civilian president and a military president who share authority'},{id:'D',text:'The Supreme Leader and president take turns holding executive power in 4-year cycles'}],
+          correct:'B',explanation:'Iran\'s "dual executive" is more accurately a hierarchical executive: the president runs the government (cabinet, budget, foreign policy implementation) but the Supreme Leader sets overall policy direction, controls the IRGC, appoints judiciary and media, and can override presidential decisions. Presidents have ranged from radical (Ahmadinejad) to moderate (Rouhani) without fundamentally changing the system. When Rouhani negotiated the JCPOA nuclear deal, Khamenei had to approve; when Trump withdrew and Khamenei chose continued uranium enrichment, Rouhani had to implement it.'},
+        {id:'r1_06',topic:'6.1',difficulty:'moderate',
+          stem:'The Assembly of Experts is theoretically significant but practically weak because:',
+          choices:[{id:'A',text:'It meets too rarely to exercise any meaningful authority'},{id:'B',text:'Although it can appoint and remove the Supreme Leader, its own candidates are vetted by the Guardian Council which the Supreme Leader controls — making it structurally unable to genuinely oversee or challenge him'},{id:'C',text:'It has no constitutional authority — its powers exist only in custom, not law'},{id:'D',text:'Foreign interference has prevented it from ever assembling a quorum'}],
+          correct:'B',explanation:'The Assembly of Experts circularity is one of the most elegant examples of authoritarian institutional design in AP Comparative: the Assembly can theoretically remove the Supreme Leader, but its members must be clerics approved by the Guardian Council, which the Supreme Leader controls. In 2016 and 2024, the Guardian Council disqualified hundreds of reformist candidates for the Assembly, ensuring it remains dominated by conservatives loyal to Khamenei. The "check" on the Supreme Leader is controlled by the Supreme Leader.'},
+        {id:'r1_07',topic:'6.3',difficulty:'moderate',
+          stem:'The Islamic Revolutionary Guard Corps (IRGC) is unique in Iranian politics because:',
+          choices:[{id:'A',text:'It is the only military force that reports directly to the elected president rather than the Supreme Leader'},{id:'B',text:'It functions as both a military force and a major economic actor — controlling 20-40% of Iran\'s economy through businesses in construction, telecoms, and energy — making it a state within the state'},{id:'C',text:'It was established by the US government to protect Iran\'s oil infrastructure'},{id:'D',text:'It provides Iran\'s nuclear deterrent independently of other military branches'}],
+          correct:'B',explanation:'The IRGC\'s economic empire (through Khatam al-Anbiya construction and dozens of affiliated companies) makes it politically untouchable: it controls so much economic activity that challenging IRGC interests would cause economic disruption. This gives the IRGC both coercive capacity (military/Basij) and structural economic power that no reformist president can easily confront. Its designation as a terrorist organization by the US (2019) and the subsequent US maximum pressure campaign targeted this economic empire specifically.'},
+        {id:'r1_08',topic:'6.1',difficulty:'moderate',
+          stem:'Iran\'s political system is described as a "hybrid" regime primarily because:',
+          choices:[{id:'A',text:'It combines elements of Sunni and Shia Islam in its governance'},{id:'B',text:'It contains genuine elections for some offices alongside unelected institutions with ultimate power — mixing republican procedures with theocratic authority in ways that make simple classification difficult'},{id:'C',text:'It alternates between democratic and authoritarian governance every decade'},{id:'D',text:'Half its territory is governed by secular law and half by Islamic law'}],
+          correct:'B',explanation:'Iran fits Freedom House\'s "Not Free" designation (14/100) while also having regular elections that produce real factional competition between conservatives and reformists. This combination — genuine but bounded elections within an authoritarian framework — makes Iran a "hybrid regime" that resists clean categorization. It is more open than China (no competitive elections) or Saudi Arabia (no elections) but far less open than electoral democracies. The reformist-hardliner axis represents real political competition, just within limits that cannot threaten clerical rule itself.'},
+        {id:'r1_09',topic:'6.2',difficulty:'moderate',
+          stem:'The Expediency Council\'s primary function is to:',
+          choices:[{id:'A',text:'Manage Iran\'s oil revenues and distribute them to the provinces'},{id:'B',text:'Resolve conflicts when the Majles passes legislation that the Guardian Council blocks as un-Islamic or unconstitutional, serving as an arbitration body'},{id:'C',text:'Coordinate Iran\'s foreign policy with the Supreme Leader\'s strategic directives'},{id:'D',text:'Manage relations between Iran\'s Shia majority and Sunni, Christian, and Jewish minorities'}],
+          correct:'B',explanation:'The Expediency Council (Majma-e Tashkhis-e Maslahat-e Nezam) was created in 1988 to break deadlocks between the Majles and Guardian Council. When the parliament passes a law the Guardian Council rejects (as un-Islamic), the Expediency Council can override the Guardian Council in the interests of "state expediency." This allows pragmatic governance to sometimes override strict Islamic interpretation — an institutionalized tension between revolutionary ideology and practical governance. Former President Rafsanjani long chaired it.'},
+        {id:'r1_10',topic:'6.3',difficulty:'moderate',
+          stem:'Iran\'s political cleavage between "reformists" and "hardliners/conservatives" is best understood as:',
+          choices:[{id:'A',text:'A division over whether Iran should remain an Islamic Republic or become a secular state'},{id:'B',text:'A competition within the system — reformists want expanded political freedoms, women\'s rights, and diplomatic engagement while staying within the Islamic Republic framework; conservatives prioritize Islamic law enforcement, IRGC power, and anti-Western confrontation'},{id:'C',text:'A class divide between wealthy urban Iranians (hardliners) and poor rural Iranians (reformists)'},{id:'D',text:'A ethnic divide between Persian reformists and Azeri and Kurdish hardliners'}],
+          correct:'B',explanation:'The reformist-hardliner cleavage is real but bounded: neither faction challenges the Islamic Republic itself or the principle of velayat-e faqih. Reformists like Khatami (1997–2005) and Rouhani (2013–2021) pushed for civil society, press freedom, women\'s rights (within Islamic law), and diplomatic engagement. Hardliners like Ahmadinejad and Raisi emphasized IRGC power, Islamic law enforcement (morality police), anti-US confrontation, and domestic repression. The Guardian Council determines how much reformist space exists by its candidate vetting decisions.'},
+        {id:'r1_11',topic:'6.4',difficulty:'moderate',
+          stem:'Iran\'s 2009 Green Movement was triggered by:',
+          choices:[{id:'A',text:'Iran\'s nuclear program being exposed by international inspectors'},{id:'B',text:'The disputed presidential election result showing incumbent hardliner Ahmadinejad won by an implausibly large margin over reformist Mousavi — producing the largest protests since 1979'},{id:'C',text:'Economic sanctions imposed by the United States following the US Embassy hostage crisis'},{id:'D',text:'The death of Supreme Leader Khomeini and uncertainty about succession'}],
+          correct:'B',explanation:'The 2009 Green Movement was Iran\'s most significant internal challenge to the Islamic Republic. When official results showed Ahmadinejad winning by 63% over Mousavi (whose supporters believed was impossible given visible pre-election enthusiasm), millions took to the streets with the slogan "Where is my vote?" The Basij militia violently suppressed protests; Mousavi and fellow candidate Karroubi were placed under house arrest (where they remained for years). The Green Movement showed that elections can become sites of genuine political contest even in authoritarian regimes — and that the regime will use force to protect outcomes.'},
+        {id:'r1_12',topic:'6.4',difficulty:'moderate',
+          stem:'The 2022 "Mahsa Amini" protests ("Woman, Life, Freedom") differed from the 2009 Green Movement primarily because:',
+          choices:[{id:'A',text:'The 2022 protests were smaller and less significant than the 2009 protests'},{id:'B',text:'The 2022 protests explicitly challenged the Islamic Republic\'s core legitimacy (mandatory hijab, morality police) across all social classes and regions, not just a disputed election result — representing a more fundamental challenge to the regime\'s Islamic character'},{id:'C',text:'The 2022 protests were organized by the US government while the 2009 protests were spontaneous'},{id:'D',text:'The 2022 protests succeeded in achieving democratic reforms while 2009 was completely suppressed'}],
+          correct:'B',explanation:'The Mahsa Amini protests (2022-23) went beyond the electoral grievances of 2009. Mahsa Amini\'s death in morality police custody sparked protests where women burned hijabs — directly challenging the mandatory Islamic dress code that is central to the regime\'s Islamic identity. Crucially, protests spread to all regions, classes, and age groups — not just urban reformist voters. Protesters shouted "Death to Khamenei" (rare explicit regime rejection) and "Woman, Life, Freedom." This was the most serious existential challenge to the Islamic Republic since 1979, though ultimately suppressed through mass arrests and executions.'},
+        {id:'r1_13',topic:'6.3',difficulty:'challenging',
+          stem:'Iran is described as a "rentier state" primarily because:',
+          choices:[{id:'A',text:'The government charges rent to foreign companies for access to Iranian markets'},{id:'B',text:'Iran\'s government derives most revenue from oil and gas exports rather than taxing citizens — allowing it to distribute patronage without needing citizens\' consent, reducing democratic accountability'},{id:'C',text:'Iran rents military bases to Russia and China in exchange for diplomatic support'},{id:'D',text:'Iran\'s economy is dominated by state-owned companies that rent property and equipment to private businesses'}],
+          correct:'B',explanation:'Rentier state theory (developed by scholars of the Middle East) argues that when governments derive revenue from resource rents (oil/gas) rather than citizens\' taxes, they face less pressure for political accountability. The "no taxation without representation" logic runs in reverse: if citizens receive subsidies (cheap fuel, food, utilities) from oil revenues rather than paying taxes, they have less leverage to demand political rights. Iran\'s oil wealth has funded the IRGC, subsidies, and patronage networks — insulating the regime from some democratic pressures. Economic sanctions targeting oil exports directly attack this insulation mechanism.'},
+        {id:'r1_14',topic:'6.1',difficulty:'moderate',
+          stem:'The Supreme Leader\'s appointment process involves:',
+          choices:[{id:'A',text:'Direct popular election by Iranian citizens in a nationwide vote'},{id:'B',text:'Selection by the Assembly of Experts — a body of elected clerics who theoretically oversee him, though the Guardian Council vets Assembly candidates, creating a circular accountability structure'},{id:'C',text:'Hereditary succession — the position passes from Supreme Leader to his designated son'},{id:'D',text:'Joint appointment by the Majles and the Guardian Council in a two-thirds majority vote'}],
+          correct:'B',explanation:'The Supreme Leader\'s appointment mechanism is the clearest example of Iran\'s institutional circularity. The Assembly of Experts (88 elected clerics) formally selects the Supreme Leader. But the Guardian Council vets all Assembly candidates — and 6 of the 12 Guardian Council members are appointed by the Supreme Leader. In practice: Khamenei has served since 1989 with no credible challenge from the Assembly. The institution that could theoretically hold him accountable is controlled by those loyal to him, making the "check" a legal formality rather than a political reality.'},
+        {id:'r1_15',topic:'6.4',difficulty:'challenging',
+          stem:'Iran\'s 1953 CIA/British-backed coup against Prime Minister Mossadegh is relevant to understanding modern Iranian politics because:',
+          choices:[{id:'A',text:'It created the current Supreme Leader position as a response to Western interference'},{id:'B',text:'It entrenched deep anti-Western sentiment that the Islamic Republic exploits for legitimacy — framing US pressure (sanctions, maximum pressure) as continuation of imperial intervention that justifies authoritarian resistance'},{id:'C',text:'The coup directly caused the 1979 Revolution by removing democratic alternatives'},{id:'D',text:'It is irrelevant to modern Iranian politics as most Iranians have forgotten events from 70 years ago'}],
+          correct:'B',explanation:'The 1953 coup (Operation Ajax) — which overthrew Iran\'s democratically elected PM Mossadegh after he nationalized British oil (Anglo-Iranian Oil Company) — is seared into Iranian political memory. The Islamic Republic constantly invokes it to legitimate anti-US positions: "America removed our democracy in 1953, so their calls for democracy now are hypocritical." When the US imposes sanctions or threatens military action, the regime frames this as imperial aggression continuing the 1953 pattern. This historical narrative genuinely resonates across reformist-hardliner lines — even many Iranians who oppose the regime distrust the US.'}
+      ]
+    },
+    {
+      id:'r2',label:'Round 2 — Governance in Action',type:'knowledge',icon:'☪️',
+      desc:'How Iran\'s system actually operates — factional politics, civil society, women\'s rights, the nuclear question, economic sanctions, and Iran\'s regional strategy.',
+      questions:[
+        {id:'r2_01',topic:'6.2',difficulty:'moderate',
+          stem:'Iran\'s factional politics between reformists and hardliners is best described as:',
+          choices:[{id:'A',text:'A genuine multiparty democracy where any Iranian can run for any office'},{id:'B',text:'Competition within regime-approved limits — all factions accept the Islamic Republic and velayat-e faqih; the Guardian Council sets the boundaries of permissible competition by disqualifying candidates who go too far'},{id:'C',text:'A staged political performance with no real policy differences between factions'},{id:'D',text:'A civil war between secular reformists who want to abolish the Islamic Republic and hardliners defending it'}],
+          correct:'B',explanation:'Iranian factional politics is real but bounded. Reformists (Khatami era, Rouhani, now Pezeshkian) genuinely advocate for expanded press freedom, women\'s rights, nuclear diplomacy, and less morality policing. Hardliners genuinely prefer confrontational foreign policy, IRGC power, and strict Islamic enforcement. These differences produce different governance outcomes. But neither faction wants to abolish the Supreme Leader or hold free elections. The Guardian Council is the gatekeeper: when hardliners fully control it (2021 elections), reformists cannot run, narrowing the factional range to conservatives and ultra-conservatives.'},
+        {id:'r2_02',topic:'6.4',difficulty:'moderate',
+          stem:'Iran\'s civil society is best described as:',
+          choices:[{id:'A',text:'Completely absent — all non-governmental organizations have been banned since 1979'},{id:'B',text:'Constrained but present — professional associations, women\'s groups, student organizations, and NGOs operate in contested spaces, with those that challenge the regime facing harassment, imprisonment, or closure'},{id:'C',text:'Vibrant and fully free — Iran has one of the most active civil societies in the Middle East'},{id:'D',text:'Limited to religious organizations approved by the Supreme Leader'}],
+          correct:'B',explanation:'Iranian civil society has periods of relative openness (Khatami\'s reformist era, 1997–2005, saw a newspaper proliferation and NGO growth) and crackdown (Ahmadinejad, post-2009 Green Movement). Women\'s rights activists, journalists, lawyers (like Nobel laureate Shirin Ebadi), and student groups operate in contested space — sometimes tolerated, sometimes imprisoned. The Mahsa Amini protests emerged partly from decades of women\'s rights activism. Iran illustrates how even severely constrained civil society can produce significant political challenges when conditions align.'},
+        {id:'r2_03',topic:'6.3',difficulty:'moderate',
+          stem:'Mandatory hijab (headscarf) in Iran is politically significant beyond dress policy because:',
+          choices:[{id:'A',text:'It is required by the Quran and is therefore non-negotiable for any Islamic government'},{id:'B',text:'It is a visible symbol of the Islamic Republic\'s authority over women\'s bodies and public life — its enforcement is inseparable from the regime\'s Islamic identity, making challenges to it challenges to the regime itself'},{id:'C',text:'It was introduced by the Shah in the 1960s and maintained by the Islamic Republic for continuity'},{id:'D',text:'It is only enforced in rural areas and has no practical effect in major cities like Tehran'}],
+          correct:'B',explanation:'Mandatory hijab (required for all women in public since 1981) is a politicized symbol more than a simple religious requirement. Many devout Muslim women freely choose to wear hijab; mandatory enforcement makes it about state control of women\'s bodies and public presentation of the regime\'s Islamic character. The morality police (Gasht-e Ershad) enforced it violently — leading to Mahsa Amini\'s death. Women burning hijabs in protests was understood by all parties as a direct political act challenging the regime\'s legitimacy, not just a fashion statement.'},
+        {id:'r2_04',topic:'6.3',difficulty:'moderate',
+          stem:'Iran\'s nuclear program is significant in comparative politics primarily because:',
+          choices:[{id:'A',text:'Iran has already developed nuclear weapons and threatened to use them against Israel'},{id:'B',text:'It represents a major source of regime legitimacy — framing nuclear development as sovereign rights and national dignity against Western pressure — and drives the sanctions regime that shapes Iran\'s economic and political development'},{id:'C',text:'The nuclear program is managed by reformist technocrats independent of the Supreme Leader\'s authority'},{id:'D',text:'Iran\'s nuclear program is identical to Pakistan\'s and demonstrates the same developmental pattern'}],
+          correct:'B',explanation:'Iran\'s nuclear program operates at the intersection of regime legitimacy and foreign policy. The regime frames it as a national right (Article IV of NPT allows peaceful nuclear energy) and national dignity (resisting Western "bullying"). When the JCPOA (2015 nuclear deal) provided sanctions relief, it boosted reformist Rouhani\'s political standing. When Trump withdrew (2018) and reimposed maximum pressure sanctions, Iran\'s economy contracted by ~15%, inflation hit 40%+, and hardliners gained ground domestically. Nuclear diplomacy is thus directly connected to Iranian factional politics and regime stability.'},
+        {id:'r2_05',topic:'6.3',difficulty:'moderate',
+          stem:'Economic sanctions have affected Iran\'s political system primarily by:',
+          choices:[{id:'A',text:'Causing Iran to democratize as economic pain forces the regime to seek popular legitimacy through elections'},{id:'B',text:'Both weakening regime capacity through economic contraction AND strengthening hardliners by enabling them to blame economic hardship on external enemies rather than governance failures'},{id:'C',text:'Having no meaningful effect since Iran\'s oil revenues insulate it from external pressure'},{id:'D',text:'Only affecting ordinary Iranians while the IRGC and Supreme Leader are completely insulated'}],
+          correct:'B',explanation:'Sanctions have contradictory political effects. They reduce regime revenue and hurt ordinary Iranians — creating genuine economic discontent. But they also give hardliners a narrative: "our problems are caused by American economic warfare, not by Islamic governance or IRGC corruption." Research on sanctions shows they often strengthen autocratic regimes\' nationalist legitimacy while punishing populations. Iran is a textbook case: sanctions hurt Iranians (currency lost 90%+ of value 2018-2022) while the IRGC — which controls smuggling and black market networks — actually expanded its economic power during maximum pressure.'},
+        {id:'r2_06',topic:'6.4',difficulty:'challenging',
+          stem:'Iran\'s support for Hezbollah in Lebanon, Hamas in Gaza, and Houthi rebels in Yemen is best explained as:',
+          choices:[{id:'A',text:'Purely religious solidarity — Iran supports all Shia Muslim communities globally'},{id:'B',text:'A strategic "axis of resistance" — using proxy forces to project power, deter military attack, and challenge US/Israeli influence in the region without direct state-to-state conflict'},{id:'C',text:'Economic investment in regional markets to offset the effects of international sanctions'},{id:'D',text:'Fulfilling UN Security Council obligations for regional peacekeeping'}],
+          correct:'B',explanation:'Iran\'s "axis of resistance" (also called the "forward defense" strategy) is a calculated geopolitical approach: by supporting and arming Hezbollah (Lebanon), Hamas (Gaza), Houthi rebels (Yemen), and Shia militias (Iraq, Syria), Iran projects military reach far beyond its borders without committing regular forces. This deters direct military attack (any strike on Iran could trigger responses from these proxies) and challenges US/Israeli regional dominance at relatively low cost. It is not purely religious — Hamas is Sunni; Iran funds it for strategic, not sectarian, reasons.'},
+        {id:'r2_07',topic:'6.2',difficulty:'moderate',
+          stem:'Iran\'s Basij militia is significant in domestic politics because:',
+          choices:[{id:'A',text:'It is Iran\'s conventional military force responsible for defending borders against external threats'},{id:'B',text:'It is a paramilitary force under IRGC command used primarily for domestic social control — suppressing protests, enforcing Islamic moral codes, and mobilizing pro-regime crowds'},{id:'C',text:'It is a volunteer humanitarian organization providing disaster relief to poor Iranian communities'},{id:'D',text:'It represents Iran\'s nuclear program security personnel'}],
+          correct:'B',explanation:'The Basij (literally "mobilization") was created during the Iran-Iraq war as a volunteer force. Today it serves primarily as a domestic enforcement arm: it played the central role in suppressing the 2009 Green Movement (beating and killing protesters) and the 2019 fuel protests. It provides recruitment channels for regime loyalists through material incentives (jobs, university admissions preferences). During the 2022 Mahsa Amini protests, Basij members both suppressed protests and were targeted by protesters. It represents the regime\'s ability to mobilize loyalists as a counterforce against opposition.'},
+        {id:'r2_08',topic:'6.2',difficulty:'moderate',
+          stem:'Iran\'s electoral participation (voter turnout) has declined significantly in recent elections primarily because:',
+          choices:[{id:'A',text:'Iran\'s population has become more religious and avoids secular civic activities like voting'},{id:'B',text:'Systematic disqualification of reformist and moderate candidates by the Guardian Council has reduced meaningful electoral choice, leading many Iranians to boycott elections as a form of protest'},{id:'C',text:'US sanctions have disrupted the logistics of conducting elections in Iran'},{id:'D',text:'Iran changed its voting system to make participation more difficult for ordinary citizens'}],
+          correct:'B',explanation:'Iranian voter turnout tells a political story: presidential elections with genuine reformist-hardliner competition (1997 Khatami: 79%; 2009 Mousavi vs. Ahmadinejad: 85%) drew massive turnout. After mass disqualifications narrowed the field to hardliner-dominated choices, turnout collapsed: 2021 Raisi election: ~49% (lowest since 1979). This decline represents active boycott by millions who would have voted for excluded candidates. The regime faces a legitimacy dilemma: heavy candidate filtering ensures ideological compliance but produces embarrassingly low turnout that undermines electoral legitimacy claims.'},
+        {id:'r2_09',topic:'6.4',difficulty:'moderate',
+          stem:'The JCPOA (Joint Comprehensive Plan of Action) nuclear deal (2015) is significant for AP Comparative because it:',
+          choices:[{id:'A',text:'Ended Iran\'s nuclear program permanently in exchange for US recognition of the Islamic Republic'},{id:'B',text:'Demonstrated that reformist-conservative factional politics in Iran has real policy consequences — Rouhani\'s diplomacy produced tangible sanctions relief, and Trump\'s withdrawal in 2018 directly strengthened Iranian hardliners who had always opposed the deal'},{id:'C',text:'Was negotiated entirely by the Supreme Leader without presidential involvement'},{id:'D',text:'Required Iran to adopt democratic governance reforms as a condition of sanctions relief'}],
+          correct:'B',explanation:'The JCPOA is a case study in how external policy changes affect domestic politics. When the deal was signed (2015), Iran received ~$100 billion in unfrozen assets and sanctions relief, boosting Rouhani\'s approval and the reformist argument that diplomacy works. When Trump withdrew (2018, "maximum pressure"), Iran\'s economy contracted sharply, discrediting reformist arguments for engagement. Hardliners could argue: "diplomacy with America is futile." The 2021 election of Raisi — a hardliner — directly reflected the collapse of reformist credibility after maximum pressure. External policy shapes domestic factional outcomes.'},
+        {id:'r2_10',topic:'6.1',difficulty:'moderate',
+          stem:'Iran\'s political system differs from Saudi Arabia\'s primarily in that:',
+          choices:[{id:'A',text:'Iran is a Sunni theocracy while Saudi Arabia is a Shia theocracy'},{id:'B',text:'Iran holds elections (even if filtered) and has elected institutions with real (if bounded) power, while Saudi Arabia is an absolute monarchy with no elections for national government'},{id:'C',text:'Saudi Arabia has a more democratic system with competitive elections for parliament'},{id:'D',text:'Iran has a secular government with Islam only as a symbolic state religion'}],
+          correct:'B',explanation:'This comparison reveals important variation within the "theocratic authoritarian" category. Both Iran and Saudi Arabia are governed according to Islamic principles. But Iran\'s Islamic Republic has elections (filtered), a parliament (constrained), a president (limited), and factional competition (bounded). Saudi Arabia\'s absolute monarchy has no elections for national government, no parliament until 2005 (and that remains advisory), and power passes dynastically. Iran\'s hybrid republican-theocratic model is genuinely different from Gulf monarchies — a distinct path for political Islam.'},
+        {id:'r2_11',topic:'6.4',difficulty:'challenging',
+          stem:'The "Woman, Life, Freedom" protest slogan that emerged in 2022 is analytically significant because:',
+          choices:[{id:'A',text:'It shows that Iranian women are entirely secular and reject Islam'},{id:'B',text:'It represents a generational shift where young Iranians explicitly demand individual rights and dignity against state control — framing women\'s freedom as the entry point for broader democratic demands, not just a single-issue protest'},{id:'C',text:'It was a slogan imported from Western feminist movements without genuine Iranian roots'},{id:'D',text:'It succeeded in achieving its goals when the government abolished the morality police'}],
+          correct:'B',explanation:'"Woman, Life, Freedom" (Zan, Zendegi, Azadi) carries multiple dimensions: gender rights (women\'s bodily autonomy), life (against police violence and executions), freedom (against Islamic Republic authoritarianism broadly). Unlike 2009\'s electoral focus or 2019\'s economic focus, these protests fused women\'s rights with democratic aspirations and anti-regime sentiment. The demographic was striking: young Iranians (under 35 are ~50% of the population) who grew up entirely under the Islamic Republic and show lower religiosity and higher rights consciousness than earlier generations. This represents the Islamic Republic\'s deepest demographic challenge.'},
+        {id:'r2_12',topic:'6.3',difficulty:'moderate',
+          stem:'Iran\'s Shia Islam majority is politically significant because:',
+          choices:[{id:'A',text:'Shia Islam is uniquely compatible with democratic governance in a way that Sunni Islam is not'},{id:'B',text:'The specific Shia concept of the Hidden Imam and qualified religious jurist (faqih) governance provided the theological foundation for Khomeini\'s unique system — impossible to replicate from Sunni Islamic jurisprudence'},{id:'C',text:'Shia Islam requires all adherents to obey any government that follows Islamic principles'},{id:'D',text:'Iran\'s Shia majority ensures permanent religious harmony without ethnic or sectarian cleavages'}],
+          correct:'B',explanation:'Iran\'s specific brand of theocracy is rooted in Twelver Shia theology that has no direct Sunni equivalent. The concept of the Hidden Imam (who will return) and qualified clerical governance in his absence is a specific Shia theological innovation. This is why no Sunni-majority country has replicated Iran\'s exact model (though various Islamist movements draw inspiration). It also explains why Shia-majority communities in Lebanon, Iraq, and Bahrain are more receptive to Iranian influence — they share the theological framework for clerical political authority.'},
+        {id:'r2_13',topic:'6.2',difficulty:'moderate',
+          stem:'Social cleavages in Iran include all of the following EXCEPT:',
+          choices:[{id:'A',text:'Generational — younger Iranians (under 35) are more secular, more supportive of women\'s rights, and more reform-oriented than older generations'},{id:'B',text:'Regional/ethnic — Persians (~51%) alongside Azeris, Kurds, Baluchis, and Arabs with different linguistic and religious identities'},{id:'C',text:'Class — urban educated professionals align with reformists; rural and urban working class show more conservative religious attachment'},{id:'D',text:'Deep Sunni-Shia sectarian conflict that regularly produces armed violence within Iran'}],
+          correct:'D',explanation:'Iran has real cleavages — generational (young secular vs. older religious), regional/ethnic (Persian majority + Azeri 25%, Kurdish 10%, Arab 3%), and class (urban educated reformist vs. rural conservative). But internal Sunni-Shia sectarian violence is not a significant domestic cleavage. Iran is ~90-95% Shia; the Sunni minority (mostly Kurds, Baluchis, some Arabs) faces discrimination but not the sustained communal violence seen in Iraq, Syria, or Lebanon. Iran\'s significant ethnic minorities (Kurds, Baluchis) do face separatist tensions, but framed in ethnic/national rather than primarily sectarian terms.'},
+        {id:'r2_14',topic:'6.1',difficulty:'moderate',
+          stem:'Iran\'s constitution contains both democratic rights (freedom of speech, press) and theocratic limitations ("within Islamic principles"). This contradiction means:',
+          choices:[{id:'A',text:'Citizens enjoy full democratic rights since constitutional rights must be respected by Islamic law'},{id:'B',text:'Constitutional rights are real but limited — speech, press, and association are permitted to the extent the Guardian Council and judiciary determine is compatible with Islam, creating structural ambiguity that allows selective enforcement'},{id:'C',text:'The constitution is irrelevant since Iran is governed purely by Supreme Leader decrees'},{id:'D',text:'Iran is a functional liberal democracy since democratic rights are constitutionally guaranteed'}],
+          correct:'B',explanation:'Iran\'s constitutional ambiguity is a feature, not a bug, of the system. Rights with Islamic qualifications are enforced selectively: a newspaper can criticize the president but not the Supreme Leader; women can demonstrate but not without hijab; political parties can form but not if they challenge Islamic governance. This creates a gray zone that fluctuates with factional power — reformist periods see looser interpretation; hardliner periods see tighter enforcement. The ambiguity gives the system flexibility to adjust repression levels without constitutional revision.'},
+        {id:'r2_15',topic:'6.4',difficulty:'challenging',
+          stem:'Which of the following best explains why Iran has NOT experienced successful democratization despite repeated protest movements (1999, 2009, 2019, 2022)?',
+          choices:[{id:'A',text:'Iranian citizens do not actually want democracy — survey data shows overwhelming satisfaction with theocratic governance'},{id:'B',text:'The IRGC\'s coercive capacity, the regime\'s oil-funded patronage, ideological fragmentation of the opposition, and absence of elite defection have together prevented protest from converting into regime change'},{id:'C',text:'Western sanctions have prevented pro-democracy movements from receiving the international support needed to succeed'},{id:'D',text:'Iranian protests have been too small and geographically limited to threaten the regime'}],
+          correct:'B',explanation:'This tests understanding of why authoritarian regimes survive protests. Four factors explain Iran\'s resilience: (1) IRGC coercive capacity — the regime has demonstrated willingness to kill protesters (estimates: 1,500 in 2019; 500+ in 2022); (2) oil patronage insulating some constituencies; (3) opposition fragmentation — no unified leadership, no alternative program, no organizational capacity for sustained challenge; (4) no elite defection — unlike Eastern Europe 1989, Iran\'s military and clerical establishment has not split. Successful regime change typically requires elite defection + mass mobilization; Iran has only had the latter.'}
+      ]
+    },
+    {
+      id:'r3',label:'Round 3 — Iran Data & Comparison',type:'data_stimulus',icon:'📊',
+      desc:'Analyze data on Iran\'s political indicators, electoral participation trends, and comparisons across the six AP Comparative countries.',
+      sets:[
+        {
+          id:'iran_elections',
+          title:'Iran Presidential Election Turnout & Outcome Over Time',
+          source:'Iranian Ministry of Interior; official results; Note: 2009 results disputed by opposition',
+          chartType:'table',
+          tableData:{
+            headers:['Year','Turnout','Winner','Faction','Key Context'],
+            rows:[
+              ['1997','79%','Khatami','Reformist','Surprise reform victory; civil society opens'],
+              ['2001','67%','Khatami (re)','Reformist','Consolidation but Guardian Council blocks reforms'],
+              ['2005','63%','Ahmadinejad','Hardliner','Reformist splits; low 1st round; runoff upset'],
+              ['2009','85%','Ahmadinejad','Hardliner','Disputed results; Green Movement protests'],
+              ['2013','73%','Rouhani','Moderate','Nuclear diplomacy; JCPOA negotiations begin'],
+              ['2017','73%','Rouhani (re)','Moderate','JCPOA survives; US withdraws 2018'],
+              ['2021','49%','Raisi','Hardliner','Record low turnout; mass candidate disqualification'],
+              ['2024','40%','Pezeshkian','Reformist','Lowest ever turnout; Raisi died in crash']
+            ]
+          },
+          questions:[
+            {id:'r3_01',topic:'6.2',difficulty:'moderate',
+              stem:'Based on the data, which of the following best describes the trend in Iranian electoral participation since 2009?',
+              choices:[{id:'A',text:'Turnout has remained consistently high, showing Iranian citizens\' strong faith in their electoral system'},{id:'B',text:'Turnout has generally declined — particularly sharply after 2017 — correlating with increased Guardian Council candidate disqualifications that reduced meaningful electoral choice'},{id:'C',text:'Turnout declined in hardliner elections but surged back in reformist elections, showing citizens prefer reformist candidates'},{id:'D',text:'The data shows no clear trend — turnout varies randomly regardless of political context'}],
+              correct:'B',
+              explanation:'The data shows a clear pattern: high turnout when genuine competition exists (1997: 79%, 2009: 85%, 2013-17: 73%) and collapsing turnout when choices narrow (2021: 49%, 2024: 40%). The 2021 and 2024 elections followed the Guardian Council\'s mass disqualification of reformist candidates — leaving voters with only conservative or hardliner options. The turnout decline is itself a political act: millions who would have voted for excluded reformists chose boycott as protest. The 2024 record-low 40% is particularly striking given the unexpected opening created by Raisi\'s death.'},
+            {id:'r3_02',topic:'6.2',difficulty:'challenging',
+              stem:'The data shows that reformist presidents (Khatami 1997–2005, Rouhani 2013–2021) won elections through high turnout while hardliner Raisi won in 2021 with record-low turnout. Which of the following best explains this pattern?',
+              choices:[{id:'A',text:'Hardliners are so unpopular that they can only win when fewer people vote'},{id:'B',text:'When the Guardian Council allows genuine reformist-hardliner competition, high turnout benefits reformists; when it disqualifies reformists, low turnout results as their supporters boycott, but the regime\'s loyal base still votes — producing hardliner victories despite lower absolute vote totals'},{id:'C',text:'Reformists cheat in elections to inflate turnout numbers'},{id:'D',text:'Rural Iranians vote in hardliner elections while urban Iranians only vote in reformist ones'}],
+              correct:'B',
+              explanation:'This explains the electoral dynamics precisely. The regime has a loyal base (estimated 15-20% of population) that votes consistently — IRGC families, Basij members, conservative religious communities. When reformists run, their supporters (urban, educated, younger) massively turn out, usually exceeding the hardliner base. When reformists are disqualified, those supporters boycott while the loyal base still votes — producing hardliner victories with lower totals. The Guardian Council thus manages electoral outcomes by controlling who can generate opposition turnout, not by directly rigging vote counts in most cases.'}
+          ]
+        },
+        {
+          id:'iran_compare',
+          title:'All Six AP Comparative Countries — Key Governance Indicators',
+          source:'Freedom House 2023; V-Dem 2023; TI Corruption Perceptions Index 2023; World Bank HDI 2023',
+          chartType:'bar',
+          data:[
+            {label:'UK\n93',value:93,color:'#5dba7a'},
+            {label:'Mexico\n60',value:60,color:'#5dba7a'},
+            {label:'Nigeria\n44',value:44,color:'#e8a020'},
+            {label:'Russia\n16',value:16,color:'#e04040'},
+            {label:'Iran\n14',value:14,color:'#e04040'},
+            {label:'China\n9',value:9,color:'#e04040'}
+          ],
+          questions:[
+            {id:'r3_03',topic:'6.1',difficulty:'moderate',
+              stem:'Based on the Freedom House scores, Iran (14) and Russia (16) score similarly. Which of the following best explains why they are classified differently in terms of regime type despite similar scores?',
+              choices:[{id:'A',text:'Russia scores 2 points higher, making it categorically more democratic than Iran'},{id:'B',text:'Iran\'s authoritarianism is rooted in theological legitimacy (velayat-e faqih, Islamic governance) while Russia\'s is rooted in secular nationalism and competitive electoral manipulation — different mechanisms producing similar levels of repression'},{id:'C',text:'Both countries are identical in their political systems and should be classified the same way'},{id:'D',text:'Iran is actually more democratic than Russia because its elections have higher participation rates'}],
+              correct:'B',
+              explanation:'Similar Freedom House scores can mask fundamentally different political architectures. Russia is a competitive authoritarian regime — elections occur, multiple parties exist, manipulation is through resource asymmetry and selective repression. Iran is a theocratic authoritarian regime — elections are filtered by a religious body, authority derives from theological claims, and the Supreme Leader\'s power is framed as divinely legitimate. Same score, different regime logic. AP Comparative\'s value is precisely this comparative precision: quantitative similarity doesn\'t equal political equivalence.'},
+            {id:'r3_04',topic:'6.4',difficulty:'challenging',
+              stem:'A student argues that Iran\'s Freedom House score (14) proves it is nearly identical to China (9) in its political system. Which of the following best evaluates this claim?',
+              choices:[{id:'A',text:'The claim is correct — both are authoritarian states with no meaningful political competition'},{id:'B',text:'The claim overstates the similarity — Iran has contested elections between approved factions (producing different presidents with different policies: Rouhani vs. Raisi), a parliament with some legislative independence, and recurring protest movements that have forced policy adjustments; China has none of these features'},{id:'C',text:'The claim understates the similarity — Iran is actually more authoritarian than China in every dimension'},{id:'D',text:'Freedom House scores are unreliable for cross-country comparisons'}],
+              correct:'B',
+              explanation:'Five-point score differences mask important political differences. Iran\'s 14 reflects: contested factional elections within constraints; a president who sometimes pursues policies the Supreme Leader dislikes (Rouhani\'s nuclear diplomacy); a Majles that occasionally pushes back on executive policy; recurring mass protest movements (1999, 2009, 2019, 2022) that forced government responses. China\'s 9 reflects: no competitive national elections; no factional competition outside the CCP; no equivalent protest movements that have forced policy change since Tiananmen; total media control. The 5-point gap represents real, meaningful political differences in the quality and nature of political life.'}
+          ]
+        }
+      ]
+    },
+    {
+      id:'r4',label:'Round 4 — Iran Documents & Sources',type:'document_stimulus',icon:'📜',
+      desc:'Analyze key texts from Iran\'s political history — from the 1979 Constitution to Khomeini\'s proclamation of the Islamic Republic and the Green Movement.',
+      sets:[
+        {
+          id:'iran_constitution',
+          document:'Constitution of the Islamic Republic of Iran — Preamble and Article 110',
+          author:'Assembly of Experts / Ayatollah Khomeini',
+          year:'1979 (revised 1989)',
+          source:'Foundational document of the Islamic Republic; ratified by referendum December 1979',
+          excerpt:'"The government of the Islamic Republic of Iran... is based on Islamic principles, and aims to... establish such a government by the learned jurist (faqih)... Article 110: The duties and powers of the Leader are: Determination of general policies of the Islamic Republic; Supervision over the proper implementation of these policies; Issuing decrees for national referendums; Command of the armed forces; Declaring war, peace, and general mobilization."',
+          questions:[
+            {id:'r4_01',topic:'6.1',difficulty:'moderate',
+              stem:'Based on this excerpt, Iran\'s constitution concentrates power primarily in:',
+              choices:[{id:'A',text:'The elected president and parliament who hold democratic legitimacy from popular votes'},{id:'B',text:'The Supreme Leader (faqih) who holds command of armed forces, determines all general policy, and can declare war — making all other institutions subordinate to his authority'},{id:'C',text:'A balanced separation of powers equally distributed among the Supreme Leader, president, and parliament'},{id:'D',text:'The Guardian Council which has the power to override all other institutions including the Supreme Leader'}],
+              correct:'B',
+              explanation:'Article 110 lists the Supreme Leader\'s powers, which are extraordinary: determining all "general policies" (the framework within which all other institutions operate), commanding all armed forces, declaring war and peace, and supervising policy implementation. No other institution can override these powers. This places the faqih structurally above all other institutions. The president manages government within parameters the Supreme Leader sets; the Majles legislates within Islamic limits the Guardian Council (appointed by the Supreme Leader) enforces; courts operate within judicial structures the Supreme Leader heads.'},
+            {id:'r4_02',topic:'6.1',difficulty:'challenging',
+              stem:'The phrase "government based on Islamic principles, established by the learned jurist (faqih)" represents which type of legitimacy according to Weber\'s typology?',
+              choices:[{id:'A',text:'Rational-legal legitimacy — authority derived from codified rules applied uniformly'},{id:'B',text:'Traditional legitimacy — authority derived from long-standing customs and hereditary succession'},{id:'C',text:'Charismatic legitimacy — Khomeini\'s personal authority transformed into an institutionalized theocratic claim, now a hybrid of charismatic founding and religious-legal institutionalization'},{id:'D',text:'Performance legitimacy — authority derived from effective delivery of public goods'}],
+              correct:'C',
+              explanation:'Weber\'s typology applies interestingly to Iran. Khomeini\'s original authority was charismatic — his personal religious authority mobilized millions. The constitution attempted to institutionalize that charisma: velayat-e faqih creates a system where the faqih\'s authority derives from religious law (rational-legal within Islamic jurisprudence) and Khomeini\'s revolutionary legacy (traditional in the sense of revolution as tradition). When Khamenei (a lesser cleric) inherited the position, the charismatic founding was converted into an institutionalized structure — a classic Weberian "routinization of charisma." The system now claims religious-legal authority even from leaders lacking Khomeini\'s personal charisma.'}
+          ]
+        },
+        {
+          id:'khomeini_return',
+          document:'Ayatollah Khomeini, Speech upon Return to Iran from Exile',
+          author:'Ayatollah Ruhollah Khomeini',
+          year:'February 1, 1979',
+          source:'Mehrabad Airport, Tehran — upon return from 15 years of exile',
+          excerpt:'"I will strike this government in the mouth... I will designate a government. I will support this government. If this government goes against the will of the people — and the will of the people is an Islamic government — I will oppose it. The nation of Iran has risen. The revolution is victorious... We will export our revolution to all of the world."',
+          questions:[
+            {id:'r4_03',topic:'6.1',difficulty:'moderate',
+              stem:'Based on this excerpt, which feature of Iran\'s future political system does Khomeini\'s speech most directly foreshadow?',
+              choices:[{id:'A',text:'Democratic elections where all citizens would choose their leaders freely'},{id:'B',text:'The Supreme Leader\'s authority to designate and oppose governments — establishing clerical supremacy over elected institutions and the revolutionary goal of exporting Islamic governance'},{id:'C',text:'A parliamentary democracy with Islam as a symbolic state religion'},{id:'D',text:'A military government led by the Revolutionary Guard that would implement Islamic principles'}],
+              correct:'B',
+              explanation:'Khomeini\'s speech reveals the founding logic: he will "designate a government" (clerical appointment over elected authority), oppose it if it goes against "the will of the people" as he defines it (identifying his interpretation with the people\'s will), and "export our revolution." All three become institutional realities: the Supreme Leader designates governments (through Guardian Council vetting); opposition to unwanted governments occurs (hardliners blocking reformist legislation); and Iran actively exports revolutionary ideology through Hezbollah, Hamas, and Houthi support. The speech is remarkably prescient about the system that would develop.'},
+            {id:'r4_04',topic:'6.1',difficulty:'challenging',
+              stem:'Khomeini\'s statement "the will of the people is an Islamic government" represents which approach to democratic legitimacy?',
+              choices:[{id:'A',text:'Liberal democracy — the people\'s will as expressed through free competitive elections determines legitimate government'},{id:'B',text:'Theocratic populism — defining "the people\'s will" as identical to Islamic governance, allowing clerical authority to claim both religious and popular legitimacy while preemptively delegitimizing any democratic outcome that rejects Islamic rule'},{id:'C',text:'Social contract theory — Khomeini is invoking Rousseau\'s general will as the basis for government'},{id:'D',text:'Procedural democracy — majority vote determines the correct form of government'}],
+              correct:'B',
+              explanation:'Khomeini\'s rhetorical move is sophisticated: by defining "the people\'s will" as equivalent to "Islamic government," he pre-emptively incorporates democratic legitimacy into theocratic authority. Any election that produces an Islamic result is the will of the people; any result that doesn\'t is — by definition — not the genuine will of the people (hence the Guardian Council\'s authority to filter candidates to ensure "genuine" will is expressed). This conflation of popular will with Islamic governance is the foundational rhetorical structure of velayat-e faqih — it claims both divine and democratic legitimacy simultaneously.'}
+          ]
+        },
+        {
+          id:'green_movement',
+          document:'Mir-Hossein Mousavi, Statement on the 2009 Election',
+          author:'Mir-Hossein Mousavi',
+          year:'June 2009',
+          source:'Tehran — following disputed presidential election results',
+          excerpt:'"I am warning that I will not surrender to this dangerous charade... The votes of the people cannot be toyed with... The green wave of the Iranian people cannot be stopped by pressures, imprisonments, or propaganda... This is not the Islamic Republic that our nation struggled and was martyred for."',
+          questions:[
+            {id:'r4_05',topic:'6.4',difficulty:'moderate',
+              stem:'Based on this excerpt, Mousavi\'s protest represents which type of political challenge to the Islamic Republic?',
+              choices:[{id:'A',text:'A revolutionary demand to abolish the Islamic Republic and establish a secular democracy'},{id:'B',text:'A legitimacy challenge from within — invoking the Islamic Republic\'s own founding principles and martyrs to argue the current regime has betrayed the revolution\'s promise, not to reject the system but to hold it to its own standards'},{id:'C',text:'A foreign-sponsored attempt to overthrow the Iranian government at US direction'},{id:'D',text:'A purely electoral dispute with no broader political significance'}],
+              correct:'B',
+              explanation:'Mousavi\'s statement is a sophisticated internal challenge: he invokes "the Islamic Republic that our nation struggled and was martyred for" — claiming the Green Movement is defending the revolution\'s authentic meaning against those who have corrupted it. This "anti-corruption" framing of protest (we defend the system\'s true values against its betrayers) is more dangerous to authoritarian regimes than external opposition because it uses the regime\'s own legitimating values against it. The regime could not simply call Mousavi anti-Islamic — he was a founding revolutionary. Hence the years of house arrest rather than execution.'},
+            {id:'r4_06',topic:'6.4',difficulty:'moderate',
+              stem:'The Green Movement\'s slogan "Where is my vote?" and the 2022 "Woman, Life, Freedom" protests together illustrate which pattern in Iranian political development?',
+              choices:[{id:'A',text:'Iranian citizens consistently accept the Islamic Republic and only protest against foreign interference'},{id:'B',text:'Recurring waves of protest reflect a persistent democratic deficit — elections that don\'t produce accountable outcomes (2009) and social controls that deny fundamental rights (2022) generate repeated mobilization that the regime suppresses rather than incorporates'},{id:'C',text:'Iranian protests are organized by the same opposition network and represent a continuous 15-year movement'},{id:'D',text:'Each protest wave has successfully achieved its goals, showing that Iranian democracy is gradually improving'}],
+              correct:'B',
+              explanation:'Taken together, these protest movements illustrate a persistent structural tension: Iran\'s hybrid system generates democratic expectations (elections, constitutionally guaranteed rights) without the accountability mechanisms to fulfill them. Each suppression solves the immediate crisis but doesn\'t address the underlying gap. The progression — 1999 (student protests), 2009 (electoral fraud), 2019 (economic/fuel prices), 2022 (women\'s rights/dignity) — shows different triggers but the same underlying dynamic: a population that expects more than the regime delivers, producing periodic explosions that the regime\'s coercive capacity currently contains.'}
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const UNIT_FRQS=[
+  {
+    id:'apcmp_u6_ca1',type:'CA',label:'Conceptual Analysis',
+    title:'Theocracy and Democratic Elements in Iran',
+    maxScore:4,
+    prompt:'A theocracy is a system of government in which religious leaders hold political power and govern according to religious law.',
+    parts:[
+      {part:'A',points:1,prompt:'Explain how Iran\'s political system combines theocratic and republican (democratic) elements.'},
+      {part:'B',points:1,prompt:'Describe one specific way the theocratic elements of Iran\'s system override or limit the democratic elements.'},
+      {part:'C',points:1,prompt:'Explain why the Guardian Council\'s candidate vetting power is central to maintaining theocratic control over Iran\'s elected institutions.'},
+      {part:'D',points:1,prompt:'Using a specific example, explain how Iran\'s hybrid system has produced genuine political competition between factions despite theocratic constraints.'}
+    ],
+    rubric:{
+      A:'1 pt: Must explain BOTH theocratic (Supreme Leader with religious authority holds ultimate power; Guardian Council enforces Islamic compliance; laws must conform to Sharia) AND republican elements (directly elected president, Majles, Assembly of Experts; popular referendums; constitutional rights). Must explain how they coexist — elected institutions exist but within theocratic parameters.',
+      B:'1 pt: Must describe a SPECIFIC override: Supreme Leader can dismiss the president; Guardian Council can veto any legislation as un-Islamic regardless of parliamentary majority; Guardian Council disqualifies candidates before elections; judiciary is appointed by Supreme Leader and enforces Islamic law over constitutional rights claims. Must explain HOW this limits democratic elements.',
+      C:'1 pt: Must explain the mechanism: by filtering all candidates to elected offices (president, Majles, Assembly of Experts), the Guardian Council ensures all electoral outcomes remain within regime-acceptable bounds — preventing reformists who genuinely challenge clerical authority from even appearing on ballots. Elections produce choice between approved options, not between regime and opposition. Must explain why this is central, not just describe the power.',
+      D:'1 pt: Must use a specific example AND explain the genuine competition: Khatami vs. Ahmadinejad policy differences (press freedom, internet access, diplomatic openness); Rouhani\'s JCPOA nuclear deal vs. hardliner opposition; 2009 Green Movement emerging from disputed Mousavi-Ahmadinejad contest; 2024 Pezeshkian (reformist) defeating hardliner in runoff. Must explain how competition was genuine despite constraints.'
+    }
+  },
+  {
+    id:'apcmp_u6_qa1',type:'QA',label:'Quantitative Analysis',
+    title:'Iran\'s Electoral Participation Trends',
+    maxScore:5,
+    prompt:'Iran Presidential Election Turnout: 1997 (Khatami): 79% | 2001 (Khatami): 67% | 2005 (Ahmadinejad): 63% | 2009 (Ahmadinejad disputed): 85% | 2013 (Rouhani): 73% | 2017 (Rouhani): 73% | 2021 (Raisi): 49% | 2024 (Pezeshkian): 40%\n\nNote: 2021 election followed mass disqualification of reformist candidates. 2024 followed unexpected death of President Raisi.',
+    svgChart:`<svg viewBox="0 0 500 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px">
+      <rect width="500" height="170" fill="#0f1a12" rx="4"/>
+      <text x="250" y="14" font-family="sans-serif" font-size="9" fill="#5dba7a" text-anchor="middle" letter-spacing="2">IRAN PRESIDENTIAL ELECTION TURNOUT (%)</text>
+      ${[{y:'1997',v:79,c:'#5dba7a'},{y:'2001',v:67,c:'#e8a020'},{y:'2005',v:63,c:'#e04040'},{y:'2009',v:85,c:'#e8a020'},{y:'2013',v:73,c:'#5dba7a'},{y:'2017',v:73,c:'#5dba7a'},{y:'2021',v:49,c:'#e04040'},{y:'2024',v:40,c:'#e04040'}].map((d,i,arr)=>{
+        const x=30+i*60;const cy=145-Math.round(d.v*1.15);
+        const next=arr[i+1];const nx=next?30+(i+1)*60:null;const ncy=next?145-Math.round(next.v*1.15):null;
+        return `${nx?`<line x1="${x}" y1="${cy}" x2="${nx}" y2="${ncy}" stroke="#3a5848" stroke-width="1.5"/>`:''}
+        <circle cx="${x}" cy="${cy}" r="5" fill="${d.c}"/>
+        <text x="${x}" y="${cy-10}" font-family="sans-serif" font-size="7" fill="${d.c}" text-anchor="middle">${d.v}%</text>
+        <text x="${x}" y="160" font-family="sans-serif" font-size="7" fill="#3a5848" text-anchor="middle">${d.y}</text>`;
+      }).join('')}
+      <line x1="18" y1="145" x2="490" y2="145" stroke="#244030" stroke-width="1"/>
+      <line x1="18" y1="87" x2="490" y2="87" stroke="#244030" stroke-width=".5" stroke-dasharray="3,3"/>
+      <text x="8" y="142" font-family="sans-serif" font-size="6" fill="#3a5848">0%</text>
+      <text x="8" y="87" font-family="sans-serif" font-size="6" fill="#e8a020">50%</text>
+      <text x="8" y="33" font-family="sans-serif" font-size="6" fill="#3a5848">100%</text>
+      <text x="430" y="84" font-family="sans-serif" font-size="6" fill="#e8a020">50% threshold</text>
+    </svg>`,
+    parts:[
+      {part:'A',points:1,prompt:'Identify one trend shown in the turnout data about Iranian electoral participation over time.'},
+      {part:'B',points:1,prompt:'Using the data, explain why the 2009 turnout (85%) was the highest and what the significance of that election\'s disputed result was.'},
+      {part:'C',points:1,prompt:'Based on the data, explain what the 2021 turnout (49%) suggests about the relationship between Guardian Council candidate vetting and electoral legitimacy.'},
+      {part:'D',points:1,prompt:'Using the data, compare the 1997 and 2024 elections and explain what the difference in turnout suggests about the evolution of Iranian politics.'},
+      {part:'E',points:1,prompt:'Based on the data, develop an argument about whether declining turnout represents a threat to the Islamic Republic\'s legitimacy.'}
+    ],
+    rubric:{
+      A:'1 pt: Must identify a specific trend: overall decline from 79% (1997) to 40% (2024); sharp drop after 2017; the period 2021-2024 shows collapse below 50%; fluctuations correlate with whether reformist candidates are allowed to compete. Must reference specific data points.',
+      B:'1 pt: Must use the 2009 data (85%) AND explain: highest turnout occurred because genuine competition existed between Mousavi (reformist) and Ahmadinejad (hardliner), mobilizing both bases; the disputed result sparked the Green Movement precisely because such high turnout made the official outcome implausible — voters who turned out in record numbers could not believe their candidate lost by such a margin. Must explain both the cause of high turnout and significance of disputed result.',
+      C:'1 pt: Must use 2021 data (49%) AND explain the connection: mass disqualification of reformists (including prominent figures like Larijani) left voters with only hardliner choices; millions who would have voted for excluded candidates chose boycott as protest; the record-low turnout signals that when elections lose competitive character through filtering, citizens lose faith in the process — undermining the electoral legitimacy the regime uses to differentiate itself from pure dictatorship.',
+      D:'1 pt: Must compare 1997 (79%) and 2024 (40%) specifically AND explain: both elections featured reformist winners (Khatami, Pezeshkian), but the 1997 election was a genuine surprise that mobilized massive enthusiasm for political opening; 2024 occurred after years of crackdowns, protest suppression (Mahsa Amini), and mass candidate disqualification that eroded electoral enthusiasm even for reformist options. The nearly halved turnout suggests profound disillusionment with the system itself rather than just specific candidates.',
+      E:'1 pt: Must develop a logical argument using the data. "Serious threat" argument: turnout falling below 50% undermines the regime\'s claim to popular consent that distinguishes it from pure dictatorship; 2024\'s 40% means the elected president represents barely a fifth of eligible voters; persistently low turnout signals delegitimization. "Not serious threat" argument: the regime does not need high turnout for stability — coercive capacity (IRGC, Basij) maintains order regardless; oil revenues fund patronage independent of electoral legitimacy; the regime has survived mass protests without turnout concerns. Must use data.'
+    }
+  },
+  {
+    id:'apcmp_u6_comp1',type:'COMP',label:'Comparative Analysis',
+    title:'Iran and China: Two Models of Authoritarian Governance',
+    maxScore:5,
+    prompt:'Iran and China both score in the authoritarian range on democratic indicators, but use very different mechanisms to maintain political control.',
+    parts:[
+      {part:'A',points:1,prompt:'Define "legitimacy" and identify one source of legitimacy that both Iran and China rely on.'},
+      {part:'B',points:2,prompt:'Compare Iran\'s and China\'s approaches to managing political opposition. Describe one similarity AND one difference.'},
+      {part:'C',points:2,prompt:'Using specific evidence from both countries, explain which country\'s authoritarian system is more vulnerable to internal challenges and why.'}
+    ],
+    rubric:{
+      A:'1 pt: Must define legitimacy as the belief that a government has the right to rule — that its authority is justified, whether through elections, tradition, performance, or ideology. Must identify ONE source common to BOTH: performance legitimacy (China\'s economic growth; Iran\'s resistance to US "imperialism" and maintenance of social order); nationalist legitimacy (China\'s national restoration; Iran\'s "resistance" narrative); religious/ideological legitimacy (China\'s Marxism/socialism; Iran\'s Islamic governance). Must apply to both countries.',
+      B_sim:'1 pt (of 2): Must identify a genuine similarity in managing opposition: both use foreign agent/undesirable organization laws to suppress independent civil society; both tolerate limited factional competition within the system (CCP factions; Iran reformists vs. hardliners) while suppressing challenges to the system itself; both use detention and prosecution of opposition figures (Navalny-style; Mousavi house arrest); both censor social media and control major information channels. Must explain how both countries exhibit this similarity.',
+      B_diff:'1 pt (of 2): Must identify a genuine difference: Iran has contested elections that genuine factions compete in (producing different presidents with different policies); China has no competitive national elections at all; Iran\'s opposition explicitly uses the Islamic Republic\'s own founding values to challenge the regime (Green Movement invoking revolution\'s martyrs); Chinese opposition cannot use CCP legitimating ideology to challenge the party. Must explain the difference clearly.',
+      C:'2 pts: Must use specific evidence from BOTH countries. Iran more vulnerable argument: recurring mass protest movements (1999, 2009, 2019, 2022) that have mobilized millions; elections with contested outcomes that can delegitimize the regime; factional competition creates elite divisions (Mousavi remaining a symbolic figure from inside the system); demographic challenge (50%+ under 35 with lower religiosity); declining electoral turnout signals growing delegitimization. China less vulnerable: no equivalent protest movements since Tiananmen (34 years); no competitive elections that can generate turnout legitimacy crises; Xi\'s consolidation eliminated factional competition; economic growth delivering material legitimacy; Great Firewall preventing protest organization. OR arguing China more vulnerable: Xi\'s personalism creates succession risk; economic slowdown threatening performance legitimacy; no release valve of factional competition. Must use specific evidence from BOTH, not just make general claims. 1 pt for one country with evidence; 2 pts for both.'
+    }
+  },
+  {
+    id:'apcmp_u6_ae1',type:'AE',label:'Argument Essay',
+    title:'Religion and Political Legitimacy',
+    maxScore:5,
+    prompt:'Some political scientists argue that religious legitimacy — grounding government authority in divine mandate or religious law — is inherently incompatible with democratic governance because it places some authority beyond popular consent. Others argue that religious and democratic legitimacy can coexist, as religion provides moral foundation for governance without eliminating democratic accountability.\n\nDevelop an argument about whether religious legitimacy and democratic governance are compatible. Use evidence from at least two AP Comparative countries.',
+    parts:[
+      {part:'Essay',points:5,prompt:'Write your complete argument essay. Address all four required elements: defensible claim, evidence from two countries, reasoning, and counterargument.'}
+    ],
+    rubric:{
+      Essay:'RUBRIC (5 pts):\n\n1 pt — CLAIM: A defensible thesis taking a position on the compatibility of religious and democratic legitimacy. Must go beyond restating the prompt. E.g., "Religious legitimacy and democratic governance are fundamentally incompatible when religious authority is institutionalized above electoral accountability — as Iran demonstrates — because it creates an unresolvable hierarchy where divine mandate always trumps popular will." OR the compatible argument: "Religious legitimacy and democracy can coexist when religion provides normative foundations for governance without capturing institutional veto power over electoral outcomes, as the UK\'s establishment of the Church of England demonstrates — formal religious elements without theocratic override."\n\n2 pts — EVIDENCE (1 pt per country): Must be specific and tied to the argument. Iran: Guardian Council vets candidates using Islamic criteria — voters cannot choose candidates who don\'t meet clerical approval; Supreme Leader\'s authority derived from velayat-e faqih overrides electoral results; the 2009 Green Movement dispute shows that when popular will conflicts with theocratic authority, theocracy wins. UK: Established Church of England (monarch is Supreme Governor); Lords Spiritual (bishops in House of Lords); but Parliament can override Church; religious legitimacy symbolic not structural — can\'t veto legislation. OR Turkey (secular constitution with religious political parties — AKP — that win elections: religious parties participating democratically). Nigeria (religious cleavage between Muslim north and Christian south producing democratic bargaining through zoning arrangements). Mexico (secular state with strong Catholic civil society influence on policy through democratic channels).\n\n1 pt — REASONING: Explains HOW evidence supports claim. Specifically: why Iran\'s structural institutionalization of religious authority (not just religious influence) creates incompatibility, or why the UK\'s symbolic vs. structural distinction allows coexistence.\n\n1 pt — COUNTERARGUMENT: Acknowledges and responds. E.g., "Some would argue that Iran\'s constitution guarantees elections and rights, showing religious and democratic legitimacy coexist. However, when the Guardian Council disqualifies candidates for Islamic non-compliance, religious authority structurally overrides democratic choice — making the coexistence nominal rather than genuine." OR responding to the "incompatible" argument: "Critics would point to Iran to argue all religious legitimacy undermines democracy. However, Iran\'s theocratic structure is an extreme institutionalization of religious authority — not inherent to religion itself, since many devout democracies (India, Germany, UK, US) function with religious communities participating democratically without theological veto over electoral outcomes."'
+    }
+  }
+];
+
+// ── ENGINE ────────────────────────────────────────────────────────────────────
+let G={gold:parseInt(localStorage.getItem('civitas_gold')||'0'),roundIdx:0,questionIdx:0,questions:[],selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+
+window.addEventListener('load',()=>{
+  const fill=document.getElementById('ld-fill');let p=0;
+  const iv=setInterval(()=>{p+=Math.random()*25;if(p>=100){p=100;clearInterval(iv);setTimeout(doneLoading,300);}fill.style.width=p+'%';},120);
+});
+function doneLoading(){
+  document.getElementById('loading').style.opacity='0';
+  setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);
+  buildRoundCards();buildFRQList();loadSavedProgress();
+}
+function loadSavedProgress(){
+  try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    if(prog[UNIT_ID])updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}catch(e){}
+  loadFRQScores();
+}
+function loadFRQScores(){UNIT_FRQS.forEach(frq=>{const v=localStorage.getItem('civitas_frq_'+UNIT_ID+'_'+frq.id);if(v){const b=document.getElementById('frq-badge-'+frq.id);if(b){b.textContent=v+'/'+frq.maxScore;b.style.display='block';}}});}
+function isRoundComplete(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null')!==null;}catch(e){return false;}}
+function getRoundProgress(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null');}catch(e){return null;}}
+function updateProgressBar(done,total){document.getElementById('prog-fill').style.width=Math.round(done/total*100)+'%';document.getElementById('prog-text').textContent=done+' / '+total+' Rounds Complete';}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')loadFRQScores();}
+function buildRoundCards(){
+  document.getElementById('round-cards').innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
+    const prog=getRoundProgress(i);const done=prog!==null;const locked=i>0&&!isRoundComplete(i-1);
+    const acc=done?prog.accuracy:null;const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+    return`<div class="activity-card${locked?' locked':''}" onclick="${locked?'notify(\'Complete Round '+i+' first!\')':'startRound('+i+')'}">
+      <div class="activity-card-strip" style="background:${done?'var(--green)':locked?'var(--border2)':'var(--acc)'}"></div>
+      <div class="activity-card-body"><div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${i+1} · ${r.type.replace('_',' ').toUpperCase()}</div>
+        <div class="activity-card-title">${r.label}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action" style="color:${done?'var(--green2)':locked?'var(--text3)':'var(--acc2)'}">
+          ${locked?'🔒 Locked':done?'✓ Complete — '+acc+'% accuracy':'▶ Play Now'}</div>
+        ${done?`<div class="activity-card-badge" style="border-color:${sc};color:${sc}">${acc}%</div>`:''}
+      </div></div>`;
+  }).join('');
+}
+function buildFRQList(){
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+  document.getElementById('frq-list').innerHTML=UNIT_FRQS.map(frq=>`<div class="frq-card" id="frq-card-${frq.id}" onclick="openFRQ('${frq.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${cols[frq.type]||'var(--acc)'};margin-bottom:4px">${frq.label} · ${frq.maxScore} pts</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:4px">${frq.title}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${frq.parts.length} parts · AI-graded</div></div>
+      <div class="frq-badge" id="frq-badge-${frq.id}"></div>
+    </div></div>`).join('');
+}
+function openFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};const col=cols[frq.type]||'var(--acc)';
+  const svg=frq.svgChart?`<div style="margin-bottom:16px;padding:16px;background:var(--bg2);border:1px solid var(--border)">${frq.svgChart}</div>`:'';
+  document.getElementById('frq-workspace-area').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button onclick="closeFRQ()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 10px;cursor:pointer">← Back</button>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:${col}">${frq.label.toUpperCase()} · ${frq.maxScore} POINTS</div>
+    </div>
+    <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px">${frq.title}</div>
+    <div class="frq-prompt">${frq.prompt}</div>${svg}
+    ${frq.parts.map((p,pi)=>`<div class="frq-part">
+      <div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div>
+      <div class="frq-part-prompt">${p.prompt}</div>
+      <textarea class="frq-textarea" id="frq-ans-${frq.id}-${pi}" placeholder="Write your response here..."></textarea>
+    </div>`).join('')}
+    <button class="frq-submit-btn" id="frq-submit-${frqId}" onclick="submitUnitFRQ('${frqId}')">⚡ Submit for AI Grading</button>
+    <div class="frq-grading" id="frq-grade-${frqId}" style="margin-top:16px"></div>`;
+  document.getElementById('frq-workspace-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeFRQ(){document.getElementById('frq-workspace-area').innerHTML='';}
+async function submitUnitFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');
+  if(answers.join('').length<30){notify('Please write responses first.');return;}
+  const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);
+  btn.disabled=true;btn.innerHTML='⏳ Grading...';
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part}(${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');
+  try{
+    const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,
+        messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\nContext: ${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0_or_1,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],
+        system:'You are an expert AP Comparative Government FRQ grader. Grade strictly. Return ONLY valid JSON.'})});
+    const data=await resp.json();
+    const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    const score=grade.totalScore||0;
+    try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);
+      const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};
+      if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};
+      const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};
+      ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;
+      ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}
+    const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
+    btn.innerHTML='✓ Graded';
+    const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
+    gradeDiv.style.display='block';
+    gradeDiv.innerHTML=`<div class="frq-score-banner">
+      <div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div>
+      <div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE · ${pct}%</div>
+      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">
+      ${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          <span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span>
+          <span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'✓ +'+p.earned:'✗ 0'}</span>
+        </div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div>
+      </div>`;}).join('')}
+    </div>
+    <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+    ${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>💡 Improve:</strong> ${grade.improveHint}</div>`:''}`;
+  }catch(e){btn.innerHTML='⚠ Error';btn.disabled=false;notify('Grading error.');}
+}
+function startRound(idx){
+  if(!isRoundComplete(idx-1)&&idx>0){notify('Complete Round '+idx+' first!');return;}
+  G={...G,roundIdx:idx,questionIdx:0,selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+  const round=QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display='none';document.getElementById('game').style.display='flex';
+  document.getElementById('round-intro').style.display='flex';
+  ['question-area','round-complete','unit-complete'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('ri-icon').textContent=round.icon;
+  document.getElementById('ri-round').textContent='ROUND '+(idx+1)+' OF '+QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent=round.label;
+  document.getElementById('ri-desc').textContent=round.desc;
+  document.getElementById('game-pips').innerHTML=QUESTION_BANK.rounds.map((_,i)=>`<div class="gp-pip ${i<idx?'done':i===idx?'active':''}"></div>`).join('');
+  updateGoldDisplay();
+}
+function beginRound(){
+  document.getElementById('round-intro').style.display='none';document.getElementById('question-area').style.display='flex';
+  const round=QUESTION_BANK.rounds[G.roundIdx];
+  if(round.type==='knowledge'){G.questions=shuffle([...round.questions]);}
+  else{G.questions=[];(round.sets||[]).forEach(s=>s.questions.forEach(q=>G.questions.push({...q,_set:s})));G.questions=shuffle(G.questions);}
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=G.questions[G.questionIdx];const el=document.getElementById('question-area');
+  G.selectedChoice=null;G.answered=false;document.getElementById('btn-next').style.display='none';
+  document.getElementById('game-round-label').textContent='ROUND '+(G.roundIdx+1)+' · Q '+(G.questionIdx+1)+'/'+G.questions.length;
+  let html='';const set=q._set;
+  if(set){
+    if(set.chartType==='bar'){
+      const max=Math.max(...set.data.map(d=>d.value));
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📊 DATA STIMULUS</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:120px;border-bottom:1px solid var(--border2);margin-top:12px;overflow-x:auto">
+          ${set.data.map(d=>`<div style="flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <div style="width:100%;background:${d.color||'var(--acc)'};height:${Math.round(d.value/max*100)}px;border-radius:2px 2px 0 0"></div>
+            <div style="font-family:var(--bebas);font-size:7px;color:${d.color||'var(--acc2)'};text-align:center">${d.value}</div>
+            <div style="font-family:var(--dm);font-size:7px;color:var(--text3);text-align:center;white-space:pre-wrap;max-width:55px">${d.label}</div>
+          </div>`).join('')}
+        </div></div>`;
+    }else if(set.chartType==='table'){
+      const td=set.tableData;
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📋 DATA TABLE</div><div class="stimulus-title">${set.title}</div><div class="stimulus-source">${set.source}</div>
+        <div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:9px">
+          <tr>${td.headers.map(h=>`<th style="border-bottom:1px solid var(--border2);padding:5px 8px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px">${h}</th>`).join('')}</tr>
+          ${td.rows.map((row,ri)=>`<tr style="background:${ri%2?'rgba(56,160,80,.03)':'transparent'}">${row.map(cell=>`<td style="padding:5px 8px;color:var(--text2);border-bottom:1px solid var(--border);font-size:9px">${cell}</td>`).join('')}</tr>`).join('')}
+        </table></div></div>`;
+    }else if(set.document){
+      html+=`<div class="stimulus-box"><div class="stimulus-label">📜 DOCUMENT STIMULUS</div><div class="stimulus-title">${set.document}</div>
+        <div class="stimulus-source">${set.author} (${set.year}) — ${set.source}</div>
+        <div class="stimulus-text">"${set.excerpt}"</div></div>`;
+    }
+  }
+  html+=`<div class="question-card" id="qcard">
+    <div class="q-meta"><div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>
+      ${q.topic?`<div class="q-tag topic">TOPIC ${q.topic}</div>`:''}
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div></div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+      <div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div>
+    <div style="text-align:right;margin-top:8px">
+      <button onclick="submitQuestionReport('${q.stem.replace(/'/g,"\\'").substring(0,80)}','${q.id||''}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report</button>
+    </div></div>`;
+  el.innerHTML=html;el.scrollTop=0;
+}
+function selectChoice(id){
+  if(G.answered)return;G.selectedChoice=id;
+  document.querySelectorAll('.choice').forEach(c=>{c.classList.remove('selected');if(c.id==='choice-'+id)c.classList.add('selected');});
+  submitAnswer();
+}
+function submitAnswer(){
+  if(!G.selectedChoice||G.answered)return;G.answered=true;
+  const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;
+  G.sessionTotal++;
+  if(correct){G.sessionCorrect++;const gold=5+(q.difficulty==='challenging'?5:q.difficulty==='moderate'?3:1);G.gold+=gold;spawnGold('+'+gold+' 🪙');awardGoldToShell(gold,'AP Comp Unit 6');}
+  document.querySelectorAll('.choice').forEach(c=>{
+    c.classList.add('answered');const cid=c.id.replace('choice-','');
+    if(cid===q.correct)c.classList.add('correct');
+    else if(cid===G.selectedChoice&&!correct)c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+  if(q.explanation){const qcard=document.getElementById('qcard');if(qcard)qcard.insertAdjacentHTML('beforeend',`<div class="explanation"><strong>${correct?'✓ Correct!':'✗ Incorrect.'}</strong> ${q.explanation}</div>`);}
+  document.getElementById('btn-next').style.display='block';updateGoldDisplay();
+}
+function nextQuestion(){
+  G.questionIdx++;
+  if(G.questionIdx>=G.questions.length)finishRound();
+  else{renderQuestion();document.getElementById('question-area').scrollTop=0;}
+}
+function finishRound(){
+  const acc=G.sessionTotal>0?Math.round(G.sessionCorrect/G.sessionTotal*100):0;
+  try{localStorage.setItem('civitas_'+UNIT_ID+'_r'+G.roundIdx,JSON.stringify({accuracy:acc,correct:G.sessionCorrect,total:G.sessionTotal,completedAt:new Date().toISOString()}));syncProgressToShell(acc);}catch(e){}
+  const icon=acc>=80?'⭐':acc>=60?'✅':'📋';const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('question-area').style.display='none';document.getElementById('btn-next').style.display='none';
+  const rc=document.getElementById('round-complete');rc.style.display='flex';
+  document.getElementById('rc-icon').textContent=icon;
+  document.getElementById('rc-title').textContent=QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent=acc+'%';document.getElementById('rc-score').style.color=sc;
+  document.getElementById('rc-sub').textContent=G.sessionCorrect+' / '+G.sessionTotal+' CORRECT';
+  document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:${sc}">${acc}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+    <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+  const ni=G.roundIdx+1;const nb=document.getElementById('rc-next-btn');
+  if(ni<QUESTION_BANK.rounds.length){nb.textContent='Continue to Round '+(ni+1)+' →';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}
+  else{nb.textContent='🏆 Complete Unit';nb.onclick=showUnitComplete;}
+}
+function syncProgressToShell(acc){
+  try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    const prev=prog[UNIT_ID]||{bestAccuracy:0};
+    prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};
+    localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+}
+function showUnitComplete(){
+  const tc=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.correct:0);},0);
+  const tq=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.total:0);},0);
+  const ov=tq>0?Math.round(tc/tq*100):0;
+  const grade=ov>=90?'A+':ov>=80?'A':ov>=70?'B':ov>=60?'C':'D';
+  const gc=ov>=80?'var(--green2)':ov>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('round-complete').style.display='none';
+  document.getElementById('unit-complete').style.display='flex';
+  document.getElementById('uc-score').textContent=grade;document.getElementById('uc-score').style.color=gc;
+  document.getElementById('uc-grade').textContent=ov+'% Overall · Unit Complete';
+  awardGoldToShell(50,'Unit 6 - Iran Completion');spawnGold('+50 🪙 Completion Bonus');syncProgressToShell(ov);
+}
+function replayUnit(){
+  QUESTION_BANK.rounds.forEach((_,i)=>{try{localStorage.removeItem('civitas_'+UNIT_ID+'_r'+i);}catch(e){}});
+  document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';
+  document.getElementById('hub').style.display='flex';buildRoundCards();
+}
+function exitGame(){
+  document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';
+  buildRoundCards();loadFRQScores();
+  updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
+function updateGoldDisplay(){document.getElementById('game-gold-disp').textContent='🪙 '+G.gold;}
+function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',c+amount);localStorage.setItem('civitas_gold_pending',JSON.stringify({amount,source}));}catch(e){}}
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+async function submitQuestionReport(stem,qId){
+  const sn=localStorage.getItem('civitas_student_name')||'Unknown';
+  try{await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},
+    body:JSON.stringify({student_name:sn,course_id:'ap_cmp',item_type:'question',item_id:qId||UNIT_ID,item_title:'AP Comp Unit 6 - Iran',issue_type:'question_error',note:(stem||'').slice(0,300),unit_id:UNIT_ID,submitted_at:new Date().toISOString()})});
+    notify('✓ Reported!');}catch(e){notify('Report failed.');}
+}
+</script>
+</body>
+</html>
