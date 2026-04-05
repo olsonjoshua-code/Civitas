@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Idea: Citizens & Society — AP Comparative · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080e0a;--bg2:#0f1a12;--bg3:#162018;--panel:#111d14;--border:#1a3020;--border2:#244030;--acc:#38a050;--acc2:#5dba7a;--acc3:#90d4a8;--amber:#e8a020;--gold:#ffd700;--gc:#f5c842;--green:#2aaa50;--green2:#40c870;--red:#e04040;--red2:#f06060;--purple:#7060d0;--teal:#208878;--text:#e0f0e4;--text2:#7a9888;--text3:#3a5848;--cream:#f0ede4;--bebas:'Bebas Neue',sans-serif;--playfair:'Playfair Display',serif;--crimson:'Crimson Text',serif;--dm:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);background-image:radial-gradient(ellipse at 15% 0%,rgba(56,160,80,.08) 0%,transparent 50%),radial-gradient(ellipse at 85% 100%,rgba(40,120,60,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}.ld-title{font-family:var(--bebas);font-size:28px;color:var(--acc2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s;width:0}
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(56,160,80,.15) 0%,rgba(8,14,10,.98) 60%);border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(56,160,80,.02) 40px,rgba(56,160,80,.02) 80px)}
+.hero-icon{font-size:64px;flex-shrink:0;animation:pop .5s ease both}.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--acc2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,36px);color:var(--cream);font-weight:700;line-height:1.15;margin-bottom:8px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.65;max-width:580px}
+.country-flags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.country-flag-chip{background:var(--bg2);border:1px solid var(--border2);padding:4px 10px;font-family:var(--dm);font-size:9px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--acc2)}.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}.hub-panel.active{display:block}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px}.activity-card-body{padding:18px 20px}.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s;border-radius:2px}
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--acc2);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--acc);display:block}
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,14,10,.97);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+.gp-pips{display:flex;gap:4px}.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--acc)}.gp-pip.active{background:var(--acc2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}.ri-btn:hover{color:#fff}.ri-btn span{position:relative;z-index:1}
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.countries{border-color:var(--acc);color:var(--acc2)}.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(56,160,80,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}.choice.dimmed{opacity:.35}
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(22px,4vw,32px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--acc);border:2px solid var(--acc);color:#fff}.uc-btn.primary:hover{background:var(--acc2);border-color:var(--acc2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}.uc-btn.secondary:hover{border-color:var(--acc);color:var(--acc2)}
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+.frq-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all .2s}
+.frq-card:hover{border-color:var(--acc2);transform:translateY(-2px)}
+.frq-badge{font-family:var(--bebas);font-size:10px;padding:2px 8px;border:1px solid var(--acc);color:var(--acc2);display:none;margin-top:8px}
+.frq-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;margin-bottom:16px;font-style:italic;background:rgba(56,160,80,.04);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:14px 18px}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.frq-part-letter{font-family:var(--bebas);font-size:20px;color:var(--acc2);width:28px}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:10px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px 14px;resize:vertical;min-height:100px;outline:none}
+.frq-textarea:focus{border-color:var(--acc2)}
+.frq-submit-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--acc);border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;margin-top:12px}
+.frq-submit-btn:hover{background:var(--acc2)}.frq-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.frq-grading{display:none;animation:fadeIn .4s ease}
+.frq-score-banner{background:linear-gradient(135deg,rgba(56,160,80,.12),rgba(8,14,10,.95));border:1px solid var(--border2);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.frq-total-score{font-family:var(--bebas);font-size:52px;line-height:1;color:var(--acc2)}
+.frq-overall-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;background:rgba(56,160,80,.04);border:1px solid var(--border);padding:14px;margin-top:10px}
+@media(max-width:600px){.hub-hero{padding:20px;flex-direction:column;text-align:center}.hub-content{padding:16px 16px 60px}.activity-grid{grid-template-columns:1fr}#question-area{padding:14px}.question-card{padding:16px}}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="ld-icon">🤝</div>
+  <div class="ld-title">Citizens & Society</div>
+  <div class="ld-sub">Big Idea Review · AP Comparative Government · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+<div id="hub">
+  <div class="hub-hero">
+    <div class="hero-icon">🤝</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP COMPARATIVE GOVERNMENT · BIG IDEA REVIEW</div>
+      <div class="hub-title">Citizens & Society</div>
+      <div class="hub-desc">How do citizens relate to the state across all six AP Comparative regimes? Master civil society, political culture, social cleavages, interest groups, and political participation — the factors that shape whether democracy thrives or authoritarian control holds.</div>
+      <div class="country-flags">
+        ${['🇬🇧 UK','🇲🇽 Mexico','🇷🇺 Russia','🇨🇳 China','🇮🇷 Iran','🇳🇬 Nigeria'].map(c=>`<div class="country-flag-chip">${c}</div>`).join('')}
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to AP Comparative</button>
+  </div>
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('review',this)">📋 Quick Review</button>
+  </div>
+  <div class="hub-content">
+    <div id="tab-play" class="hub-panel active">
+      <div class="prog-wrap">
+        <div class="prog-label"><span>PROGRESS</span><span id="prog-text">0 / 4 Rounds Complete</span></div>
+        <div class="prog-bar"><div id="prog-fill" class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="activity-grid" id="round-cards"></div>
+    </div>
+    <div id="tab-frq" class="hub-panel">
+      <div style="margin-bottom:20px">
+        <div class="sh">Cross-Country FRQ Practice</div>
+        <p style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7;margin-bottom:16px">All four FRQs require comparison across multiple AP Comparative countries. AI-graded.</p>
+      </div>
+      <div id="frq-list"></div>
+      <div id="frq-workspace-area"></div>
+    </div>
+    <div id="tab-review" class="hub-panel">
+      <div class="sh">Civil Society Strength — All 6 Countries</div>
+      <div style="overflow-x:auto;margin-bottom:24px">
+        <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:10px;min-width:600px">
+          <tr>${['Country','Civil Society','Press Freedom','Social Cleavages','State Response to Protest'].map(h=>`<th style="border-bottom:2px solid var(--border2);padding:8px 10px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px;font-size:10px">${h}</th>`).join('')}</tr>
+          ${[
+            ['🇬🇧 UK','Very strong — free NGOs, unions, media, parties','26th (RSF 2023)','Regional (Scotland/NI); class; Brexit values cleavage','Legal protest permitted; occasional restrictions'],
+            ['🇲🇽 Mexico','Developing — growing NGOs; journalist murders','147th (RSF)','Class; urban/rural; indigenous; regional','Mixed — tolerates protest; journalist intimidation'],
+            ['🇷🇺 Russia','Severely constrained — foreign agent law, Memorial liquidated','164th (RSF)','Ethnic (Chechen); regional; urban/rural','Suppressed — Bolotnaya 2011-12; 2022 anti-war protesters'],
+            ['🇨🇳 China','Tightly controlled — GONGOs; apolitical NGOs only permitted','179th (RSF)','Ethnic (Uyghur, Tibetan); regional inequality; class','Suppressed — Tiananmen 1989; zero-COVID protests 2022'],
+            ['🇮🇷 Iran','Constrained but present — women\'s groups, professional associations','177th (RSF)','Generational; class; ethnic (Kurd, Azeri); reformist/hardliner','Basij suppression — Green Movement 2009; Mahsa Amini 2022'],
+            ['🇳🇬 Nigeria','Active but limited — religious orgs, NGOs; patronage co-optation','120th (RSF)','Ethnic (250+ groups); north/south religious; class','Mixed — security force violence; EndSARS 2020 crackdown']
+          ].map((row,ri)=>`<tr style="background:${ri%2?'rgba(56,160,80,.03)':'transparent'}">${row.map((cell,ci)=>`<td style="padding:7px 10px;border-bottom:1px solid var(--border);color:${ci===0?'var(--cream)':'var(--text2)'};font-weight:${ci===0?'600':'400'}">${cell}</td>`).join('')}</tr>`).join('')}
+        </table>
+      </div>
+      <div class="sh">Key Concepts — Citizens & Society</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:24px">
+        ${['Civil society','Pluralism vs. corporatism','GONGOs','Social cleavages','Reinforcing vs. cross-cutting','Political culture','Statism (Russia)','Confucianism (China)','Patron-client networks','Foreign agent law','Interest articulation','Social movements','Basij/morality police (Iran)','Boko Haram (Nigeria)','EndSARS / #EndBadGovernance'].map(t=>
+          `<div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">${t}</div>`
+        ).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div class="gp-pips" id="game-pips"></div>
+      <div id="game-gold-disp">🪙 0</div>
+    </div>
+  </div>
+  <div id="round-intro">
+    <div class="ri-icon" id="ri-icon">🤝</div>
+    <div class="ri-round" id="ri-round">ROUND 1</div>
+    <div class="ri-title" id="ri-title">Civil Society</div>
+    <div class="ri-desc" id="ri-desc">Compare across countries.</div>
+    <button class="ri-btn" onclick="beginRound()"><span>▶ Begin</span></button>
+  </div>
+  <div id="question-area" style="display:none"></div>
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">⭐</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score"></div>
+    <div class="rc-sub" id="rc-sub"></div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn">Continue →</button>
+  </div>
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal">🤝</div>
+    <div class="uc-title">BIG IDEA COMPLETE</div>
+    <div class="uc-name">Citizens & Society</div>
+    <div class="uc-score" id="uc-score" style="color:var(--acc2)">A</div>
+    <div class="uc-grade" id="uc-grade">EXCELLENT</div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="returnToShell()">✓ Back to AP Comparative</button>
+      <button class="uc-btn secondary" onclick="replayUnit()">↺ Play Again</button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+</div>
+
+<script>
+const UNIT_ID='apcmp_bi_ci';
+const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
+
+const QUESTION_BANK={rounds:[
+  {id:'r1',label:'Round 1 — Civil Society Across Regimes',icon:'🏛️',
+   desc:'How civil society operates — or is suppressed — across the six AP Comparative countries. Every question compares multiple countries.',
+   questions:[
+    {id:'bi_ci_r1_01',countries:'UK/Russia',difficulty:'moderate',
+     stem:'The UK\'s Amnesty International UK branch and Russia\'s Memorial International represent the same type of organization — human rights NGOs. The key difference in how these organizations operated is:',
+     choices:[{id:'A',text:'UK\'s Amnesty is government-funded while Russia\'s Memorial was privately funded'},{id:'B',text:'UK\'s Amnesty operates freely as part of a robust civil society ecosystem; Memorial was forcibly liquidated by Russian courts in 2021 after being branded a "foreign agent" — illustrating how authoritarian regimes selectively destroy the civil society organizations that most threaten their legitimacy'},{id:'C',text:'Memorial was more effective than Amnesty because it operated under more difficult conditions'},{id:'D',text:'Both organizations face equivalent government restrictions in their respective countries'}],
+     correct:'B',explanation:'Memorial International (founded 1989 to document Soviet repression) was one of Russia\'s oldest and most respected human rights organizations. Its liquidation in 2021 under the "foreign agent" law was symbolic — the Kremlin was eliminating the organization that documented the crimes of the system it descended from. UK\'s Amnesty operates freely, campaigns publicly, and has never faced government-ordered dissolution. This contrast illustrates the fundamental difference between civil society in a liberal democracy and under competitive authoritarianism.'},
+    {id:'bi_ci_r1_02',countries:'China/UK',difficulty:'moderate',
+     stem:'China uses GONGOs (Government-Organized NGOs) as part of its civil society strategy. This practice differs from UK civil society primarily because:',
+     choices:[{id:'A',text:'GONGOs are more effective than independent NGOs at delivering social services'},{id:'B',text:'GONGOs appear to be independent civil society organizations but are actually state-controlled — they provide the appearance of independent citizen participation while crowding out and delegitimizing genuine independent organizations; UK\'s NGOs are genuinely independent and can openly challenge government policy'},{id:'C',text:'China has more NGOs than the UK, showing its civil society is stronger'},{id:'D',text:'UK NGOs receive government funding while Chinese GONGOs are privately financed'}],
+     correct:'B',explanation:'GONGOs are a sophisticated authoritarian civil society management technique: they claim to represent independent citizen interests (environmental groups, women\'s groups, professional associations) while actually implementing state priorities. This serves multiple functions: providing a channel for social service delivery; providing legitimacy (look, we have a vibrant civil society!); and crowding out the space where genuine independent organizations might emerge. In the UK, organizations like Greenpeace, Liberty, or Amnesty can and do directly challenge government policy without being state creations.'},
+    {id:'bi_ci_r1_03',countries:'Iran/Mexico',difficulty:'moderate',
+     stem:'Both Iran\'s Green Movement (2009) and Mexico\'s civil society activism (1985 earthquake, Zapatistas, 2018 election) emerged from below to challenge or pressure the state. The key difference in their outcomes is:',
+     choices:[{id:'A',text:'Mexico\'s civil society was more violent than Iran\'s Green Movement'},{id:'B',text:'Mexico\'s civil society activism over decades contributed to genuine democratic transition (2000 Fox victory); Iran\'s Green Movement was suppressed and its leaders imprisoned — civil society in competitive authoritarian/theocratic contexts faces much stronger coercive response and lacks the institutional pathways that eventually absorbed Mexican civil society activism'},{id:'C',text:'The Green Movement was more successful than Mexican civil society in changing government policy'},{id:'D',text:'Both civil society movements had identical outcomes because both countries have elections'}],
+     correct:'B',explanation:'This comparison tests the relationship between civil society and regime type. Mexico\'s civil society benefited from: a political system that was gradually opening (PRI tolerance for opposition growing); IFE providing an institutional pathway for civil society demands; NAFTA integration creating international pressure. Iran\'s Green Movement faced a regime willing to use maximum force (Basij killings, mass arrests) with no institutional pathway for demands — the Guardian Council doesn\'t provide a route for civil society to influence regime leadership. Context determines whether civil society activism can produce change.'},
+    {id:'bi_ci_r1_04',countries:'Nigeria/UK',difficulty:'moderate',
+     stem:'Nigeria\'s religious organizations (Catholic Church, CAN — Christian Association of Nigeria, Jama\'atu Nasril Islam) and the UK\'s Church of England both represent religious civil society. The key political difference between them is:',
+     choices:[{id:'A',text:'Nigeria\'s religious organizations have no political influence while the UK\'s Church of England is politically active'},{id:'B',text:'Nigeria\'s religious organizations operate along ethnically reinforcing lines — the main Christian and Muslim bodies represent different ethnic-regional communities and mobilize along those fault lines; the UK\'s Church of England is a national institution with declining political influence that reflects a cross-partisan tradition rather than ethnic mobilization'},{id:'C',text:'Both religious organizations have identical political functions in their respective countries'},{id:'D',text:'The Church of England is more powerful than Nigerian religious organizations because it has the monarch as its head'}],
+     correct:'B',explanation:'Religious organizations in civil society function very differently depending on whether they reinforce or cross-cut other cleavages. Nigeria\'s CAN (Christian) and JNI (Muslim) roughly map onto the south-north divide — they reinforce ethnic, regional, and economic cleavages rather than cutting across them. When they mobilize, they activate multiple fault lines simultaneously. The Church of England cuts across partisan lines (Conservatives and Labour both have C of E members), has a declining membership, and plays a more symbolic than mobilizing role. Religious civil society\'s political impact depends heavily on how it aligns with other social divisions.'},
+    {id:'bi_ci_r1_05',countries:'Russia/China',difficulty:'challenging',
+     stem:'Russia\'s foreign agent law (2012, expanded repeatedly) and China\'s Foreign NGO Management Law (2017) serve similar purposes but operate differently. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both laws completely prohibit all foreign-funded organizations from operating'},{id:'B',text:'Both laws restrict foreign-funded civil society while allowing domestic organizations — but Russia\'s law primarily targets political/human rights NGOs through stigmatizing labeling; China\'s law more comprehensively regulates all foreign connections by requiring police registration and party approval, reflecting China\'s more systematic approach to civil society management'},{id:'C',text:'Russia\'s law is more restrictive than China\'s because Russia has less civil society to suppress'},{id:'D',text:'Both laws were introduced in response to US-funded color revolution attempts'}],
+     correct:'B',explanation:'Comparing Russia\'s and China\'s civil society management approaches reveals different authoritarian strategies. Russia\'s approach is more targeted — the "foreign agent" label is designed to stigmatize specific organizations (especially human rights, election monitoring groups) with Soviet-era connotations of treason, while leaving other civil society relatively free. China\'s approach is more systematic — all foreign-connected NGOs must register with police (Ministry of Public Security), find a Chinese government supervisor, and submit to audits. China manages civil society more comprehensively; Russia uses stigmatization more selectively.'},
+    {id:'bi_ci_r1_06',countries:'All',difficulty:'moderate',
+     stem:'Which of the following correctly ranks the six AP Comparative countries from strongest to weakest civil society?',
+     choices:[{id:'A',text:'UK → Mexico → Nigeria → Iran → Russia → China'},{id:'B',text:'UK → Mexico → Nigeria → Russia → Iran → China'},{id:'C',text:'Mexico → UK → Nigeria → Iran → China → Russia'},{id:'D',text:'UK → Nigeria → Mexico → Russia → China → Iran'}],
+     correct:'A',explanation:'UK (26th press freedom, genuinely independent civil society with no state restrictions): strongest. Mexico (147th press freedom, growing civil society but journalist murders): second — improving but journalist safety remains serious concern. Nigeria (120th, active religious/civic organizations but patronage co-optation): third — civil society exists and can challenge government. Iran (177th, constrained but present women\'s groups, professional associations): fourth — more constrained than Nigeria but civil society exists and produces protest movements. Russia (164th, foreign agent law, Memorial liquidated): fifth — more systematically suppressed than Iran despite similar press freedom ranking. China (179th, GONGOs, comprehensive control): weakest — most systematic control.'},
+    {id:'bi_ci_r1_07',countries:'UK/Nigeria',difficulty:'challenging',
+     stem:'Both the UK and Nigeria have active trade union movements, but their political functions differ significantly. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both countries\' trade unions have identical relationships to political parties'},{id:'B',text:'UK unions (TUC affiliated) have historically funded and influenced the Labour Party, creating a formal civil society-party linkage that gave organized labor genuine policy influence; Nigerian unions (NLC) operate in a context of higher informality, patronage co-optation, and corruption that limits their effectiveness as policy advocates despite formal independence'},{id:'C',text:'Nigerian unions are more powerful than UK unions because they represent a larger percentage of workers'},{id:'D',text:'UK unions have been completely deradicalized since Thatcher while Nigerian unions remain political actors'}],
+     correct:'B',explanation:'Trade union functions differ dramatically by institutional context. UK\'s TUC (Trades Union Congress) — affiliated with Labour since 1900 — provides direct funding, supplies candidates, and shapes party policy through annual conference votes. The Thatcher-union battles were about genuine political power. Nigerian NLC (Nigeria Labour Congress) faces: large informal sector (60%+) where organizing is nearly impossible; patronage relationships where union leaders may receive state benefits for political support; and weak rule of law making contract enforcement unreliable. The formal civil society structure exists but operates in a very different institutional environment.'},
+    {id:'bi_ci_r1_08',countries:'China/Iran',difficulty:'moderate',
+     stem:'Both China and Iran restrict internet access and social media, but their approaches differ. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both countries completely block the internet for all citizens'},{id:'B',text:'China\'s Great Firewall creates a parallel domestic internet ecosystem (WeChat, Weibo, Baidu) that allows economic and social activity within monitored bounds while blocking foreign platforms; Iran allows some VPN access and has weaker technical controls but uses legal prosecution and platform shutdown more aggressively during protest events'},{id:'C',text:'Iran has stronger internet controls than China because it has fewer resources for technology'},{id:'D',text:'Both countries have identical internet restrictions because they share surveillance technology'}],
+     correct:'B',explanation:'Internet control strategies reflect different governance approaches. China\'s Great Firewall is a permanent technological infrastructure: blocks Google, Facebook, Twitter, and thousands of sites while providing Chinese alternatives (WeChat/WhatsApp; Weibo/Twitter; Baidu/Google). This allows vibrant domestic online activity within monitored parameters — a "controlled openness." Iran\'s approach is less consistent: VPNs are illegal but widely used (estimated 70%+ use them); during protest events (Green Movement 2009, Mahsa Amini 2022) the state shuts down internet access entirely but cannot maintain this long-term. Iran uses internet restriction as an emergency crisis tool; China uses it as permanent infrastructure.'},
+    {id:'bi_ci_r1_09',countries:'Mexico/Russia',difficulty:'moderate',
+     stem:'Mexico\'s PRI used corporatism to manage civil society during its hegemonic era (1929-2000), while Russia uses what scholars call "state corporatism" under Putin. The key difference is:',
+     choices:[{id:'A',text:'Mexico\'s PRI corporatism was democratic while Russia\'s state corporatism is authoritarian'},{id:'B',text:'Mexico\'s PRI corporatism incorporated genuine mass organizations (CTM, CNC) that delivered real benefits to members in exchange for political loyalty — creating a two-way patronage exchange; Russia\'s state corporatism creates top-down organizations (Public Chamber, pro-Kremlin youth groups like Nashi) with no genuine membership interests, purely for regime legitimation purposes'},{id:'C',text:'Russia has more corporatist organizations than Mexico ever had'},{id:'D',text:'Mexico\'s corporatism was imposed by the US while Russia\'s emerged organically'}],
+     correct:'B',explanation:'Corporatism varies in its relationship to genuine interests. Mexico\'s PRI corporatism, while manipulative and controlling, did involve genuine exchange: the CTM (labor union federation) had real bargaining capacity; workers received real benefits (healthcare, housing, job security) in exchange for political support. This made it a vehicle for upward mobility for some workers. Russia\'s Kremlin-created organizations (youth movements like Nashi, the Public Chamber) exist primarily to perform loyalty and provide a simulacrum of civil society without genuine autonomous interests. The PRI\'s corporatism was exploitative but functional; Russia\'s state corporatism is primarily theatrical.'},
+    {id:'bi_ci_r1_10',countries:'All',difficulty:'challenging',
+     stem:'Political scientists use press freedom rankings to assess civil society health across regimes. The ranking UK (26th) → Nigeria (120th) → Mexico (147th) → Russia (164th) → Iran (177th) → China (179th) reveals which pattern?',
+     choices:[{id:'A',text:'Press freedom perfectly correlates with economic development — richer countries always have freer press'},{id:'B',text:'Press freedom generally correlates with regime type but with important variations — Nigeria\'s higher ranking than Mexico reflects different types of threats (state vs. organized crime violence); Russia\'s worse ranking than Iran reflects more systematic journalist elimination; China\'s worst ranking reflects comprehensive state media control'},{id:'C',text:'Press freedom rankings are determined by US government preferences and do not reflect actual conditions'},{id:'D',text:'All six countries have similar press freedom — minor differences reflect methodology rather than reality'}],
+     correct:'B',explanation:'Careful analysis of the rankings reveals pattern AND variation. The general correlation with regime type holds (UK democracy → best; China one-party → worst). But the middle positions reveal different threat types: Nigeria ranks above Mexico (120th vs. 147th) because Mexico\'s journalist murders (driven by cartel threats, not state policy) are extremely high — making Mexico more dangerous for journalists than Nigeria despite Nigeria\'s weaker institutions. Russia (164th) ranks below Iran (177th) because Russia\'s security services more systematically eliminate opposition journalists (Politkovskaya, Nemtsov, 20+ journalist deaths) while Iran relies more on imprisonment. Press freedom rankings measure conditions, not just formal rights.'}
+   ]},
+  {id:'r2',label:'Round 2 — Cleavages & Political Culture',icon:'🧩',
+   desc:'How social divisions shape political life across the six countries. Focus on which cleavages matter, whether they reinforce or cross-cut, and how political culture shapes citizens\' relationship to the state.',
+   questions:[
+    {id:'bi_ci_r2_01',countries:'Nigeria/UK',difficulty:'moderate',
+     stem:'Nigeria\'s Hausa-Fulani/Yoruba/Igbo divisions and the UK\'s Scottish/Welsh/English/Northern Irish divisions are both ethnic-regional cleavages. The key difference is:',
+     choices:[{id:'A',text:'The UK\'s cleavages have been managed through devolution without civil war; Nigeria\'s cleavages produced the Biafran War and continue to threaten national cohesion, partly because they are reinforcing (ethnic, religious, and regional divisions overlap) while the UK\'s cleavages are primarily territorial without the same religious reinforcement'},{id:'B',text:'Nigeria has more ethnic groups than the UK, making its divisions inherently more dangerous'},{id:'C',text:'The UK\'s cleavages are more severe because the Scottish independence movement is stronger than any Nigerian separatist movement'},{id:'D',text:'Both countries have managed their cleavages equally successfully through federal structures'}],
+     correct:'A',explanation:'The critical analytical difference is cleavage type and overlap. Nigeria\'s cleavages reinforce: being Hausa-Fulani correlates with being Muslim correlates with being northern correlates with pastoralist livelihood. Being Igbo correlates with being Christian correlates with southeastern origins. When conflict occurs along any one dimension, it activates all others simultaneously — making conflict more intense and compromise harder. UK\'s cleavages are primarily territorial (Scotland vs. England) without the religious overlay — Scottish Protestants and Catholics both support independence; Scottish cleavage doesn\'t activate religious conflict. Cross-cutting vs. reinforcing is the key analytical distinction.'},
+    {id:'bi_ci_r2_02',countries:'China/Iran',difficulty:'moderate',
+     stem:'China\'s Confucian political culture and Iran\'s Islamic political culture both influence how citizens relate to state authority. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both cultures uniformly produce acceptance of authoritarian rule among all citizens'},{id:'B',text:'Confucian emphasis on hierarchy, social harmony, and collective welfare over individual rights provides cultural resources the CCP leverages for regime legitimation; Islamic political culture in Iran creates both a source of legitimacy (theocratic authority) AND a basis for opposition (when the regime is seen as failing Islamic principles — as the Green Movement and Mahsa Amini protests demonstrated)'},{id:'C',text:'Political culture has no influence on regime stability in either country'},{id:'D',text:'Chinese and Iranian political cultures are fundamentally identical because both emphasize religious values'}],
+     correct:'B',explanation:'Political culture functions differently depending on its relationship to the regime. Confucianism\'s emphasis on social harmony and hierarchical order is compatible with CCP framing — the party presents itself as a benevolent, harmonious authority deserving deference. But crucially, no Confucian text provides a basis to challenge the CCP from within its own legitimating framework. Islamic political culture is a double-edged sword for Iran\'s regime: it provides the theological foundation for clerical authority (velayat-e faqih), but it also provides a critique — protesters in 2009 and 2022 used Islamic values (justice, dignity) to challenge the regime\'s Islamic credentials. The regime can be challenged on its own terms.'},
+    {id:'bi_ci_r2_03',countries:'Russia/Mexico',difficulty:'moderate',
+     stem:'"Statism" in Russia and "presidentialism" in Mexico under the PRI both describe political cultures where citizens expect strong central authority. The key difference is:',
+     choices:[{id:'A',text:'Mexico\'s presidentialism is religious while Russia\'s statism is secular'},{id:'B',text:'Russian statism reflects deep historical experience with invasions and instability producing genuinely internalized cultural preference for strong central authority; Mexico\'s PRI presidentialism was more of an institutional artifact — citizens were socialized into deference through corporatist control, but democratic transitions since 2000 show those preferences were malleable once genuine competition was introduced'},{id:'C',text:'Both political cultures have been completely transformed by democratization'},{id:'D',text:'Mexico\'s presidentialism is stronger than Russia\'s statism because Mexico had the PRI for 71 years'}],
+     correct:'B',explanation:'Distinguishing cultural depth matters for predicting democratic durability. Russia\'s statism has deeper historical roots — centuries of invasion (Mongol, Napoleonic, Nazi) created genuine cultural memory that strong central authority is necessary for national survival. Surveys consistently show Russian preferences for order over liberty. Mexico\'s political culture under the PRI was heavily shaped by institutional incentives — corporatist patronage created conformity without necessarily internalizing the values. Mexico\'s successful democratic transition (2000, 2018 AMLO election with 53% against establishment) suggests democratic norms can take hold when institutions enable genuine competition.'},
+    {id:'bi_ci_r2_04',countries:'UK/Mexico',difficulty:'moderate',
+     stem:'The UK\'s Brexit vote and Mexico\'s 2018 AMLO election both revealed deep "values cleavages" cutting across traditional class and party lines. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both cleavages are primarily economic — poor people voted Leave and for AMLO while wealthy people voted Remain and against AMLO'},{id:'B',text:'Brexit revealed a UK cleavage between education-correlated cosmopolitan/nationalist values (older, less-educated, rural voted Leave; younger, educated, urban voted Remain) that cut across traditional class-party alignments; AMLO\'s win revealed a cleavage between anti-establishment populist demands across classes, cutting across traditional PRI/PAN regional alignments'},{id:'C',text:'Both cleavages are identical because both involved populist challenges to establishment parties'},{id:'D',text:'The Brexit cleavage is more significant than Mexico\'s because the UK is a larger economy'}],
+     correct:'B',explanation:'This question tests understanding of how new cleavages emerge and cross-cut traditional ones. Brexit\'s age-education-geography cleavage didn\'t map onto traditional Conservative/Labour class alignment: working-class Labour voters in northern England voted Leave alongside middle-class Conservatives in coastal towns. AMLO\'s cleavage was populist vs. establishment rather than the traditional PRI north-rural vs. PAN south-urban divide — he won in northern states that had traditionally voted PAN. Both cases show new cultural/identity cleavages emerging that are analytically distinct from the traditional socioeconomic cleavages they cut across.'},
+    {id:'bi_ci_r2_05',countries:'Nigeria/Iran',difficulty:'challenging',
+     stem:'Nigeria\'s religious cleavage (Muslim north vs. Christian south) and Iran\'s factional cleavage (hardliners vs. reformists) are both significant political divisions. The key structural difference is:',
+     choices:[{id:'A',text:'Nigeria\'s religious cleavage is more violent than Iran\'s factional cleavage'},{id:'B',text:'Nigeria\'s cleavage divides the society into communities with different fundamental identities and interests that must coexist within a federal system; Iran\'s factional cleavage divides those within the system about how to govern — it is a competition within the Islamic Republic\'s framework rather than a cleavage about the state\'s fundamental identity'},{id:'C',text:'Iran\'s factional cleavage is based on religion while Nigeria\'s is based on ethnicity'},{id:'D',text:'Both cleavages are equivalent because both produce contested elections'}],
+     correct:'B',explanation:'Understanding cleavage depth is critical. Nigeria\'s Muslim-Christian division is about fundamental identity — what kind of state should Nigeria be? Should sharia criminal law apply? Should religion shape national identity? These are existential questions about the state\'s nature. Iran\'s reformist-hardliner cleavage is intra-system — both factions accept the Islamic Republic, velayat-e faqih, and the basic structure. They compete about HOW to govern (more or less diplomatic engagement, more or less strict Islamic enforcement) rather than WHAT the state fundamentally is. Nigeria\'s cleavage is deeper — it goes to the question of national identity itself.'},
+    {id:'bi_ci_r2_06',countries:'All',difficulty:'challenging',
+     stem:'Which of the following comparisons about political participation across the six AP Comparative countries is MOST accurate?',
+     choices:[{id:'A',text:'Authoritarian countries have lower electoral participation than democracies because citizens don\'t believe elections matter'},{id:'B',text:'Electoral participation varies non-linearly — Iran\'s 2009 elections drew 85% turnout (more than most democracies) because genuine competition made voting meaningful; China\'s national elections don\'t exist; Russia\'s elections draw moderate turnout for a managed system; the UK averages 60-65%; Mexico 60-70%; Nigeria 30-50%. The relationship between participation and regime type is mediated by whether elections offer meaningful choice'},{id:'C',text:'Democracies always have higher electoral participation than authoritarian countries'},{id:'D',text:'All six countries have similar electoral participation rates around 60%'}],
+     correct:'B',explanation:'Participation levels depend on perceived stakes, not just formal electoral freedom. Iran\'s 85% turnout in 2009 — higher than the UK\'s typical rates — demonstrates that when authoritarian elections offer genuine factional competition (Mousavi vs. Ahmadinejad), citizens turn out massively because the stakes are real. Conversely, Iran\'s 2024 turnout of 40% following mass candidate disqualification shows that when elections offer no meaningful choice, participation collapses. China has no competitive national elections. Russia\'s managed elections produce middle turnout. UK averages reflect established democratic routines. The pattern is: meaningful competition → participation; lack of meaningful competition → abstention.'},
+    {id:'bi_ci_r2_07',countries:'Mexico/Nigeria',difficulty:'moderate',
+     stem:'Both Mexico and Nigeria have significant indigenous/ethnic minority communities whose political participation has been shaped by their colonial histories. The key difference is:',
+     choices:[{id:'A',text:'Mexico has no ethnic minorities while Nigeria does'},{id:'B',text:'Mexico\'s ethnic minorities (indigenous communities ~15%) mobilized through the Zapatista movement and AMLO\'s populist coalition building; Nigeria\'s 250+ ethnic minorities are more numerous and more politically fragmented, with some pursuing violence (MEND, Boko Haram) while others use formal politics — reflecting Nigeria\'s deeper ethnic fragmentation and weaker state capacity to channel participation'},{id:'C',text:'Both countries\'s ethnic minorities have been fully incorporated into national political parties'},{id:'D',text:'Nigeria\'s ethnic minorities are weaker than Mexico\'s because they have less international attention'}],
+     correct:'B',explanation:'Both countries have colonial-era minority questions, but scale and fragmentation differ. Mexico\'s indigenous communities (~15% of population, concentrated primarily in southern states) present a manageable challenge that can be addressed through specific programs and political inclusion. Zapatistas attracted international attention but remained regionally contained. Nigeria\'s 250+ ethnic groups create a far more complex mosaic — no single ethnic minority strategy can work, and the fragmentation means cleavages are more numerous and harder to manage. Both Boko Haram (northeastern Muslim grievances) and MEND (Niger Delta resource justice) represent ethnic-regional mobilization, but through very different channels.'},
+    {id:'bi_ci_r2_08',countries:'Russia/Nigeria',difficulty:'moderate',
+     stem:'Russia\'s "dictatorship of law" (Putin\'s phrase) and Nigeria\'s weak rule of law both represent challenges to effective governance, but they are fundamentally different problems. Which comparison is most accurate?',
+     choices:[{id:'A',text:'Both represent identical governance failures — the absence of rule of law'},{id:'B',text:'Russia\'s "dictatorship of law" describes the use of legal mechanisms as political weapons — using courts and criminal law selectively against opponents while protecting regime allies (Khodorkovsky prosecution); Nigeria\'s weak rule of law reflects insufficient state capacity — courts are corrupt but not systematically weaponized by a central authority'},{id:'C',text:'Nigeria has stronger rule of law than Russia because it has more democratic elections'},{id:'D',text:'Russia has weaker rule of law than Nigeria because it is a larger country'}],
+     correct:'B',explanation:'The distinction between law-as-weapon and law-as-absent-capacity is important for comparative analysis. Russia has strong state capacity — the FSB, courts, and bureaucracy function effectively when directed at regime opponents. This is "selective enforcement": Navalny prosecuted on fraud charges while corrupt pro-Putin oligarchs face no consequences. Nigeria\'s problem is more diffuse — courts are slow, corruptible, and sometimes simply don\'t function effectively, but this reflects state weakness rather than systematic political direction. Both are rule of law failures but with different causes: Russia\'s is intentional selectivity; Nigeria\'s is capacity weakness and patronage corruption.'},
+    {id:'bi_ci_r2_09',countries:'Iran/UK',difficulty:'moderate',
+     stem:'Iran\'s 2022 Mahsa Amini protests and the UK\'s 2011 London riots both represented major civil unrest challenges for their respective governments. The key comparative difference is:',
+     choices:[{id:'A',text:'Both governments responded identically with police force and mass arrests'},{id:'B',text:'The UK treated the London riots as a criminal law enforcement problem — police arrested rioters under existing criminal law, courts sentenced them, and the government faced parliamentary accountability; Iran treated the Mahsa Amini protests as an existential political threat requiring Basij suppression, mass executions, and no parliamentary accountability — revealing fundamentally different state-society relationships'},{id:'C',text:'Iran\'s protests were more violent than the UK\'s, justifying a stronger response'},{id:'D',text:'Both governments arrested the same proportion of protesters relative to population'}],
+     correct:'B',explanation:'The state response reveals the nature of each political system. UK\'s 2011 response: police used existing criminal law; ~3,000 arrested; courts sentenced through normal judicial process; David Cameron faced parliamentary criticism; no systematic political repression. Iran\'s 2022 response: Basij and security forces killed protesters (estimates: 500+); thousands arrested; some executed on "moharebeh" (enmity against God) charges; state controlled information flow; no parliamentary accountability (Majles dominated by hardliners). The difference isn\'t the unrest — it\'s whether the state treats it as a law enforcement problem with accountability or an existential threat requiring political suppression.'},
+    {id:'bi_ci_r2_10',countries:'All',difficulty:'challenging',
+     stem:'A student argues that "the stronger a country\'s civil society, the more democratic it will be." Which evidence from the six AP Comparative countries MOST challenges this claim?',
+     choices:[{id:'A',text:'China\'s absence of civil society and low democracy scores support the claim'},{id:'B',text:'Nigeria challenges the claim — it has moderately active civil society (religious organizations, press, NGOs) but remains only partly free; conversely, Russia had significant civil society in the 1990s that was subsequently suppressed by Putin — showing that civil society can be destroyed even after developing, and that the presence of civil society does not automatically produce or maintain democracy'},{id:'C',text:'Iran challenges the claim by showing that civil society produces protests that eventually succeed'},{id:'D',text:'The claim is fully supported by all six countries with no exceptions'}],
+     correct:'B',explanation:'Nigeria and Russia provide the most nuanced challenges. Nigeria shows that civil society exists and is active but has not produced consolidated democracy — civil society organizations are often co-opted through patronage; journalist freedom is constrained by cartel-like violence; ethnic divisions mean civil society mobilizes along fault lines rather than for national democratic goods. Russia is an even stronger challenge in a different direction: Yeltsin-era Russia (1991-99) had developing civil society (independent TV, NGOs, opposition parties), but Putin systematically dismantled it. This shows civil society is necessary but not sufficient for democracy, and that democratic regression can destroy previously existing civil society.'}
+   ]},
+  {id:'r3',label:'Round 3 — Interest Groups & Social Movements',icon:'✊',
+   desc:'Comparing how interests are organized and expressed — from pluralism to corporatism, from peaceful protest to armed insurgency.',
+   questions:[
+    {id:'bi_ci_r3_01',countries:'Mexico/UK',difficulty:'moderate',
+     stem:'Mexico is moving from a corporatist to a pluralist interest group system, while the UK operates a pluralist system. Which of the following best describes what this shift means for Mexican democracy?',
+     choices:[{id:'A',text:'Moving to pluralism means Mexico will have fewer interest groups'},{id:'B',text:'The shift from corporatism (PRI-affiliated peak organizations with guaranteed access) to pluralism (competing independent groups) reflects Mexico\'s democratic deepening — genuine independent interests can now organize, but it also means the previous corporatist discipline that delivered workers\' votes is gone, requiring politicians to actually compete for interest group support'},{id:'C',text:'Pluralism is always worse than corporatism for democracy'},{id:'D',text:'Mexico\'s interest group system has always been pluralist — the change is purely cosmetic'}],
+     correct:'B',explanation:'The Mexico corporatism-to-pluralism transition is a textbook example of how interest group organization reflects and shapes regime type. PRI-era corporatism: CTM delivered labor votes in exchange for guaranteed wage agreements and political representation; CNC delivered peasant votes for land distribution policies. This was controlled but provided real benefits. Post-2000 pluralism: independent unions, business associations, NGOs, and advocacy groups can organize without PRI affiliation — but they must compete for influence through lobbying, coalition-building, and electoral pressure rather than guaranteed access. This is more democratically appropriate but politically messier.'},
+    {id:'bi_ci_r3_02',countries:'Iran/China',difficulty:'moderate',
+     stem:'The Zapatistas (Mexico, 1994) and China\'s 1989 Tiananmen protesters both challenged authoritarian/semi-authoritarian governments through mass mobilization. The key difference in their strategic approaches was:',
+     choices:[{id:'A',text:'The Zapatistas used violence while Tiananmen protesters were entirely peaceful'},{id:'B',text:'Tiananmen protesters sought regime change through urban demonstrations in the capital, making them directly threatening to the CCP\'s survival; the Zapatistas sought land rights and indigenous autonomy through guerrilla presence in remote Chiapas, pursuing a media/legitimacy strategy rather than direct regime overthrow — surviving through international visibility rather than military victory'},{id:'C',text:'Both movements used identical strategies that produced identical outcomes'},{id:'D',text:'The Zapatistas were supported by the US government while Tiananmen protesters were not'}],
+     correct:'B',explanation:'Strategic comparison reveals why one movement survived and the other was crushed. Tiananmen protesters were in Tiananmen Square — the symbolic heart of party power, visible to international media during Gorbachev\'s visit. Their demands (democracy, end to corruption) directly challenged CCP legitimacy. The CCP faced a direct existential choice: crush them or fall. The Zapatistas chose a different strategy: occupy 4 towns briefly, then retreat to Chiapas highlands; use Subcomandante Marcos\'s media-savvy communiqués to win global attention; demand indigenous rights rather than regime change. The Mexican state could negotiate without regime threat. Geographic and strategic positioning explained their different survivals.'},
+    {id:'bi_ci_r3_03',countries:'Nigeria/Iran',difficulty:'moderate',
+     stem:'Nigeria\'s Boko Haram and Iran\'s IRGC (Islamic Revolutionary Guard Corps) are both armed non-state or quasi-state forces with Islamic ideology. The key political difference between them is:',
+     choices:[{id:'A',text:'Boko Haram is Sunni while the IRGC is Shia — this theological difference explains all other political differences'},{id:'B',text:'Boko Haram is a genuinely non-state insurgent organization challenging Nigerian state authority and sovereignty; the IRGC is a state institution of Iran\'s government that uses Islamic ideology to legitimate state power — one is a challenge to state authority, the other is an instrument of it'},{id:'C',text:'Both organizations have identical relationships to their respective states'},{id:'D',text:'The IRGC is more violent than Boko Haram because it has more resources'}],
+     correct:'B',explanation:'This comparison tests regime vs. non-state actor distinction. Boko Haram rejects Nigerian state authority entirely — it seeks to overthrow or separate from the state, establishing an Islamic caliphate independent of Abuja\'s governance. It is a challenger to Weberian state monopoly on force. The IRGC is the opposite: it is a core institution of the Iranian state, created to protect the revolution, and derives its power from state resources (budget, equipment, territory). It uses Islamic ideology to legitimize state power rather than to challenge it. One is anti-state insurgency; the other is a state military force. Same ideological label, opposite political relationship to state authority.'},
+    {id:'bi_ci_r3_04',countries:'UK/Russia',difficulty:'moderate',
+     stem:'The UK\'s trade union movement and Russia\'s All-Russian Trade Union Federation (FNPR) are both large national trade union federations. Their political functions differ primarily because:',
+     choices:[{id:'A',text:'UK unions are larger than Russian unions'},{id:'B',text:'UK\'s TUC operates independently of the state and has genuine adversarial capacity — it organized the 1984-85 miners\' strike against Thatcher, funds the Labour Party, and can strike national deals; Russia\'s FNPR is aligned with United Russia and generally supports rather than challenges government policy, functioning as state corporatist tool rather than genuine labor advocate'},{id:'C',text:'Russian unions have more legal rights than UK unions'},{id:'D',text:'Both union federations perform identical political functions with different names'}],
+     correct:'B',explanation:'Union independence is a key indicator of pluralist vs. corporatist civil society. UK\'s TUC helped found the Labour Party (1900), funded major electoral campaigns, and can genuinely threaten government through strikes — the 1984-85 Miners\' Strike was a genuine political battle that Thatcher only narrowly won. FNPR (Russian Federation of Independent Trade Unions) — despite "independent" in its name — is closely aligned with United Russia, rarely challenges government policy, and has been described as a "company union" at the national scale. The difference is whether the union actually represents workers\' interests adversarially or serves regime legitimation purposes.'},
+    {id:'bi_ci_r3_05',countries:'All',difficulty:'challenging',
+     stem:'Social media\'s impact on political participation has been shaped differently by each AP Comparative country\'s governance approach. Which comparison best captures this variation?',
+     choices:[{id:'A',text:'Social media has democratized political participation equally in all six countries'},{id:'B',text:'UK and Mexico: social media enables genuine political organizing (Brexit coordination, AMLO\'s Twitter presence, Mexican journalist networks); Nigeria: social media enabled #EndSARS protests but also disinformation; Iran: social media enabled protest coordination despite shutdown attempts (Mahsa Amini 2022); Russia: social media censored/blocked (Navalny\'s YouTube worked until his organization declared extremist); China: domestic social media (WeChat/Weibo) allowed within Great Firewall while foreign platforms blocked'},{id:'C',text:'Social media has had no political impact in any of the six countries'},{id:'D',text:'Authoritarian countries are better at using social media for political purposes than democratic countries'}],
+     correct:'B',explanation:'Social media\'s political impact varies by regime type and governance response. Liberal democracies (UK, Mexico): social media augments existing political participation — parties, movements, and journalists use it freely. Fragile democracy (Nigeria): #EndSARS 2020 demonstrated social media\'s organizing power but also its limits when security forces respond violently. Theocratic hybrid (Iran): state repeatedly shuts down internet during crises but cannot maintain long-term restriction; VPNs allow continued use. Competitive authoritarian (Russia): systematic blocking and criminalization of opposition social media use effectively limits its political utility. One-party state (China): comprehensive domestic alternative ecosystem allows social/economic use while blocking political organizing. Each regime has found different equilibria between surveillance/censorship and allowing economic benefits of digital connectivity.'}
+   ]},
+  {id:'r4',label:'Round 4 — AP Exam Challenge',icon:'🏆',
+   desc:'The hardest cross-country comparison questions on Citizens & Society — designed to mirror AP Exam difficulty.',
+   questions:[
+    {id:'bi_ci_r4_01',countries:'All',difficulty:'challenging',
+     stem:'Which of the following comparisons about the relationship between civil society strength and democratic consolidation is BEST supported by the evidence from the six AP Comparative countries?',
+     choices:[{id:'A',text:'Strong civil society is sufficient for democratic consolidation — countries with strong civil society always consolidate democracy'},{id:'B',text:'Civil society is a necessary but not sufficient condition for democratic consolidation — it must be combined with institutional channels (independent electoral bodies, rule of law) that allow civil society demands to shape policy without being crushed; UK (both); Mexico (both developing); Nigeria (civil society present but institutions weak); Russia (civil society suppressed after developing); China (civil society suppressed from the start)'},{id:'C',text:'Civil society has no role in democratic consolidation — only formal institutions matter'},{id:'D',text:'The six countries show that authoritarian regimes can consolidate democracy just as easily as those with strong civil society'}],
+     correct:'B',explanation:'This formulation correctly identifies civil society as necessary but not sufficient. The UK case shows both working: strong civil society (NGOs, free press, unions) combined with institutional channels (parliament, courts, electoral system) produces and sustains democracy. Mexico shows the combination developing — civil society growing since 1985, institutions improving (IFE/INE). Nigeria shows civil society without sufficiently strong institutions — the civil society is there but institutions are weaker (judicial corruption, electoral violence), limiting democratic consolidation. Russia shows the other direction: institutions can be captured even when civil society exists — Putin suppressed civil society after 2000 despite its existence. China shows both suppressed.'},
+    {id:'bi_ci_r4_02',countries:'China/Iran/Russia',difficulty:'challenging',
+     stem:'China, Iran, and Russia all restrict civil society, but through different mechanisms. An AP exam question asks you to compare them. Which answer would earn full credit?',
+     choices:[{id:'A',text:'All three countries restrict civil society in the same way through police violence'},{id:'B',text:'China uses comprehensive state management — GONGOs, Foreign NGO Law requiring police registration, Great Firewall blocking foreign platforms, pervasive surveillance; Iran uses selective suppression during crises (Basij for protests, closure of independent newspapers, periodic internet shutdowns) with more space between crises; Russia uses targeted stigmatization (foreign agent label, memorial liquidation) and selective prosecution of political/human rights organizations while allowing less politically threatening civil society'},{id:'C',text:'None of these countries restricts civil society — all three have vibrant independent NGO sectors'},{id:'D',text:'Russia has the weakest civil society restrictions because it was once a democracy'}],
+     correct:'B',explanation:'This answer earns full credit because it: (1) identifies three different mechanisms (comprehensive management vs. selective suppression vs. targeted stigmatization); (2) provides specific examples for each country (GONGOs/Great Firewall for China; Basij/internet shutdowns for Iran; foreign agent/Memorial for Russia); and (3) correctly identifies that all three restrict civil society but through different approaches reflecting their different regime architectures. This demonstrates the comparative analysis skill central to AP Comparative — recognizing that similar outcomes (civil society suppression) can result from very different institutional strategies.'},
+    {id:'bi_ci_r4_03',countries:'Nigeria/UK',difficulty:'challenging',
+     stem:'Nigeria\'s EndSARS protests (2020) and the UK\'s Black Lives Matter protests (2020) occurred in the same year over similar police violence concerns. Which comparison best illustrates the difference in state-society relationships?',
+     choices:[{id:'A',text:'Both protests were completely suppressed by their respective governments'},{id:'B',text:'UK\'s BLM protests were allowed to proceed largely peacefully; police faced institutional scrutiny; political parties responded to demands; protesters faced no systematic state violence; Nigeria\'s EndSARS protesters at Lekki Tollgate were killed by security forces — demonstrating that the same type of social movement faces fundamentally different state responses depending on whether rule of law, democratic accountability, and civilian control of security forces genuinely function'},{id:'C',text:'Nigeria\'s protests were more successful because they achieved immediate policy reforms'},{id:'D',text:'Both protests faced identical levels of government repression because both countries have imperfect police accountability'}],
+     correct:'B',explanation:'The 2020 comparison is empirically powerful: same issue (police brutality), same year, two different political contexts. UK: BLM drew massive peaceful marches; some statue removals caused controversy; Home Secretary faced parliamentary questions; meaningful policy debate occurred; no protesters killed by state forces. Nigeria: EndSARS protests against SARS police brutality eventually resulted in Lekki Tollgate massacre (security forces opened fire on protesters); government denied involvement; international condemnation; limited accountability. The contrast shows that the formal similarity (both nominally democratic, both with police accountability debates) masks a fundamental difference in whether state institutions actually protect citizens during protest — the essential test of democratic vs. fragile democracy.'},
+    {id:'bi_ci_r4_04',countries:'Mexico/Russia',difficulty:'challenging',
+     stem:'Mexico\'s IFE reform (1996) and Russia\'s lack of equivalent electoral institution reform are often cited as the key factor explaining their divergent democratic trajectories. An AP exam question asks you to evaluate this claim. Which answer best addresses it?',
+     choices:[{id:'A',text:'The IFE explanation is incorrect — Mexico democratized because of US pressure from NAFTA'},{id:'B',text:'The IFE explanation is substantially correct but incomplete: Mexico\'s independent electoral administration was the proximate cause of credible transfers of power (Fox 2000), but it was enabled by: decades of civil society pressure building institutional demand for reform; PRI elite divisions creating willingness to compromise; economic crisis reducing PRI performance legitimacy; and international pressure from NAFTA creating incentives for governance reform. Russia lacked all these enabling conditions — no equivalent civil society pressure, no elite division, oil revenues maintaining performance legitimacy, and no equivalent international integration incentive'},{id:'C',text:'The IFE explanation is entirely correct — the single institutional reform explains everything'},{id:'D',text:'Mexico and Russia followed identical trajectories — both democratized in the 1990s'}],
+     correct:'B',explanation:'This answer earns full credit on an AP exam because it: (1) affirms the IFE\'s causal role (the proximate cause); (2) but contextualizes it within enabling conditions — demonstrating analytical sophistication; (3) explains why Russia lacked equivalent conditions (oil revenues, no civil society pressure, no NAFTA equivalent); and (4) avoids both monocausal explanation and lazy "it\'s complicated" hedging. The best AP exam answers identify a primary factor while explaining the conditions that enabled it — neither oversimplifying to one cause nor refusing to identify which factors matter most.'},
+    {id:'bi_ci_r4_05',countries:'All',difficulty:'challenging',
+     stem:'Which of the following statements about political participation across the six AP Comparative countries would be MOST useful in an AP Comparative argument essay on whether civil society strengthens democracy?',
+     choices:[{id:'A',text:'"All six countries have elections, therefore all six have democratic civil society."'},{id:'B',text:'"The UK\'s robust civil society — including Memorial\'s equivalent, Liberty (civil liberties org), a free press, and independent unions — combined with institutional channels for civil society influence (Parliament, courts, free elections) has produced democratic consolidation; conversely, China\'s systematic elimination of independent civil society and replacement with GONGOs has prevented any democratic development despite remarkable economic growth, suggesting civil society is a necessary precondition for democracy that economic development alone cannot substitute."'},{id:'C',text:'"Civil society is irrelevant to democracy because Russia had some civil society in the 1990s but failed to consolidate democracy."'},{id:'D',text:'"Nigeria proves that civil society is sufficient for democracy because it has active civil society organizations."'}],
+     correct:'B',explanation:'This answer would earn highest marks in an argument essay because it: (1) uses the UK as positive case with specific named examples (not just "UK has civil society"); (2) uses China as negative case showing the absence of civil society prevents democracy even with economic development; (3) articulates a causal claim ("necessary precondition") with appropriate confidence; (4) anticipates a counterargument (economic development alone is insufficient); and (5) directly addresses the prompt\'s question about whether civil society strengthens democracy. AP argument essays reward specific evidence, clear causal claims, and engagement with the strongest contrary evidence.'}
+   ]}
+]};
+
+const UNIT_FRQS=[
+  {id:'apcmp_bi_ci_ca',type:'CA',label:'Conceptual Analysis',title:'Civil Society and Regime Type',maxScore:4,
+   prompt:'Civil society refers to the space between the state and the individual — the organizations, associations, and networks that citizens form independently of government.',
+   parts:[
+    {part:'A',points:1,prompt:'Define civil society and explain why it is stronger in democratic regimes than authoritarian ones.'},
+    {part:'B',points:1,prompt:'Explain how China\'s use of GONGOs (Government-Organized NGOs) differs from genuine civil society, using a specific example.'},
+    {part:'C',points:1,prompt:'Describe one specific way Russia has weakened civil society since 2000 and explain the political purpose of that action.'},
+    {part:'D',points:1,prompt:'Using Nigeria and the UK as examples, explain how the same type of civil society organization (trade union, religious organization, or NGO) can play very different political roles depending on the institutional context.'}
+   ],
+   rubric:{A:'1 pt: Define civil society as independent organizations between state and individual (NGOs, unions, religious groups, media, professional associations). Explain WHY stronger in democracies: democratic regimes require civil society to function (accountability mechanisms, information for voters, organizational capacity for political competition); authoritarian regimes see independent civil society as threat to monopoly on political organization and suppress it. Both definition and causal explanation required.',B:'1 pt: Define GONGO as state-organized organization mimicking civil society. Specific example: All-China Federation of Trade Unions (ACFTU) — legally required to be the only union, affiliated with CCP, does not engage in genuine collective bargaining; OR Public Chamber (Russia — but question asks China); OR pro-CCP women\'s federation. Must explain HOW it differs from genuine civil society: GONGO serves regime interests rather than members\' interests; cannot challenge government policy; crowds out space for genuine independent organizations.',C:'1 pt: Specific action: foreign agent law (2012, expanded) — requiring NGOs receiving foreign funding to register as "foreign agents" (Soviet-era treason connotation) and submit to extensive audits; OR Memorial International liquidation (2021); OR "undesirable organizations" law (2015); OR expanded protest restrictions. Political purpose: eliminate organizations most threatening to regime legitimacy (human rights groups documenting abuses, election monitors, opposition media) while maintaining appearance of civil society; foreign agent label stigmatizes and burdens organizations until they self-close.',D:'1 pt: Must use BOTH Nigeria and UK with specific example. Union: UK TUC funded Labour Party, organized major strikes (Miners\' Strike 1984-85), genuinely represents workers against employers and government; Nigerian NLC operates in context of patronage co-optation and weak rule of law, reducing its effectiveness as genuine advocate. OR religious organization: Church of England is cross-partisan, symbolic, declining; Nigerian CAN/JNI mobilize along reinforcing ethnic-religious-regional lines amplifying rather than managing cleavages. Must explain HOW institutional context shapes civil society function.'}
+  },
+  {id:'apcmp_bi_ci_qa',type:'QA',label:'Quantitative Analysis',title:'Social Cleavages and Democratic Stability',maxScore:5,
+   prompt:'Social Cleavage Data:\n🇳🇬 Nigeria: 250+ ethnic groups; 50% Muslim (north) / 48% Christian (south); Gini coefficient: ~45; Reinforcing cleavages\n🇲🇽 Mexico: ~62% mestizo, ~21% indigenous groups; 78% Catholic; Gini: ~45; Partly reinforcing cleavages\n🇬🇧 UK: ~87% White British/Irish; 51% Christian, ~32% no religion; Gini: ~36; Mostly cross-cutting cleavages\n🇷🇺 Russia: ~77% ethnic Russian; ~63% Russian Orthodox; Gini: ~36; Mostly reinforcing among ethnic minorities\n🇮🇷 Iran: ~61% Persian, ~25% Azeri; ~90-95% Shia Muslim; Gini: ~40; Generational cleavage most significant\n🇨🇳 China: ~92% Han Chinese; officially atheist; Gini: ~38; Ethnic cleavages (Uyghur, Tibetan) most significant',
+   parts:[
+    {part:'A',points:1,prompt:'Based on the data, which two countries have the most similar cleavage profiles and explain what this similarity suggests about their governance challenges.'},
+    {part:'B',points:1,prompt:'Using the data, explain why Nigeria\'s Gini coefficient (~45) is particularly politically destabilizing given its ethnic and religious cleavage structure.'},
+    {part:'C',points:1,prompt:'The data shows Russia and the UK have similar Gini coefficients (~36) but very different political systems. Explain what this comparison suggests about the relationship between inequality and regime type.'},
+    {part:'D',points:1,prompt:'Based on the data, explain why Iran\'s cleavages are different in character from Nigeria\'s despite both having significant ethnic and religious diversity.'},
+    {part:'E',points:1,prompt:'Using the data, develop an argument about whether reinforcing cleavages always destabilize democracy.'}
+   ],
+   rubric:{A:'1 pt: Nigeria and Mexico have most similar cleavage profiles (both have significant ethnic/indigenous diversity, roughly similar Gini ~45, both have religious diversity though structured differently). This suggests similar governance challenges: managing ethnic political competition for state resources; addressing economic inequality that could fuel destabilizing mobilization; managing transitions between elite factions. Must explain the governance challenge implications of the similarity, not just note the numerical similarity.',B:'1 pt: Must link Gini (~45, relatively high inequality) AND ethnic/religious cleavages AND reinforcing cleavage structure: inequality falls along ethnic-religious-regional lines (poorer, predominantly Muslim north vs. wealthier, predominantly Christian south); this means economic grievances and ethnic grievances activate simultaneously rather than cross-cutting; poor northern Muslims face triple disadvantage (poor + ethnic minority + religious community) making mobilization along all three dimensions possible simultaneously. Inequality alone might be managed; inequality that reinforces other cleavages is harder to address without threatening powerful interests.',C:'1 pt: Similar Gini but very different regimes undermines simple inequality-regime determinism. UK uses social democracy (NHS, state housing, labor rights) to manage inequality within democratic framework; Russia uses oil patronage and selective benefits to manage inequality under authoritarian framework. Both have similar inequality outcomes but through different mechanisms. This suggests: inequality alone doesn\'t determine regime type; the MECHANISM of redistribution (universal social services vs. patronage) matters for democratic development; AND authoritarian regimes can manage inequality without providing democratic accountability.',D:'1 pt: Iran\'s cleavages are different in character: Iran is 90-95% Shia Muslim — the religious dimension is not a cross-community conflict but rather a generational/political split within a shared religious identity (how strictly should Islamic law be applied); Iran\'s major cleavage is not Shia-Sunni (unlike Nigeria\'s Muslim-Christian) but reformist-hardliner WITHIN Islam. Nigeria\'s Muslim-Christian cleavage is between communities with different fundamental religious identities. Iran\'s Persian-Azeri ethnic cleavage exists but is less politically mobilized than Nigeria\'s ethnic competition.',E:'1 pt: Must develop a logical argument using data. "Not always destabilizing": UK has mostly cross-cutting cleavages AND stable democracy (supports claim); Russia has reinforcing ethnic cleavages in minority regions but manages through centralization and repression (authoritarian stability possible without cross-cutting); Iran has reinforcing cleavages between reformist and hardliner but Islamic Republic has survived 45 years. OR "Yes, usually destabilizing": Nigeria (reinforcing cleavages + democracy = poor consolidation); Mexico (partly reinforcing + democracy = difficult consolidation). Must use data and take clear position.'}
+  },
+  {id:'apcmp_bi_ci_comp',type:'COMP',label:'Comparative Analysis',title:'Social Movements and Political Change',maxScore:5,
+   prompt:'Social movements use collective action outside formal political institutions to pressure governments and change policy.',
+   parts:[
+    {part:'A',points:1,prompt:'Define a social movement and explain one factor that determines whether social movements successfully achieve policy change.'},
+    {part:'B',points:2,prompt:'Compare Iran\'s Green Movement (2009) and Mexico\'s civil society activism in the 1980s-1990s in terms of their relationship to democratic change. Describe one similarity AND one difference.'},
+    {part:'C',points:2,prompt:'Using specific evidence from Russia and Nigeria, explain how the same type of social movement (economic protest) can produce very different outcomes depending on the political context.'}
+   ],
+   rubric:{A:'1 pt: Define social movement as organized collective action outside formal institutional channels seeking policy or social change (not just interest group lobbying). Factor: access to sympathetic institutional allies (courts, legislators, opposition parties); OR media visibility creating external pressure; OR regime tolerance for challenge (democracies more tolerant); OR whether movement can convert to electoral political party or coalition. Must explain HOW the factor affects success likelihood.',B_sim:'1 pt: Genuine similarity: both faced authoritarian/hybrid regimes that suppressed full democratic expression; both mobilized civil society outside official channels; both used international visibility to protect their movements; both challenged regimes that claimed democratic legitimacy while restricting genuine competition. Must explain how BOTH exhibit this similarity.',B_diff:'1 pt: Key difference: Mexico\'s 1980s-90s civil society activism accumulated over decades and found institutional pathways (IFE independence, opposition parties in Congress, NAFTA integration pressure) that allowed it to eventually produce the 2000 democratic transition; Iran\'s Green Movement (2009) was suppressed without institutional pathway — Guardian Council pre-filters elections, no equivalent IFE; Supreme Leader has no accountability mechanism; movement leaders (Mousavi, Karroubi) imprisoned without any democratic institutional absorbing their demands. One found an institutional pathway; the other didn\'t.',C:'2 pts: Must use specific evidence from BOTH countries. Russia: 2019 economic protest (fuel price protests) and 2022 anti-war protest — both suppressed with mass arrests; no institutional channel for grievances; United Russia controls parliament; courts convict protesters; result is suppression without policy change. Nigeria: 2020 EndSARS (police brutality + economic grievances) — security forces killed protesters at Lekki Tollgate; BUT Nigerian democracy has more accountability than Russia — INEC credibility, court challenges, electoral consequences; some institutional response (SARS disbanded, though quickly reformed). Contrast: Russia\'s competitive authoritarian system has no effective institutional response channel; Nigeria\'s fragile democracy has weak but present accountability mechanisms. 1 pt per country with evidence.'}
+  },
+  {id:'apcmp_bi_ci_ae',type:'AE',label:'Argument Essay',title:'Does Strong Civil Society Guarantee Democratic Stability?',maxScore:5,
+   prompt:'Some political scientists argue that strong civil society — independent organizations, free press, active NGOs — is the most important factor in sustaining democracy. Others argue that formal institutions (electoral systems, constitutions, rule of law) matter more, and that civil society without supportive institutions cannot sustain democracy.\n\nDevelop an argument about whether civil society or formal institutions is more important for democratic stability. Use evidence from at least two AP Comparative countries.',
+   parts:[{part:'Essay',points:5,prompt:'Write your complete argument essay. Address all four elements: claim, evidence from two countries, reasoning, and counterargument.'}],
+   rubric:{Essay:'5 pts: 1pt CLAIM — Defensible position. E.g., "While strong civil society is necessary for democratic sustainability, formal institutions — particularly independent electoral authorities, rule of law, and constitutional constraints on executive power — are more decisive because they provide the institutional channels through which civil society influence becomes politically effective, as Mexico\'s IFE demonstrates." OR: "Civil society is more important than formal institutions because institutions can be captured or manipulated, while a sufficiently strong civil society can force institutional reform, as the pressure that led to the IFE\'s creation demonstrates."\n\n2pts EVIDENCE (1pt per country) — Mexico: IFE\'s independence (formal institution) enabled Fox\'s 2000 victory, but the IFE reform itself was driven by decades of civil society pressure from election monitors, independent media, and opposition parties — showing the interaction between civil society and institutional development. Russia: despite having formal democratic institutions (elected president, parliament, constitution guaranteeing rights), democratic consolidation failed because civil society was systematically destroyed — showing that formal institutions without civil society are insufficient. OR UK: strong civil society (TUC, Amnesty, free press) reinforces already-strong democratic institutions; both work together. Nigeria: civil society exists (religious orgs, press) but weak formal institutions (electoral violence, corruption) prevent consolidation.\n\n1pt REASONING — Explains mechanism: why institutions or civil society is causally primary; what happens when one is present without the other.\n\n1pt COUNTERARGUMENT — Engages strongest opposing view: "Critics would argue that institutions are more fundamental — you can rebuild civil society but institution-less democracy collapses immediately. However, Russia\'s experience shows that strong executive institutions (the presidency, FSB, courts) can be turned against civil society to suppress it, while no equivalent institution can rebuild civil society from the top down." OR vice versa.'}
+  }
+];
+
+let G={gold:parseInt(localStorage.getItem('civitas_gold')||'0'),roundIdx:0,questionIdx:0,questions:[],selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+
+window.addEventListener('load',()=>{const fill=document.getElementById('ld-fill');let p=0;const iv=setInterval(()=>{p+=Math.random()*25;if(p>=100){p=100;clearInterval(iv);setTimeout(doneLoading,300);}fill.style.width=p+'%';},120);});
+function doneLoading(){document.getElementById('loading').style.opacity='0';setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);buildRoundCards();buildFRQList();loadSavedProgress();}
+function loadSavedProgress(){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');if(prog[UNIT_ID])updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}catch(e){}loadFRQScores();}
+function loadFRQScores(){UNIT_FRQS.forEach(frq=>{const v=localStorage.getItem('civitas_frq_'+UNIT_ID+'_'+frq.id);if(v){const b=document.getElementById('frq-badge-'+frq.id);if(b){b.textContent=v+'/'+frq.maxScore;b.style.display='block';}}});}
+function isRoundComplete(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null')!==null;}catch(e){return false;}}
+function getRoundProgress(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null');}catch(e){return null;}}
+function updateProgressBar(done,total){document.getElementById('prog-fill').style.width=Math.round(done/total*100)+'%';document.getElementById('prog-text').textContent=done+' / '+total+' Rounds Complete';}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')loadFRQScores();}
+function buildRoundCards(){
+  document.getElementById('round-cards').innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
+    const prog=getRoundProgress(i);const done=prog!==null;const locked=i>0&&!isRoundComplete(i-1);
+    const acc=done?prog.accuracy:null;const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+    return`<div class="activity-card${locked?' locked':''}" onclick="${locked?'notify(\'Complete Round '+i+' first!\')':'startRound('+i+')'}">
+      <div class="activity-card-strip" style="background:${done?'var(--green)':locked?'var(--border2)':'var(--acc)'}"></div>
+      <div class="activity-card-body"><div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${i+1} · ${r.questions.length} QUESTIONS</div>
+        <div class="activity-card-title">${r.label}</div><div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action" style="color:${done?'var(--green2)':locked?'var(--text3)':'var(--acc2)'}">
+          ${locked?'🔒 Locked':done?'✓ Complete — '+acc+'%':'▶ Play Now'}</div>
+        ${done?`<div class="activity-card-badge" style="border-color:${sc};color:${sc}">${acc}%</div>`:''}
+      </div></div>`;
+  }).join('');
+}
+function buildFRQList(){
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+  document.getElementById('frq-list').innerHTML=UNIT_FRQS.map(frq=>`<div class="frq-card" onclick="openFRQ('${frq.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${cols[frq.type]||'var(--acc)'};margin-bottom:4px">${frq.label} · ${frq.maxScore} pts</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:4px">${frq.title}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Cross-country comparison · AI-graded</div></div>
+      <div class="frq-badge" id="frq-badge-${frq.id}"></div>
+    </div></div>`).join('');
+}
+function openFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};const col=cols[frq.type]||'var(--acc)';
+  document.getElementById('frq-workspace-area').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button onclick="closeFRQ()" style="font-family:var(--bebas);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 10px;cursor:pointer">← Back</button>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:${col}">${frq.label} · ${frq.maxScore} PTS</div>
+    </div>
+    <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px">${frq.title}</div>
+    <div class="frq-prompt">${frq.prompt}</div>
+    ${frq.parts.map((p,pi)=>`<div class="frq-part">
+      <div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div>
+      <div class="frq-part-prompt">${p.prompt}</div>
+      <textarea class="frq-textarea" id="frq-ans-${frq.id}-${pi}" placeholder="Write your response here..."></textarea>
+    </div>`).join('')}
+    <button class="frq-submit-btn" id="frq-submit-${frqId}" onclick="submitFRQ('${frqId}')">⚡ Submit for AI Grading</button>
+    <div class="frq-grading" id="frq-grade-${frqId}" style="margin-top:16px"></div>`;
+  document.getElementById('frq-workspace-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeFRQ(){document.getElementById('frq-workspace-area').innerHTML='';}
+async function submitFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');
+  if(answers.join('').length<30){notify('Please write responses first.');return;}
+  const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);
+  btn.disabled=true;btn.innerHTML='⏳ Grading...';
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part}(${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');
+  try{
+    const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\n${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0_or_1,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],system:'You are an AP Comparative Government FRQ expert grader. Grade strictly per rubric. Return ONLY valid JSON.'})});
+    const data=await resp.json();
+    const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    const score=grade.totalScore||0;
+    try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);
+      const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};
+      const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}
+    const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
+    btn.innerHTML='✓ Graded';
+    const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
+    gradeDiv.style.display='block';
+    gradeDiv.innerHTML=`<div class="frq-score-banner"><div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div><div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE · ${pct}%</div><div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">
+      ${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span><span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'✓ +'+p.earned:'✗ 0'}</span></div><div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div></div>`;}).join('')}
+    </div>
+    <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+    ${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>💡 Improve:</strong> ${grade.improveHint}</div>`:''}`;
+  }catch(e){btn.innerHTML='⚠ Error';btn.disabled=false;notify('Grading error.');}
+}
+function startRound(idx){
+  if(!isRoundComplete(idx-1)&&idx>0){notify('Complete Round '+idx+' first!');return;}
+  G={...G,roundIdx:idx,questionIdx:0,selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+  const round=QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display='none';document.getElementById('game').style.display='flex';
+  document.getElementById('round-intro').style.display='flex';
+  ['question-area','round-complete','unit-complete'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('ri-icon').textContent=round.icon;
+  document.getElementById('ri-round').textContent='ROUND '+(idx+1)+' OF '+QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent=round.label;
+  document.getElementById('ri-desc').textContent=round.desc;
+  document.getElementById('game-pips').innerHTML=QUESTION_BANK.rounds.map((_,i)=>`<div class="gp-pip ${i<idx?'done':i===idx?'active':''}"></div>`).join('');
+  updateGoldDisplay();
+}
+function beginRound(){
+  document.getElementById('round-intro').style.display='none';document.getElementById('question-area').style.display='flex';
+  G.questions=shuffle([...QUESTION_BANK.rounds[G.roundIdx].questions]);renderQuestion();
+}
+function renderQuestion(){
+  const q=G.questions[G.questionIdx];const el=document.getElementById('question-area');
+  G.selectedChoice=null;G.answered=false;document.getElementById('btn-next').style.display='none';
+  document.getElementById('game-round-label').textContent='ROUND '+(G.roundIdx+1)+' · Q '+(G.questionIdx+1)+'/'+G.questions.length;
+  el.innerHTML=`<div class="question-card" id="qcard">
+    <div class="q-meta"><div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>
+      <div class="q-tag countries">🌍 ${q.countries}</div><div class="q-tag diff-${q.difficulty}">${q.difficulty}</div></div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div>
+    <div style="text-align:right;margin-top:8px"><button onclick="submitQuestionReport('${q.stem.replace(/'/g,"\\'").substring(0,80)}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report</button></div>
+  </div>`;
+  el.scrollTop=0;
+}
+function selectChoice(id){if(G.answered)return;G.selectedChoice=id;document.querySelectorAll('.choice').forEach(c=>{c.classList.remove('selected');if(c.id==='choice-'+id)c.classList.add('selected');});submitAnswer();}
+function submitAnswer(){
+  if(!G.selectedChoice||G.answered)return;G.answered=true;
+  const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;
+  G.sessionTotal++;
+  if(correct){G.sessionCorrect++;const gold=5+(q.difficulty==='challenging'?5:3);G.gold+=gold;spawnGold('+'+gold+' 🪙');awardGoldToShell(gold,'AP Comp Big Idea CS');}
+  document.querySelectorAll('.choice').forEach(c=>{c.classList.add('answered');const cid=c.id.replace('choice-','');if(cid===q.correct)c.classList.add('correct');else if(cid===G.selectedChoice&&!correct)c.classList.add('wrong');else c.classList.add('dimmed');});
+  if(q.explanation){const qcard=document.getElementById('qcard');if(qcard)qcard.insertAdjacentHTML('beforeend',`<div class="explanation"><strong>${correct?'✓ Correct!':'✗ Incorrect.'}</strong> ${q.explanation}</div>`);}
+  document.getElementById('btn-next').style.display='block';updateGoldDisplay();
+}
+function nextQuestion(){G.questionIdx++;if(G.questionIdx>=G.questions.length)finishRound();else{renderQuestion();document.getElementById('question-area').scrollTop=0;}}
+function finishRound(){
+  const acc=G.sessionTotal>0?Math.round(G.sessionCorrect/G.sessionTotal*100):0;
+  try{localStorage.setItem('civitas_'+UNIT_ID+'_r'+G.roundIdx,JSON.stringify({accuracy:acc,correct:G.sessionCorrect,total:G.sessionTotal,completedAt:new Date().toISOString()}));syncProgressToShell(acc);}catch(e){}
+  const icon=acc>=80?'⭐':acc>=60?'✅':'📋';const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('question-area').style.display='none';document.getElementById('btn-next').style.display='none';
+  const rc=document.getElementById('round-complete');rc.style.display='flex';
+  document.getElementById('rc-icon').textContent=icon;document.getElementById('rc-title').textContent=QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent=acc+'%';document.getElementById('rc-score').style.color=sc;
+  document.getElementById('rc-sub').textContent=G.sessionCorrect+'/'+G.sessionTotal+' CORRECT';
+  document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:${sc}">${acc}%</div><div class="rc-stat-lbl">Accuracy</div></div><div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+  const ni=G.roundIdx+1;const nb=document.getElementById('rc-next-btn');
+  if(ni<QUESTION_BANK.rounds.length){nb.textContent='Continue to Round '+(ni+1)+' →';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}else{nb.textContent='🏆 Complete Big Idea';nb.onclick=showUnitComplete;}
+}
+function syncProgressToShell(acc){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');const prev=prog[UNIT_ID]||{bestAccuracy:0};prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}}
+function showUnitComplete(){
+  const tc=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.correct:0);},0);
+  const tq=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.total:0);},0);
+  const ov=tq>0?Math.round(tc/tq*100):0;const grade=ov>=90?'A+':ov>=80?'A':ov>=70?'B':ov>=60?'C':'D';const gc=ov>=80?'var(--green2)':ov>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('round-complete').style.display='none';document.getElementById('unit-complete').style.display='flex';
+  document.getElementById('uc-score').textContent=grade;document.getElementById('uc-score').style.color=gc;
+  document.getElementById('uc-grade').textContent=ov+'% Overall · Big Idea Complete';
+  awardGoldToShell(50,'Big Idea: Citizens & Society');spawnGold('+50 🪙 Big Idea Complete!');syncProgressToShell(ov);
+}
+function replayUnit(){QUESTION_BANK.rounds.forEach((_,i)=>{try{localStorage.removeItem('civitas_'+UNIT_ID+'_r'+i);}catch(e){}});document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();}
+function exitGame(){document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();loadFRQScores();updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
+function updateGoldDisplay(){document.getElementById('game-gold-disp').textContent='🪙 '+G.gold;}
+function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',c+amount);localStorage.setItem('civitas_gold_pending',JSON.stringify({amount,source}));}catch(e){}}
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+async function submitQuestionReport(stem){const sn=localStorage.getItem('civitas_student_name')||'Unknown';try{await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},body:JSON.stringify({student_name:sn,course_id:'ap_cmp',item_type:'question',item_id:UNIT_ID,item_title:'Big Idea: Citizens & Society',issue_type:'question_error',note:(stem||'').slice(0,300),unit_id:UNIT_ID,submitted_at:new Date().toISOString()})});notify('✓ Reported!');}catch(e){notify('Report failed.');}}
+</script>
+</body>
+</html>
