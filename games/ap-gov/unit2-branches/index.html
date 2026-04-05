@@ -731,7 +731,7 @@ const QUESTION_BANK = {
           title:'Political Cartoon: The Committee Maze',
           source:'Original classroom-safe scenario inspired by public-domain congressional process cartoons.',
           description:'A political cartoon shows a bill labeled "Education Reform" entering a giant maze called "Congress." Inside the maze are doors marked "Subcommittee," "Committee Chair," "Rules Committee," "Floor Debate," and "Conference Committee." Outside the maze, frustrated citizens hold signs reading "Do Something" while the bill circles back on itself. The caption reads, "The Long Road to Law."',
-          svgType:'committee_maze',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit2-cartoon-congress.png', svgType:'committee_maze',
           questions:[
             {id:'u2_vis_cong_001',topic:'2.2',bigIdea:'CON',difficulty:'accessible',stem:"The cartoonist's main argument is most likely that",choices:[{id:'A',text:'the legislative process is complex with many points where bills can be delayed or blocked.'},{id:'B',text:'presidents have exclusive authority to write all education policy without any role for Congress.'},{id:'C',text:'federal courts are primarily responsible for drafting most major legislation.'},{id:'D',text:'individual state governments control the internal procedural rules of Congress.'}],correct:'A',explanation:'The maze symbolizes the many stages and obstacles involved in the legislative process.'},
             {id:'u2_vis_cong_002',topic:'2.2',bigIdea:'CON',difficulty:'moderate',stem:'The label "Rules Committee" in the cartoon most directly refers to which feature of the House?',choices:[{id:'A',text:"The House's ability to control floor debate and amendments through a powerful procedural committee"},{id:'B',text:"The Senate's unique role in confirming judicial nominees"},{id:'C',text:"The president's authority to issue executive orders"},{id:'D',text:"The Supreme Court's power to review House ethics cases"}],correct:'A',explanation:'The Rules Committee is a powerful House institution that determines how legislation reaches and moves through the floor.'},
@@ -743,7 +743,7 @@ const QUESTION_BANK = {
           title:'Political Cartoon: Orders and Obstacles',
           source:'Original classroom-safe scenario inspired by public-domain separation-of-powers cartoons.',
           description:'A political cartoon shows a president at a large desk signing a stack of papers labeled "Executive Orders." Across the room, a judge holds up a stop sign marked "Constitution," while members of Congress stand beside a locked cabinet labeled "Funding" and another file labeled "Oversight." The caption reads, "Not Alone in Washington."',
-          svgType:'orders_obstacles',
+          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit2-cartoon-presidency.png', svgType:'orders_obstacles',
           questions:[
             {id:'u2_vis_pc_001',topic:'2.5',bigIdea:'CON',difficulty:'accessible',stem:"The cartoonist's main point is that",choices:[{id:'A',text:'presidents can act forcefully, but other institutions can constrain executive power.'},{id:'B',text:'presidents hold unlimited governing authority whenever Congress is publicly unpopular.'},{id:'C',text:'federal judges are elected specifically to write executive orders for the president.'},{id:'D',text:'Congress plays no meaningful role in administrative or federal budgetary policy.'}],correct:'A',explanation:'The stop sign, funding cabinet, and oversight file all symbolize checks on unilateral presidential action.'},
             {id:'u2_vis_pc_002',topic:'2.14',bigIdea:'PMCD',difficulty:'moderate',stem:'The locked cabinet labeled "Funding" most directly symbolizes which congressional power?',choices:[{id:'A',text:'The power of the purse, allowing Congress to shape implementation through appropriations.'},{id:'B',text:'The power to unilaterally issue executive orders during declared national emergencies.'},{id:'C',text:'The power to remove sitting Supreme Court justices by a simple majority vote.'},{id:'D',text:'The power to negotiate and finalize binding treaties without any presidential involvement.'}],correct:'A',explanation:'Congress can influence or constrain executive policy by controlling appropriations.'},
@@ -1466,7 +1466,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${renderCartoonSVG(set)}
+      ${(window._currentSVGSet=set,renderCartoonSVG(set))}
       <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
@@ -1573,6 +1573,15 @@ function bureaucracyGrowthSVG() {
 
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
+  // Prefer real image if available, fall back to SVG
+  if (set.imageUrl) {
+    return `<div style="position:relative;margin:10px 0">
+      <img src="${set.imageUrl}" alt="${set.title||''}"
+        style="width:100%;max-width:620px;display:block;margin:0 auto;border:1px solid var(--border2);cursor:zoom-in"
+        onclick="openImageZoom(this.src,this.alt)"
+        onerror="this.parentElement.innerHTML=renderCartoonSVGFallback(window._currentSVGSet)">
+    </div>`;
+  }
   if (!set.svgType) return '';
   const svgId = 'cartoon-svg-' + set.svgType;
   let svgContent = '';
