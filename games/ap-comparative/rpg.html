@@ -287,7 +287,7 @@ const BOSSQ=[
 {q:'The MOST significant similarity between the UK parliamentary system and Nigeria presidential-federal system is:',o:['Both use proportional representation to elect national legislatures','Both have courts with growing judicial independence willing to rule against the executive - UK Supreme Court in Miller cases Nigerian Supreme Court in electoral disputes - suggesting rule of law can develop across different constitutional architectures','Both countries have constitutional monarchies with similar ceremonial roles','Both require the executive to maintain legislative confidence to remain in office'],a:1,ex:'The comparison highlights judicial independence as a cross-system democratic indicator. UK Supreme Court ruled against the Conservative government in both Miller cases and was obeyed. Nigeria Supreme Court has increasingly ruled on electoral integrity.'},
 ];
 const MISSIONS=[
-{id:'briefing',title:'Mission Briefing',icon:'briefing',type:'narrative',desc:'Receive your assignment from Director Chen',iu:[],nar:'briefing'},
+{id:'briefing',title:'Mission Briefing',icon:'briefing',type:'narrative',desc:'Receive your assignment from Director Chen',iu:[],nar:null},
 {id:'m1',title:'Westminster Foundations',icon:'m1',type:'battle',desc:'Constitutional structure and electoral system - 6 questions',hp:240,iu:['westminster','fptp','codified'],nar:'m1_intro',questions:M1Q},
 {id:'m2',title:'Devolution and Party System',icon:'m2',type:'battle',desc:'Territorial politics and electoral competition - 6 questions',hp:280,iu:['devolution','two_party'],nar:null,questions:M2Q},
 {id:'m3',title:'Executive Power and Accountability',icon:'m3',type:'battle',desc:'PM power judicial review and democratic checks - 6 questions',hp:320,iu:['pm_power','lords','judicial_rev'],nar:null,questions:M3Q},
@@ -356,13 +356,14 @@ document.getElementById('ml').innerHTML=mh;
 function sm(id){
 var m=null;for(var i=0;i<MISSIONS.length;i++)if(MISSIONS[i].id===id){m=MISSIONS[i];break;}
 if(!m)return;
-if(m.type==='narrative'){sNar(NARR[m.nar||'briefing'],function(){rHub();});return;}
+if(m.type==='narrative'){if(!G.mp[m.id])G.mp[m.id]={};G.mp[m.id].complete=true;sv();sNar(NARR[m.nar||'briefing'],function(){showSc('hs2');showTab('hub');});return;}
 if(m.nar&&!(G.mp[id]&&G.mp[id].narrated)){if(!G.mp[id])G.mp[id]={};G.mp[id].narrated=true;sv();sNar(NARR[m.nar],function(){bBattle(m);});return;}
 bBattle(m);
 }
 function sNar(n,cb){
   window._nc=cb;
   showSc('bts');
+  document.getElementById('btc').innerHTML='';
   var d=document.createElement('div');
   d.style.padding='16px 0';
   var np=document.createElement('div');
