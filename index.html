@@ -4383,6 +4383,8 @@ function showDashboard(){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
+  // Hide AP score — only relevant inside a specific AP course
+  try{const ap=document.getElementById('hstat-ap-wrap');if(ap)ap.style.display='none';}catch(e){}
   try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   // Deactivate all main views
@@ -4403,6 +4405,8 @@ function showMainView(v){
   document.getElementById('main-views').style.display='block';
   document.getElementById('course-nav').style.display='none';
   _activeCourseId=null;
+  // Hide AP score — only relevant inside a specific AP course
+  try{const ap=document.getElementById('hstat-ap-wrap');if(ap)ap.style.display='none';}catch(e){}
   try{const cb=document.getElementById('course-cert-btn');if(cb)cb.style.display='none';}catch(e){}
 
   document.querySelectorAll('#main-views .view').forEach(el=>el.classList.remove('active'));
@@ -4488,6 +4492,8 @@ function enterCourse(courseId){
   if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
 
   showCourseView('units');
+  // Refresh AP score HUD stat when entering a course
+  if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
 }
 
 function showCourseView(v){
@@ -5149,7 +5155,7 @@ function renderVocabMedals() {
   const el = document.getElementById('vocab-medal-grid');
   if (!el) return;
   // Hide vocab section for courses without quizzes yet
-  const vocabWrap = el.closest('.\\s+') || el.parentElement;
+  // vocabWrap removed — was using invalid CSS selector
   const printBtn = document.getElementById('print-vocab-cert-btn') ||
     document.querySelector('[onclick="printAllVocabCert()"]');
   if(_activeCourseId !== 'ap_gov'){
