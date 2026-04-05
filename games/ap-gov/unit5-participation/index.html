@@ -352,7 +352,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
       <!-- Round cards -->
       <div class="sh">Game Rounds</div>
-      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
+      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+      <!-- FRQ required notice -->
+      <div id="frq-required-notice" style="display:none;background:rgba(112,96,208,.08);border:1px solid rgba(112,96,208,.3);border-left:4px solid var(--purple);padding:12px 18px;margin-bottom:24px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">✍️ FRQ REQUIRED TO COMPLETE THIS UNIT</div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text2)">You've completed all game rounds. Submit at least one FRQ in the <strong style="color:var(--purple2)">FRQ Practice</strong> tab to unlock your unit trophy and certificate.</div>
+      </div>
 
       <!-- Study activities -->
       <div class="sh">Study Tools</div>
@@ -720,7 +725,7 @@ const QUESTION_BANK = {
         {
           id:'voting_barriers_cartoon_set',
           title:'Political Cartoon: The Obstacle Course to the Ballot Box',
-          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit5-cartoon-voting-barriers.png', svgType:'obstacle_course',
+          svgType:'obstacle_course',
           source:'Original classroom-safe scenario inspired by public-domain voting rights cartoons.',
           description:'A political cartoon shows citizens trying to reach a ballot box at the end of an obstacle course. Along the path are hurdles labeled "ID Rules," "Long Lines," "Registration Deadline," and "Polling Place Closure." Some voters clear the hurdles easily, while others struggle or turn back. The caption reads, "Same Election, Different Path."',
           questions:[
@@ -732,7 +737,7 @@ const QUESTION_BANK = {
         {
           id:'media_horse_race_cartoon_set',
           title:'Political Cartoon: The Campaign Scoreboard',
-          imageUrl:'https://olsonjoshua-code.github.io/Civitas/assets/images/ap-gov/unit5-cartoon-media-horse-race.png', svgType:'campaign_scoreboard',
+          svgType:'campaign_scoreboard',
           source:'Original classroom-safe scenario inspired by public-domain media cartoons.',
           description:'A political cartoon shows television anchors standing in front of a giant scoreboard labeled "Polls," "Momentum," and "Fundraising." In the corner of the screen, a tiny stack of papers labeled "Policy Plans" is barely visible. Viewers in the audience cheer as the numbers change. The caption reads, "Today\'s Big Story."',
           questions:[
@@ -825,7 +830,15 @@ function isRoundUnlocked(roundIdx) {
 }
 
 function allRoundsComplete() {
-  return QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const roundsDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  return roundsDone && hasAnyFRQSubmitted();
+}
+
+function hasAnyFRQSubmitted() {
+  try {
+    const frqs = getUnitFRQs();
+    return frqs.some(function(frq) { return getFRQBestScore(frq.id) !== null; });
+  } catch(e) { return false; }
 }
 
 // ── HUB ───────────────────────────────────────────
@@ -885,16 +898,29 @@ function renderRoundCards() {
     </div>`;
   }).join('');
 
-  // Update progress bar
-  const completed = QUESTION_BANK.rounds.filter((_, i) => getRoundProgress(i) !== null).length;
-  const total = QUESTION_BANK.rounds.length;
+  // Update progress bar — rounds + FRQ requirement
+  const completedRounds = QUESTION_BANK.rounds.filter((_, i) => getRoundProgress(i) !== null).length;
+  const frqDone = hasAnyFRQSubmitted() ? 1 : 0;
+  const total = QUESTION_BANK.rounds.length + 1; // +1 for FRQ
+  const completed = completedRounds + frqDone;
   const pct = Math.round(completed / total * 100);
   const progFill = document.getElementById('prog-fill');
   const progPct = document.getElementById('prog-pct');
   if (progFill) progFill.style.width = pct + '%';
-  if (progPct) progPct.textContent = `${completed} / ${total} rounds complete`;
+  if (progPct) progPct.textContent = `${completedRounds} / ${QUESTION_BANK.rounds.length} rounds · FRQ: ${frqDone ? '✓' : 'required'}`;
 
-  // Show unit trophy if all done
+  // Show FRQ requirement notice if rounds done but no FRQ yet
+  const allGameRoundsDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const frqSubmitted = hasAnyFRQSubmitted();
+  const frqNotice = document.getElementById('frq-required-notice');
+  if (frqNotice) {
+    if (allGameRoundsDone && !frqSubmitted) {
+      frqNotice.style.display = 'block';
+    } else {
+      frqNotice.style.display = 'none';
+    }
+  }
+  // Show unit trophy if all done (rounds + FRQ)
   if (allRoundsComplete()) renderUnitTrophyBanner();
 }
 
@@ -1457,7 +1483,7 @@ function renderStimulus(round, set) {
       <div class="stimulus-label">🖼️ VISUAL STIMULUS — POLITICAL CARTOON</div>
       <div class="stimulus-title">${set.title}</div>
       <div class="stimulus-source">${set.source}</div>
-      ${(window._currentSVGSet=set,renderCartoonSVG(set))}
+      ${renderCartoonSVG(set)}
       <div class="stimulus-desc" style="font-size:11px;line-height:1.6;margin-top:8px;font-style:italic;color:var(--text3)"><strong style="color:var(--text2)">Description:</strong> ${set.description}</div>
     </div>`;
   }
@@ -1542,15 +1568,6 @@ function campaignSpendingSVG() {
 
 // SVG Cartoon renderer
 function renderCartoonSVG(set) {
-  // Prefer real image if available, fall back to SVG
-  if (set.imageUrl) {
-    return `<div style="position:relative;margin:10px 0">
-      <img src="${set.imageUrl}" alt="${set.title||''}"
-        style="width:100%;max-width:620px;display:block;margin:0 auto;border:1px solid var(--border2);cursor:zoom-in"
-        onclick="openImageZoom(this.src,this.alt)"
-        onerror="this.parentElement.innerHTML=renderCartoonSVGFallback(window._currentSVGSet)">
-    </div>`;
-  }
   if (!set.svgType) return '';
   const svgId = 'cartoon-svg-' + set.svgType;
   let svgContent = '';
