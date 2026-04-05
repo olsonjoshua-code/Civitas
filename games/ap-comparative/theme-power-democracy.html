@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Idea: Power & Democracy — AP Comparative · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080e0a;--bg2:#0f1a12;--bg3:#162018;--panel:#111d14;
+  --border:#1a3020;--border2:#244030;
+  --acc:#38a050;--acc2:#5dba7a;--acc3:#90d4a8;
+  --amber:#e8a020;--gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--teal:#208878;
+  --text:#e0f0e4;--text2:#7a9888;--text3:#3a5848;--cream:#f0ede4;
+  --bebas:'Bebas Neue',sans-serif;--playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;--dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(56,160,80,.08) 0%,transparent 50%),radial-gradient(ellipse at 85% 100%,rgba(40,120,60,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--acc2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s;width:0}
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(56,160,80,.15) 0%,rgba(8,14,10,.98) 60%);border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(56,160,80,.02) 40px,rgba(56,160,80,.02) 80px)}
+.hero-icon{font-size:64px;flex-shrink:0;animation:pop .5s ease both}
+.hub-hero-info{flex:1}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--acc2);letter-spacing:3px;margin-bottom:6px;opacity:.7}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,36px);color:var(--cream);font-weight:700;line-height:1.15;margin-bottom:8px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.65;max-width:580px}
+.country-flags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.country-flag-chip{font-size:18px;background:var(--bg2);border:1px solid var(--border2);padding:4px 10px;font-family:var(--dm);font-size:9px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.back-btn{position:absolute;top:16px;right:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s}
+.hub-tab:hover{color:var(--acc2)}
+.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s;border-radius:2px}
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--acc2);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sh::before{content:'';width:3px;height:14px;background:var(--acc);display:block}
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,14,10,.97);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--acc)}
+.gp-pip.active{background:var(--acc2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px}
+.q-tag.countries{border-color:var(--acc);color:var(--acc2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:16px 20px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(56,160,80,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200;overflow-y:auto}
+.uc-seal{width:100px;height:100px;border-radius:50%;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);box-shadow:0 0 40px rgba(255,215,0,.3);animation:pop .6s ease both}
+.uc-title{font-family:var(--bebas);font-size:18px;letter-spacing:4px;color:var(--text3);margin-bottom:6px}
+.uc-name{font-family:var(--playfair);font-size:clamp(22px,4vw,32px);color:var(--cream);font-weight:700;margin-bottom:4px}
+.uc-score{font-family:var(--bebas);font-size:56px;line-height:1;margin-bottom:4px}
+.uc-grade{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.uc-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.uc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:12px 28px;cursor:pointer;transition:all .2s}
+.uc-btn.primary{background:var(--acc);border:2px solid var(--acc);color:#fff}
+.uc-btn.primary:hover{background:var(--acc2);border-color:var(--acc2)}
+.uc-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.uc-btn.secondary:hover{border-color:var(--acc);color:var(--acc2)}
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+.frq-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all .2s}
+.frq-card:hover{border-color:var(--acc2);transform:translateY(-2px)}
+.frq-badge{font-family:var(--bebas);font-size:10px;padding:2px 8px;border:1px solid var(--acc);color:var(--acc2);display:none;margin-top:8px}
+.frq-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8;margin-bottom:16px;font-style:italic;background:rgba(56,160,80,.04);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:14px 18px}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.frq-part-letter{font-family:var(--bebas);font-size:20px;color:var(--acc2);width:28px}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:10px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px 14px;resize:vertical;min-height:100px;outline:none}
+.frq-textarea:focus{border-color:var(--acc2)}
+.frq-submit-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:var(--acc);border:none;color:#fff;padding:12px 32px;cursor:pointer;transition:all .2s;margin-top:12px}
+.frq-submit-btn:hover{background:var(--acc2)}
+.frq-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.frq-grading{display:none;animation:fadeIn .4s ease}
+.frq-score-banner{background:linear-gradient(135deg,rgba(56,160,80,.12),rgba(8,14,10,.95));border:1px solid var(--border2);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.frq-total-score{font-family:var(--bebas);font-size:52px;line-height:1;color:var(--acc2)}
+.frq-overall-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;background:rgba(56,160,80,.04);border:1px solid var(--border);padding:14px;margin-top:10px}
+@media(max-width:600px){.hub-hero{padding:20px;flex-direction:column;text-align:center}.hub-content{padding:16px 16px 60px}.activity-grid{grid-template-columns:1fr}#question-area{padding:14px}.question-card{padding:16px}}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="ld-icon">👑</div>
+  <div class="ld-title">Power & Democracy</div>
+  <div class="ld-sub">Big Idea Review · AP Comparative Government · Civitas</div>
+  <div class="ld-bar"><div id="ld-fill" class="ld-fill"></div></div>
+</div>
+
+<div id="hub">
+  <div class="hub-hero">
+    <div class="hero-icon">👑</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP COMPARATIVE GOVERNMENT · BIG IDEA REVIEW</div>
+      <div class="hub-title">Power & Democracy</div>
+      <div class="hub-desc">How is power structured, distributed, and contested across all six AP Comparative regimes? Master the cross-country comparisons that drive the hardest exam questions — regime types, legitimacy, executive systems, constitutions, and elections.</div>
+      <div class="country-flags">
+        ${['🇬🇧 UK','🇲🇽 Mexico','🇷🇺 Russia','🇨🇳 China','🇮🇷 Iran','🇳🇬 Nigeria'].map(c=>`<div class="country-flag-chip">${c}</div>`).join('')}
+      </div>
+    </div>
+    <button class="back-btn" onclick="returnToShell()">← Back to AP Comparative</button>
+  </div>
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('review',this)">📋 Quick Review</button>
+  </div>
+  <div class="hub-content">
+    <div id="tab-play" class="hub-panel active">
+      <div class="prog-wrap">
+        <div class="prog-label"><span>PROGRESS</span><span id="prog-text">0 / 4 Rounds Complete</span></div>
+        <div class="prog-bar"><div id="prog-fill" class="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="activity-grid" id="round-cards"></div>
+    </div>
+    <div id="tab-frq" class="hub-panel">
+      <div style="margin-bottom:20px">
+        <div class="sh">Cross-Country FRQ Practice</div>
+        <p style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7;margin-bottom:16px">All four FRQs require comparison across multiple AP Comparative countries. AI-graded with detailed rubric feedback.</p>
+      </div>
+      <div id="frq-list"></div>
+      <div id="frq-workspace-area"></div>
+    </div>
+    <div id="tab-review" class="hub-panel">
+      <div class="sh">Power Structure Comparison — All 6 Countries</div>
+      <div style="overflow-x:auto;margin-bottom:24px">
+        <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:10px;min-width:600px">
+          <tr>${['Country','Regime Type','Executive System','Constitution','Term Limits','Free Elections?'].map(h=>`<th style="border-bottom:2px solid var(--border2);padding:8px 10px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px;font-size:10px">${h}</th>`).join('')}</tr>
+          ${[
+            ['🇬🇧 UK','Liberal Democracy','Parliamentary','Uncodified','No formal limit','Yes — FPTP'],
+            ['🇲🇽 Mexico','Transitional Democracy','Presidential (Federal)','1917 (codified)','1 term, 6 yrs','Yes — mixed FPTP+PR'],
+            ['🇷🇺 Russia','Competitive Authoritarian','Semi-Presidential','1993 (amended 2020)','Reset 2020 (until 2036)','No — managed'],
+            ['🇨🇳 China','One-Party Authoritarian','Party-State','1982 (amended 2018)','Removed 2018','No — no competitive elections'],
+            ['🇮🇷 Iran','Theocratic Republic','Dual (SL + President)','1979 (amended 1989)','2 terms for president; none for SL','No — Guardian Council filters'],
+            ['🇳🇬 Nigeria','Fragile Democracy','Presidential (Federal)','1999','2 terms, 4 yrs','Yes — imperfect but competitive']
+          ].map((row,ri)=>`<tr style="background:${ri%2?'rgba(56,160,80,.03)':'transparent'}">${row.map((cell,ci)=>`<td style="padding:7px 10px;border-bottom:1px solid var(--border);color:${ci===0?'var(--cream)':'var(--text2)'};font-weight:${ci===0?'600':'400'}">${cell}</td>`).join('')}</tr>`).join('')}
+        </table>
+      </div>
+      <div class="sh">Legitimacy Types by Country</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:24px">
+        ${[
+          {c:'🇬🇧 UK',l:'Rational-legal + Democratic',d:'Parliamentary elections, rule of law, constitutional conventions, long democratic tradition'},
+          {c:'🇲🇽 Mexico',l:'Democratic + Revolutionary',d:'Elections since 2000; 1917 revolutionary constitution as historical foundation'},
+          {c:'🇷🇺 Russia',l:'Nationalist + Performance',d:'Great power restoration, anti-Western sovereignty, stability after 1990s chaos'},
+          {c:'🇨🇳 China',l:'Performance + Nationalist',d:'Economic growth, poverty reduction, "century of humiliation" restoration, CCP revolutionary founding'},
+          {c:'🇮🇷 Iran',l:'Religious + Democratic (filtered)',d:'Velayat-e faqih divine authority + electoral legitimacy (filtered by Guardian Council)'},
+          {c:'🇳🇬 Nigeria',l:'Democratic + Revolutionary',d:'1999 transition; elections since 1999; 1960 independence founding; fragile but real'}
+        ].map(i=>`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:12px 14px">
+          <div style="font-family:var(--playfair);font-size:12px;color:var(--cream);font-weight:700;margin-bottom:4px">${i.c}</div>
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--acc2);letter-spacing:1px;margin-bottom:6px">${i.l}</div>
+          <div style="font-family:var(--crimson);font-size:11px;color:var(--text2);line-height:1.5">${i.d}</div>
+        </div>`).join('')}
+      </div>
+      <div class="sh">Key Concepts for Power & Democracy</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:24px">
+        ${['Parliamentary sovereignty (UK)','Fusion vs. separation of powers','Velayat-e faqih (Iran)','Superpresidentialism (Russia)','Competitive authoritarianism','Electoral authoritarianism','Democratic consolidation','Vote of no confidence','Guardian Council vetting','CCP General Secretary','Federal character (Nigeria)','Term limits and their removal','Managed democracy','One-party state vs. hybrid','Regime vs. government'].map(t=>
+          `<div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">${t}</div>`
+        ).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div class="gp-pips" id="game-pips"></div>
+      <div id="game-gold-disp">🪙 0</div>
+    </div>
+  </div>
+  <div id="round-intro">
+    <div class="ri-icon" id="ri-icon">👑</div>
+    <div class="ri-round" id="ri-round">ROUND 1</div>
+    <div class="ri-title" id="ri-title">Regime Types</div>
+    <div class="ri-desc" id="ri-desc">Compare across countries.</div>
+    <button class="ri-btn" onclick="beginRound()"><span>▶ Begin</span></button>
+  </div>
+  <div id="question-area" style="display:none"></div>
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">⭐</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score"></div>
+    <div class="rc-sub" id="rc-sub"></div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <button class="rc-next-btn" id="rc-next-btn">Continue →</button>
+  </div>
+  <div id="unit-complete" style="display:none">
+    <div class="uc-seal">👑</div>
+    <div class="uc-title">BIG IDEA COMPLETE</div>
+    <div class="uc-name">Power & Democracy</div>
+    <div class="uc-score" id="uc-score" style="color:var(--acc2)">A</div>
+    <div class="uc-grade" id="uc-grade">EXCELLENT</div>
+    <div class="uc-btns">
+      <button class="uc-btn primary" onclick="returnToShell()">✓ Back to AP Comparative</button>
+      <button class="uc-btn secondary" onclick="replayUnit()">↺ Play Again</button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+</div>
+
+<script>
+const UNIT_ID='apcmp_bi_pd';
+const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
+
+const QUESTION_BANK={rounds:[
+  {id:'r1',label:'Round 1 — Regime Types & Classification',icon:'🗺️',
+   desc:'Classify and compare the six AP Comparative regimes. Every question requires you to think across multiple countries simultaneously.',
+   questions:[
+    {id:'bi_pd_r1_01',countries:'All',difficulty:'accessible',
+     stem:'Which of the following correctly ranks the six AP Comparative countries from MOST to LEAST democratic based on Freedom House scores?',
+     choices:[{id:'A',text:'UK → Mexico → Nigeria → Russia → Iran → China'},{id:'B',text:'UK → Nigeria → Mexico → China → Iran → Russia'},{id:'C',text:'Mexico → UK → Nigeria → Iran → Russia → China'},{id:'D',text:'UK → Mexico → Nigeria → Iran → Russia → China'}],
+     correct:'D',explanation:'UK (93) → Mexico (60) → Nigeria (44) → Iran (14) → Russia (16) → China (9). Note: Iran (14) actually scores lower than Russia (16) — making D correct. The order captures the fundamental spectrum from liberal democracy (UK) through transitional (Mexico), fragile democracy (Nigeria), competitive authoritarian (Russia), theocratic authoritarian (Iran), to one-party state (China).'},
+    {id:'bi_pd_r1_02',countries:'UK/Russia',difficulty:'moderate',
+     stem:'The United Kingdom and Russia both have elections with multiple parties, yet the UK is classified as a liberal democracy and Russia as competitive authoritarian. The most important reason for this difference is:',
+     choices:[{id:'A',text:'The UK has a written constitution while Russia does not'},{id:'B',text:'UK elections allow genuine alternation of power with a level playing field; Russia\'s elections are systematically tilted through media control, opposition exclusion, and selective repression to prevent genuine competition'},{id:'C',text:'Russia has a semi-presidential system while the UK is parliamentary'},{id:'D',text:'The UK has more political parties than Russia, producing more democratic competition'}],
+     correct:'B',explanation:'Both countries have multi-party elections — but the quality of competition differs fundamentally. In the UK, the Conservatives and Labour genuinely alternate power; opposition candidates face no systematic state harassment; media is independent. In Russia, real opposition faces barred candidacies (Navalny\'s exclusion), state media dominance, and selective prosecution. The classification difference is about the evenness of competition, not the formal existence of elections.'},
+    {id:'bi_pd_r1_03',countries:'China/Iran',difficulty:'moderate',
+     stem:'China and Iran both score in the authoritarian range but are classified differently. Which of the following best distinguishes them?',
+     choices:[{id:'A',text:'China has elections while Iran does not'},{id:'B',text:'Iran has genuinely contested elections between approved factions (producing different presidents with different policies), while China has no competitive national elections at all'},{id:'C',text:'Iran is classified as more authoritarian than China based on Freedom House scores'},{id:'D',text:'China has a federal system while Iran is unitary'}],
+     correct:'B',explanation:'This is a critical classification distinction. China (9/100) has no competitive national elections — the PSC and Politburo are selected through opaque party processes with no public voting. Iran (14/100) has presidential and parliamentary elections where reformists and hardliners genuinely compete, producing different outcomes (Khatami vs. Ahmadinejad vs. Rouhani represent real policy differences). The Guardian Council filters candidates, but within approved bounds real competition occurs. China has none of this — making it more fully authoritarian despite similar Freedom House scores.'},
+    {id:'bi_pd_r1_04',countries:'Mexico/Russia',difficulty:'challenging',
+     stem:'Both Mexico (before 2000) and Russia (after 2000) are described as having "hegemonic" or "dominant" party systems. The most important difference between these systems is:',
+     choices:[{id:'A',text:'Mexico\'s PRI used violent repression while Russia\'s United Russia relies primarily on patronage'},{id:'B',text:'Mexico\'s PRI gradually democratized through electoral institutional reform and eventually lost power; Russia\'s United Russia under Putin reversed a democratic opening and has consolidated authoritarian control with no equivalent reform trajectory'},{id:'C',text:'Russia\'s system has a written constitution while Mexico did not'},{id:'D',text:'Mexico\'s PRI was a left-wing party while Russia\'s United Russia is right-wing nationalist'}],
+     correct:'B',explanation:'The trajectory difference is crucial for comparative politics. Mexico\'s PRI system evolved toward democracy: IFE independence (1996), genuine opposition competition, eventual loss in 2000. The system was authoritarian but with a path to democratization. Russia\'s trajectory reversed: Yeltsin\'s fragile democracy was followed by Putin\'s systematic re-consolidation of authoritarian power. One is a story of gradual democratic opening; the other is democratic regression. This makes them fundamentally different despite superficial similarities.'},
+    {id:'bi_pd_r1_05',countries:'UK/Iran',difficulty:'moderate',
+     stem:'Both the UK and Iran have formal constitutional documents describing their political systems. The most significant difference in how these constitutions function is:',
+     choices:[{id:'A',text:'The UK constitution is written while Iran\'s is unwritten'},{id:'B',text:'Iran\'s constitution places ultimate authority in a religious figure (Supreme Leader) whose power derives from divine mandate and supersedes all elected institutions; the UK\'s framework ensures elected officials hold real power within parliamentary sovereignty'},{id:'C',text:'The UK constitution is more recent than Iran\'s 1979 constitution'},{id:'D',text:'Iran\'s constitution was created democratically while the UK\'s was imposed by the monarchy'}],
+     correct:'B',explanation:'This question tests regime type at the constitutional level. Iran\'s constitution explicitly creates a dual structure with the unelected Supreme Leader at the apex — Article 110 gives him command of armed forces, determination of all policy guidelines, and power over all branches. The UK\'s uncodified constitution ensures the elected Prime Minister (through Commons confidence) holds real executive power, with no unelected figure holding comparable authority. The difference is between theocratic supremacy and parliamentary democracy, not just written vs. unwritten.'},
+    {id:'bi_pd_r1_06',countries:'Nigeria/Mexico',difficulty:'moderate',
+     stem:'Nigeria and Mexico are both described as "fragile" or "transitional" democracies. Which of the following best explains why Nigeria\'s consolidation is considered more difficult than Mexico\'s?',
+     choices:[{id:'A',text:'Nigeria has a larger military than Mexico, making civilian control harder'},{id:'B',text:'Nigeria\'s 250+ ethnic groups with reinforcing cleavages, deeper oil resource curse, active insurgency (Boko Haram), and shorter democratic track record create more severe consolidation challenges than Mexico\'s more manageable ethnic and economic landscape'},{id:'C',text:'Nigeria\'s constitution is weaker than Mexico\'s 1917 constitution'},{id:'D',text:'Nigeria lacks an independent electoral commission while Mexico has the INE'}],
+     correct:'B',explanation:'Both countries are transitional democracies, but Nigeria faces more severe structural challenges. Mexico\'s ethnic complexity (mestizo majority ~60%) is less fragmented than Nigeria\'s 250+ groups with reinforcing ethnic-religious-regional cleavages. Mexico\'s economy is more diversified (5% oil of exports vs. Nigeria\'s 90%), reducing the resource curse. Mexico has no equivalent to Boko Haram. And Mexico\'s democracy dates to 2000, Nigeria\'s only to 1999 — similar, but Mexico has had more successful transfers of power. Both are "partly free" but at different consolidation stages.'},
+    {id:'bi_pd_r1_07',countries:'All',difficulty:'challenging',
+     stem:'Which of the following statements about term limits across the six AP Comparative countries is ACCURATE?',
+     choices:[{id:'A',text:'All six countries have presidential term limits preventing indefinite rule'},{id:'B',text:'Mexico has the strictest term limit (one 6-year term, no reelection ever); China removed presidential term limits in 2018; Russia reset its clock in 2020; the UK has no formal term limits; Nigeria has two 4-year terms; Iran\'s president has two 4-year terms but the Supreme Leader has no limit'},{id:'C',text:'Only democratic countries (UK, Mexico, Nigeria) have term limits while authoritarian countries (Russia, China, Iran) have none'},{id:'D',text:'All three democratic countries have two-term limits while all three authoritarian countries have no limits'}],
+     correct:'B',explanation:'The comparative term limit picture is complex: Mexico\'s absolute ban (no reelection ever) is the most restrictive. China removed limits. Russia technically has 6-year terms but reset the clock. Nigeria has standard two-4-year limits. Iran separates the president (limited) from the Supreme Leader (unlimited). The UK has no term limits at all but relies on electoral accountability instead. Statement B captures this complexity accurately. The pattern shows that term limits exist independently of regime type — both democracies (Mexico) and weak democracies (Nigeria) can have strict limits.'},
+    {id:'bi_pd_r1_08',countries:'Russia/China',difficulty:'moderate',
+     stem:'Russia and China are both authoritarian, but political scientists consider China\'s system more institutionalized. The key evidence for this distinction is:',
+     choices:[{id:'A',text:'China has a written constitution while Russia\'s constitution is largely symbolic'},{id:'B',text:'China\'s CCP has collective leadership norms, mandatory retirement ages, and succession procedures (though Xi has weakened these); Russia\'s authoritarianism is more personalist — dependent on Putin individually rather than party institutions'},{id:'C',text:'China holds elections while Russia does not'},{id:'D',text:'Russia\'s military is more powerful than China\'s, making institutionalization impossible'}],
+     correct:'B',explanation:'The institutionalization distinction is important for comparative politics. China\'s CCP developed post-Mao institutions (collective Politburo decision-making, age-based retirement rules, predictable succession cycles) that functioned relatively independently of any individual leader — Jiang Zemin, Hu Jintao, and Xi Jinping all took power through the same process. Russia\'s system is built around Putin personally — United Russia has no clear ideology, succession after Putin is entirely unclear, and the system could collapse without him. Xi has weakened CCP institutionalization, but it still has more structural depth than United Russia.'},
+    {id:'bi_pd_r1_09',countries:'All',difficulty:'moderate',
+     stem:'Weber\'s three types of legitimate authority (traditional, charismatic, rational-legal) can be applied to the six AP Comparative countries. Which of the following applications is MOST accurate?',
+     choices:[{id:'A',text:'All six countries rely primarily on rational-legal legitimacy through their constitutions'},{id:'B',text:'The UK relies most on rational-legal (rule of law); Iran combines charismatic founding (Khomeini) routinized into religious-legal (velayat-e faqih); China blends CCP revolutionary founding (charismatic routinized) with performance; Russia relies on Putin\'s personal charisma and nationalist narrative'},{id:'C',text:'Only democratic countries have legitimate authority; authoritarian countries have no legitimate authority'},{id:'D',text:'Traditional legitimacy (hereditary succession) explains all six countries equally'}],
+     correct:'B',explanation:'Weber\'s typology illuminates the differences: UK\'s rule of law, parliamentary sovereignty, and constitutional conventions are paradigmatic rational-legal authority. Iran\'s system is Khomeini\'s charisma routinized into the institutional role of faqih — textbook routinization of charisma. China\'s CCP combines Mao\'s revolutionary charisma (now historical), party-state rational-legal structure, and performance legitimacy. Putin\'s rule is more personalist/charismatic than Russia\'s formal institutional structure suggests. None of the six fits a single Weberian type perfectly — they all blend elements.'},
+    {id:'bi_pd_r1_10',countries:'UK/Mexico/Nigeria',difficulty:'moderate',
+     stem:'The UK, Mexico, and Nigeria all have competitive elections but are classified at different democratic quality levels. Which factor MOST explains the difference in their democratic quality scores?',
+     choices:[{id:'A',text:'The number of political parties — more parties equals better democracy'},{id:'B',text:'The strength of rule of law, electoral integrity, and civil liberties — the UK has the strongest institutions and most established democratic norms; Mexico\'s are improving but weaker; Nigeria\'s are weakest among the three'},{id:'C',text:'Their colonial histories — former British colonies always achieve better democracy than others'},{id:'D',text:'Their economic development levels — richer countries always have better democracy'}],
+     correct:'B',explanation:'All three have multi-party elections — but democratic quality depends on the surrounding institutional ecosystem. Rule of law (courts enforcing rights, officials obeying laws), electoral integrity (free and fair processes), civil liberties (press freedom, assembly rights), and civilian control of the military all vary dramatically: strongest in the UK, improving in Mexico (INE credibility, judicial independence), weakest in Nigeria (corruption, electoral violence, Boko Haram, military\'s political history). The number of parties is not the driver — quality of institutions is.'},
+    {id:'bi_pd_r1_11',countries:'Iran/Nigeria',difficulty:'challenging',
+     stem:'Both Iran and Nigeria have presidential executives, but their presidential elections function very differently. Which of the following best captures this difference?',
+     choices:[{id:'A',text:'Nigeria\'s president serves a longer term than Iran\'s president'},{id:'B',text:'Iran\'s presidential elections are filtered by the Guardian Council (ensuring only regime-approved candidates compete) and the Supreme Leader can override presidential decisions; Nigeria\'s elections allow genuine competition between candidates from opposing parties, and the president holds real executive power'},{id:'C',text:'Nigeria\'s elections use proportional representation while Iran\'s use plurality voting'},{id:'D',text:'Iran\'s president is more powerful than Nigeria\'s because Iran is a unitary state'}],
+     correct:'B',explanation:'The formal similarity (both elected presidents) masks profound differences. Iran\'s Guardian Council vetting (disqualifying reformists, moderates, and anyone deemed insufficiently Islamic) pre-determines the candidate field; and even a elected president cannot override the Supreme Leader on major policy. Nigeria\'s INEC allows genuine competition — opposition candidates can and do win (Buhari in 2015, APC-to-PDP transfers). The presidential label is the same; the political reality is fundamentally different — one is a filtered hybrid, the other is a competitive democracy with real outcomes.'},
+    {id:'bi_pd_r1_12',countries:'Russia/Mexico',difficulty:'moderate',
+     stem:'Russia\'s 2024 presidential election (Putin: 87%) and Mexico\'s 2018 presidential election (AMLO: 53%) both produced large margins of victory. Which of the following best explains the different significance of these results?',
+     choices:[{id:'A',text:'Russia\'s higher margin proves more popular support for its leader'},{id:'B',text:'AMLO\'s 53% reflected genuine voter choice in a competitive field where opposition candidates were freely allowed to campaign; Putin\'s 87% reflected a controlled process in which real opposition candidates were excluded or harassed, making the margin a measure of control rather than popularity'},{id:'C',text:'Mexico\'s election was more fraudulent than Russia\'s because AMLO won only 53%'},{id:'D',text:'Both results are equally valid expressions of democratic will'}],
+     correct:'B',explanation:'Electoral margins in isolation tell us nothing about democratic quality — the process matters. Mexico\'s 2018 election featured genuine multiparty competition: Anaya (center-right) and Meade (PRI center) ran serious campaigns; AMLO\'s win reflects genuine voter preference among real alternatives. Russia\'s 87% reflects a field from which Navalny was barred, real opposition leaders faced prosecution or exile, and state media provided overwhelming coverage to Putin. A margin of 53% in a genuine election says more about democracy than 87% in a controlled one.'},
+    {id:'bi_pd_r1_13',countries:'China/UK',difficulty:'moderate',
+     stem:'China\'s NPC (National People\'s Congress) and the UK\'s House of Commons are both national legislatures. Which of the following most accurately compares their functions?',
+     choices:[{id:'A',text:'Both serve as rubber stamps for executive decisions without genuine legislative independence'},{id:'B',text:'The UK\'s Commons is a genuinely deliberative chamber that can defeat government legislation, force PM resignations, and hold executive power accountable; China\'s NPC meets two weeks per year and has never rejected a party-state bill — it legitimates rather than legislates'},{id:'C',text:'China\'s NPC is more powerful than the UK\'s Commons because it has more members'},{id:'D',text:'Both legislatures are equally powerful — the difference is merely cultural'}],
+     correct:'B',explanation:'This comparison is central to understanding the difference between genuine and nominal democratic institutions. The UK Commons has defeated major government bills (May\'s Brexit deal three times), forced prime ministers out of office through confidence votes, and established standing committees that genuinely scrutinize executive power. China\'s NPC (~3,000 delegates, 2-week annual session) has never rejected a bill in its history — its function is to provide democratic legitimacy claims for decisions already made by the party. Same label, fundamentally different political function.'},
+    {id:'bi_pd_r1_14',countries:'All',difficulty:'challenging',
+     stem:'Which of the following comparisons about the relationship between regime type and economic development across the six AP Comparative countries is BEST supported by the evidence?',
+     choices:[{id:'A',text:'Authoritarian regimes always achieve better economic development than democracies'},{id:'B',text:'The relationship is not deterministic — China (authoritarian) achieved remarkable growth; Russia (authoritarian) stagnated; UK (democratic) is wealthy; Nigeria (democratic) is poor; suggesting institutional quality and specific policies matter more than regime type alone'},{id:'C',text:'Democracies always achieve better economic development than authoritarian regimes'},{id:'D',text:'Economic development automatically produces democracy within one generation in all six countries'}],
+     correct:'B',explanation:'The six AP Comparative countries provide excellent evidence against simple regime-development determinism. China (authoritarian) achieved the most dramatic poverty reduction in history (~800 million lifted from poverty). Russia (authoritarian) has experienced economic volatility and stagnation. The UK (democratic) is highly developed. Nigeria (democratic) has poor development outcomes despite oil wealth. Mexico (transitional democracy) shows middle-income development. The variation within both regime categories shows that institutions, policies, resources, and historical trajectories matter more than the simple democratic/authoritarian distinction.'},
+    {id:'bi_pd_r1_15',countries:'UK/Iran/China',difficulty:'challenging',
+     stem:'Comparing the UK\'s House of Lords, Iran\'s Guardian Council, and China\'s Politburo Standing Committee reveals different approaches to which governance problem?',
+     choices:[{id:'A',text:'How to organize military command in different political systems'},{id:'B',text:'How to balance popular democratic will with checks from non-elected bodies — the UK uses an advisory unelected chamber with limited power; Iran uses a theocratic vetting body with decisive power over elections; China uses a party-selected inner circle as the actual governing authority'},{id:'C',text:'How to manage international relations in different types of states'},{id:'D',text:'How to collect taxes efficiently across different political systems'}],
+     correct:'B',explanation:'All three institutions involve unelected bodies, but their relationship to democratic will differs dramatically. The UK\'s Lords can delay legislation up to a year but cannot block it permanently — Parliament Acts (1911, 1949) ensure elected Commons supremacy. Iran\'s Guardian Council is more powerful than any elected body — it pre-selects who can compete in elections, making it an anti-democratic filter. China\'s PSC is the actual governing authority — it makes all major decisions, with the NPC serving to legitimate rather than create policy. Same "unelected body" label, three fundamentally different relationships to democratic governance.'}
+   ]},
+  {id:'r2',label:'Round 2 — Executive Power & Accountability',icon:'⚡',
+   desc:'How executive power is structured, exercised, and held accountable across the six regimes. Focus on PM vs. President, checks and balances, and how real power differs from formal power.',
+   questions:[
+    {id:'bi_pd_r2_01',countries:'UK/Russia',difficulty:'moderate',
+     stem:'Both the UK Prime Minister and Russia\'s President can dissolve the lower legislative chamber. This formal similarity masks a crucial difference, which is:',
+     choices:[{id:'A',text:'The UK PM uses this power frequently while Russia\'s president has never used it'},{id:'B',text:'In the UK, dissolution triggers a new election where the governing party can genuinely lose; in Russia, new elections occur under conditions that guarantee United Russia\'s continued dominance — dissolution is a power-asserting tool rather than an accountability mechanism'},{id:'C',text:'The UK\'s power to dissolve Parliament is unconstitutional while Russia\'s is constitutionally protected'},{id:'D',text:'Russia\'s president can dissolve the legislature unilaterally while the UK PM needs Cabinet approval'}],
+     correct:'B',explanation:'Formal institutional powers mean different things in different political contexts. UK dissolution triggers genuine electoral competition — Boris Johnson dissolved in 2019 and won; Theresa May dissolved in 2017 and lost seats. The threat of dissolution disciplines MPs to support the government, but also means the government genuinely risks defeat. Russian dissolution would simply produce another Kremlin-controlled election. The power exists in both, but its political function is completely different — one is a mechanism of democratic accountability, the other is a tool of political control.'},
+    {id:'bi_pd_r2_02',countries:'Mexico/Russia',difficulty:'moderate',
+     stem:'Mexico\'s absolute ban on presidential reelection (no reelección) represents a fundamentally different approach to executive accountability than Russia\'s system. This difference is best explained as:',
+     choices:[{id:'A',text:'Mexico addresses executive entrenchment structurally through constitutional term limits; Russia addresses it through competitive elections that in theory could remove Putin but in practice are managed to prevent this'},{id:'B',text:'Mexico trusts its voters more than Russia does'},{id:'C',text:'Mexico\'s presidential system is inherently weaker than Russia\'s semi-presidential system'},{id:'D',text:'Russia has stronger judicial oversight of presidential power than Mexico'}],
+     correct:'A',explanation:'Mexico and Russia represent two different theoretical approaches to the same problem: preventing indefinite executive rule. Mexico chose structural prevention — the constitution forbids reelection entirely, making the problem impossible rather than leaving it to electoral competition. Russia\'s 1993 Constitution chose the competitive approach — two-term limits enforced by elections — but Putin found a way around it (Medvedev placeholder, then 2020 constitutional reset). This illustrates that structural constraints (Mexico\'s absolute ban) are more resistant to manipulation than electoral-dependent limits.'},
+    {id:'bi_pd_r2_03',countries:'UK/China',difficulty:'moderate',
+     stem:'The UK\'s Prime Minister\'s Questions (PMQs) has no equivalent in China\'s political system. Which of the following best explains why?',
+     choices:[{id:'A',text:'Chinese political culture does not value direct confrontation between leaders'},{id:'B',text:'PMQs functions as an accountability mechanism — elected representatives publicly challenge the executive weekly; China\'s CCP-state structure has no independent legislature whose members could hold the General Secretary publicly accountable without threatening the party\'s monopoly on power'},{id:'C',text:'China\'s legislature meets too infrequently to hold regular question sessions'},{id:'D',text:'The Chinese president and General Secretary hold separate positions, making accountability sessions impractical'}],
+     correct:'B',explanation:'PMQs exists because the UK has a genuine separation between government and opposition in Parliament — MPs are elected independently and have incentives to hold the government accountable. Its absence in China reflects that the NPC has no politically independent members who could function as a genuine opposition. If Chinese legislators publicly challenged Xi the way opposition leaders challenge UK PMs, they would be removed from their positions. The institution requires independent legislators with accountability incentives — which exists in the UK but not in a one-party state.'},
+    {id:'bi_pd_r2_04',countries:'Iran/UK',difficulty:'challenging',
+     stem:'Both Iran\'s Supreme Leader and the UK\'s monarch are unelected heads of state. The most important difference between these positions is:',
+     choices:[{id:'A',text:'The UK\'s monarch is hereditary while Iran\'s Supreme Leader is appointed by the Assembly of Experts'},{id:'B',text:'Iran\'s Supreme Leader holds genuine executive, military, and policy-making authority over all branches; the UK\'s monarch is constitutionally ceremonial — exercising formal powers only on ministerial advice with no independent political authority'},{id:'C',text:'The UK\'s monarch serves for life while Iran\'s Supreme Leader has a fixed term'},{id:'D',text:'Iran\'s Supreme Leader is democratically elected while the UK\'s monarch is not'}],
+     correct:'B',explanation:'The formal similarity — unelected head of state — hides an enormous difference in actual power. Iran\'s Supreme Leader (Article 110) commands the armed forces, determines all general policies, controls the Guardian Council, can dismiss the president, and supervises all branches — making him the real governing authority. The UK\'s monarch opens Parliament, signs legislation (Royal Assent), and appoints the PM, but all of these are performed on ministerial advice and are constitutionally obligatory, not discretionary. "The King reigns but does not rule" captures the UK\'s ceremonial monarchy; Iran\'s faqih both reigns and rules.'},
+    {id:'bi_pd_r2_05',countries:'Nigeria/Mexico',difficulty:'moderate',
+     stem:'Both Nigeria and Mexico have presidential systems with two-term limits. The most significant governance difference between these systems is:',
+     choices:[{id:'A',text:'Mexico\'s president serves a longer term than Nigeria\'s president'},{id:'B',text:'Mexico\'s president faces a more effective check from an independent judiciary (SCJN) and a strengthened Congress with real veto power; Nigeria\'s president operates in a weaker institutional environment with more corruption and more security challenges that limit effective governance'},{id:'C',text:'Nigeria\'s president has more formal constitutional powers than Mexico\'s'},{id:'D',text:'Mexico\'s federal structure gives states more power than Nigeria\'s, limiting presidential authority more'}],
+     correct:'B',explanation:'Same presidential structure, different institutional ecosystems. Mexico\'s Supreme Court has grown genuinely assertive — ruling against AMLO\'s electoral reform, striking down energy law provisions. Mexico\'s Congress has opposition majorities that sometimes genuinely block executive legislation. Nigeria\'s institutions, while formally similar, operate in a context of much greater corruption, weaker rule of law, and security crises (Boko Haram) that can justify emergency executive action. The formal presidential structure is similar; the surrounding institutional context that enables or limits it differs substantially.'},
+    {id:'bi_pd_r2_06',countries:'Russia/China',difficulty:'moderate',
+     stem:'Vladimir Putin (Russia) and Xi Jinping (China) have both concentrated power significantly, but political scientists note important differences in the nature of their power. Which description is most accurate?',
+     choices:[{id:'A',text:'Putin\'s power is more institutionalized because Russia has a written constitution; Xi\'s is more personalist'},{id:'B',text:'Xi\'s power, while increasingly personalist, is embedded within CCP structures with succession procedures and collective bodies; Putin\'s power is more purely personalist — his departure would create a succession crisis that United Russia, as an institution, is poorly equipped to manage'},{id:'C',text:'Both leaders have identical personalist power with no meaningful differences'},{id:'D',text:'Putin\'s power is more constrained by the Russian parliament than Xi\'s is by the NPC'}],
+     correct:'B',explanation:'Even as Xi has dismantled collective leadership norms, the CCP retains more institutional depth than United Russia. The Politburo Standing Committee, Central Committee, and party discipline mechanisms provide structural frameworks that would continue after Xi, even if his specific policies didn\'t. United Russia is essentially a patronage vehicle for Kremlin elites — it has no clear ideology, no cadre development system, and no obvious succession process. If Putin died tomorrow, Russia would face profound political uncertainty; the CCP would activate its succession procedures. Neither system is healthy, but they have different institutional bases.'},
+    {id:'bi_pd_r2_07',countries:'All',difficulty:'challenging',
+     stem:'Which of the following best describes how "veto players" — actors with the power to block policy change — differ across the six AP Comparative countries?',
+     choices:[{id:'A',text:'Democratic countries have the most veto players while authoritarian countries have none'},{id:'B',text:'UK: few veto players (PM controls Parliament when majority); Mexico: multiple (president, Congress, courts, MORENA coalition); Russia/China: few (executive dominates); Iran: multiple but unelected (Supreme Leader, Guardian Council, IRGC); Nigeria: multiple weak institutions creating gridlock'},{id:'C',text:'All six countries have exactly the same number of veto players because all have bicameral legislatures'},{id:'D',text:'Authoritarian countries have more veto players than democracies because they have more security agencies'}],
+     correct:'B',explanation:'Veto player theory (Tsebelis) explains policy stability and change across systems. UK\'s Westminster model concentrates power — a PM with a majority has very few veto players, enabling rapid policy change (Brexit implementation). Mexico under divided government has multiple — president, opposition Congress, assertive courts. Russia/China: the executive dominates and veto players are removed (Putin subordinated oligarchs; Xi consolidated against Politburo factions). Iran\'s veto players are uniquely arranged — multiple unelected bodies (SL, Guardian Council) can block elected institutions. Nigeria has weak multiple players producing gridlock rather than coherent governance.'},
+    {id:'bi_pd_r2_08',countries:'UK/Mexico',difficulty:'moderate',
+     stem:'The UK\'s parliamentary system and Mexico\'s presidential system differ in how they handle executive-legislative deadlock. Which of the following best describes this difference?',
+     choices:[{id:'A',text:'Mexico\'s system prevents deadlock through the president\'s decree powers; the UK\'s system has no mechanism to resolve deadlock'},{id:'B',text:'The UK\'s parliamentary system almost eliminates executive-legislative deadlock because the PM is drawn from the legislative majority; Mexico\'s presidential system can produce divided government where the president\'s party doesn\'t control Congress, creating potential gridlock'},{id:'C',text:'Both systems have identical mechanisms for resolving executive-legislative conflict'},{id:'D',text:'Mexico\'s system is more efficient than the UK\'s because it has clearer separation of powers'}],
+     correct:'B',explanation:'Parliamentary fusion of powers (UK) and presidential separation of powers (Mexico) have different deadlock profiles. When the UK PM commands a Commons majority, legislation passes easily — the executive controls the legislature. But when there\'s a hung Parliament (2010, 2017), coalition negotiations are needed. Mexico\'s presidential system can produce divided government where the president faces an opposition-controlled Congress — as happened when the PRI lost its congressional majority in 1997 but retained the presidency until 2000, forcing genuine negotiation. Presidential systems risk gridlock; parliamentary systems risk executive dominance.'},
+    {id:'bi_pd_r2_09',countries:'China/Iran',difficulty:'moderate',
+     stem:'China\'s General Secretary (Xi Jinping) and Iran\'s Supreme Leader (Khamenei) are both unelected leaders with enormous power. A student argues they are equivalent figures. Which of the following best challenges this equivalence?',
+     choices:[{id:'A',text:'Xi Jinping is more powerful because China has a larger population than Iran'},{id:'B',text:'Khamenei derives his authority from a theological claim (velayat-e faqih) with divine legitimacy; Xi\'s authority derives from party procedures and Marxist-nationalist ideology — different legitimacy foundations produce different institutional structures and different vulnerabilities'},{id:'C',text:'They are equivalent — both are unelected leaders of authoritarian states with complete power'},{id:'D',text:'Xi is more constrained because the NPC can theoretically remove him'}],
+     correct:'B',explanation:'The legitimacy foundations create real institutional differences. Khamenei\'s authority requires him to be a qualified Islamic jurist (faqih) — the position is constitutionally tied to religious qualifications, and the Assembly of Experts theoretically evaluates his fitness. Xi\'s authority is procedurally derived — he must maintain CCP majority support through party politics, patron-client networks, and anti-corruption coercion. Khamenei cannot be replaced by a rival with a better economic plan; Xi could theoretically be removed by a sufficiently large Politburo coalition (as Khrushchev was removed in 1964). Different legitimacy logic creates different political dynamics.'},
+    {id:'bi_pd_r2_10',countries:'Nigeria/Iran',difficulty:'challenging',
+     stem:'Nigeria\'s 2015 transfer of power (Buhari defeating Jonathan) and Iran\'s 2024 election (Pezeshkian winning after Raisi\'s death) are both described as significant democratic moments. The key difference between them is:',
+     choices:[{id:'A',text:'Nigeria\'s transfer was peaceful while Iran\'s was not'},{id:'B',text:'Nigeria\'s transfer represented a genuine alternation of power between competing parties with different programs; Iran\'s election, while producing a reformist president, occurred within a system where the Guardian Council pre-filtered candidates and the Supreme Leader retains ultimate authority — it was bounded competition, not full alternation'},{id:'C',text:'Iran\'s election was more significant because the turnout was higher'},{id:'D',text:'Both represent equivalent democratic achievements — one election is as significant as the other'}],
+     correct:'B',explanation:'Context determines the significance of electoral outcomes. Nigeria\'s 2015 election: PDP incumbent Jonathan lost to APC opposition Buhari — a full transfer of power to a genuinely different party with different supporters and policies; the military, civil society, and international community accepted the result; INEC certified it without candidate filtering. Iran\'s 2024 election: Pezeshkian won — a real reformist vs. hardliner competition within approved bounds — but the Guardian Council had disqualified many candidates, and the Supreme Leader\'s authority over major policy remains unchanged regardless of who is president. One is full alternation; the other is bounded factional competition.'}
+   ]},
+  {id:'r3',label:'Round 3 — Constitutions & Legitimacy',icon:'📜',
+   desc:'How do the six countries ground their authority? Compare constitutions, sources of legitimacy, and the gap between formal rules and actual practice.',
+   questions:[
+    {id:'bi_pd_r3_01',countries:'UK/Mexico/Nigeria',difficulty:'moderate',
+     stem:'The UK\'s uncodified constitution, Mexico\'s 1917 revolutionary constitution, and Nigeria\'s 1999 military-drafted constitution all have different foundations. Which of the following best describes what they share?',
+     choices:[{id:'A',text:'All three were created through popular referendum processes'},{id:'B',text:'All three serve as the foundational rules for democratic governance — providing the framework for elections, separation of powers, and protection of rights — even though they differ in origin and form'},{id:'C',text:'All three have never been amended since their creation'},{id:'D',text:'All three give supreme authority to the executive branch'}],
+     correct:'B',explanation:'Despite very different origins — the UK\'s evolved over centuries through statutes and conventions; Mexico\'s emerged from revolutionary conflict in 1917; Nigeria\'s was drafted by the military before the 1999 civilian handover — all three function as the foundational framework for democratic governance. They establish how elections work, how power is divided, and what rights citizens have. The differences in origin matter (Nigeria\'s military origins create legitimacy questions) but all three provide the basic institutional architecture for competitive democracy.'},
+    {id:'bi_pd_r3_02',countries:'Russia/China',difficulty:'moderate',
+     stem:'Both Russia\'s 1993 Constitution and China\'s 1982 Constitution contain guarantees of democratic rights including freedom of speech and press. The most accurate description of these constitutional guarantees is:',
+     choices:[{id:'A',text:'These rights are fully enforced — Russia and China are democracies'},{id:'B',text:'These constitutional rights exist formally but are selectively enforced only when compatible with regime interests — authoritarian governments use legal frameworks to selectively apply rights rather than guarantee them universally'},{id:'C',text:'The rights are guaranteed for party members but not ordinary citizens'},{id:'D',text:'These rights exist only on paper because Russia and China have no constitutions in practice'}],
+     correct:'B',explanation:'"Façade constitutionalism" — constitutions that formally guarantee rights without actually enforcing them — is a defining feature of competitive authoritarian and one-party states. Russia\'s constitution guarantees freedom of speech (Article 29), press freedom, assembly rights — but journalists are murdered, protesters arrested, and opposition parties excluded. China\'s constitution guarantees freedom of speech "within the bounds of law" — but those bounds are defined by the CCP. The constitutions serve legitimating functions (claiming democratic credentials) while the actual legal system selectively enforces rights when convenient.'},
+    {id:'bi_pd_r3_03',countries:'Iran/China',difficulty:'challenging',
+     stem:'Iran\'s Guardian Council and China\'s Politburo Standing Committee both function as ultimate decision-making bodies, but their legitimacy foundations differ fundamentally. Which of the following best captures this difference?',
+     choices:[{id:'A',text:'Iran\'s Guardian Council is elected while China\'s PSC is not'},{id:'B',text:'Iran\'s Guardian Council derives its authority from Islamic jurisprudence and divine mandate (interpreting what is consistent with Islam); China\'s PSC derives its authority from CCP procedural selection and Marxist-nationalist ideology — one claims religious legitimacy, the other claims party-state legitimacy'},{id:'C',text:'Both bodies have identical legitimacy foundations based on national tradition'},{id:'D',text:'China\'s PSC is more legitimate because it has more members'}],
+     correct:'B',explanation:'Legitimacy foundations shape institutional behavior and vulnerability. The Guardian Council claims to interpret divine will — it can reject legislation as "un-Islamic" or disqualify candidates as insufficiently devout. Its authority is grounded in a religious claim that gives it independence from electoral outcomes. The PSC\'s authority derives from CCP procedural legitimacy and performance claims — it must demonstrate governance competence. An argument that the PSC made a bad policy decision is more threatening to its legitimacy than an argument that a bad policy is "un-Islamic" is to the Guardian Council.'},
+    {id:'bi_pd_r3_04',countries:'All',difficulty:'moderate',
+     stem:'Which of the following best describes the concept of "legitimacy" and how it applies differently across the six AP Comparative countries?',
+     choices:[{id:'A',text:'All six countries have democratic legitimacy because all six hold elections of some kind'},{id:'B',text:'Legitimacy is the belief that a government has the right to rule; the six countries ground this belief differently — electoral/procedural (UK, Mexico, Nigeria), performance/nationalist (China, Russia), religious/ideological (Iran), or combinations thereof'},{id:'C',text:'Only democratic countries have legitimate governments; authoritarian governments have no legitimacy at all'},{id:'D',text:'Legitimacy is determined entirely by international recognition — countries recognized by the UN are legitimate'}],
+     correct:'B',explanation:'This question captures the core comparative politics concept of legitimacy. All six governments claim the right to rule, but they ground that claim differently. The UK, Mexico, and Nigeria primarily use procedural democratic legitimacy (fair elections produce rightful governments). China relies on performance (economic growth, national restoration) and CCP revolutionary founding. Russia adds nationalist legitimacy (great power status, anti-Western sovereignty). Iran claims divine mandate (velayat-e faqih) supplemented by filtered electoral procedures. Understanding WHY each regime claims to have the right to rule — and how citizens respond to those claims — is central to AP Comparative analysis.'},
+    {id:'bi_pd_r3_05',countries:'Mexico/Russia',difficulty:'challenging',
+     stem:'Mexico\'s 2000 democratic transition and Russia\'s post-Soviet experience both involved transitioning away from dominant-party systems. The key institutional difference that explains their divergent outcomes is:',
+     choices:[{id:'A',text:'Mexico\'s military supported democracy while Russia\'s did not'},{id:'B',text:'Mexico created a genuinely independent electoral authority (IFE) in 1996 that could credibly certify opposition victories; Russia never developed an equivalent institution — its electoral commission remained under executive influence, making manipulation possible'},{id:'C',text:'Mexico\'s civil society was stronger than Russia\'s, forcing democratization'},{id:'D',text:'Mexico received more foreign aid for democracy promotion than Russia did'}],
+     correct:'B',explanation:'This comparison directly tests what AP Comparative students should know about Mexico\'s IFE and its role in the 2000 transition. The IFE\'s independence (councilors appointed through merit-based parliamentary process, not executive appointment) created a credible independent authority that could certify PRI defeat as legitimate — making the transfer of power possible. Russia had no equivalent: its Central Election Commission remained under Kremlin influence and certified results that international observers questioned repeatedly. The institutional mechanism for credible electoral administration was Mexico\'s decisive advantage.'}
+   ]},
+  {id:'r4',label:'Round 4 — AP Exam Challenge',icon:'🏆',
+   desc:'The hardest cross-country comparison questions — designed to mirror the most demanding AP Comparative exam questions. Apply everything you know.',
+   questions:[
+    {id:'bi_pd_r4_01',countries:'All',difficulty:'challenging',
+     stem:'A political scientist argues that "the most important factor determining democratic quality across the six AP Comparative countries is state capacity — the ability of the government to effectively implement policy and enforce the rule of law." Which of the following best evaluates this claim?',
+     choices:[{id:'A',text:'The claim is correct — all six countries with higher state capacity score better on democratic indicators'},{id:'B',text:'The claim is partially supported — the UK (high state capacity, high democracy) and China (high state capacity, low democracy) show that state capacity is necessary but not sufficient for democracy; Nigeria (low capacity, low-quality democracy) and Russia (moderate capacity, competitive authoritarian) suggest additional factors matter'},{id:'C',text:'The claim is incorrect — state capacity has no relationship to democratic quality'},{id:'D',text:'The claim is fully correct — state capacity perfectly predicts all six countries\' Freedom House scores'}],
+     correct:'B',explanation:'This tests nuanced causal reasoning. State capacity (ability to implement policy, enforce law, control territory) does correlate with governance quality in general — but not deterministically with democracy. The UK has high state capacity AND democracy; China has high state capacity BUT one-party authoritarianism. Nigeria has low state capacity AND low-quality democracy (Boko Haram challenging territorial control). This shows state capacity is necessary but not sufficient for quality democracy — political will, institutional design, and civil society also matter. Iran has moderate state capacity (IRGC controls territory) but uses it for authoritarian control.'},
+    {id:'bi_pd_r4_02',countries:'UK/Russia/Iran',difficulty:'challenging',
+     stem:'The UK\'s House of Lords, Russia\'s Federation Council, and Iran\'s Assembly of Experts are all unelected or indirectly elected upper chambers. Which of the following most accurately compares their actual political functions?',
+     choices:[{id:'A',text:'All three function as genuine checks on executive power in their respective political systems'},{id:'B',text:'The UK\'s Lords serves as a revising chamber with limited blocking power (Parliament Acts); Russia\'s Federation Council primarily approves presidential decisions on security/foreign policy; Iran\'s Assembly of Experts nominally oversees the Supreme Leader but is structurally unable to genuinely check him (Guardian Council vets its members)'},{id:'C',text:'All three are completely powerless — unelected chambers never influence policy'},{id:'D',text:'Iran\'s Assembly of Experts is the most powerful because it can remove the Supreme Leader'}],
+     correct:'B',explanation:'Comparing these three institutions reveals different relationships between unelected bodies and executive power. UK\'s Lords: revises legislation, delays up to a year, provides expertise — constrained by Parliament Acts from blocking permanently; genuinely independent of executive in its review function. Russia\'s Federation Council: approves treaties, military deployments, judges — but as a body of regional representatives largely aligned with the Kremlin, it functions more as a legitimating body than a check. Iran\'s Assembly of Experts: theoretically powerful (can remove Supreme Leader) but structurally captured — Guardian Council (controlled by Supreme Leader) vets its members. Same formal category, three very different power relationships.'},
+    {id:'bi_pd_r4_03',countries:'China/Mexico',difficulty:'challenging',
+     stem:'China\'s CCP and Mexico\'s PRI both maintained political dominance for decades through similar mechanisms. Which of the following comparison is LEAST accurate?',
+     choices:[{id:'A',text:'Both used state-controlled media to limit opposition visibility'},{id:'B',text:'Both used corporatist structures to organize labor, peasants, and other social groups as loyal constituencies'},{id:'C',text:'Both held regular elections that served legitimating functions while not allowing genuine competition — the PRI for 71 years, the CCP since 1949'},{id:'D',text:'Both were eventually forced to democratize through the same mechanism — an independent electoral authority certifying opposition victory'}],
+     correct:'D',explanation:'D is the LEAST accurate comparison because their paths diverged fundamentally: Mexico\'s IFE in 1996 created the institutional mechanism that enabled the PRI\'s 2000 defeat — an independent electoral commission. China has never created an equivalent institution; the CCP controls electoral administration completely and has no mechanism for certifying its own defeat. The PRI\'s system contained within it the seeds of its own democratic replacement (electoral institutions that could be made independent); the CCP has deliberately avoided creating such institutions. The comparison is strong for corporatism, media control, and legitimating elections — but not for democratization mechanism.'},
+    {id:'bi_pd_r4_04',countries:'All',difficulty:'challenging',
+     stem:'Which of the following sets of countries BEST illustrates the full spectrum from consolidated liberal democracy to consolidated one-party authoritarianism without including any "hybrid" cases?',
+     choices:[{id:'A',text:'UK and China'},{id:'B',text:'UK, Mexico, and China'},{id:'C',text:'UK, Nigeria, Russia, and China'},{id:'D',text:'UK, Mexico, Nigeria, Russia, Iran, and China (all six are needed)'}],
+     correct:'A',explanation:'This question tests understanding of regime classification precision. UK (93/100) is the clearest consolidated liberal democracy among the six. China (9/100) is the clearest consolidated one-party authoritarian state. Together they represent the two poles without any ambiguity. Mexico (60) and Nigeria (44) are transitional/fragile democracies — hybrid cases. Russia (16) is competitive authoritarian — hybrid. Iran (14) is theocratic hybrid. Adding any of these to the UK-China pair introduces hybrid cases. For a clean "full spectrum" comparison across all regime types, you need all six; for "polar cases only," UK and China are the clearest examples.'},
+    {id:'bi_pd_r4_05',countries:'All',difficulty:'challenging',
+     stem:'An AP exam question asks: "Explain how the concept of \'rule of law\' applies differently in the United Kingdom, Russia, and China." Which of the following responses would earn the most points?',
+     choices:[{id:'A',text:'All three countries have courts and constitutions, so rule of law applies similarly everywhere'},{id:'B',text:'The UK has the strongest rule of law — courts operate independently of government and can rule against executive action (Miller case 2019); Russia has weak rule of law — courts produce politically convenient verdicts (Khodorkovsky trial) and the acquittal rate is under 1%; China has minimal judicial independence — courts serve party interests and the CCP is above the law'},{id:'C',text:'Rule of law only exists in democracies like the UK; Russia and China have no legal system at all'},{id:'D',text:'China has the strongest rule of law because Xi\'s anti-corruption campaign prosecuted more officials than the UK or Russia'}],
+     correct:'B',explanation:'B earns the most points because it: (1) applies the concept precisely (courts\' relationship to government); (2) uses specific evidence for each country (Miller case for UK; Khodorkovsky and acquittal rate for Russia; CCP above law for China); (3) shows a spectrum rather than binary present/absent; and (4) demonstrates comparative analytical skill. A is wrong (oversimplified). C is factually inaccurate — Russia and China have extensive legal systems, just not independent ones. D misunderstands rule of law — using law as a political weapon against rivals (Xi\'s anti-corruption campaign targeting political enemies) is actually evidence of weak rule of law, not strong.'}
+   ]}
+]};
+
+const UNIT_FRQS=[
+  {id:'apcmp_bi_pd_ca',type:'CA',label:'Conceptual Analysis',title:'Regime Classification Across Countries',maxScore:4,
+   prompt:'Political scientists classify regimes along a spectrum from consolidated liberal democracy to totalitarian authoritarianism, with hybrid regimes occupying the middle.',
+   parts:[
+    {part:'A',points:1,prompt:'Define "competitive authoritarianism" and explain why Russia is classified this way rather than as a democracy or a pure dictatorship.'},
+    {part:'B',points:1,prompt:'Explain how Iran\'s political system combines both theocratic and republican elements, making it a distinct hybrid regime.'},
+    {part:'C',points:1,prompt:'Describe one specific institutional feature that distinguishes the UK\'s liberal democracy from Nigeria\'s fragile democracy.'},
+    {part:'D',points:1,prompt:'Using China and Mexico as examples, explain how two countries can both have elected legislatures while those legislatures function in completely different ways.'}
+   ],
+   rubric:{A:'1 pt: Define competitive authoritarianism (elections held but playing field systematically tilted through media control, opposition exclusion, selective repression — preventing genuine alternation). Apply to Russia: elections occur (United Russia competes), some opposition parties exist, but real challengers excluded (Navalny barred), state media dominates, Kremlin controls election commission. Not pure democracy (genuine competition absent) nor pure dictatorship (elections do occur and serve functions). Both elements required.',B:'1 pt: Must explain BOTH theocratic elements (Supreme Leader with divine authority per velayat-e faqih, unelected Guardian Council controls elections and legislation) AND republican elements (elected president, elected Majles, popular referendums). Must explain how they coexist — elected institutions exist but operate within theocratic constraints. The dual structure produces a hybrid unlike any other AP Comparative country.',C:'1 pt: Must identify a SPECIFIC institutional feature and explain the distinction: independent judiciary (UK courts ruled against government in Miller 2019; Nigerian courts more susceptible to executive pressure and corruption); electoral integrity (UK elections consistently free and fair; Nigerian elections with more violence and manipulation); civilian control of military (UK military firmly under civilian control since centuries; Nigeria only returned to civilian rule in 1999 after multiple coups). Must be specific.',D:'1 pt: Must use BOTH China AND Mexico with specific evidence. China\'s NPC: ~3,000 delegates, 2-week annual session, has never rejected a bill — rubber stamp for party decisions. Mexico\'s Congress: passed legislation over presidential opposition; genuine committee work; controlled by opposition during periods of divided government (1997-2000). Must explain mechanism — CCP controls NPC member selection; Mexico has genuine multiparty competition for congressional seats.'}
+  },
+  {id:'apcmp_bi_pd_qa',type:'QA',label:'Quantitative Analysis',title:'Electoral Systems and Democratic Outcomes',maxScore:5,
+   prompt:'Electoral System Data:\n🇬🇧 UK: FPTP, 650 constituencies | 2024 result: Labour 34% votes → 63% seats\n🇲🇽 Mexico: Mixed (300 FPTP + 200 PR) | 2018: MORENA 37% votes → ~63% seats (FPTP bonus)\n🇷🇺 Russia: Mixed (225 FPTP + 225 PR) | 2021: United Russia 49% votes → 75% seats (with manipulation)\n🇮🇷 Iran: Two-round plurality | 2024: 40% turnout (post-disqualification)\n🇳🇬 Nigeria: FPTP + 25%/24 states requirement | 2023: Tinubu won with 37% in 3-way race\n🇨🇳 China: No competitive national elections',
+   svgChart:`<svg viewBox="0 0 500 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px">
+     <rect width="500" height="165" fill="#0f1a12" rx="4"/>
+     <text x="250" y="14" font-family="sans-serif" font-size="9" fill="#5dba7a" text-anchor="middle" letter-spacing="2">VOTE % vs SEAT % FOR DOMINANT PARTY/WINNER</text>
+     ${[{c:'🇬🇧 UK',v:34,s:63,col:'#5dba7a'},{c:'🇲🇽 MX',v:37,s:63,col:'#5dba7a'},{c:'🇷🇺 RU',v:49,s:75,col:'#e04040'},{c:'🇮🇷 IR',v:null,s:null,col:'#e8a020'},{c:'🇳🇬 NG',v:37,s:null,col:'#e8a020'}].map((d,i)=>{
+       const x=30+i*90;
+       return `<rect x="${x}" y="${140-Math.round((d.v||0)*1.2)}" width="28" height="${Math.round((d.v||0)*1.2)}" fill="${d.col}" opacity=".7" rx="2"/>
+       ${d.s?`<rect x="${x+35}" y="${140-Math.round(d.s*1.2)}" width="28" height="${Math.round(d.s*1.2)}" fill="${d.col}" rx="2"/>`:''}
+       <text x="${x+14}" y="${133-Math.round((d.v||0)*1.2)}" font-family="sans-serif" font-size="6.5" fill="${d.col}" text-anchor="middle">${d.v||'N/A'}%</text>
+       ${d.s?`<text x="${x+49}" y="${133-Math.round(d.s*1.2)}" font-family="sans-serif" font-size="6.5" fill="${d.col}" text-anchor="middle">${d.s}%</text>`:''}
+       <text x="${x+32}" y="152" font-family="sans-serif" font-size="7" fill="#3a5848" text-anchor="middle">${d.c}</text>`;
+     }).join('')}
+     <line x1="10" y1="140" x2="490" y2="140" stroke="#244030" stroke-width="1"/>
+     <text x="12" y="175" font-family="sans-serif" font-size="7" fill="#5dba7a">■</text><text x="20" y="175" font-family="sans-serif" font-size="7" fill="#7a9888">Vote %</text>
+     <text x="70" y="175" font-family="sans-serif" font-size="7" fill="#90d4a8">■</text><text x="78" y="175" font-family="sans-serif" font-size="7" fill="#7a9888">Seat %</text>
+   </svg>`,
+   parts:[
+    {part:'A',points:1,prompt:'Based on the data, identify one pattern in how electoral systems translate votes into seats across the democratic countries (UK, Mexico, Nigeria).'},
+    {part:'B',points:1,prompt:'Using the data, explain why Russia\'s vote-to-seat translation (49% → 75%) is politically different from the UK\'s (34% → 63%) despite both showing disproportional outcomes.'},
+    {part:'C',points:1,prompt:'The data shows Iran\'s 2024 turnout was 40% following candidate disqualifications. Explain what this suggests about the relationship between electoral freedom and voter participation.'},
+    {part:'D',points:1,prompt:'Nigeria\'s 25%/24-states requirement is not reflected in the standard vote-seat data. Explain what this requirement does that simple vote percentage data cannot capture.'},
+    {part:'E',points:1,prompt:'Based on the data and your knowledge, explain why China\'s absence from the electoral data is itself significant information about its political system.'}
+   ],
+   rubric:{A:'1 pt: Must identify a specific pattern using data: FPTP systems (UK, Nigeria, partly Mexico) amplify the winning party\'s margin — UK 34% → 63% seats; MORENA 37% → 63% seats; winner-takes-more is standard in these systems. Pattern must reference specific data numbers.',B:'1 pt: Must explain the QUALITATIVE difference despite QUANTITATIVE similarity: UK\'s 34% → 63% reflects FPTP mechanics in genuine competitive election (Labour beat Conservatives, Lib Dems, Reform in fair competition); Russia\'s 49% → 75% reflects manipulation (Kremlin media dominance, opposition exclusion, administrative pressure, possible counting manipulation) ON TOP OF any FPTP bonus. Both show disproportionality but one reflects electoral system mechanics while the other reflects managed authoritarianism.',C:'1 pt: Must use the 40% turnout figure AND explain: Guardian Council disqualified reformist candidates → supporters had no meaningful choice → boycott as political protest. Connect electoral freedom (ability to run preferred candidates) to participation motivation. When elections don\'t offer meaningful choice, turnout collapses — this is itself evidence of democratic deficit.',D:'1 pt: Must explain what the requirement does beyond vote share: forces cross-regional coalition building — candidates must win 25%+ in 24/36 states, not just total votes; prevents ethnically concentrated majorities from monopolizing presidency; Tinubu\'s 37% nationally included sufficient geographic spread to meet the requirement. Vote percentage alone doesn\'t capture whether a candidate built the cross-ethnic coalition the system requires.',E:'1 pt: China\'s absence from electoral data is itself politically significant: no competitive national elections exist for CCP leadership → the entire concept of translating votes into power is inapplicable → this makes China categorically different from all five other AP Comparative countries, all of which hold some form of national elections. The absence from the data table illustrates the fundamental regime-type difference.'}
+  },
+  {id:'apcmp_bi_pd_comp',type:'COMP',label:'Comparative Analysis',title:'Executive Systems and Democratic Accountability',maxScore:5,
+   prompt:'Different executive systems create different accountability relationships between leaders and citizens.',
+   parts:[
+    {part:'A',points:1,prompt:'Define "democratic accountability" and explain one specific mechanism through which the UK holds its executive accountable.'},
+    {part:'B',points:2,prompt:'Compare Russia and Mexico in terms of executive accountability. Describe one similarity AND one difference in how their presidents are held (or not held) accountable.'},
+    {part:'C',points:2,prompt:'Using specific evidence from China and Nigeria, explain how formal constitutional accountability mechanisms can fail to produce genuine accountability in practice.'}
+   ],
+   rubric:{A:'1 pt: Define democratic accountability as the obligation of elected officials to answer to citizens for their decisions and actions, with mechanisms for removing or sanctioning them for poor performance or violations of trust. Mechanism: PMQs (weekly public questioning of PM by elected MPs); vote of no confidence (Commons can remove government); competitive elections (voters can remove party from power); independent judiciary (courts can rule against executive actions — Miller case). Must explain HOW the mechanism creates accountability.',B_sim:'1 pt: Both have presidents with formal term limits; both face some form of electoral accountability in theory; both have constitutions that formally constrain presidential power; both have experienced economic challenges that tested their accountability. Apply to BOTH countries.',B_diff:'1 pt: Mexico — president faces genuine electoral accountability (Jonathan conceded 2015; Buhari lost 2019 — wait, that\'s Nigeria; Mexico: AMLO won 2018 in competitive election, Sheinbaum won 2024 showing genuine succession); independent SCJN has ruled against presidential priorities; divided government has constrained executive. Russia — Putin faces no genuine accountability: real opposition excluded, state media controlled, opposition leaders imprisoned/poisoned/killed, Duma does not independently challenge executive. Fundamental difference in accountability reality.',C:'2 pts: China: NPC constitutional authority to pass laws and approve budget is formal; in practice NPC has never rejected a party-state proposal; party processes (not constitutional mechanisms) determine leadership; Xi removed term limits through NPC vote (the supposed check became the instrument of further concentration). Nigeria: Constitution creates separation of powers with independent INEC, independent judiciary, term limits; in practice corruption undermines judicial independence; INEC has improved but still faces challenges; term limits prevented Obasanjo\'s third-term attempt (mechanism worked) but many other constitutional provisions are weakly enforced. Must use specific evidence from BOTH.'}
+  },
+  {id:'apcmp_bi_pd_ae',type:'AE',label:'Argument Essay',title:'Is Democracy the Only Legitimate Form of Government?',maxScore:5,
+   prompt:'Some political scientists argue that democratic governance — with competitive elections, civil liberties, and rule of law — is the only legitimate form of government in the modern era. Others argue that governments can claim legitimacy through other means, including performance (economic growth, stability), national tradition, or religious authority.\n\nDevelop an argument about whether democratic governance is uniquely legitimate or whether alternative sources of legitimacy can sustain effective government. Use evidence from at least two AP Comparative countries.',
+   parts:[{part:'Essay',points:5,prompt:'Write your complete argument essay. Address all four elements: defensible claim, evidence from two countries, reasoning, and counterargument.'}],
+   rubric:{Essay:'5 pts: 1pt CLAIM — Must take a defensible position. E.g., "While alternative legitimacy sources (performance, nationalism, religion) can sustain governments temporarily, only democratic governance provides the self-correcting accountability mechanisms necessary for long-term effective government — as China\'s inability to correct COVID zero-COVID policy errors and Iran\'s legitimacy crises demonstrate." OR the alternative: "Alternative legitimacy sources can effectively sustain governments — China\'s performance legitimacy has produced remarkable development outcomes that democratic legitimacy alone has not guaranteed, as Nigeria demonstrates."\n\n2pts EVIDENCE (1pt per country) — China: performance legitimacy through 40+ years of ~9% GDP growth, 800 million lifted from poverty; BUT legitimacy crisis when COVID zero-COVID policy produced enormous economic damage with no correction mechanism; OR Iran: theocratic legitimacy sustained since 1979 but recurring protest movements (2009, 2019, 2022) suggest declining legitimacy not corrected through democratic channels; OR UK: democratic legitimacy enabled Brexit (democratically legitimate but arguably self-damaging) vs. China\'s ability to implement long-term policy without electoral disruption.\n\n1pt REASONING — Explains mechanism: why democratic accountability enables self-correction (removing failed leaders through elections); OR why performance legitimacy is vulnerable (what happens when performance declines — as China faces with slower growth?).\n\n1pt COUNTERARGUMENT — Acknowledges opposing view and responds: "Critics argue China\'s development proves performance legitimacy works — but the COVID zero-COVID disaster, where millions were locked down for months with no ability to remove the decision-makers who created it, shows performance legitimacy fails precisely when the government makes its worst decisions." OR vice versa.'}
+  }
+];
+
+let G={gold:parseInt(localStorage.getItem('civitas_gold')||'0'),roundIdx:0,questionIdx:0,questions:[],selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+
+window.addEventListener('load',()=>{const fill=document.getElementById('ld-fill');let p=0;const iv=setInterval(()=>{p+=Math.random()*25;if(p>=100){p=100;clearInterval(iv);setTimeout(doneLoading,300);}fill.style.width=p+'%';},120);});
+
+function doneLoading(){document.getElementById('loading').style.opacity='0';setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);buildRoundCards();buildFRQList();loadSavedProgress();}
+function loadSavedProgress(){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');if(prog[UNIT_ID])updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}catch(e){}loadFRQScores();}
+function loadFRQScores(){UNIT_FRQS.forEach(frq=>{const v=localStorage.getItem('civitas_frq_'+UNIT_ID+'_'+frq.id);if(v){const b=document.getElementById('frq-badge-'+frq.id);if(b){b.textContent=v+'/'+frq.maxScore;b.style.display='block';}}});}
+function isRoundComplete(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null')!==null;}catch(e){return false;}}
+function getRoundProgress(idx){try{return JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+idx)||'null');}catch(e){return null;}}
+function updateProgressBar(done,total){document.getElementById('prog-fill').style.width=Math.round(done/total*100)+'%';document.getElementById('prog-text').textContent=done+' / '+total+' Rounds Complete';}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')loadFRQScores();}
+
+function buildRoundCards(){
+  document.getElementById('round-cards').innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
+    const prog=getRoundProgress(i);const done=prog!==null;const locked=i>0&&!isRoundComplete(i-1);
+    const acc=done?prog.accuracy:null;const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+    return`<div class="activity-card${locked?' locked':''}" onclick="${locked?'notify(\'Complete Round '+i+' first!\')':'startRound('+i+')'}">
+      <div class="activity-card-strip" style="background:${done?'var(--green)':locked?'var(--border2)':'var(--acc)'}"></div>
+      <div class="activity-card-body"><div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${i+1} · ${r.questions.length} QUESTIONS</div>
+        <div class="activity-card-title">${r.label}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action" style="color:${done?'var(--green2)':locked?'var(--text3)':'var(--acc2)'}">
+          ${locked?'🔒 Locked':done?'✓ Complete — '+acc+'%':'▶ Play Now'}</div>
+        ${done?`<div class="activity-card-badge" style="border-color:${sc};color:${sc}">${acc}%</div>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+function buildFRQList(){
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+  document.getElementById('frq-list').innerHTML=UNIT_FRQS.map(frq=>`<div class="frq-card" onclick="openFRQ('${frq.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${cols[frq.type]||'var(--acc)'};margin-bottom:4px">${frq.label} · ${frq.maxScore} pts</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:4px">${frq.title}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Cross-country comparison · AI-graded</div></div>
+      <div class="frq-badge" id="frq-badge-${frq.id}"></div>
+    </div></div>`).join('');
+}
+
+function openFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};const col=cols[frq.type]||'var(--acc)';
+  const svg=frq.svgChart?`<div style="margin-bottom:16px;padding:16px;background:var(--bg2);border:1px solid var(--border)">${frq.svgChart}</div>`:'';
+  document.getElementById('frq-workspace-area').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <button onclick="closeFRQ()" style="font-family:var(--bebas);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 10px;cursor:pointer">← Back</button>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:${col}">${frq.label} · ${frq.maxScore} PTS</div>
+    </div>
+    <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px">${frq.title}</div>
+    <div class="frq-prompt">${frq.prompt}</div>${svg}
+    ${frq.parts.map((p,pi)=>`<div class="frq-part">
+      <div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div>
+      <div class="frq-part-prompt">${p.prompt}</div>
+      <textarea class="frq-textarea" id="frq-ans-${frq.id}-${pi}" placeholder="Write your response here..."></textarea>
+    </div>`).join('')}
+    <button class="frq-submit-btn" id="frq-submit-${frqId}" onclick="submitFRQ('${frqId}')">⚡ Submit for AI Grading</button>
+    <div class="frq-grading" id="frq-grade-${frqId}" style="margin-top:16px"></div>`;
+  document.getElementById('frq-workspace-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeFRQ(){document.getElementById('frq-workspace-area').innerHTML='';}
+
+async function submitFRQ(frqId){
+  const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;
+  const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');
+  if(answers.join('').length<30){notify('Please write responses first.');return;}
+  const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);
+  btn.disabled=true;btn.innerHTML='⏳ Grading...';
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part}(${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');
+  try{
+    const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,
+        messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\n${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0_or_1,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],
+        system:'You are an AP Comparative Government FRQ expert grader. Grade strictly per rubric. Return ONLY valid JSON.'})});
+    const data=await resp.json();
+    const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    const score=grade.totalScore||0;
+    try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);
+      const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};
+      if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};
+      const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};
+      ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;
+      ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}
+    const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
+    btn.innerHTML='✓ Graded';
+    const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
+    gradeDiv.style.display='block';
+    gradeDiv.innerHTML=`<div class="frq-score-banner"><div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div>
+      <div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE · ${pct}%</div>
+      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">
+      ${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span>
+        <span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'✓ +'+p.earned:'✗ 0'}</span></div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div>
+      </div>`;}).join('')}
+    </div>
+    <div class="frq-overall-feedback">${grade.overallFeedback||''}</div>
+    ${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>💡 Improve:</strong> ${grade.improveHint}</div>`:''}`;
+  }catch(e){btn.innerHTML='⚠ Error';btn.disabled=false;notify('Grading error.');}
+}
+
+function startRound(idx){
+  if(!isRoundComplete(idx-1)&&idx>0){notify('Complete Round '+idx+' first!');return;}
+  G={...G,roundIdx:idx,questionIdx:0,selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
+  const round=QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display='none';document.getElementById('game').style.display='flex';
+  document.getElementById('round-intro').style.display='flex';
+  ['question-area','round-complete','unit-complete'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('ri-icon').textContent=round.icon;
+  document.getElementById('ri-round').textContent='ROUND '+(idx+1)+' OF '+QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent=round.label;
+  document.getElementById('ri-desc').textContent=round.desc;
+  document.getElementById('game-pips').innerHTML=QUESTION_BANK.rounds.map((_,i)=>`<div class="gp-pip ${i<idx?'done':i===idx?'active':''}"></div>`).join('');
+  updateGoldDisplay();
+}
+function beginRound(){
+  document.getElementById('round-intro').style.display='none';document.getElementById('question-area').style.display='flex';
+  G.questions=shuffle([...QUESTION_BANK.rounds[G.roundIdx].questions]);
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=G.questions[G.questionIdx];const el=document.getElementById('question-area');
+  G.selectedChoice=null;G.answered=false;document.getElementById('btn-next').style.display='none';
+  document.getElementById('game-round-label').textContent='ROUND '+(G.roundIdx+1)+' · Q '+(G.questionIdx+1)+'/'+G.questions.length;
+  el.innerHTML=`<div class="question-card" id="qcard">
+    <div class="q-meta"><div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div>
+      <div class="q-tag countries">🌍 ${q.countries}</div>
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div></div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+      <div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div>
+    <div style="text-align:right;margin-top:8px"><button onclick="submitQuestionReport('${q.stem.replace(/'/g,"\\'").substring(0,80)}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report</button></div>
+  </div>`;
+  el.scrollTop=0;
+}
+function selectChoice(id){
+  if(G.answered)return;G.selectedChoice=id;
+  document.querySelectorAll('.choice').forEach(c=>{c.classList.remove('selected');if(c.id==='choice-'+id)c.classList.add('selected');});
+  submitAnswer();
+}
+function submitAnswer(){
+  if(!G.selectedChoice||G.answered)return;G.answered=true;
+  const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;
+  G.sessionTotal++;
+  if(correct){G.sessionCorrect++;const gold=5+(q.difficulty==='challenging'?5:3);G.gold+=gold;spawnGold('+'+gold+' 🪙');awardGoldToShell(gold,'AP Comp Big Idea PD');}
+  document.querySelectorAll('.choice').forEach(c=>{
+    c.classList.add('answered');const cid=c.id.replace('choice-','');
+    if(cid===q.correct)c.classList.add('correct');
+    else if(cid===G.selectedChoice&&!correct)c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+  if(q.explanation){const qcard=document.getElementById('qcard');if(qcard)qcard.insertAdjacentHTML('beforeend',`<div class="explanation"><strong>${correct?'✓ Correct!':'✗ Incorrect.'}</strong> ${q.explanation}</div>`);}
+  document.getElementById('btn-next').style.display='block';updateGoldDisplay();
+}
+function nextQuestion(){G.questionIdx++;if(G.questionIdx>=G.questions.length)finishRound();else{renderQuestion();document.getElementById('question-area').scrollTop=0;}}
+function finishRound(){
+  const acc=G.sessionTotal>0?Math.round(G.sessionCorrect/G.sessionTotal*100):0;
+  try{localStorage.setItem('civitas_'+UNIT_ID+'_r'+G.roundIdx,JSON.stringify({accuracy:acc,correct:G.sessionCorrect,total:G.sessionTotal,completedAt:new Date().toISOString()}));syncProgressToShell(acc);}catch(e){}
+  const icon=acc>=80?'⭐':acc>=60?'✅':'📋';const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('question-area').style.display='none';document.getElementById('btn-next').style.display='none';
+  const rc=document.getElementById('round-complete');rc.style.display='flex';
+  document.getElementById('rc-icon').textContent=icon;
+  document.getElementById('rc-title').textContent=QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent=acc+'%';document.getElementById('rc-score').style.color=sc;
+  document.getElementById('rc-sub').textContent=G.sessionCorrect+'/'+G.sessionTotal+' CORRECT';
+  document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:${sc}">${acc}%</div><div class="rc-stat-lbl">Accuracy</div></div><div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+  const ni=G.roundIdx+1;const nb=document.getElementById('rc-next-btn');
+  if(ni<QUESTION_BANK.rounds.length){nb.textContent='Continue to Round '+(ni+1)+' →';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}
+  else{nb.textContent='🏆 Complete Big Idea';nb.onclick=showUnitComplete;}
+}
+function syncProgressToShell(acc){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');const prev=prog[UNIT_ID]||{bestAccuracy:0};prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}}
+function showUnitComplete(){
+  const tc=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.correct:0);},0);
+  const tq=QUESTION_BANK.rounds.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.total:0);},0);
+  const ov=tq>0?Math.round(tc/tq*100):0;
+  const grade=ov>=90?'A+':ov>=80?'A':ov>=70?'B':ov>=60?'C':'D';
+  const gc=ov>=80?'var(--green2)':ov>=60?'var(--amber)':'var(--red2)';
+  document.getElementById('round-complete').style.display='none';document.getElementById('unit-complete').style.display='flex';
+  document.getElementById('uc-score').textContent=grade;document.getElementById('uc-score').style.color=gc;
+  document.getElementById('uc-grade').textContent=ov+'% Overall · Big Idea Complete';
+  awardGoldToShell(50,'Big Idea: Power & Democracy');spawnGold('+50 🪙 Big Idea Complete!');syncProgressToShell(ov);
+}
+function replayUnit(){QUESTION_BANK.rounds.forEach((_,i)=>{try{localStorage.removeItem('civitas_'+UNIT_ID+'_r'+i);}catch(e){}});document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();}
+function exitGame(){document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();loadFRQScores();updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
+function updateGoldDisplay(){document.getElementById('game-gold-disp').textContent='🪙 '+G.gold;}
+function awardGoldToShell(amount,source){try{const c=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',c+amount);localStorage.setItem('civitas_gold_pending',JSON.stringify({amount,source}));}catch(e){}}
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+async function submitQuestionReport(stem){const sn=localStorage.getItem('civitas_student_name')||'Unknown';try{await fetch(SUPA_URL+'/rest/v1/civitas_feedback',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},body:JSON.stringify({student_name:sn,course_id:'ap_cmp',item_type:'question',item_id:UNIT_ID,item_title:'Big Idea: Power & Democracy',issue_type:'question_error',note:(stem||'').slice(0,300),unit_id:UNIT_ID,submitted_at:new Date().toISOString()})});notify('✓ Reported!');}catch(e){notify('Report failed.');}}
+</script>
+</body>
+</html>
