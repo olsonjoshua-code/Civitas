@@ -360,7 +360,32 @@ if(m.type==='narrative'){sNar(NARR[m.nar||'briefing'],function(){rHub();});retur
 if(m.nar&&!(G.mp[id]&&G.mp[id].narrated)){if(!G.mp[id])G.mp[id]={};G.mp[id].narrated=true;sv();sNar(NARR[m.nar],function(){bBattle(m);});return;}
 bBattle(m);
 }
-function sNar(n,cb){showSc('bts');document.getElementById('btc').innerHTML='<div style="padding:16px 0"><div class="np"><div class="ne">'+n.ey+'</div><div class="nsp">'+n.sp+'</div><div class="ntx">&ldquo;'+n.tx+'&rdquo;</div><div class="nac">'+n.ac+'</div></div><div style="text-align:center;margin-top:20px"><button class="btn" onclick="dNC()"><span>Continue</span></button><div style="margin-top:10px"><button class="btn sm" onclick="showTab(\'hub\');showSc(\'hs2\')" style="border-color:var(--border2);color:var(--text3)"><span>Back to Hub</span></button></div></div></div>';window._nc=cb;}
+function sNar(n,cb){
+  window._nc=cb;
+  showSc('bts');
+  var d=document.createElement('div');
+  d.style.padding='16px 0';
+  var np=document.createElement('div');
+  np.className='np';
+  np.innerHTML='<div class="ne">'+n.ey+'</div><div class="nsp">'+n.sp+'</div><div class="ntx">&ldquo;'+n.tx+'&rdquo;</div><div class="nac">'+n.ac+'</div>';
+  var btns=document.createElement('div');
+  btns.style='text-align:center;margin-top:20px';
+  var cont=document.createElement('button');
+  cont.className='btn';
+  cont.innerHTML='<span>Continue</span>';
+  cont.onclick=function(){if(window._nc)window._nc();};
+  var back=document.createElement('button');
+  back.className='btn sm';
+  back.style='margin-top:10px;display:block;border-color:var(--border2);color:var(--text3)';
+  back.innerHTML='<span>Back to Hub</span>';
+  back.onclick=function(){showTab('hub');showSc('hs2');};
+  btns.appendChild(cont);
+  btns.appendChild(back);
+  d.appendChild(np);
+  d.appendChild(btns);
+  document.getElementById('btc').innerHTML='';
+  document.getElementById('btc').appendChild(d);
+}
 function dNC(){if(window._nc)window._nc();}
 var BT=null;
 function bBattle(m){var qs=[];for(var i=0;i<m.questions.length;i++)qs.push(m.questions[i]);for(var i=qs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=qs[i];qs[i]=qs[j];qs[j]=tmp;}BT={m:m,qs:qs,qi:0,eHp:m.hp,eMx:m.hp,pdpH:Math.floor(m.hp/qs.length),combo:0,sc2:0,st2:0,ans:false,si:null};showSc('bts');rBattle();}
