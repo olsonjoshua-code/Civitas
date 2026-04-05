@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Exam Practice — AP Comparative Government · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080e0a;--bg2:#0f1a12;--bg3:#162018;--panel:#111d14;--border:#1a3020;--border2:#244030;--acc:#38a050;--acc2:#5dba7a;--acc3:#90d4a8;--amber:#e8a020;--gold:#ffd700;--gc:#f5c842;--green:#2aaa50;--green2:#40c870;--red:#e04040;--red2:#f06060;--purple:#7060d0;--teal:#208878;--text:#e0f0e4;--text2:#7a9888;--text3:#3a5848;--cream:#f0ede4;--bebas:'Bebas Neue',sans-serif;--playfair:'Playfair Display',serif;--crimson:'Crimson Text',serif;--dm:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);background-image:radial-gradient(ellipse at 15% 0%,rgba(56,160,80,.08) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes countdown{from{stroke-dashoffset:0}to{stroke-dashoffset:283}}
+/* LOBBY */
+#lobby{position:fixed;inset:0;display:flex;flex-direction:column;overflow-y:auto}
+.lobby-hero{background:linear-gradient(135deg,rgba(20,60,30,.9) 0%,rgba(8,14,10,.99) 70%);border-bottom:1px solid var(--border2);padding:40px;text-align:center;position:relative;overflow:hidden}
+.lobby-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(56,160,80,.015) 40px,rgba(56,160,80,.015) 80px)}
+.lobby-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(56,160,80,.12);border:1px solid var(--border2);padding:6px 16px;font-family:var(--bebas);font-size:10px;letter-spacing:3px;color:var(--acc2);margin-bottom:20px}
+.lobby-title{font-family:var(--playfair);font-size:clamp(28px,6vw,52px);color:var(--cream);font-weight:900;line-height:1.1;margin-bottom:10px}
+.lobby-sub{font-family:var(--crimson);font-size:18px;color:var(--text2);font-style:italic;max-width:600px;margin:0 auto 32px;line-height:1.7}
+.lobby-stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.lobby-stat{background:var(--bg2);border:1px solid var(--border2);padding:16px 28px;text-align:center}
+.lobby-stat-val{font-family:var(--bebas);font-size:36px;color:var(--acc2);line-height:1}
+.lobby-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.lobby-modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:32px 40px;max-width:1000px;margin:0 auto;width:100%}
+.mode-card{background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.mode-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.6);border-color:var(--border2)}
+.mode-card-accent{height:4px}
+.mode-card-body{padding:22px 24px}
+.mode-icon{font-size:36px;margin-bottom:12px}
+.mode-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--text3);margin-bottom:6px}
+.mode-title{font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:8px;line-height:1.3}
+.mode-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:16px}
+.mode-meta{display:flex;gap:10px;flex-wrap:wrap}
+.mode-tag{font-family:var(--dm);font-size:8px;background:rgba(56,160,80,.08);border:1px solid var(--border2);color:var(--text3);padding:3px 8px;letter-spacing:.5px}
+.mode-best{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;padding:3px 8px;border:1px solid}
+.back-btn{position:absolute;top:16px;left:20px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;z-index:10}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+/* EXAM SCREEN */
+#exam{position:fixed;inset:0;display:none;flex-direction:column}
+#exam-header{background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0}
+.exam-section-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+#timer-display{font-family:var(--bebas);font-size:18px;color:var(--amber);display:flex;align-items:center;gap:8px}
+#timer-display.urgent{color:var(--red2);animation:pulse .8s infinite}
+.exam-progress{display:flex;align-items:center;gap:8px;font-family:var(--dm);font-size:10px;color:var(--text3)}
+.exam-pips{display:flex;gap:3px}
+.exam-pip{width:8px;height:8px;border-radius:50%;background:var(--border2)}
+.exam-pip.done{background:var(--acc)}
+.exam-pip.correct{background:var(--green2)}
+.exam-pip.wrong{background:var(--red2)}
+.exam-pip.current{background:var(--acc2);animation:pulse 1.5s infinite}
+#exam-body{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+/* MC section */
+.stimulus-box{background:rgba(56,160,80,.04);border:1px solid rgba(56,160,80,.15);border-left:3px solid var(--acc);padding:18px 22px;animation:fadeIn .3s ease}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.stimulus-title{font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700;margin-bottom:4px}
+.stimulus-source{font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:10px;font-style:italic}
+.stimulus-content{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-country{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid var(--acc);color:var(--acc2);letter-spacing:.5px}
+.q-stem{font-family:var(--crimson);font-size:21px;color:var(--cream);line-height:1.65;margin-bottom:20px}
+.choices{display:flex;flex-direction:column;gap:9px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all .15s}
+.choice:hover:not(.answered):not(.flagged-ans){border-color:var(--acc2);background:rgba(56,160,80,.05)}
+.choice-letter{font-family:var(--bebas);font-size:19px;color:var(--text3);flex-shrink:0;width:22px}
+.choice-text{font-family:var(--crimson);font-size:18px;color:var(--text2);line-height:1.55}
+.choice.selected{border-color:var(--acc2);background:rgba(56,160,80,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--acc2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}.choice.dimmed{opacity:.32}
+.explanation{background:rgba(42,170,80,.05);border-left:3px solid var(--green);padding:12px 16px;margin-top:10px;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7}
+.explanation strong{color:var(--green2)}
+/* FRQ section */
+.frq-wrapper{background:var(--bg2);border:1px solid var(--border);padding:24px}
+.frq-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
+.frq-type-badge{font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:4px 12px;border:1px solid;flex-shrink:0}
+.frq-title{font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;line-height:1.3}
+.frq-context{font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;background:rgba(56,160,80,.04);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:14px 18px;margin-bottom:16px;font-style:italic}
+.frq-part{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.frq-part-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.frq-part-letter{font-family:var(--bebas);font-size:19px;color:var(--acc2);width:26px}
+.frq-part-pts{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px}
+.frq-part-prompt{font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.65;margin-bottom:8px}
+.frq-textarea{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:10px 14px;resize:vertical;min-height:90px;outline:none}
+.frq-textarea:focus{border-color:var(--acc2)}
+/* Footer controls */
+#exam-footer{background:var(--bg2);border-top:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:12px 24px;flex-shrink:0}
+.exam-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:2px solid var(--border2);color:var(--text3);padding:10px 24px;cursor:pointer;transition:all .2s}
+.exam-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.exam-btn.primary{border-color:var(--acc);color:var(--acc2)}
+.exam-btn.primary:hover{background:var(--acc);color:#fff}
+.exam-btn.danger{border-color:var(--red);color:var(--red2)}
+/* RESULTS */
+#results{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto;background:var(--bg)}
+.results-hero{padding:40px;text-align:center;background:linear-gradient(135deg,rgba(20,60,30,.9),rgba(8,14,10,.99));border-bottom:1px solid var(--border2)}
+.results-seal{width:110px;height:110px;border-radius:50%;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:52px;margin:0 auto 20px;background:radial-gradient(circle,rgba(255,215,0,.1),transparent 70%);box-shadow:0 0 50px rgba(255,215,0,.3);animation:pop .6s ease}
+.results-grade{font-family:var(--bebas);font-size:72px;line-height:1;margin-bottom:4px}
+.results-label{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:3px;margin-bottom:24px}
+.results-scores{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.results-score{background:var(--bg2);border:1px solid var(--border);padding:16px 24px;text-align:center;min-width:120px}
+.results-score-val{font-family:var(--bebas);font-size:32px;line-height:1}
+.results-score-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+.results-body{padding:24px 40px;max-width:900px;margin:0 auto;width:100%}
+.section-head{font-family:var(--bebas);font-size:12px;letter-spacing:3px;color:var(--acc2);border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-head::before{content:'';width:3px;height:13px;background:var(--acc)}
+.mc-review{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+.mc-item{background:var(--bg2);border:1px solid var(--border);padding:12px 16px;border-left:3px solid}
+.mc-item.correct{border-left-color:var(--green)}
+.mc-item.wrong{border-left-color:var(--red)}
+.mc-item-q{font-family:var(--crimson);font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.5}
+.mc-item-meta{display:flex;gap:12px;flex-wrap:wrap}
+.mc-item-answer{font-family:var(--dm);font-size:9px;letter-spacing:.5px}
+.frq-result{background:var(--bg2);border:1px solid var(--border);padding:20px;margin-bottom:16px}
+.frq-result-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.frq-score-big{font-family:var(--bebas);font-size:40px;line-height:1}
+.frq-result-title{font-family:var(--playfair);font-size:15px;color:var(--cream);font-weight:700}
+.frq-result-type{font-family:var(--bebas);font-size:8px;letter-spacing:2px;color:var(--text3)}
+.frq-part-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:10px}
+.frq-part-result{background:var(--bg3);border:1px solid var(--border);border-left:3px solid;padding:8px 12px}
+.frq-feedback{font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5}
+.overall-feedback{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.7;background:rgba(56,160,80,.04);border:1px solid var(--border);padding:12px;margin-top:8px}
+.results-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:28px 0}
+.results-btn{font-family:var(--bebas);font-size:14px;letter-spacing:2px;padding:14px 32px;cursor:pointer;transition:all .2s}
+.results-btn.primary{background:var(--acc);border:2px solid var(--acc);color:#fff}
+.results-btn.primary:hover{background:var(--acc2)}
+.results-btn.secondary{background:transparent;border:2px solid var(--border2);color:var(--text3)}
+.results-btn.secondary:hover{border-color:var(--acc);color:var(--acc2)}
+/* Timer ring */
+.timer-ring{width:32px;height:32px;flex-shrink:0}
+/* Misc */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards}
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+.grading-overlay{position:fixed;inset:0;background:rgba(8,14,10,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5000;backdrop-filter:blur(8px)}
+.grading-icon{font-size:48px;margin-bottom:16px;animation:pulse 1.5s infinite}
+.grading-title{font-family:var(--bebas);font-size:20px;letter-spacing:4px;color:var(--acc2);margin-bottom:8px}
+.grading-sub{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic}
+.grading-bar{width:280px;height:3px;background:var(--border2);border-radius:2px;margin-top:20px;overflow:hidden}
+.grading-bar-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;animation:gradeProgress 3s ease-in-out infinite}
+@keyframes gradeProgress{0%{width:0%}50%{width:80%}100%{width:100%}}
+@media(max-width:600px){.lobby-modes{padding:16px}.results-body{padding:16px}#exam-body{padding:16px}.mode-card-body{padding:16px}}
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobby">
+  <button class="back-btn" onclick="returnToShell()">&#8592; Back</button>
+  <div class="lobby-hero">
+    <div class="lobby-badge">&#x1F4CB; AP COMPARATIVE GOVERNMENT &middot; EXAM PRACTICE</div>
+    <div class="lobby-title">AP Exam Simulator</div>
+    <div class="lobby-sub">Realistic AP Comparative exam practice &mdash; timed multiple choice with stimulus-based questions, followed by AI-graded FRQs. Choose your format and see exactly where you stand.</div>
+    <div class="lobby-stats">
+      <div class="lobby-stat"><div class="lobby-stat-val" id="stat-exams">0</div><div class="lobby-stat-lbl">Exams Taken</div></div>
+      <div class="lobby-stat"><div class="lobby-stat-val" id="stat-best-mc">-</div><div class="lobby-stat-lbl">Best MC Score</div></div>
+      <div class="lobby-stat"><div class="lobby-stat-val" id="stat-best-frq">-</div><div class="lobby-stat-lbl">Best FRQ Score</div></div>
+    </div>
+  </div>
+  <div class="lobby-modes" id="mode-grid"></div>
+</div>
+
+<!-- EXAM -->
+<div id="exam">
+  <div id="exam-header">
+    <button class="back-btn" style="position:relative;left:0;top:0;margin-right:8px" onclick="confirmExit()">&#x2715; Exit</button>
+    <div class="exam-section-label" id="exam-section-label">SECTION 1 &middot; MULTIPLE CHOICE</div>
+    <div class="exam-progress">
+      <div class="exam-pips" id="exam-pips"></div>
+    </div>
+    <div id="timer-display">
+      <svg class="timer-ring" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="15" fill="none" stroke="#1a3020" stroke-width="3"/>
+        <circle id="timer-ring-fill" cx="18" cy="18" r="15" fill="none" stroke="#e8a020" stroke-width="3" stroke-dasharray="94.2" stroke-dashoffset="0" transform="rotate(-90 18 18)" style="transition:stroke-dashoffset 1s linear"/>
+      </svg>
+      <span id="timer-text">5:00</span>
+    </div>
+  </div>
+  <div id="exam-body"></div>
+  <div id="exam-footer">
+    <div style="display:flex;gap:10px">
+      <button class="exam-btn" id="btn-flag" onclick="flagQuestion()" style="display:none">&#x2691; Flag</button>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="exam-btn" id="btn-prev" onclick="prevQ()">&#8592; Prev</button>
+      <button class="exam-btn primary" id="btn-next" onclick="nextQ()">Next &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <button class="back-btn" onclick="returnToShell()">&#8592; Back</button>
+  <div class="results-hero">
+    <div class="results-seal" id="results-seal">&#x1F4CB;</div>
+    <div class="results-grade" id="results-grade" style="color:var(--acc2)">-</div>
+    <div class="results-label" id="results-label">AP EXAM PRACTICE SCORE</div>
+    <div class="results-scores" id="results-scores"></div>
+    <div class="results-actions">
+      <button class="results-btn primary" onclick="showLobby()">&#9654; Try Again</button>
+      <button class="results-btn secondary" onclick="returnToShell()">&#8592; Back to AP Comparative</button>
+    </div>
+  </div>
+  <div class="results-body">
+    <div class="section-head">Multiple Choice Review</div>
+    <div class="mc-review" id="mc-review"></div>
+    <div class="section-head">FRQ Results</div>
+    <div id="frq-results"></div>
+  </div>
+</div>
+
+<script>
+const UNIT_ID='apcmp_exam';
+const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
+const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+
+/* ============================================================
+   EXAM MODES
+   ============================================================ */
+const MODES=[
+ {id:'full',icon:'&#x1F4CB;',label:'FULL EXAM',title:'Full AP Practice Exam',
+  desc:'Complete simulation: 55-question timed multiple choice (70 min) + 4 FRQs (50 min). Get your projected AP score.',
+  tags:['55 MC','4 FRQs','120 min total','AP Score estimate'],color:'#38a050',mcCount:55,mcTime:70*60,frqCount:4,frqTime:50*60},
+ {id:'mc_only',icon:'&#x2714;&#xFE0F;',label:'MC PRACTICE',title:'Multiple Choice Only',
+  desc:'20 timed questions across all 6 countries with stimulus, data, and document-based questions. 25 minutes.',
+  tags:['20 questions','25 minutes','Stimulus-based','All 6 countries'],color:'#5dba7a',mcCount:20,mcTime:25*60,frqCount:0,frqTime:0},
+ {id:'frq_only',icon:'&#x270D;&#xFE0F;',label:'FRQ PRACTICE',title:'FRQ Practice Set',
+  desc:'All 4 FRQ types in sequence — CA, QA, COMP, and AE — AI-graded with detailed rubric feedback. 50 minutes.',
+  tags:['4 FRQs','50 minutes','AI-graded','Rubric feedback'],color:'#e8a020',mcCount:0,mcTime:0,frqCount:4,frqTime:50*60},
+ {id:'quick',icon:'&#x26A1;',label:'QUICK DRILL',title:'Quick 10-Question Drill',
+  desc:'10 challenging questions from across all countries in 12 minutes. Perfect for daily review.',
+  tags:['10 questions','12 minutes','Mixed difficulty'],color:'#7060d0',mcCount:10,mcTime:12*60,frqCount:0,frqTime:0}
+];
+
+/* ============================================================
+   MULTIPLE CHOICE BANK
+   ============================================================ */
+const MC_BANK=[
+ // UK questions
+ {id:'mc_uk_01',country:'UK',stimulus:null,
+  stem:'The UK\'s Prime Minister can be removed from office by:',
+  choices:['A vote of no confidence in the House of Commons, forcing resignation or dissolution','A two-thirds majority vote in the House of Lords','A formal impeachment process initiated by the Supreme Court','A direct popular recall vote requiring 40% of registered voters'],
+  correct:0,explanation:'The UK\'s parliamentary system creates executive accountability through the Commons: when the government loses a vote of confidence, the PM must either resign (allowing formation of a new government) or request dissolution for new elections. This is the fundamental mechanism of parliamentary accountability — the executive depends on legislative confidence.'},
+ {id:'mc_uk_02',country:'UK',stimulus:{type:'table',title:'2024 UK General Election Results',source:'UK Electoral Commission, July 2024',data:[['Party','Vote %','Seats','Seat %'],['Labour','34%','412','63%'],['Conservative','24%','121','19%'],['Lib Democrat','12%','72','11%'],['Other','30%','45','7%']]},
+  stem:'Based on the data, which of the following best explains the discrepancy between Labour\'s 34% vote share and 63% seat share?',
+  choices:['Voter fraud inflated Labour\'s seat total beyond their actual electoral support','The UK\'s First Past the Post (FPTP) system disproportionately rewards parties with geographically concentrated support, amplifying Labour\'s plurality into a parliamentary supermajority','UK electoral law requires proportional seat allocation, which the Commission improperly applied','The House of Lords corrected the election results to give Labour additional seats'],
+  correct:1,explanation:'FPTP\'s disproportional effect: Labour won 34% of votes but 63% of seats — a classic FPTP landslide where geographic distribution of votes matters as much as total votes. Winning constituencies by small margins in many seats produces parliamentary majorities far larger than vote share suggests. This same system produced the Conservatives\' 2019 "landslide" (43% votes → 56% seats). Critics argue this systematically under-represents smaller parties; defenders argue it produces stable single-party governments.'},
+ {id:'mc_uk_03',country:'UK',stimulus:null,
+  stem:'The UK\'s uncodified constitution differs from Mexico\'s 1917 Constitution primarily in that:',
+  choices:['The UK has no constitutional protections for individual rights while Mexico\'s constitution guarantees them all','The UK\'s constitutional principles derive from multiple sources (statutes, conventions, common law) rather than a single codified document, making it more flexible but harder to identify definitively','The UK constitution was written by the monarch while Mexico\'s was written by a constitutional assembly','The UK constitution is considered inferior to ordinary legislation while Mexico\'s supersedes all other law'],
+  correct:1,explanation:'The UK\'s "uncodified" constitution (not "unwritten" — much of it IS written in statutes like the Parliament Acts, Human Rights Act, and Fixed-term Parliaments Act) consists of multiple sources without a single supreme document. This means: Parliament can change it by simple majority (parliamentary sovereignty); there\'s no constitutional court with power to strike down Acts of Parliament; conventions (non-legal norms) play a large role. Mexico\'s 1917 constitution is codified — a single document that supersedes ordinary legislation and requires special amendment procedures.'},
+ // Mexico questions
+ {id:'mc_mx_01',country:'Mexico',stimulus:{type:'doc',title:'Mexico\'s 1996 IFE Reform',source:'Mexican Congress, November 1996',text:'"The Federal Electoral Institute shall be a permanent autonomous entity, with legal personality and its own assets... The General Council of the IFE shall be composed of a President Counselor and eight Electoral Counselors, elected by the Chamber of Deputies by a two-thirds vote."'},
+  stem:'Based on this document, the primary purpose of the 1996 IFE reform was to:',
+  choices:['Replace Mexico\'s first-past-the-post electoral system with proportional representation','Create an independent electoral management body whose officers were not appointed by the executive, removing Kremlin-style state control over election administration','Allow international observers to participate in Mexican elections for the first time','Establish a constitutional requirement for the PRI to win a supermajority in elections'],
+  correct:1,explanation:'The IFE\'s independence — achieved by having its councilors elected by a 2/3 parliamentary majority rather than appointed by the president — was the institutional key to Mexico\'s democratic transition. Under the PRI system, the Interior Ministry (under presidential control) ran elections. Making election administration independent removed the PRI\'s structural advantage. The 2000 election that ended 71 years of PRI rule was certified by an IFE whose independence no one seriously doubted. This is the textbook case of how institutional reform enables democratic transition.'},
+ {id:'mc_mx_02',country:'Mexico',stimulus:null,
+  stem:'Mexico\'s federal system differs from Nigeria\'s primarily in that:',
+  choices:['Mexico has fewer states (31) but Nigeria\'s 36 states give it more effective decentralization','Mexico\'s states have less religious diversity than Nigeria\'s, reducing the risk of religious federalism issues','Mexico has a single-round plurality presidential election while Nigeria requires both a national plurality AND 25% in 24 states','Mexico\'s federal structure was created by the military while Nigeria\'s was created democratically'],
+  correct:2,explanation:'Nigeria\'s unique dual requirement for presidential election (plurality + geographic distribution across 24/36 states) is a direct response to its intense ethnic fragmentation — it forces candidates to build cross-regional coalitions. Mexico\'s system requires only a national plurality; the winner of the most votes wins regardless of geographic distribution. This reflects Mexico\'s different ethnic landscape: while it has regional and indigenous cleavages, they don\'t map as directly onto a politically necessary coalition-building requirement as Nigeria\'s 250+ ethnic groups do.'},
+ {id:'mc_mx_03',country:'Mexico',stimulus:{type:'data',title:'Mexican Presidential Elections — Selected Results',source:'Instituto Nacional Electoral (INE), 2018 and 2024',data:[['Year','Winner','Vote %','Runner-Up','Vote %'],['2018','AMLO (MORENA)','53%','Anaya (PAN-PRD)','22%'],['2024','Sheinbaum (MORENA)','59%','Gálvez (PAN-PRI)','28%']]},
+  stem:'Based on the data, which of the following best describes the trend in Mexican presidential elections?',
+  choices:['The PRI has returned to dominance in Mexican politics following AMLO\'s successful presidency','MORENA has established a new hegemonic tendency, with its candidates winning by increasingly large margins — suggesting Mexico may be moving toward a new dominant party system','Mexico is trending toward two-party competition as margins narrow','The data shows declining electoral participation, threatening democratic legitimacy'],
+  correct:1,explanation:'The pattern is notable: MORENA won 53% in 2018 and 59% in 2024, with the runner-up dropping from 22% to 28% (while MORENA grew). Combined with MORENA\'s congressional dominance, this raises questions about whether Mexico is experiencing democratic consolidation or emerging single-party dominance under a new left-nationalist banner. Political scientists debate whether AMLO\'s and Sheinbaum\'s wins represent genuine popular consolidation of a new political movement or an institutional risk similar to the PRI era. The two data points don\'t definitively answer this but identify the trend.'},
+ // Russia questions
+ {id:'mc_ru_01',country:'Russia',stimulus:{type:'doc',title:'Russian Federation Constitution, Article 80',source:'Constitution of the Russian Federation, 1993 (as amended 2020)',text:'"The President of the Russian Federation is the head of state... The President of the Russian Federation shall determine the basic directions of the domestic and foreign policy of the state. The President of the Russian Federation shall represent the Russian Federation within the country and in international relations."'},
+  stem:'Scholars classify Russia\'s political system as "competitive authoritarian" rather than simply democratic despite its constitution containing democratic provisions because:',
+  choices:['Russia\'s constitution explicitly prohibits opposition parties from forming','The formal democratic provisions (elections, rights) exist but are systematically undermined — opposition candidates are excluded, state media dominates, security services intimidate opponents — creating a playing field so tilted that genuine political competition is impossible','Russia has never held elections of any kind since 1993','The constitutional provisions only apply to Russian citizens while the Kremlin operates above constitutional law'],
+  correct:1,explanation:'Competitive authoritarianism (Levitsky & Way) describes regimes with formal democratic institutions that function as camouflage for authoritarian rule rather than as genuine accountability mechanisms. Russia holds elections — but real opposition (Navalny) is excluded through criminal prosecution, state media provides no meaningful coverage to opposition, business interests tied to the Kremlin fear backing opposition, and election results are managed. The constitutional text promises democracy; the political reality delivers managed competition where the result is predetermined. The gap between constitutional text and political reality is the defining feature.'},
+ {id:'mc_ru_02',country:'Russia',stimulus:null,
+  stem:'Russia\'s 2020 constitutional amendments, which reset Putin\'s term count allowing him to potentially rule until 2036, is best understood as:',
+  choices:['A democratic reform that strengthened presidential accountability through new constitutional procedures','A manipulation of formal institutions to circumvent term limits that were meant to prevent indefinite rule — illustrating how authoritarian leaders can use legal mechanisms to entrench power permanently','An emergency measure justified by foreign threats that was supported by genuine popular referendum','A necessary revision to Russia\'s outdated Soviet-era constitution'],
+  correct:1,explanation:'The 2020 constitutional referendum included hundreds of changes beyond the term reset (family values provisions, God references) — making it difficult to vote against the term reset without voting against the whole package. The "grandfather clause" reset Putin\'s 2012-2024 terms to zero, theoretically allowing two more 6-year terms. This illustrates "autocratization" — gradual democratic erosion through legal means. Unlike coups, these changes maintain a veneer of constitutional legitimacy while destroying the substance of constitutional limits. Putin\'s consolidation from 2000-present is the textbook case of this process.'},
+ // China questions
+ {id:'mc_cn_01',country:'China',stimulus:{type:'data',title:'China Economic Indicators — Selected Years',source:'World Bank, National Bureau of Statistics of China',data:[['Indicator','1980','1990','2000','2010','2023'],['GDP per capita (USD)','$195','$318','$959','$4,561','$13,136'],['Poverty rate (<$2.15/day)','88%','66%','49%','16%','<1%'],['Life expectancy','65','69','72','76','78']]},
+  stem:'Based on the data, which of the following best evaluates modernization theory in relation to China?',
+  choices:['The data fully supports modernization theory — China\'s economic development has produced democratic governance as predicted','The data challenges modernization theory — China achieved dramatic development improvements while maintaining CCP one-party authoritarian rule, suggesting development can occur without democratization','The data is irrelevant to modernization theory because China\'s development is driven by state capitalism rather than market forces','The data confirms China democratized in the 2000s as GDP per capita passed the development threshold'],
+  correct:1,explanation:'This is the central China-modernization theory debate. The data shows extraordinary development (GDP per capita 67x increase, poverty virtually eliminated, life expectancy gains of 13 years) — exactly the kind of development Lipset predicted would produce democratic pressure. Yet CCP one-party rule has been maintained and strengthened under Xi. China\'s educated middle class (estimated 400-500 million) has not demanded and won democracy. This either means: (1) the theory requires more time; (2) CCP\'s surveillance/control capabilities are unprecedented; or (3) modernization theory is wrong about the development-democracy causal relationship.'},
+ {id:'mc_cn_02',country:'China',stimulus:null,
+  stem:'China\'s National People\'s Congress (NPC) differs from the UK\'s House of Commons primarily because:',
+  choices:['The NPC has more members and meets more frequently than the Commons','The Commons can defeat government legislation and force prime ministerial resignation; the NPC has never rejected a party-state bill in its history — it legitimates rather than legislates, providing democratic form without democratic substance','Both institutions function as genuine deliberative chambers but use different procedural rules','The NPC is directly elected by Chinese citizens while the Commons is appointed by the Crown'],
+  correct:1,explanation:'This is a crucial comparative institutions question. UK Commons: genuine deliberative chamber — it defeated May\'s Brexit deal three times, forced Johnson to request an extension, removed Boris Johnson through confidence mechanisms, and can independently initiate legislation. China\'s NPC (~3,000 delegates meeting 2 weeks annually): has never rejected a government bill; delegates are selected through controlled processes; it approves budgets, ratifies laws, and endorses leaders — but all were decided by the party before the NPC met. The formal institutional similarity (both are "legislatures") masks a fundamental difference in actual power relative to the executive.'},
+ // Iran questions
+ {id:'mc_ir_01',country:'Iran',stimulus:{type:'doc',title:'Iranian Constitution, Article 110 (excerpt)',source:'Constitution of the Islamic Republic of Iran, 1979 (revised 1989)',text:'"The duties and powers of the Leadership are as follows: Determination of the general policies of the Islamic Republic of Iran... Supreme command of the armed forces... Signing the order for the presidential elections... Dismissal of the President of the Republic..."'},
+  stem:'Based on this constitutional excerpt, Iran\'s political system can best be classified as:',
+  choices:['A presidential republic where the president holds ultimate authority over armed forces and general policy','A theocratic authoritarian system where the Supreme Leader holds decisive structural power over elected institutions, making democratic elements subordinate to unelected religious authority','A parliamentary system where the legislature (Majles) controls the executive through the Guardian Council','A military junta where the Revolutionary Guard ultimately controls all policy decisions'],
+  correct:1,explanation:'Article 110 reveals the Supreme Leader\'s structural supremacy: he determines "general policies" (the framework within which all other institutions operate), commands all armed forces, and can dismiss the president. No elected institution can override these powers. The president manages government within parameters the Supreme Leader sets; the Majles legislates within Islamic limits the Guardian Council enforces. Iran\'s formal democratic elements (elections, Majles) exist but cannot challenge the Supreme Leader\'s structural authority — making it a theocratic authoritarian regime with bounded republican features.'},
+ {id:'mc_ir_02',country:'Iran',stimulus:{type:'data',title:'Iran Presidential Election Turnout',source:'Iranian Ministry of Interior, various years',data:[['Year','Turnout','Winner','Context'],['1997','79%','Khatami','Reformist surge'],['2009','85%','Ahmadinejad','Disputed; Green Movement'],['2013','73%','Rouhani','Nuclear diplomacy'],['2021','49%','Raisi','Mass disqualifications'],['2024','40%','Pezeshkian','Historic low']]},
+  stem:'Based on the data, which of the following best explains the sharp decline in turnout from 2013 to 2021?',
+  choices:['Iranian citizens became more satisfied with the political system, reducing competitive pressure to vote','The Guardian Council\'s systematic disqualification of reformist and moderate candidates reduced meaningful electoral choice, causing former supporters to boycott elections as a form of political protest','US sanctions made it physically difficult for Iranians to travel to polling stations','Boko Haram threats in Iran prevented voters in northeastern provinces from participating'],
+  correct:1,explanation:'The turnout data tells a political story. 1997 and 2009: genuine reformist-hardliner competition drew massive turnout — millions mobilized for candidates they believed in. 2013: Rouhani won a competitive race (73% turnout). 2021: after the Guardian Council\'s mass disqualification of reformists (including Larijani and other prominent moderates), turnout collapsed to 49% — former reformist voters chose boycott over choosing between approved hardliners. 2024: 40% was a historic low even though a reformist (Pezeshkian) won. The pattern shows that electoral participation reflects perceived meaningful choice, not just formal access.'},
+ // Nigeria questions
+ {id:'mc_ng_01',country:'Nigeria',stimulus:null,
+  stem:'Nigeria\'s "federal character principle" was designed to address which specific governance challenge?',
+  choices:['Economic inequality between oil-producing and non-oil states by ensuring equal resource distribution','Ethnic and regional political competition by requiring government appointments to reflect Nigeria\'s geographic and ethnic diversity, preventing any single group from monopolizing federal power','Religious tensions between Muslim and Christian communities by requiring equal representation of both faiths in cabinet','Military coups by requiring generals from different ethnic groups to serve in rotating leadership positions'],
+  correct:1,explanation:'Federal character (Section 14 of the 1999 Constitution) directly addresses Nigeria\'s 250+ ethnic group challenge: the president must appoint ministers from each of the 36 states, preventing cabinets dominated by one ethnic region. Combined with the 25%/24 states electoral requirement (forcing presidential candidates to build cross-regional coalitions), federal character tries to make Nigerian governance inclusive rather than ethnically captured. It\'s a structural approach to managing reinforcing cleavages — acknowledging that without institutional constraints, the largest ethnic groups would monopolize federal appointments.'},
+ {id:'mc_ng_02',country:'Nigeria',stimulus:{type:'data',title:'Nigeria Development Indicators vs. Comparators',source:'World Bank 2023; Transparency International CPI 2023',data:[['Country','Oil exports %','HDI','Corruption (TI)','Poverty rate'],['Nigeria','~90%','0.548','24/100','~40%'],['Mexico','~5%','0.781','31/100','~8%'],['UK','~3%','0.929','73/100','<1%']]},
+  stem:'Based on the data, which of the following best supports the "resource curse" hypothesis?',
+  choices:['Higher oil dependency correlates with better governance as revenues allow investment in public services','Nigeria\'s extreme oil dependency (90%) correlates with the worst outcomes across HDI, corruption, and poverty despite being Africa\'s largest oil producer — while less oil-dependent Mexico and UK show much better outcomes, supporting the theory that oil wealth without accountability produces governance failures','The data shows that democracy (UK, Mexico) always produces better development than oil-dependent states','Nigeria\'s low HDI is primarily explained by its large population reducing per-capita measures'],
+  correct:1,explanation:'The data provides strong resource curse evidence: Nigeria has Africa\'s largest oil reserves and is Africa\'s largest economy in absolute GDP terms, yet has the worst outcomes: lowest HDI (0.548), highest poverty (~40%), worst corruption (24/100). Mexico (5% oil) and UK (3% oil) with lower oil dependency have dramatically better outcomes. The resource curse mechanism: oil revenues flow to the state without taxation, reducing accountability; elites compete for control of the oil state through corruption rather than building productive businesses; Dutch Disease makes other sectors uncompetitive. Same logic explains the correlation.'},
+ {id:'mc_ng_03',country:'Nigeria',stimulus:null,
+  stem:'Nigeria\'s 2015 presidential election, where incumbent Goodluck Jonathan conceded defeat to Muhammadu Buhari, is considered historically significant because:',
+  choices:['It was the first Nigerian election conducted without any ethnic violence or fraud','It demonstrated that Nigeria\'s democratic institutions could produce an incumbent president accepting electoral defeat — a peaceful transfer of power to the opposition for the first time in Nigeria\'s democratic history','It established proportional representation as Nigeria\'s electoral system, replacing FPTP','It was the first election in which the military did not play any role in supervising the outcome'],
+  correct:1,explanation:'Jonathan\'s concession call to Buhari before all results were certified became a landmark moment in Nigerian and African democratic history. It represented "democratic consolidation" in action: the norm that incumbents accept electoral defeat and transfer power peacefully, even when they lose. This reversed the historical pattern of PDP wins (2003, 2007, 2011) and demonstrated that Nigerian democratic institutions could survive partisan alternation. International observers and political scientists widely cited it as evidence of Nigeria\'s democratic progress — not that elections were perfect, but that losers concede.'},
+ // Cross-country comparison questions
+ {id:'mc_cross_01',country:'All',stimulus:null,
+  stem:'Which of the following BEST explains why China (Freedom House score: 9) and Iran (Freedom House score: 14) are both classified as authoritarian yet receive different regime type labels?',
+  choices:['The 5-point score difference is statistically significant enough to require different regime classifications','Iran holds genuinely contested elections between regime-approved factions (producing different presidents with different policies: Khatami vs. Ahmadinejad vs. Raisi), while China has no competitive national elections whatsoever — the factional competition dimension creates a meaningful qualitative difference','China is more economically developed than Iran, which determines regime type classification','Iran is classified as theocratic while China is classified as communist — these are equivalent classifications with no meaningful political difference'],
+  correct:1,explanation:'Similar Freedom House scores can mask qualitatively different political architectures. Iran\'s 14 reflects: contested factional elections (producing genuinely different presidents with different policies); a parliament with some independence; recurring protest movements that have occasionally forced government adjustments; and a theocratic framework that provides internal critique capacity (protesters invoke Islamic values against the regime). China\'s 9 reflects: no competitive national elections; CCP monopoly with no factional alternative; no equivalent civil society protest capacity; comprehensive information control. The 5-point difference reflects these real political differences.'},
+ {id:'mc_cross_02',country:'All',stimulus:{type:'data',title:'Six AP Comparative Countries — Freedom House Scores 2023',source:'Freedom House Freedom in the World Report 2023',data:[['Country','Score','Category'],['UK','93/100','Free'],['Mexico','60/100','Partly Free'],['Nigeria','44/100','Partly Free'],['Russia','16/100','Not Free'],['Iran','14/100','Not Free'],['China','9/100','Not Free']]},
+  stem:'A student argues: "The data proves that wealthier countries are always more democratic." Which evidence from the six AP Comparative countries MOST challenges this claim?',
+  choices:['Nigeria\'s low Freedom House score despite being Africa\'s largest economy challenges the claim','China\'s high economic growth (GDP per capita rose from $195 in 1980 to $13,136 in 2023) combined with a low Freedom House score (9) most directly challenges the claim — showing that economic development does not automatically produce democracy','Russia\'s low score despite being a major oil exporter challenges the claim','Mexico\'s medium score despite having significant economic development challenges the claim'],
+  correct:1,explanation:'China is the most powerful challenge to the wealth-democracy correlation because: (1) the development is dramatic and measurable (67x GDP/capita increase); (2) the development is sustained over 4 decades; (3) China has created the world\'s largest middle class (estimated 400-500M people) — exactly what modernization theory says produces democratic pressure; yet (4) the CCP has maintained and strengthened authoritarian control. Nigeria and Russia both have economic weaknesses that might explain low scores; China\'s combination of dramatic development AND low democracy score most directly challenges the claim.'},
+ {id:'mc_cross_03',country:'All',stimulus:null,
+  stem:'Both Mexico\'s PRI (1929-2000) and Russia\'s United Russia party under Putin represent dominant party systems. The most important difference between them is:',
+  choices:['Mexico\'s PRI used violent repression exclusively while Russia\'s United Russia relies only on electoral manipulation','Mexico\'s PRI gradually democratized — creating an independent electoral authority (IFE) in 1996 that certified its own defeat in 2000; Russia\'s system under Putin has systematically reversed democratic opening without developing any equivalent institution for certifying genuine opposition victories','Mexico had more political parties than Russia, explaining its democratic transition','Russia\'s United Russia is more ideologically coherent than the PRI, making it harder to challenge electorally'],
+  correct:1,explanation:'The trajectory difference is crucial for understanding contemporary comparative politics. Mexico\'s PRI: started as an authoritarian hegemonic party but over 70 years developed the institutional infrastructure that eventually enabled its own defeat — the IFE\'s independent credibility was the decisive mechanism. Russia under Putin: the trajectory reversed. Yeltsin\'s fragile democratic opening was followed by systematic re-consolidation — independent media captured, oligarchs disciplined, opposition excluded, election commission controlled. One is a story of gradual democratic opening; the other of democratic regression. Different trajectories despite superficial structural similarities.'},
+ {id:'mc_cross_04',country:'All',stimulus:{type:'doc',title:'Transparency International Corruption Perceptions Index — AP Comparative Countries',source:'Transparency International, 2023 (100 = no corruption, 0 = highly corrupt)',text:'UK: 73 | China: 42 | Mexico: 31 | Russia: 28 | Iran: 25 | Nigeria: 24'},
+  stem:'The data shows China (42) scores higher than Mexico (31) on corruption perceptions despite China being an authoritarian one-party state and Mexico being a democracy. This most likely reflects:',
+  choices:['China\'s data is falsified by the CCP to appear less corrupt than it actually is','State capacity and institutional quality can independently affect corruption outcomes regardless of regime type — China\'s strong bureaucratic tradition and Xi\'s anti-corruption campaign have produced genuine improvements, while Mexico\'s oil-derived patronage networks and weak rule of law produce higher corruption despite democratic elections','Authoritarian states are always less corrupt than democracies because strong leaders can punish corruption without political constraints','The index measures only bribery of foreign businesses, not domestic corruption, skewing results for authoritarian states'],
+  correct:1,explanation:'This question tests whether students understand that regime type alone doesn\'t determine corruption. China\'s score (42) reflects: Xi\'s anti-corruption campaign (1.5M+ officials investigated since 2012, including senior Politburo member Zhou Yongkang); strong Confucian bureaucratic tradition valuing meritocracy; and state capacity to enforce anti-corruption regulations when politically motivated. Mexico\'s 31 reflects: oil patronage networks incentivizing corruption structurally (controlling state = controlling oil revenues); weak rule of law allowing officials to avoid accountability; and patronage-based party politics. The variables are state capacity and incentive structures, not just regime type.'},
+ {id:'mc_cross_05',country:'All',stimulus:null,
+  stem:'Which of the following comparisons about the role of religion in politics across the AP Comparative countries is MOST accurate?',
+  choices:['All six countries have secular constitutions that strictly separate religion and politics','Iran is the only country where religion plays a formal institutional role in governance — the others all have strictly secular political systems','Religion plays different roles: Iran institutionalizes theocracy (velayat-e faqih); Nigeria has religious cleavages (Muslim north/Christian south) structuring political competition; UK has an established church (Church of England) but it plays only ceremonial/advisory roles; Russia uses Orthodox Christianity for nationalist legitimacy; China officially promotes atheism while managing religious groups; Mexico has a secular constitution with significant Catholic civil society influence','Religion is entirely irrelevant to the political systems of all six AP Comparative countries'],
+  correct:2,explanation:'Religion-politics relationships vary dramatically: Iran\'s velayat-e faqih institutionalizes clerical rule with the Supreme Leader deriving authority from divine mandate — religion IS governance. Nigeria\'s Muslim-Christian divide structures political competition (zoning informal norm; sharia controversy in 12 states) without theocracy. UK\'s Church of England is the "established church" (monarch is Supreme Governor, Lords Spiritual sit in Parliament) but has no political veto — ceremonial, not governing. Russia\'s Patriarch Kirill explicitly supports Putin using Orthodox nationalism, providing soft legitimacy. China manages religious groups (CCP oversees Catholic appointments, persecutes Uyghur Muslims). Mexico\'s secular constitution (Juárez Laws) separates church and state but Catholic NGOs influence policy debates. Same "religion in politics" label, radically different institutional realities.'},
+ {id:'mc_cross_06',country:'All',stimulus:null,
+  stem:'The resource curse is most evident in which combination of AP Comparative countries based on their oil dependency and governance outcomes?',
+  choices:['UK and Mexico — both have significant oil sectors with poor governance outcomes','Russia, Iran, and Nigeria — all have high hydrocarbon dependency (55%, 70%, 90% of exports respectively), rentier state dynamics, and governance challenges attributable partly to resource dependence','China and UK — both have strong governance despite oil wealth','All six countries show resource curse effects to equal degrees'],
+  correct:1,explanation:'Russia (55% oil/gas of exports), Iran (70% hydrocarbons), and Nigeria (90% oil) most clearly exhibit the rentier state dynamic: governments derive revenue primarily from extraction rather than taxation, reducing accountability incentives. All three show resource curse indicators: Russia\'s economy vulnerable to price shocks and sanctions; Iran\'s oil-financed authoritarian regime; Nigeria\'s oil-patronage democracy with low HDI despite enormous revenues. UK (3% oil), Mexico (5%), and China (3%) have diversified economies that require taxation of productive activity — maintaining fiscal accountability. The contrast between these groups is one of the clearest patterns in the AP Comparative data.'},
+ {id:'mc_cross_07',country:'All',stimulus:{type:'table',title:'Executive Systems — AP Comparative Countries',source:'Various constitutional sources; classification by Civitas AP Comparative',data:[['Country','System','Head of Government','Head of State'],['UK','Parliamentary','Prime Minister','Monarch (ceremonial)'],['Mexico','Presidential','President','President'],['Russia','Semi-Presidential','Prime Minister','President (dominant)'],['China','Party-State','General Secretary','President (same person)'],['Iran','Dual Authority','President','Supreme Leader (dominant)'],['Nigeria','Presidential','President','President']]},
+  stem:'Based on the data, which of the following correctly identifies a similarity between Iran\'s and Russia\'s executive systems?',
+  choices:['Both have directly elected presidents as their most powerful executive figure','Both have a formal head of government that is weaker than a second center of power — Iran\'s elected president is subordinate to the Supreme Leader; Russia\'s president is formally supreme but Putin\'s consolidation has made this semi-presidential system function as hyperpresidentialism','Both rely primarily on parliamentary confidence for executive legitimacy','Both have constitutional term limits that have been consistently respected'],
+  correct:1,explanation:'Despite different constitutional structures, both Iran and Russia feature a formal executive head who exercises less than full constitutional authority: Iran\'s president is constitutionally second to the Supreme Leader (Article 110); Russia\'s constitution creates a semi-presidential system with a PM, but Putin has effectively concentrated power in the presidency to the point where it functions as a single dominant executive. The similarity is that both have formal constitutional systems that don\'t fully capture actual power distribution — the Supreme Leader and Putin each dominate their systems beyond what the constitution\'s nominal structure suggests.'},
+ // Additional cross-country questions
+ {id:'mc_cross_08',country:'All',stimulus:null,
+  stem:'Which AP Comparative country has the MOST institutionalized relationship between government and civil society?',
+  choices:['China — it has the most GONGOs and organized civil society groups','UK — it has a long tradition of independent civil society including unions, NGOs, free press, and professional associations operating freely without state control or direction','Iran — the Green Movement showed civil society\'s capacity for mass mobilization','Nigeria — religious organizations provide a strong civil society foundation'],
+  correct:1,explanation:'The UK\'s civil society is most institutionalized: trade unions (TUC) with formal Labour Party linkages since 1900; independently funded NGOs (Amnesty International UK, Liberty, Oxfam); a free press with investigative capacity; professional associations across all sectors; and formal constitutional protections for assembly and expression. None of these are state-directed. China\'s GONGOs appear independent but serve state functions. Iran\'s civil society operates in contested space with periodic crackdown. Nigeria\'s civil society faces patronage co-optation. The UK\'s civil society ecosystem is genuinely pluralist.'},
+ {id:'mc_cross_09',country:'All',stimulus:null,
+  stem:'Which of the following MOST accurately describes the concept of "legitimacy" as it applies differently across the six AP Comparative countries?',
+  choices:['All six countries derive their legitimacy from democratic elections, the most common global standard','Legitimacy — the belief that a government has the right to rule — derives from different sources: UK from procedural democracy and rule of law; Mexico from competitive elections since 2000; Russia from nationalist performance and Putin\'s personal authority; China from economic performance and CCP founding; Iran from velayat-e faqih theological authority plus filtered elections; Nigeria from competitive elections (fragile)','Only democratic countries can claim legitimate governance; authoritarian countries rely solely on coercion','Legitimacy is irrelevant to comparative politics — all governments rule by force regardless of ideological claims'],
+  correct:1,explanation:'Legitimacy varies in source, not just level: UK combines procedural democratic legitimacy (fair elections, rule of law, constitutional government) with traditional legitimacy (monarchy, long historical continuity). Mexico has constructed new democratic legitimacy since 2000 (IFE/INE credibility, peaceful transfers). Russia relies on nationalist legitimacy (great power restoration, anti-Western sovereignty) and performance legitimacy (stability after 1990s chaos) — Putin personally embodies these. China combines performance legitimacy (economic growth, poverty reduction) with CCP revolutionary founding and nationalist narrative. Iran uniquely combines divine mandate (velayat-e faqih) with filtered electoral legitimacy. Nigeria\'s fragile democratic legitimacy is undermined by corruption and security failures.'},
+ {id:'mc_cross_10',country:'All',stimulus:null,
+  stem:'The AP Comparative exam frequently asks students to identify what is MOST different about political systems. Which of the following is the MOST fundamental institutional difference between the UK and China?',
+  choices:['The UK is a monarchy while China is a republic — this explains all other political differences','The UK allows genuine electoral competition where governing parties can and regularly do lose power; China has no mechanism through which the CCP could be removed from power through electoral means — making accountability fundamentally different in nature','The UK uses common law while China uses civil law — this legal difference explains the political differences','The UK has a smaller military than China, reducing its government\'s coercive power relative to the population'],
+  correct:1,explanation:'This identifies the most fundamental institutional distinction. Electoral accountability — the ability of citizens to remove governing parties through competitive elections — is what distinguishes the UK\'s liberal democracy from China\'s one-party state. UK: Conservatives and Labour genuinely alternate (1997 Labour victory; 2010 Conservative return; 2024 Labour landslide). The PM and government face regular judgment. China: no mechanism exists through which the CCP could lose national power electorally. Local elections occur but are controlled; national political succession is internal party process. The UK\'s accountability mechanism creates institutional pressure that China\'s system lacks — this is the most fundamental difference.'}
+];
+
+/* ============================================================
+   FRQ BANK  
+   ============================================================ */
+const FRQ_BANK=[
+ {id:'frq_ca_01',type:'CA',label:'Conceptual Analysis',title:'Regime Classification and the Spectrum from Democracy to Authoritarianism',maxScore:4,
+  context:'Political scientists classify regimes along a spectrum from liberal democracy to totalitarian authoritarianism, with various hybrid forms in between. The six AP Comparative countries represent this spectrum.',
+  parts:[
+   {part:'A',points:1,prompt:'Define "competitive authoritarianism" and explain why Russia is classified this way rather than as a liberal democracy or a pure autocracy.'},
+   {part:'B',points:1,prompt:'Explain how Iran\'s political system constitutes a hybrid regime, identifying one theocratic element and one republican element.'},
+   {part:'C',points:1,prompt:'Describe one institutional feature that distinguishes the UK\'s liberal democracy from Nigeria\'s "fragile" democracy.'},
+   {part:'D',points:1,prompt:'Using China and Mexico as examples, explain how two countries can both have elected legislatures that function in completely different ways.'}
+  ],
+  rubric:{
+   A:'1 pt: Define competitive authoritarianism as regimes with formal democratic institutions (elections, multiple parties) that are systematically tilted through media control, selective repression, and opposition exclusion to prevent genuine competition and alternation. Apply to Russia: elections occur but the playing field is systematically tilted — Navalny excluded/imprisoned, state media dominates, oligarchs aligned with Kremlin, election commission not independent. Not pure democracy (genuine competition absent) nor pure dictatorship (elections serve legitimating function). Both elements required.',
+   B:'1 pt: Theocratic element: Supreme Leader\'s divine authority from velayat-e faqih; Guardian Council vets candidates based on Islamic compliance; laws reviewed for Sharia compliance; unelected clerics hold ultimate power. Republican element: directly elected president and Majles; popular referendums; competitive elections between approved factions producing different policy outcomes. Must explain BOTH elements and how they coexist — elected institutions exist but within theocratic parameters.',
+   C:'1 pt: Specific institutional feature AND explanation of the distinction. Rule of law (UK courts can and do rule against government — Miller case 2019; Nigerian courts more susceptible to corruption and executive pressure); electoral integrity (UK FPTP elections consistently free and fair; Nigerian elections with more violence and manipulation); civilian control of military (UK firm civilian control; Nigeria only returned to civilian rule in 1999 after multiple coups). Must be specific with mechanism.',
+   D:'1 pt: Must use BOTH with specific evidence. China\'s NPC: ~3,000 delegates, 2-week annual session, has never rejected a party-state bill — rubber stamp for party decisions; candidates controlled. Mexico\'s Congress: passed legislation over presidential opposition; genuine committee work; controlled by opposition during divided government (1997-2000 under Zedillo; various periods under AMLO). Must explain mechanism — CCP controls NPC selection; Mexico has genuine multiparty competition for congressional seats.'
+  }},
+ {id:'frq_qa_01',type:'QA',label:'Quantitative Analysis',title:'Development Indicators and Regime Type — Cross-Country Analysis',maxScore:5,
+  context:'Development Data (2023):\nFreedom House Scores: UK 93 | Mexico 60 | Nigeria 44 | Russia 16 | Iran 14 | China 9\nHDI Scores: UK 0.929 | Russia 0.822 | China 0.788 | Mexico 0.781 | Iran 0.774 | Nigeria 0.548\nCorruption (TI CPI, 0-100): UK 73 | China 42 | Mexico 31 | Russia 28 | Iran 25 | Nigeria 24\nOil as % of Export Revenue: UK 3% | Mexico 5% | China 3% | Russia 55% | Iran 70% | Nigeria 90%',
+  parts:[
+   {part:'A',points:1,prompt:'Identify one pattern in the relationship between Freedom House scores and HDI scores across the six countries.'},
+   {part:'B',points:1,prompt:'Using the data, explain why China\'s HDI (0.788) is higher than Nigeria\'s (0.548) despite both being non-democratic regimes.'},
+   {part:'C',points:1,prompt:'Based on the corruption and oil dependency data, explain the pattern you observe and what mechanism might explain it.'},
+   {part:'D',points:1,prompt:'Russia and the UK have similar HDI scores (0.822 vs. 0.929) but very different Freedom House scores (16 vs. 93). Using the data, explain what this comparison suggests about the relationship between development and democracy.'},
+   {part:'E',points:1,prompt:'Based on all the data, develop an argument about whether economic development (HDI) or institutional quality (Freedom House) better explains variation in corruption across the six countries.'}
+  ],
+  rubric:{
+   A:'1 pt: Specific pattern with data: generally positive correlation — higher Freedom House correlates with higher HDI (UK 93/0.929; Mexico 60/0.781 vs. Nigeria 44/0.548; Russia 16/0.822). Note: relationship is not perfect — Russia has higher HDI than Nigeria despite lower Freedom House; China HDI similar to Mexico despite much lower Freedom House. Must reference specific data.',
+   B:'1 pt: Must use BOTH countries with data. China: state-directed investment in education and healthcare (literacy near universal; extensive healthcare); manufacturing-led growth creating productive employment requiring skills; fiscal capacity from industrial tax base to fund public goods. Nigeria: oil revenues captured by patronage rather than invested in public goods; oil economy requires minimal workforce skills; persistent governance failures prevent investment reaching education/health. Must use specific data numbers.',
+   C:'1 pt: Pattern: higher oil dependency correlates with lower corruption scores (Nigeria 90%/24; Iran 70%/25; Russia 55%/28 vs. UK 3%/73; Mexico 5%/31; China 3%/42). Mechanism: controlling government = controlling oil revenues creates corruption incentives; non-oil economies generate revenue through taxation of productive activity creating accountability incentives. Must connect both data columns.',
+   D:'1 pt: Must use specific data and explain implication. Russia (0.822 HDI, 16 FH) and UK (0.929, 93) shows that high development does NOT guarantee democracy. Russia\'s development reflects Soviet-era educational/health infrastructure investment; maintaining authoritarian political control. This challenges modernization theory\'s prediction that development leads to democracy. Must explain the mechanism — development creates economic wealth but does not automatically generate democratic institutions or demand.',
+   E:'1 pt: Clear position with data. HDI argument: UK (0.929) vs. Nigeria (0.548) shows largest HDI gap corresponds to largest corruption gap (73 vs. 24); wealthier countries have more resources for anti-corruption institutions. Freedom House argument: China (42 TI, 0.788 HDI) vs. Nigeria (24 TI, 0.548 HDI) — China outperforms Nigeria on corruption despite similar authoritarian scores; China\'s stronger institutions explain this despite similar regime type. Must use data and articulate mechanism.'
+  }},
+ {id:'frq_comp_01',type:'COMP',label:'Comparative Analysis',title:'Democratic Transition — Mexico and Nigeria',maxScore:5,
+  context:'Mexico and Nigeria both transitioned from authoritarian rule to competitive democracy, but through different paths and with different outcomes for democratic consolidation.',
+  parts:[
+   {part:'A',points:1,prompt:'Define "democratic consolidation" and identify one indicator that suggests a democracy has been consolidated.'},
+   {part:'B',points:2,prompt:'Compare Mexico\'s and Nigeria\'s democratic transitions. Describe one similarity AND one difference in how they transitioned from authoritarian rule to competitive democracy.'},
+   {part:'C',points:2,prompt:'Using specific evidence from both countries, explain which country has made more progress toward democratic consolidation and why.'}
+  ],
+  rubric:{
+   A:'1 pt: Define consolidation as the stage at which democracy becomes "the only game in town" — all major political actors accept democratic rules as the only legitimate means of political competition. Indicator: multiple peaceful transfers of power between competing parties; military under civilian control; opposition parties winning elections and incumbents accepting defeat; courts adjudicating political disputes. Both definition AND indicator required.',
+   B_sim:'1 pt: Must identify genuine similarity with evidence for BOTH. Both: transitioned from long authoritarian dominance (PRI hegemony; military rule) through gradual electoral opening; have federal structures managing ethnic/regional diversity; faced corruption as central challenge post-transition; had critical elections where opposition defeated ruling parties (Mexico 2000; Nigeria 2015); have electoral management institutions (IFE-INE/INEC) central to credible transitions.',
+   B_diff:'1 pt: Genuine difference with evidence for both. Mexico: transition from single hegemonic party (PRI) without military intervention; IFE\'s independence from 1996 was decisive institutional mechanism; economy more diversified reducing resource curse. Nigeria: involved multiple military coups and returns to civilian rule; INEC improved but less decisive than IFE; Nigeria faces deeper reinforcing ethnic-religious cleavages; oil resource curse much more severe (90% vs. 5% of exports).',
+   C:'2 pts: Clear position with specific evidence from BOTH. Mexico closer: IFE/INE consistent electoral credibility; multiple peaceful transfers since 2000 (Fox→Calderón→Peña Nieto→AMLO→Sheinbaum); no military intervention since 1940s; economic diversification reduces patronage politics; SCJN growing judicial independence. Nigeria still consolidating: Boko Haram challenges state sovereignty; military still present in civilian politics; corruption more severe (TI 24 vs. 31); shorter track record (two transfers since 2015); rule of law weaker. 1 pt per country with evidence.'
+  }},
+ {id:'frq_ae_01',type:'AE',label:'Argument Essay',title:'Does Ethnic Diversity Undermine Democratic Stability?',maxScore:5,
+  context:'Some political scientists argue that high ethnic diversity makes democratic consolidation more difficult because ethnic groups compete for state control in a zero-sum manner. Others argue that institutional design matters more than diversity itself — that cross-cutting cleavages and inclusive institutions can enable democratic stability in diverse societies.',
+  parts:[
+   {part:'Essay',points:5,prompt:'Develop a defensible argument about whether ethnic diversity undermines democratic stability. Support your claim with evidence from at least two AP Comparative countries and address a counterargument.'}
+  ],
+  rubric:{
+   Essay:'5 pts:\n\n1 pt CLAIM: Defensible thesis beyond restating the prompt. Must state a position. E.g.: "Ethnic diversity undermines democratic stability primarily when cleavages are reinforcing rather than cross-cutting and when institutions fail to provide credible ethnic accommodation mechanisms — as Nigeria\'s history of coups and civil war demonstrates — while the UK\'s successful management of Scottish and Northern Irish cleavages through devolution shows institutional design can mitigate diversity\'s destabilizing effects."\n\n2 pts EVIDENCE (1pt per country): Must be specific and tied to the argument. Nigeria: reinforcing cleavages (Hausa-Fulani/Muslim/north; Igbo/Christian/southeast); Biafran Civil War showing extreme fragmentation consequence; military coups justified by ethnic patronage disputes; Boko Haram exploiting marginalized Muslim northeast; BUT federal character principle and zoning showing institutional management; 2015 and 2023 peaceful transfers. UK: Scottish/Welsh/Northern Irish regional cleavages; Good Friday Agreement showing institutional success; devolution managing Scottish independence demands; cross-cutting class/values cleavages reducing ethnic polarization. OR Mexico: indigenous-mestizo cleavage; Zapatista uprising; but cross-ethnic coalition building (MORENA); democratization despite diversity. Russia: Chechen ethnic conflict; authoritarian solution to diversity.\n\n1 pt REASONING: HOW evidence supports claim — mechanism for why reinforcing cleavages (Nigeria) produce more instability than cross-cutting/institutionally managed diversity (UK).\n\n1 pt COUNTERARGUMENT: Acknowledges opposing view and responds. "Critics argue that Nigeria proves diversity inevitably undermines democracy. However, Nigeria\'s challenges stem not from diversity per se but from the colonial creation of reinforcing cleavages combined with oil-funded patronage competition — India\'s democratic durability with far greater diversity suggests institutional design matters more than diversity itself." OR vice versa.'
+  }}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let S={
+ mode:null,
+ section:'mc', // 'mc' | 'frq'
+ mcQ:[],mcAnswers:{},mcFlags:{},mcIdx:0,
+ frqQ:[],frqAnswers:{},frqIdx:0,
+ mcTimer:0,frqTimer:0,timerInterval:null,
+ mcTotalTime:0,frqTotalTime:0,
+ results:{mc:{},frq:{}},
+ grading:false
+};
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
+
+window.addEventListener('load',()=>{
+ loadStats();
+ buildModeGrid();
+ document.getElementById('lobby').style.display='flex';
+});
+
+function loadStats(){
+ try{
+  const h=JSON.parse(localStorage.getItem('civitas_exam_history_apcmp')||'[]');
+  document.getElementById('stat-exams').textContent=h.length;
+  if(h.length){
+   const bestMC=Math.max(...h.map(e=>e.mcPct||0));
+   const bestFRQ=Math.max(...h.filter(e=>e.frqTotal!=null).map(e=>Math.round(e.frqTotal/(e.frqMax||1)*100)));
+   document.getElementById('stat-best-mc').textContent=bestMC+'%';
+   if(bestFRQ>0)document.getElementById('stat-best-frq').textContent=bestFRQ+'%';
+  }
+ }catch(e){}
+}
+
+function buildModeGrid(){
+ const g=document.getElementById('mode-grid');
+ g.innerHTML=MODES.map(m=>{
+  let best='';
+  try{const h=JSON.parse(localStorage.getItem('civitas_exam_history_apcmp')||'[]');const prev=h.filter(e=>e.modeId===m.id);if(prev.length){const b=prev.reduce((a,c)=>Math.max(a,c.mcPct||0),0);if(b)best=`<div class="mode-best" style="border-color:var(--acc2);color:var(--acc2)">${b}%</div>`;}}catch(e){}
+  return`<div class="mode-card" onclick="startMode('${m.id}')">
+   <div class="mode-card-accent" style="background:${m.color}"></div>
+   <div class="mode-card-body">
+    <div class="mode-icon">${m.icon}</div>
+    <div class="mode-label">${m.label}</div>
+    <div class="mode-title">${m.title}</div>
+    <div class="mode-desc">${m.desc}</div>
+    <div class="mode-meta">${m.tags.map(t=>`<div class="mode-tag">${t}</div>`).join('')}</div>
+   </div>${best}</div>`;
+ }).join('');
+}
+
+/* ============================================================
+   START MODE
+   ============================================================ */
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startMode(modeId){
+ const mode=MODES.find(m=>m.id===modeId);
+ if(!mode)return;
+ S.mode=mode;
+ S.mcAnswers={};S.mcFlags={};S.frqAnswers={};S.results={mc:{},frq:{}};
+ 
+ if(mode.mcCount>0){
+  S.mcQ=shuffle(MC_BANK).slice(0,mode.mcCount);
+  S.mcIdx=0;
+  S.section='mc';
+  S.mcTimer=mode.mcTime;
+  S.mcTotalTime=mode.mcTime;
+  S.frqTimer=mode.frqTime;
+  S.frqTotalTime=mode.frqTime;
+  showExam();
+  renderMC();
+  startTimer('mc');
+ } else if(mode.frqCount>0){
+  S.frqQ=shuffle(FRQ_BANK).slice(0,mode.frqCount);
+  S.frqIdx=0;
+  S.section='frq';
+  S.mcTimer=0;
+  S.frqTimer=mode.frqTime;
+  S.frqTotalTime=mode.frqTime;
+  showExam();
+  renderFRQ();
+  startTimer('frq');
+ }
+}
+
+/* ============================================================
+   SHOW/HIDE SCREENS
+   ============================================================ */
+function showExam(){document.getElementById('lobby').style.display='none';document.getElementById('exam').style.display='flex';document.getElementById('results').style.display='none';}
+function showLobby(){stopTimer();document.getElementById('exam').style.display='none';document.getElementById('results').style.display='none';document.getElementById('lobby').style.display='flex';buildModeGrid();loadStats();}
+function showResults(){document.getElementById('exam').style.display='none';document.getElementById('results').style.display='flex';}
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+function startTimer(section){
+ stopTimer();
+ updateTimerDisplay();
+ S.timerInterval=setInterval(()=>{
+  if(section==='mc')S.mcTimer--;
+  else S.frqTimer--;
+  updateTimerDisplay();
+  const t=section==='mc'?S.mcTimer:S.frqTimer;
+  if(t<=0){clearInterval(S.timerInterval);timeUp();}
+ },1000);
+}
+function stopTimer(){if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;}}
+function updateTimerDisplay(){
+ const sec=S.section==='mc'?S.mcTimer:S.frqTimer;
+ const total=S.section==='mc'?S.mcTotalTime:S.frqTotalTime;
+ const m=Math.floor(Math.max(0,sec)/60);
+ const s=Math.max(0,sec)%60;
+ const disp=document.getElementById('timer-display');
+ const txt=document.getElementById('timer-text');
+ txt.textContent=m+':'+(s<10?'0':'')+s;
+ const pct=total>0?(1-(sec/total)):0;
+ const offset=Math.round(pct*94.2);
+ const ring=document.getElementById('timer-ring-fill');
+ if(ring)ring.style.strokeDashoffset=offset;
+ disp.classList.toggle('urgent',sec<=60&&sec>0);
+ ring&&(ring.style.stroke=sec<=60?'#e04040':'#e8a020');
+}
+function timeUp(){
+ if(S.section==='mc'){
+  // Auto-advance to FRQ if mode has FRQs
+  if(S.mode.frqCount>0)beginFRQSection();
+  else finishExam();
+ } else {
+  finishExam();
+ }
+}
+
+/* ============================================================
+   MC SECTION
+   ============================================================ */
+function renderMC(){
+ const q=S.mcQ[S.mcIdx];
+ const total=S.mcQ.length;
+ // Header
+ document.getElementById('exam-section-label').textContent=`SECTION 1 \u00B7 MULTIPLE CHOICE \u00B7 Q ${S.mcIdx+1}/${total}`;
+ // Pips
+ const pips=S.mcQ.map((_,i)=>{
+  let cls='exam-pip';
+  if(i<S.mcIdx)cls+=' done';
+  if(i===S.mcIdx)cls+=' current';
+  if(S.mcFlags[i])cls+=' flagged';
+  return`<div class="${cls}"></div>`;
+ }).join('');
+ document.getElementById('exam-pips').innerHTML=pips;
+ // Body
+ let html='';
+ if(q.stimulus){
+  html+=`<div class="stimulus-box"><div class="stimulus-label">&#x1F4CC; STIMULUS &mdash; ${q.stimulus.type.toUpperCase()}</div>`;
+  if(q.stimulus.title)html+=`<div class="stimulus-title">${q.stimulus.title}</div>`;
+  if(q.stimulus.source)html+=`<div class="stimulus-source">${q.stimulus.source}</div>`;
+  if(q.stimulus.text)html+=`<div class="stimulus-content">${q.stimulus.text}</div>`;
+  if(q.stimulus.data){
+   html+=`<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:9px">`;
+   html+=`<tr>${q.stimulus.data[0].map(h=>`<th style="border-bottom:1px solid var(--border2);padding:5px 8px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px">${h}</th>`).join('')}</tr>`;
+   q.stimulus.data.slice(1).forEach((row,ri)=>{html+=`<tr style="background:${ri%2?'rgba(56,160,80,.03)':'transparent'}">${row.map(c=>`<td style="padding:5px 8px;color:var(--text2);border-bottom:1px solid var(--border);font-size:9px">${c}</td>`).join('')}</tr>`;});
+   html+='</table></div>';
+  }
+  html+='</div>';
+ }
+ const ans=S.mcAnswers[S.mcIdx];
+ const answered=ans!==undefined;
+ html+=`<div class="question-card"><div class="q-meta"><div class="q-num">Q ${S.mcIdx+1}</div><div class="q-country">${q.country}</div></div>`;
+ html+=`<div class="q-stem">${q.stem}</div>`;
+ html+=`<div class="choices">`;
+ q.choices.forEach((c,i)=>{
+  let cls='choice';
+  const letter=String.fromCharCode(65+i);
+  if(answered){
+   cls+=' answered';
+   if(i===q.correct)cls+=' correct';
+   else if(i===ans&&i!==q.correct)cls+=' wrong';
+   else cls+=' dimmed';
+  } else {
+   if(ans===i)cls+=' selected';
+  }
+  html+=`<div class="${cls}" onclick="selectMC(${i})"><div class="choice-letter">${letter}</div><div class="choice-text">${c}</div></div>`;
+ });
+ html+='</div>';
+ if(answered&&q.explanation){
+  html+=`<div class="explanation"><strong>${ans===q.correct?'&#x2713; Correct!':'&#x2717; Incorrect.'}</strong> ${q.explanation}</div>`;
+ }
+ html+='</div>';
+ document.getElementById('exam-body').innerHTML=html;
+ document.getElementById('exam-body').scrollTop=0;
+ // Footer
+ document.getElementById('btn-flag').style.display='inline-block';
+ document.getElementById('btn-prev').style.display=S.mcIdx>0?'inline-block':'none';
+ const isLast=S.mcIdx===S.mcQ.length-1;
+ const nextBtn=document.getElementById('btn-next');
+ if(isLast){
+  nextBtn.textContent=S.mode.frqCount>0?'Submit MC \u2192 FRQ':'Submit \u2192';
+  nextBtn.className='exam-btn primary';
+ } else {
+  nextBtn.textContent='Next \u2192';
+  nextBtn.className='exam-btn primary';
+ }
+}
+function selectMC(idx){
+ if(S.mcAnswers[S.mcIdx]!==undefined)return; // already answered — reviewing
+ S.mcAnswers[S.mcIdx]=idx;
+ renderMC();
+}
+function flagQuestion(){
+ S.mcFlags[S.mcIdx]=!S.mcFlags[S.mcIdx];
+ renderMC();
+}
+function prevQ(){if(S.mcIdx>0){S.mcIdx--;renderMC();}}
+function nextQ(){
+ if(S.section==='mc'){
+  if(S.mcIdx<S.mcQ.length-1){S.mcIdx++;renderMC();}
+  else{
+   stopTimer();
+   if(S.mode.frqCount>0)beginFRQSection();
+   else finishExam();
+  }
+ } else {
+  // FRQ section: go to next or submit
+  if(S.frqIdx<S.frqQ.length-1){S.frqIdx++;renderFRQ();}
+  else{stopTimer();finishExam();}
+ }
+}
+function confirmExit(){if(confirm('Exit exam? Your progress will be lost.'))showLobby();}
+
+/* ============================================================
+   FRQ SECTION
+   ============================================================ */
+function beginFRQSection(){
+ S.section='frq';
+ // Initialize frq questions
+ if(!S.frqQ.length)S.frqQ=shuffle(FRQ_BANK).slice(0,S.mode.frqCount);
+ S.frqIdx=0;
+ if(!S.frqTimer)S.frqTimer=S.mode.frqTime;
+ if(!S.frqTotalTime)S.frqTotalTime=S.mode.frqTime;
+ renderFRQ();
+ startTimer('frq');
+}
+function renderFRQ(){
+ const frq=S.frqQ[S.frqIdx];
+ const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+ const col=cols[frq.type]||'var(--acc)';
+ document.getElementById('exam-section-label').textContent=`SECTION 2 \u00B7 FRQ ${S.frqIdx+1}/${S.frqQ.length} \u00B7 ${frq.label}`;
+ document.getElementById('exam-pips').innerHTML=S.frqQ.map((_,i)=>`<div class="exam-pip${i<S.frqIdx?' done':i===S.frqIdx?' current':''}"></div>`).join('');
+ document.getElementById('btn-flag').style.display='none';
+ const isLast=S.frqIdx===S.frqQ.length-1;
+ const nb=document.getElementById('btn-next');
+ nb.textContent=isLast?'Submit Exam &#x2192;':'Next FRQ &#x2192;';
+ nb.className='exam-btn primary';
+ document.getElementById('btn-prev').style.display=S.frqIdx>0?'inline-block':'none';
+ let html=`<div class="frq-wrapper">`;
+ html+=`<div class="frq-header"><div class="frq-type-badge" style="border-color:${col};color:${col}">${frq.type} &middot; ${frq.maxScore} PTS</div><div><div class="frq-title">${frq.title}</div></div></div>`;
+ html+=`<div class="frq-context">${frq.context}</div>`;
+ frq.parts.forEach((p,pi)=>{
+  const key=`${frq.id}_${pi}`;
+  const val=S.frqAnswers[key]||'';
+  html+=`<div class="frq-part"><div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div>`;
+  html+=`<div class="frq-part-prompt">${p.prompt}</div>`;
+  html+=`<textarea class="frq-textarea" id="fta_${frq.id}_${pi}" onchange="saveFRQ('${frq.id}',${pi})" placeholder="Write your response here...">${val}</textarea>`;
+  html+=`</div>`;
+ });
+ html+=`</div>`;
+ document.getElementById('exam-body').innerHTML=html;
+ document.getElementById('exam-body').scrollTop=0;
+}
+function saveFRQ(frqId,pi){
+ const el=document.getElementById(`fta_${frqId}_${pi}`);
+ if(el)S.frqAnswers[`${frqId}_${pi}`]=el.value;
+}
+// Save FRQ answers on navigation
+function prevQ_frq(){
+ // Save current
+ const frq=S.frqQ[S.frqIdx];
+ frq.parts.forEach((_,pi)=>saveFRQ(frq.id,pi));
+ if(S.frqIdx>0){S.frqIdx--;renderFRQ();}
+}
+
+// Override prevQ to handle both sections
+const _origPrevQ=prevQ;
+prevQ=function(){
+ if(S.section==='frq'){
+  const frq=S.frqQ[S.frqIdx];
+  frq.parts.forEach((_,pi)=>saveFRQ(frq.id,pi));
+  if(S.frqIdx>0){S.frqIdx--;renderFRQ();}
+ } else {
+  if(S.mcIdx>0){S.mcIdx--;renderMC();}
+ }
+};
+
+/* ============================================================
+   FINISH EXAM
+   ============================================================ */
+async function finishExam(){
+ stopTimer();
+ // Save FRQ answers if in frq section
+ if(S.section==='frq'&&S.frqQ.length){
+  const frq=S.frqQ[S.frqIdx];
+  frq.parts.forEach((_,pi)=>saveFRQ(frq.id,pi));
+ }
+ // MC scoring
+ let mcCorrect=0,mcTotal=S.mcQ.length;
+ S.mcQ.forEach((q,i)=>{if(S.mcAnswers[i]===q.correct)mcCorrect++;});
+ const mcPct=mcTotal>0?Math.round(mcCorrect/mcTotal*100):null;
+ S.results.mc={correct:mcCorrect,total:mcTotal,pct:mcPct};
+ 
+ if(S.frqQ.length>0){
+  showGrading();
+  await gradeFRQs();
+ } else {
+  displayResults();
+ }
+}
+
+function showGrading(){
+ const overlay=document.createElement('div');
+ overlay.id='grading-overlay';
+ overlay.className='grading-overlay';
+ overlay.innerHTML=`<div class="grading-icon">&#x1F916;</div><div class="grading-title">AI GRADING IN PROGRESS</div><div class="grading-sub">Evaluating your FRQ responses against official rubrics&hellip;</div><div class="grading-bar"><div class="grading-bar-fill"></div></div>`;
+ document.body.appendChild(overlay);
+}
+function hideGrading(){const o=document.getElementById('grading-overlay');if(o)o.remove();}
+
+async function gradeFRQs(){
+ let totalEarned=0,totalMax=0;
+ for(const frq of S.frqQ){
+  const answers=frq.parts.map((_,pi)=>S.frqAnswers[`${frq.id}_${pi}`]||'[blank]');
+  const rubricText=Object.entries(frq.rubric).map(([k,v])=>`Part ${k}: ${v}`).join('\n\n');
+  const partsText=frq.parts.map((p,i)=>`Part ${p.part} (${p.points}pt): ${p.prompt}\nAnswer: ${answers[i]}`).join('\n\n');
+  try{
+   const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+     messages:[{role:'user',content:`AP Comparative Government FRQ\nTitle: ${frq.title}\nType: ${frq.label}\nMax: ${frq.maxScore}\nContext: ${frq.context}\n\n${partsText}\n\nRubric:\n${rubricText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":N,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],
+     system:'You are an AP Comparative Government expert grader. Grade strictly per rubric. Return ONLY valid JSON.'})});
+   const data=await resp.json();
+   const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+   S.results.frq[frq.id]={...grade,frq};
+   totalEarned+=grade.totalScore||0;
+   totalMax+=frq.maxScore;
+  }catch(e){
+   S.results.frq[frq.id]={totalScore:0,maxScore:frq.maxScore,parts:[],overallFeedback:'Grading error.',frq};
+  }
+ }
+ S.results.frqTotal=totalEarned;S.results.frqMax=totalMax;
+ hideGrading();
+ displayResults();
+}
+
+/* ============================================================
+   DISPLAY RESULTS
+   ============================================================ */
+function displayResults(){
+ showResults();
+ // Save to history
+ try{
+  const h=JSON.parse(localStorage.getItem('civitas_exam_history_apcmp')||'[]');
+  h.push({modeId:S.mode.id,mcPct:S.results.mc.pct,frqTotal:S.results.frqTotal,frqMax:S.results.frqMax,date:new Date().toISOString()});
+  localStorage.setItem('civitas_exam_history_apcmp',JSON.stringify(h.slice(-20)));
+  // Award gold
+  const goldAmt=(S.results.mc.pct||0)>70?50:20;
+  const c=parseInt(localStorage.getItem('civitas_gold')||'0');
+  localStorage.setItem('civitas_gold',c+goldAmt);
+ }catch(e){}
+ 
+ // Overall grade
+ const mc=S.results.mc;
+ const hasMC=mc.total>0,hasFRQ=S.results.frqMax>0;
+ let overallPct=0;
+ if(hasMC&&hasFRQ)overallPct=Math.round(((mc.pct||0)+(Math.round((S.results.frqTotal||0)/(S.results.frqMax||1)*100)))/2);
+ else if(hasMC)overallPct=mc.pct||0;
+ else if(hasFRQ)overallPct=Math.round((S.results.frqTotal||0)/(S.results.frqMax||1)*100);
+ 
+ const grade=overallPct>=90?'5':overallPct>=75?'4':overallPct>=60?'3':overallPct>=45?'2':'1';
+ const gc=overallPct>=75?'var(--green2)':overallPct>=60?'var(--amber)':'var(--red2)';
+ const sealEmoji=overallPct>=90?'&#x1F947;':overallPct>=75?'&#x1F948;':overallPct>=60?'&#x1F949;':'&#x1F4CB;';
+ const gradeLabel=overallPct>=90?'EXCELLENT':'PASSING' ;
+ 
+ document.getElementById('results-seal').innerHTML=sealEmoji;
+ document.getElementById('results-grade').textContent=grade;
+ document.getElementById('results-grade').style.color=gc;
+ document.getElementById('results-label').textContent='AP PROJECTED SCORE \u00B7 '+overallPct+'% OVERALL';
+ 
+ // Score boxes
+ let scoresHtml='';
+ if(hasMC)scoresHtml+=`<div class="results-score"><div class="results-score-val" style="color:${mc.pct>=70?'var(--green2)':'var(--amber)'}">${mc.correct}/${mc.total}</div><div class="results-score-lbl">MC CORRECT</div></div><div class="results-score"><div class="results-score-val" style="color:${mc.pct>=70?'var(--green2)':'var(--amber)'}">${mc.pct}%</div><div class="results-score-lbl">MC ACCURACY</div></div>`;
+ if(hasFRQ)scoresHtml+=`<div class="results-score"><div class="results-score-val" style="color:${((S.results.frqTotal||0)/(S.results.frqMax||1))>=.7?'var(--green2)':'var(--amber)'}">${S.results.frqTotal||0}/${S.results.frqMax||0}</div><div class="results-score-lbl">FRQ POINTS</div></div>`;
+ document.getElementById('results-scores').innerHTML=scoresHtml;
+ 
+ // MC review
+ const mcReviewEl=document.getElementById('mc-review');
+ if(!hasMC){mcReviewEl.innerHTML='<div style="font-family:var(--crimson);font-size:13px;color:var(--text3);font-style:italic">No multiple choice in this mode.</div>';} else {
+  mcReviewEl.innerHTML=S.mcQ.map((q,i)=>{
+   const ans=S.mcAnswers[i];
+   const correct=ans===q.correct;
+   const yourLetter=ans!==undefined?String.fromCharCode(65+ans):'?';
+   const correctLetter=String.fromCharCode(65+q.correct);
+   return`<div class="mc-item ${correct?'correct':'wrong'}">
+    <div class="mc-item-q">${i+1}. ${q.stem.substring(0,100)}${q.stem.length>100?'...':''}</div>
+    <div class="mc-item-meta">
+     <div class="mc-item-answer" style="color:${correct?'var(--green2)':'var(--red2)'}"><strong>Your answer: ${yourLetter}</strong>${!correct?` | Correct: ${correctLetter}`:''}</div>
+     <div class="mc-item-answer" style="color:var(--text3)">${q.country}</div>
+    </div>
+   </div>`;
+  }).join('');
+ }
+ 
+ // FRQ results
+ const frqResultsEl=document.getElementById('frq-results');
+ if(!hasFRQ){frqResultsEl.innerHTML='<div style="font-family:var(--crimson);font-size:13px;color:var(--text3);font-style:italic">No FRQs in this mode.</div>';} else {
+  const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};
+  frqResultsEl.innerHTML=S.frqQ.map(frq=>{
+   const gr=S.results.frq[frq.id]||{};
+   const score=gr.totalScore||0;
+   const pct=Math.round(score/frq.maxScore*100);
+   const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
+   const col=cols[frq.type]||'var(--acc)';
+   let partsHtml='';
+   if(gr.parts&&gr.parts.length){
+    partsHtml=`<div class="frq-part-results">${gr.parts.map(p=>{
+     const e=p.earned>0;
+     return`<div class="frq-part-result" style="border-left-color:${e?'var(--green)':'var(--red)'}"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:10px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span><span style="font-family:var(--bebas);font-size:12px;color:${e?'var(--green2)':'var(--red2)'}">${e?'+'+p.earned:'0'}</span></div><div class="frq-feedback">${p.feedback||''}</div></div>`;
+    }).join('')}</div>`;
+   }
+   return`<div class="frq-result">
+    <div class="frq-result-header">
+     <div class="frq-score-big" style="color:${sc}">${score}/${frq.maxScore}</div>
+     <div><div class="frq-result-type" style="color:${col}">${frq.label}</div><div class="frq-result-title">${frq.title}</div></div>
+    </div>
+    ${partsHtml}
+    ${gr.overallFeedback?`<div class="overall-feedback">${gr.overallFeedback}</div>`:''}
+    ${gr.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:10px 14px;margin-top:8px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>&#x1F4A1; Improve:</strong> ${gr.improveHint}</div>`:''}
+   </div>`;
+  }).join('');
+ }
+}
+
+/* Particles */
+function spawnGold(text){const el=document.createElement('div');el.className='gold-particle';el.textContent=text;el.style.left=(Math.random()*60+20)+'%';el.style.top='60px';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);}
+function notify(msg){const n=document.createElement('div');n.className='notif';n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3000);}
+</script>
+</body>
+</html>
