@@ -2637,9 +2637,12 @@ function submitTeacher(){
     S.avatar=S.avatar||'scholar';
     // Ensure teacher has AP Gov enrolled
     if(!S.courses)S.courses=[];
+    // Ensure ap_gov is enrolled but preserve any other courses already added
     if(!S.courses.find(c=>c.id==='ap_gov')){
       S.courses.push({id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()});
     }
+    // Save immediately so courses persist through unit game navigation
+    saveS();
     localStorage.setItem('civitas_student_name','Mr. Olson');
     localStorage.setItem('civitas_full_name','Joshua Olson');
     enterShell();
@@ -2787,8 +2790,11 @@ function getAllUnitsCompleted(){
 function getTotalUnits(){
   try {
     const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-    const unitIds = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
-    return unitIds.filter(id => prog[id] && prog[id].bestAccuracy >= 0).length;
+    // Count all units across all enrolled courses that have any progress
+    const allUnitIds = Object.keys(COURSE_UNITS).flatMap(cid =>
+      (COURSE_UNITS[cid] || []).filter(u => !u.isBigIdea && !u.isCampaign).map(u => u.id)
+    );
+    return allUnitIds.filter(id => prog[id] && prog[id].bestAccuracy >= 0).length;
   } catch(e) {}
   return getAllUnitsCompleted().length;
 }
@@ -3611,7 +3617,15 @@ async function boot(){
     const savedName=localStorage.getItem('civitas_student_name');
     const savedFull=localStorage.getItem('civitas_full_name');
     if(savedName&&savedFull){
+      // loadS() already ran above — only override name/teacher flag,
+      // preserving S.courses that loadS() restored from civitas_state
       S.name=savedName; S.fullName=savedFull; S.setupDone=true;
+      if(!Array.isArray(S.courses)||S.courses.length===0){
+        // Fallback: rebuild from saved name if state was empty
+        if(savedFull==='Joshua Olson'){
+          S.courses=[{id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()}];
+        }
+      }
       if(savedFull==='Joshua Olson'){IS_TEACHER=true;S.isTeacher=true;}
       enterShell();return;
     }
@@ -4244,16 +4258,23 @@ function syncGoldFromStorage() {
 function countAllTrophies() {
   let count = 0;
   try {
-    // Unit trophies (60%+ accuracy)
     const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-    const units = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
-    units.forEach(id => { if (prog[id] && prog[id].bestAccuracy >= 60) count++; });
+    // Build full list of all unit + big idea IDs across all courses
+    const allUnitIds = Object.keys(COURSE_UNITS).flatMap(cid =>
+      (COURSE_UNITS[cid] || []).filter(u => !u.isBigIdea && !u.isCampaign).map(u => u.id)
+    );
+    const allBiIds = Object.keys(COURSE_UNITS).flatMap(cid =>
+      (COURSE_UNITS[cid] || []).filter(u => u.isBigIdea).map(u => u.id)
+    );
+    // Unit trophies (60%+ accuracy)
+    allUnitIds.forEach(id => { if (prog[id] && prog[id].bestAccuracy >= 60) count++; });
     // Big Idea trophies
-    const bi = ['apg_bi_con','apg_bi_lor','apg_bi_pmcd','apg_bi_mk','apg_bi_mpa'];
-    bi.forEach(id => { if (prog[id] && prog[id].completedAt) count++; });
-    // Vocab medals (80%+)
-    const vunits = ['apg_u1','apg_u2','apg_u3','apg_u4','apg_u5'];
-    vunits.forEach(id => {
+    allBiIds.forEach(id => { if (prog[id] && prog[id].completedAt) count++; });
+    // Vocab medals (80%+) — check all enrolled course units
+    const enrolledIds = (S.courses||[]).flatMap(c =>
+      (COURSE_UNITS[c.id]||[]).filter(u=>!u.isBigIdea&&!u.isCampaign).map(u=>u.id)
+    );
+    enrolledIds.forEach(id => {
       const s = parseInt(localStorage.getItem('civitas_vocab_' + id) || '0');
       if (s >= 80) count++;
     });
@@ -5128,6 +5149,7 @@ function renderVocabMedals() {
   const el = document.getElementById('vocab-medal-grid');
   if (!el) return;
   // Hide vocab section for courses without quizzes yet
+  const vocabWrap = el.closest('.\\s+') || el.parentElement;
   const printBtn = document.getElementById('print-vocab-cert-btn') ||
     document.querySelector('[onclick="printAllVocabCert()"]');
   if(_activeCourseId !== 'ap_gov'){
