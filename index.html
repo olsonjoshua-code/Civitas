@@ -3709,7 +3709,13 @@ function applyProfile(p){
   S.avatar=p.avatar||S.avatar;
   S.gold=Math.max(S.gold||0,p.gold||0);
   S.goldEarned=Math.max(S.goldEarned||0,p.gold_earned||0);
-  try{S.courses=JSON.parse(p.courses||'[]');}catch(e){}
+  try{
+    const dbCourses=JSON.parse(p.courses||'[]');
+    // Merge: keep any locally-added courses that aren't in the DB snapshot yet
+    const merged=[...dbCourses];
+    (S.courses||[]).forEach(lc=>{if(!merged.find(dc=>dc.id===lc.id))merged.push(lc);});
+    S.courses=merged;
+  }catch(e){}
   try{S.courseProgress=JSON.parse(p.course_progress||'{}');}catch(e){}
   try{S.badgesEarned=JSON.parse(p.badges_earned||'[]');}catch(e){}
   try{S.unlocked=JSON.parse(p.unlocked||'[]');}catch(e){}
@@ -4834,7 +4840,7 @@ function renderCourseTrophies(){
   const el=document.getElementById('cv-trophy-grid');
   const units=COURSE_UNITS[_activeCourseId]||[];
   const progress=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
-  el.innerHTML=units.filter(u=>!u.isBigIdea).map(u=>{
+  el.innerHTML=units.filter(u=>!u.isBigIdea&&!u.isCampaign).map(u=>{
     const ud=progress[u.id.replace('apg_','apg_')];
     const acc=ud?ud.bestAccuracy:null;
     const trophy=acc===null?null:acc===100?'🏛️':acc>=90?'🏆':acc>=75?'⭐':acc>=60?'🥉':'✅';
