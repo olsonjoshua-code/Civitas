@@ -896,8 +896,26 @@ const COURSE_UNITS = {
     {id:'ush_u3b', num:'Unit 3B', title:'The Great Wars', icon:'🎖️', color:'#c8a020',
      desc:'WWI, WWII, and America\'s role on the world stage.',
      hasFRQ:false, url:'games/us-history/'},
-    {id:'ush_u4', num:'Unit 4', title:'Cold War America', icon:'☢️', color:'#c8a020',
-     desc:'Cold War, Civil Rights, and the postwar transformation.',
+    {id:'ush_u4a', num:'Unit 4A', title:'Boom or Bust', icon:'📈', color:'#c8a020',
+     desc:'The Roaring Twenties, the Great Depression, and the New Deal.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u4b', num:'Unit 4B', title:'Crash & Recovery', icon:'💸', color:'#c8a020',
+     desc:'Economic collapse and the struggle to rebuild American society.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u5', num:'Unit 5', title:'Arsenal of Democracy', icon:'🏭', color:'#c8a020',
+     desc:'America enters WWII and becomes the world\'s arsenal of democracy.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u6', num:'Unit 6', title:'Iron Curtain', icon:'☢️', color:'#c8a020',
+     desc:'The Cold War begins — containment, Korea, and the Red Scare.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u7a', num:'Unit 7A', title:'Camelot', icon:'🕊️', color:'#c8a020',
+     desc:'JFK, the Civil Rights Movement, and the promise of a new era.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u7b', num:'Unit 7B', title:'Napalm Dawn', icon:'🔥', color:'#c8a020',
+     desc:'Vietnam, protest movements, and the fracturing of American society.',
+     hasFRQ:false, url:'games/us-history/'},
+    {id:'ush_u8', num:'Unit 8', title:'Modern America', icon:'🌆', color:'#c8a020',
+     desc:'From Reagan to the present — politics, culture, and a changing nation.',
      hasFRQ:false, url:'games/us-history/'},
   ],
   ap_gov: [
@@ -4217,6 +4235,8 @@ function enterShell(){
   buildCharGrid();
   syncGoldFromStorage(); // ensure gold is up to date from localStorage
   if(!IS_TEACHER&&!S.isGuest&&S.name) renderCourseAPScore();
+  // Sync US History progress from ac_results into civitas_unit_progress
+  syncUSHistoryProgress();
 
   const seen=localStorage.getItem(OB_KEY);
   if(!seen&&!IS_TEACHER&&!S.isGuest){
@@ -4421,6 +4441,54 @@ function showMainView(v){
   if(v==='wallet')renderWallet();
   if(v==='characters')buildCharGrid();
   if(v==='teacher')renderTeacherView();
+}
+
+
+// ── US HISTORY PROGRESS BRIDGE ─────────────────────────────────────────
+// Reads ac_results (US History game's Supabase table) and maps progress
+// into civitas_unit_progress localStorage so the course card shows real data.
+// Completely read-only — never writes to ac_results.
+const USH_ID_MAP = {
+  'unit1':       'ush_u1',
+  'unit2a':      'ush_u2a',
+  'unit2b':      'ush_u2b',
+  'unit3a':      'ush_u3a',
+  'unit3b':      'ush_u3b',
+  'unit4a':      'ush_u4a',
+  'unit4':       'ush_u4a',
+  'unit4b':      'ush_u4b',
+  'unit5':       'ush_u5',
+  'unit6':       'ush_u6',
+  'unit7a':      'ush_u7a',
+  'unit7b':      'ush_u7b',
+  'unit8':       'ush_u8',
+};
+
+async function syncUSHistoryProgress(){
+  if(!S.name||S.isGuest)return;
+  // Only run if student has us_history enrolled
+  if(!(S.courses||[]).find(c=>c.id==='us_history'||c.id==='hs_ush'))return;
+  try{
+    const rows=await sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(S.name)
+      +'&select=unit_id,best_accuracy,best_score,completed_at'
+      +'&unit_id=not.like.test_%&unit_id=not.like.vocab_%');
+    if(!Array.isArray(rows)||!rows.length)return;
+    const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    let changed=false;
+    rows.forEach(r=>{
+      const civId=USH_ID_MAP[r.unit_id];
+      if(!civId)return;
+      const acc=r.best_accuracy||0;
+      if(!prog[civId]||acc>(prog[civId].bestAccuracy||0)){
+        prog[civId]={bestAccuracy:acc,completedAt:r.completed_at||new Date().toISOString()};
+        changed=true;
+      }
+    });
+    if(changed){
+      localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
+      renderDashboard(); // refresh course cards
+    }
+  }catch(e){console.log('USH bridge error',e);}
 }
 
 function enterCourse(courseId){
