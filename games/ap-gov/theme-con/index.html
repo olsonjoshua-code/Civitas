@@ -834,17 +834,7 @@ function prepareRound() {
     G.currentSet = round.sets[Math.floor(Math.random()*round.sets.length)];
     G.questions = [...G.currentSet.questions];
   }
-  // Shuffle answer choices, re-assign letters A-D, update q.correct
-  const LETTERS = ['A','B','C','D'];
-  G.questions = G.questions.map(q => {
-    const correctChoice = q.choices.find(c => c.id === q.correct);
-    const correctText = correctChoice ? correctChoice.text : null;
-    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
-    const reLabeled = shuffled.map((c, i) => ({ ...c, id: LETTERS[i] }));
-    const newCorrectChoice = reLabeled.find(c => c.text === correctText);
-    const newCorrect = newCorrectChoice ? newCorrectChoice.id : q.correct;
-    return { ...q, choices: reLabeled, correct: newCorrect };
-  });
+  G.questions = G.questions.map(q=>({...q,choices:[...q.choices].sort(()=>Math.random()-.5)}));
   G.questionIdx = 0; G.selectedChoice = null; G.answered = false;
   G.roundScores.push({correct:0,total:0});
   renderQuestion();
@@ -1413,6 +1403,19 @@ function printUnitCertificate() {
     if(ctrl&&['u','s'].includes(e.key.toLowerCase()))e.preventDefault();
   });
   document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+
+// ── Anti-cheat
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('keydown',e=>{
+    if(isInput(e.target))return;
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&['u','s','a'].includes(e.key.toLowerCase()))e.preventDefault();
+  });
 })();
 </script>
 </body>
