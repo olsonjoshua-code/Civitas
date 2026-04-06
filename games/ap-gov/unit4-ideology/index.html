@@ -1401,11 +1401,18 @@ function prepareRound() {
     G.questions = [...G.currentSet.questions];
   }
 
-  // Shuffle answer choices for each question
-  G.questions = G.questions.map(q => ({
-    ...q,
-    choices: [...q.choices].sort(() => Math.random() - 0.5)
-  }));
+  // Shuffle answer choices for each question, then re-assign letters A-D
+  // and update q.correct to match the new position of the correct answer
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    const correctChoice = q.choices.find(c => c.id === q.correct);
+    const correctText = correctChoice ? correctChoice.text : null;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c, i) => ({ ...c, id: LETTERS[i] }));
+    const newCorrectChoice = reLabeled.find(c => c.text === correctText);
+    const newCorrect = newCorrectChoice ? newCorrectChoice.id : q.correct;
+    return { ...q, choices: reLabeled, correct: newCorrect };
+  });
 
   G.questionIdx = 0;
   G.selectedChoice = null;
