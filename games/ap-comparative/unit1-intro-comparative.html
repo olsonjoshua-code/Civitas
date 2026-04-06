@@ -2222,6 +2222,23 @@ function renderVocabQuizComplete() {
       </div>
     </div>`;
 }
+
+// ── Anti-cheat ────────────────────────────────────────────────────────────────
+(function() {
+  function isInput(el) { return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'); }
+  // Block right-click outside inputs
+  document.addEventListener('contextmenu', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block text selection outside inputs (stops highlighting question text)
+  document.addEventListener('selectstart', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block copy outside inputs
+  document.addEventListener('copy', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block Ctrl+U (view source), Ctrl+S (save), Ctrl+A (select all) outside inputs
+  document.addEventListener('keydown', e => {
+    if (isInput(e.target)) return;
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && ['u','s','a'].includes(e.key.toLowerCase())) e.preventDefault();
+  });
+})();
 </script>
 <!-- Flashcard modal -->
 <div id="fc-modal" style="display:none"></div>
