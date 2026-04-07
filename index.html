@@ -589,7 +589,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
       <button class="cnav-btn" id="cnav-trophies" onclick="showCourseView('trophies')">🏆 Trophies</button>
 
       <button class="cnav-btn" id="cnav-leaderboard" onclick="showCourseView('leaderboard')">🏅 Leaderboard</button>
-      <button class="cnav-btn" id="cnav-teacher-shortcut" onclick="showDashboard();showMainView('teacher')" style="display:none;color:var(--teal2)">📊 Dashboard</button>
+      <button class="cnav-btn" id="cnav-teacher-shortcut" onclick="showMainView('teacher')" style="display:none;color:var(--teal2)">📊 Dashboard</button>
     </div>
   </div>
 
@@ -687,7 +687,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
           <div class="sh" style="margin-bottom:3px">Teacher Dashboard</div>
           <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Session only — not visible to students.</div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="teacher-course-filter" onchange="renderTeacherView()"
+            style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:6px 10px;cursor:pointer;outline:none">
+            <option value="all">All Courses</option>
+            <option value="ap_gov">AP Gov</option>
+            <option value="ap_sem">AP Seminar</option>
+            <option value="ap_cmp">AP Comparative</option>
+            <option value="hs_ush">US History</option>
+          </select>
+          <button class="btn sm" onclick="renderTeacherView()" style="border-color:var(--teal);color:var(--teal2)"><span>↺ Refresh</span></button>
           <button class="btn sm green" onclick="exportCivitasCSV()"><span>&#8595; Export CSV</span></button>
           <button class="btn sm red" onclick="teacherLogout()"><span>Log Out</span></button>
         </div>
@@ -4792,6 +4801,9 @@ function showMainView(v){
   // Always keep teacher button visible for teachers
   const tcBtn=document.getElementById('nav-teacher');
   if(tcBtn)tcBtn.style.display=IS_TEACHER?'inline-block':'none';
+  // Re-show teacher shortcut in course nav too
+  const tcBtn2=document.getElementById('cnav-teacher-shortcut');
+  if(tcBtn2)tcBtn2.style.display=IS_TEACHER?'inline-block':'none';
 
   if(v==='profile')refreshProfile();
   if(v==='wallet')renderWallet();
@@ -6163,7 +6175,7 @@ function renderAPScoreBadge(d){
 // ── TEACHER DASHBOARD ─────────────────────────────────────────────────────
 let _teacherData=null; // cache so period switching is instant
 
-async function renderTeacherView(){
+async async function renderTeacherView(){
   const re=document.getElementById('teacher-results');
   if(!re)return;
   re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px">Loading…</div>';
@@ -6175,10 +6187,16 @@ async function renderTeacherView(){
       sfetch('/rest/v1/civitas_test_scores?select=student_name,test_name,score&limit=2000')
     ]);
 
-    // Build student data for AP Gov students only
+    // Build student data — all enrolled students, filterable by course
+    const _activeCourse=document.getElementById('teacher-course-filter')?.value||'all';
     const students=(profiles||[])
       .filter(p=>{
-        try{const c=JSON.parse(p.courses||'[]');return c.some(x=>x.id==='ap_gov');}catch(e){return false;}
+        try{
+          const c=JSON.parse(p.courses||'[]');
+          if(!c.length)return false;
+          if(_activeCourse==='all')return true;
+          return c.some(x=>x.id===_activeCourse);
+        }catch(e){return false;}
       })
       .map(p=>buildStudentData(p,frqRows||[],testRows||[]));
 
