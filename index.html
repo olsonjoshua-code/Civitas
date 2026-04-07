@@ -418,7 +418,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
   <div class="title-badge">A Social Studies Learning Suite</div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;max-width:320px;margin:0 auto">
     <button class="btn full amber" onclick="showSetupScreen()" style="font-size:16px;padding:16px 28px;letter-spacing:3px">
-      <span>▶ Enter Civitas</span>
+      <span>▶ New Student — Enter Civitas</span>
+    </button>
+    <button class="btn full" onclick="showRecoverScreen()" style="font-size:13px;padding:12px 20px;letter-spacing:2px;margin-top:-4px;border-color:var(--civitas);color:var(--civitas2)">
+      <span>↩ Returning Student — Find My Profile</span>
     </button>
     <div id="teacher-box" style="display:none;width:100%;margin-top:4px">
       <input id="teacher-input" type="password" maxlength="16"
@@ -432,6 +435,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
   <div style="margin-top:2.5rem;font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;line-height:2;text-align:center">
     CREATED BY JOSHUA OLSON · BREVARD COUNTY, FL<br>
     <span style="opacity:.55">© 2026 Joshua Olson · All Rights Reserved</span>
+  </div>
+</div>
+
+<!-- RECOVER SCREEN -->
+<div id="recover-screen" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;text-align:center">
+  <div style="max-width:380px;width:100%">
+    <div style="font-family:var(--bebas);font-size:28px;color:var(--civitas2);letter-spacing:4px;margin-bottom:6px">Find My Profile</div>
+    <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;margin-bottom:24px">Enter the name you used when you first created your account.</div>
+    <input id="recover-input" type="text" maxlength="40" placeholder="First Last"
+      style="font-family:var(--playfair);font-size:15px;background:var(--bg2);border:1.5px solid var(--border2);
+      color:var(--cream);padding:12px 16px;width:100%;outline:none;margin-bottom:10px;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')submitRecover()"
+      oninput="document.getElementById('recover-status').textContent=''">
+    <div id="recover-status" style="font-family:var(--dm);font-size:11px;min-height:16px;margin-bottom:10px;color:var(--text2)"></div>
+    <button class="btn full amber" onclick="submitRecover()" id="recover-btn" style="width:100%;margin-bottom:8px"><span>🔍 Search for Profile</span></button>
+    <div id="recover-results" style="margin:12px 0"></div>
+    <button class="btn full" onclick="showSetupScreen()" style="font-size:11px;color:var(--text3);margin-top:8px"><span>← Create a new profile instead</span></button>
   </div>
 </div>
 
@@ -3711,6 +3732,85 @@ window.addEventListener('load',async()=>{
     }
   },100);
 });
+
+function showRecoverScreen(){
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('recover-screen').style.display='flex';
+  document.getElementById('recover-input').value='';
+  document.getElementById('recover-status').textContent='';
+  document.getElementById('recover-results').innerHTML='';
+  setTimeout(()=>document.getElementById('recover-input').focus(),100);
+}
+
+async function submitRecover(){
+  const inp=document.getElementById('recover-input');
+  const status=document.getElementById('recover-status');
+  const results=document.getElementById('recover-results');
+  const btn=document.getElementById('recover-btn');
+  const name=inp.value.trim();
+  if(!name||name.length<2){status.textContent='Please enter your full name.';status.style.color='var(--red2)';return;}
+
+  btn.disabled=true;
+  status.textContent='Searching...';
+  status.style.color='var(--text2)';
+  results.innerHTML='';
+
+  try{
+    // Try exact match first
+    const exact=await loadProfileByName(name);
+    if(exact){
+      recoverFromProfile(exact);
+      return;
+    }
+    // Try partial match (first name, different capitalization)
+    const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.'+encodeURIComponent('%25'+name+'%25')+'&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    if(Array.isArray(partial)&&partial.length>0){
+      status.textContent='Found '+partial.length+' matching profile'+(partial.length>1?'s':'')+'. Is this you?';
+      status.style.color='var(--civitas2)';
+      results.innerHTML=partial.map(p=>{
+        const updated=p.updated_at?new Date(p.updated_at).toLocaleDateString():'unknown date';
+        let courseList='';
+        try{const c=JSON.parse(p.courses||'[]');courseList=c.map(x=>x.id).join(', ');}catch(e){}
+        return`<div onclick="recoverConfirm('${encodeURIComponent(p.full_name)}')"
+          style="background:var(--bg2);border:1px solid var(--border2);padding:12px 16px;margin-bottom:8px;cursor:pointer;
+          text-align:left;transition:border-color .2s"
+          onmouseover="this.style.borderColor='var(--civitas)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <div style="font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600">${p.display_name||p.full_name}</div>
+          <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-top:3px">Last active: ${updated} · Courses: ${courseList||'none'}</div>
+          <div style="font-family:var(--bebas);font-size:10px;color:var(--civitas2);margin-top:4px;letter-spacing:1px">▶ RESTORE THIS PROFILE</div>
+        </div>`;
+      }).join('');
+    } else {
+      status.textContent='No profile found for "'+name+'". Check the spelling or create a new profile.';
+      status.style.color='var(--red2)';
+    }
+  }catch(e){
+    status.textContent='Connection error — check your internet and try again.';
+    status.style.color='var(--red2)';
+  }
+  btn.disabled=false;
+}
+
+async function recoverConfirm(encodedName){
+  const fullName=decodeURIComponent(encodedName);
+  const status=document.getElementById('recover-status');
+  status.textContent='Restoring profile...';
+  status.style.color='var(--civitas2)';
+  document.getElementById('recover-results').innerHTML='';
+  const profile=await loadProfileByName(fullName);
+  if(profile) recoverFromProfile(profile);
+  else{status.textContent='Could not load profile. Try again.';status.style.color='var(--red2)';}
+}
+
+function recoverFromProfile(profile){
+  loadS(); // start from default state
+  applyProfile(profile);
+  S.setupDone=true;
+  S.isGuest=false;
+  saveS();
+  document.getElementById('recover-screen').style.display='none';
+  enterShell();
+}
 
 async function boot(){
   document.getElementById('loading-screen').style.display='none';
