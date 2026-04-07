@@ -3934,6 +3934,11 @@ function recoverFromProfile(profile){
   S.isGuest=false;
   S.isTeacher=false;
   saveS();
+  // Hard-hide teacher UI elements
+  const tb=document.getElementById('nav-teacher');
+  if(tb)tb.style.display='none';
+  const vt=document.getElementById('view-teacher');
+  if(vt)vt.classList.remove('active');
   document.getElementById('recover-screen').style.display='none';
   enterShell();
 }
@@ -4594,10 +4599,12 @@ function enterShell(){
     localStorage.removeItem('civitas_last_course');
   }catch(e){}
 
-  if(IS_TEACHER){
+  if(IS_TEACHER&&S.isTeacher){
     document.getElementById('nav-teacher').style.display='inline-block';
     showMainView('teacher');
   } else {
+    IS_TEACHER=false;
+    document.getElementById('nav-teacher').style.display='none';
     showDashboard();
   }
 
@@ -4813,7 +4820,10 @@ function showMainView(v){
   if(v==='profile')refreshProfile();
   if(v==='wallet')renderWallet();
   if(v==='characters')buildCharGrid();
-  if(v==='teacher')renderTeacherView();
+  if(v==='teacher'){
+    if(!IS_TEACHER){showDashboard();return;}
+    renderTeacherView();
+  }
 }
 
 
