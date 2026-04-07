@@ -234,10 +234,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       </div>
     </div>
     <button class="back-btn" onclick="returnToShell()">← Back to Civitas</button>
+  <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">💾 Save</button>
   </div>
   <div class="hub-tabs">
     <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
-    <button class="hub-tab" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    
     <button class="hub-tab" onclick="switchTab('about',this)">📋 About This Game</button>
   </div>
   <div class="hub-content">
@@ -590,6 +591,7 @@ function renderRoundCards(){
   const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
   if(pf)pf.style.width=pct+'%';if(pp)pp.textContent=`${completed} / ${QUESTION_BANK.rounds.length} rounds complete`;
   if(allRoundsComplete())renderCompleteBanner();
+  appendFRQRoundCard();
 }
 
 function renderCompleteBanner(){
@@ -610,6 +612,105 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const SUPA_H = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
 
 
+// ── PARTIAL PROGRESS SAVE ─────────────────────────────────────────────
+let _saveDebounce = null;
+function savePartialProgress() {
+  try {
+    const partial = {
+      roundIdx: G.roundIdx,
+      questionIdx: G.questionIdx,
+      correct: G.sessionCorrect,
+      total: G.sessionTotal,
+      ts: Date.now()
+    };
+    localStorage.setItem('civitas_' + UNIT_ID + '_partial', JSON.stringify(partial));
+  } catch(e) {}
+  clearTimeout(_saveDebounce);
+  _saveDebounce = setTimeout(() => saveProgressToSupabase(), 1500);
+}
+
+function saveGameToFile() {
+  try {
+    const sn = localStorage.getItem('civitas_student_name') || 'student';
+    const fn = localStorage.getItem('civitas_full_name') || sn;
+    const save = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      studentName: sn,
+      fullName: fn,
+      unitId: UNIT_ID,
+      unitProgress: JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'),
+      gold: parseInt(localStorage.getItem('civitas_gold') || '0'),
+      shellState: JSON.parse(localStorage.getItem('civitas_state') || '{}'),
+    };
+    QUESTION_BANK.rounds.forEach((_, i) => {
+      const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+      if (d) save['round_' + i] = JSON.parse(d);
+    });
+    const partial = localStorage.getItem('civitas_' + UNIT_ID + '_partial');
+    if (partial) save.partial = JSON.parse(partial);
+    const blob = new Blob([JSON.stringify(save, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'civitas-save-' + fn.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    notify('💾 Progress saved to your device!');
+  } catch(e) { notify('Save failed — try again.'); }
+}
+
+function appendFRQRoundCard() {
+  const el = document.getElementById('round-cards');
+  if (!el || document.getElementById('frq-round-card')) return;
+  const allDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const frqDone = hasAnyFRQSubmitted();
+  const totalRounds = QUESTION_BANK.rounds.length;
+  const color = 'var(--purple)';
+  const color2 = 'var(--purple2)';
+  const card = document.createElement('div');
+  card.id = 'frq-round-card';
+  card.style.cssText = `background:var(--bg2);border:1px solid ${frqDone?color:allDone?'var(--border2)':'var(--border)'};border-left:4px solid ${frqDone?color:allDone?'var(--border2)':'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${allDone?'cursor:pointer':'opacity:.45;cursor:not-allowed'}`;
+  if (allDone) {
+    card.onmouseover = () => card.style.borderColor = color;
+    card.onmouseout  = () => card.style.borderColor = frqDone ? color : 'var(--border2)';
+    card.onclick = () => {
+      document.querySelectorAll('.hub-tab').forEach(t => {
+        if (t.textContent.includes('FRQ')) switchTab('frq', t);
+      });
+    };
+  }
+  card.innerHTML = `
+    <div style="font-size:28px;flex-shrink:0">✍️</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${totalRounds+1} OF ${totalRounds+1} · FINAL STEP</div>
+      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">FRQ Practice</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">AI-graded free response — submit at least one to complete this Big Idea.</div>
+    </div>
+    <div style="flex-shrink:0;text-align:right">
+      ${frqDone
+        ? `<div style="font-family:var(--bebas);font-size:11px;color:${color2};letter-spacing:1px">✓ SUBMITTED</div>`
+        : allDone
+          ? `<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color2};border:1px solid ${color};padding:6px 16px">▶ Go to FRQ</div>`
+          : `<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete all rounds first</div>`
+      }
+    </div>`;
+  el.appendChild(card);
+}
+
+function hasAnyFRQSubmitted() {
+  try {
+    const s = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const subs = s?.courseProgress?.ap_gov?.frqSubmissions || {};
+    const unitFrqs = getUnitFRQs ? getUnitFRQs() : [];
+    if (unitFrqs.length) return unitFrqs.some(f => subs[f.id] && subs[f.id].bestScore > 0);
+    // fallback: any FRQ submitted at all
+    return Object.values(subs).some(v => v.bestScore > 0);
+  } catch(e) { return false; }
+}
+
 async function saveProgressToSupabase() {
   try {
     const sn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
@@ -628,6 +729,7 @@ async function saveProgressToSupabase() {
       full_name: sn,
       unit_progress: JSON.stringify(unitProg),
       ['unit_rounds_apg_bi_mk']: JSON.stringify(rounds),
+      ['unit_partial_apg_bi_mk']: (()=>{try{return localStorage.getItem('civitas_apg_bi_mk_partial')||'{}'}catch(e){return'{}'}})(),
       updated_at: new Date().toISOString()
     };
     await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
@@ -954,6 +1056,7 @@ function submitAnswer(){
   document.getElementById('game-gold-disp').textContent='🪙 '+G.totalGold;
   document.getElementById('btn-submit').style.display='none';document.getElementById('btn-next').style.display='inline-block';
   setTimeout(()=>{document.getElementById('question-area').scrollTop=99999;},200);
+  savePartialProgress();
 }
 function nextQuestion(){G.questionIdx++;if(G.questionIdx>=G.questions.length)showRoundComplete();else{renderQuestion();document.getElementById('question-area').scrollTop=0;}}
 
@@ -1054,9 +1157,9 @@ async function submitFRQ(frqId) {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514', max_tokens:1000,
-        system:'You are an expert AP U.S. Government and Politics FRQ grader. Score strictly against the official College Board rubric. Be fair, specific, and encouraging. Respond ONLY in valid JSON — no markdown, no preamble.',
+        system:'You are a supportive AP U.S. Government and Politics FRQ grader. Award points generously on borderline responses — if the student demonstrates understanding, give the point even if phrasing is imperfect. For counterargument/Task D: award the point for ANY genuine attempt to acknowledge an opposing view and respond, however brief. NEVER lower a previously earned task score on resubmission. Respond ONLY in valid JSON — no markdown, no preamble.',
         messages:[{role:'user', content:
-          'Grade this AP Gov FRQ.\n\nFRQ TITLE: '+rd.title+'\n\nRUBRIC:\n'+rd.rubric+'\n\nSTUDENT RESPONSE:\n'+resp+'\n\n'+
+          'Grade this AP Gov FRQ.\n\nFRQ TITLE: '+rd.title+'\n\nRUBRIC:\n'+rd.rubric+'\n\nPREVIOUS BEST TASK SCORES (never go below these on resubmission): '+(localStorage.getItem('civitas_frq_tasks_'+frqId)||'{}')+' \n\nSTUDENT RESPONSE:\n'+resp+'\n\n'+
           (rd.maxScore===3?
 'This is a 3-POINT CONCEPT APPLICATION FRQ. Return ONLY this JSON:\n{"totalScore":<0-3>,"tasks":{"A":{"earned":<0|1>,"feedback":"<Part A feedback>"},"B":{"earned":<0|1>,"feedback":"<Part B feedback>"},"C":{"earned":<0|1>,"feedback":"<Part C feedback>"}},"overallFeedback":"<2-3 sentence summary>","improveHint":"<one specific improvement>"}':
 'This is a 6-POINT ARGUMENT ESSAY FRQ. Return ONLY this JSON:\n{"totalScore":<0-6>,"tasks":{"A":{"earned":<0|1>,"feedback":"<thesis feedback>"},"B1":{"earned":<0|1>,"feedback":"<evidence 1>"},"B2":{"earned":<0|1>,"feedback":"<evidence 2>"},"B3":{"earned":<0|1>,"feedback":"<foundational doc>"},"C":{"earned":<0|1>,"feedback":"<reasoning>"},"D":{"earned":<0|1>,"feedback":"<counterargument>"}},"overallFeedback":"<2-3 sentence summary>","improveHint":"<one specific improvement>"}'
