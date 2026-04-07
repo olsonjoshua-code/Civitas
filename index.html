@@ -732,6 +732,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
           style="width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:11px;outline:none;resize:vertical"></textarea>
       </div>
     </div>
+      <!-- MANUAL PROGRESS EDITOR -->
+      <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+          <div class="sh" style="font-size:14px;margin-bottom:0">Manual Progress Editor</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Grant unit completions to students who lost progress</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">STUDENT FULL NAME</div>
+            <input id="mpe-student-name" type="text" placeholder="e.g. Ryan Wilgeroth"
+              style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none"
+              onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border2)'">
+          </div>
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">COURSE</div>
+            <select id="mpe-course" onchange="renderMPEUnits()"
+              style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
+              <option value="ap_gov">AP U.S. Government</option>
+              <option value="ap_sem">AP Seminar</option>
+            </select>
+          </div>
+        </div>
+        <div id="mpe-units" style="margin-top:12px"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn sm" onclick="renderMPEUnits()" style="border-color:var(--amber);color:var(--amber)"><span>↺ Refresh Units</span></button>
+          <button class="btn sm green" onclick="commitManualProgress()" id="mpe-commit-btn"><span>✓ Apply Progress</span></button>
+        </div>
+        <div id="mpe-status" style="margin-top:10px;font-family:var(--dm);font-size:11px"></div>
+      </div>
+
       <!-- SAVE FILE RESTORE TOOL -->
       <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -6835,6 +6865,129 @@ function resetProfile(){
   location.reload();
 }
 
+
+
+// ── TEACHER: MANUAL PROGRESS EDITOR ──────────────────────────────────────────
+const MPE_UNITS = {
+  ap_gov: [
+    {id:'apg_u1', label:'Unit 1 — Foundations of Democracy'},
+    {id:'apg_u2', label:'Unit 2 — Branches of Government'},
+    {id:'apg_u3', label:'Unit 3 — Civil Liberties & Rights'},
+    {id:'apg_u4', label:'Unit 4 — American Political Ideologies'},
+    {id:'apg_u5', label:'Unit 5 — Political Participation'},
+    {id:'apg_u6', label:'Unit 6 — Public Policy'},
+  ],
+  ap_sem: [
+    {id:'apsem_u1', label:'Unit 1 — The Research Foundation'},
+    {id:'apsem_u2', label:'Unit 2 — Reading Arguments'},
+    {id:'apsem_u3', label:'Unit 3 — Evaluating Sources'},
+    {id:'apsem_u4', label:'Unit 4 — Building Arguments'},
+    {id:'apsem_u5', label:'Unit 5 — Individual Research & the IRR'},
+    {id:'apsem_u6', label:'Unit 6 — Team Collaboration & Presentation'},
+    {id:'apsem_exam', label:'AP Exam Practice'},
+    {id:'apsem_bi_bq', label:'Big Questions Theme'},
+  ]
+};
+
+function renderMPEUnits() {
+  const course = document.getElementById('mpe-course').value;
+  const units = MPE_UNITS[course] || [];
+  const el = document.getElementById('mpe-units');
+  el.innerHTML = '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">SELECT COMPLETED UNITS & ACCURACY</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">' +
+    units.map(u => `
+      <div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="mpe-chk-${u.id}" style="cursor:pointer;width:14px;height:14px;flex-shrink:0">
+        <label for="mpe-chk-${u.id}" style="font-family:var(--dm);font-size:10px;color:var(--text2);flex:1;cursor:pointer">${u.label}</label>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input type="number" id="mpe-acc-${u.id}" min="0" max="100" value="80" 
+            style="width:46px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
+          <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+        </div>
+      </div>`).join('') +
+    '</div>';
+}
+
+async function commitManualProgress() {
+  const studentName = document.getElementById('mpe-student-name').value.trim();
+  const course = document.getElementById('mpe-course').value;
+  const status = document.getElementById('mpe-status');
+  const btn = document.getElementById('mpe-commit-btn');
+
+  if (!studentName) { status.innerHTML = '<span style="color:var(--red2)">Enter a student name.</span>'; return; }
+
+  const units = MPE_UNITS[course] || [];
+  const selected = units.filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
+  if (!selected.length) { status.innerHTML = '<span style="color:var(--red2)">Select at least one unit.</span>'; return; }
+
+  btn.disabled = true;
+  status.innerHTML = '<span style="color:var(--text2)">Looking up student...</span>';
+
+  try {
+    // Fetch existing profile
+    const existing = await sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*');
+    if (!Array.isArray(existing) || !existing[0]) {
+      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '". Check spelling.</span>';
+      btn.disabled = false; return;
+    }
+    const profile = existing[0];
+    let unitProg = {};
+    try { unitProg = JSON.parse(profile.unit_progress || '{}'); } catch(e) {}
+
+    const now = new Date().toISOString();
+    const payload = { full_name: studentName, updated_at: now };
+
+    // Add each selected unit to unit_progress
+    selected.forEach(u => {
+      const acc = parseInt(document.getElementById('mpe-acc-' + u.id)?.value || '80');
+      // Only update if new accuracy is better than existing
+      const existing_acc = unitProg[u.id]?.bestAccuracy || 0;
+      unitProg[u.id] = {
+        bestAccuracy: Math.max(acc, existing_acc),
+        completedAt: unitProg[u.id]?.completedAt || now
+      };
+      // Also build full round keys so the game shows rounds as done
+      const rounds = {};
+      const numRounds = 4;
+      for (let i = 0; i < numRounds; i++) {
+        const rAcc = Math.min(100, acc + Math.floor(Math.random()*10 - 5));
+        rounds['r' + i] = {
+          bestPct: rAcc,
+          bestCorrect: Math.round(rAcc / 100 * 15),
+          bestTotal: 15,
+          attempts: 1,
+          completedAt: now
+        };
+      }
+      payload['unit_rounds_' + u.id] = JSON.stringify(rounds);
+    });
+    payload.unit_progress = JSON.stringify(unitProg);
+
+    // Upsert
+    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify(payload)
+    });
+
+    if (resp.ok || resp.status === 200 || resp.status === 201) {
+      const unitList = selected.map(u => u.label).join(', ');
+      status.innerHTML = '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2)">' +
+        '✓ Updated <strong>' + studentName + '</strong> — marked complete: ' + unitList + 
+        '<br><span style="font-size:10px;opacity:.7">Student can recover their profile using "Returning Student" on the title screen.</span></div>';
+      // Uncheck all
+      selected.forEach(u => { const chk = document.getElementById('mpe-chk-' + u.id); if(chk) chk.checked = false; });
+    } else {
+      throw new Error('Supabase returned ' + resp.status);
+    }
+  } catch(e) {
+    status.innerHTML = '<span style="color:var(--red2)">❌ Error: ' + e.message + '</span>';
+  }
+  btn.disabled = false;
+}
+
+// Initialize MPE on page load
+document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); });
 
 // ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────
 function clearImportJSON() {
