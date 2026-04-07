@@ -207,6 +207,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);background-ima
     <div class="results-actions">
       <button class="results-btn primary" onclick="showLobby()">&#9654; Try Again</button>
       <button class="results-btn secondary" onclick="returnToShell()">&#8592; Back to AP Comparative</button>
+  <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">&#128190; Save</button>
     </div>
   </div>
   <div class="results-body">
@@ -430,6 +431,31 @@ let S={
 /* ============================================================
    INIT
    ============================================================ */
+function saveGameToFile() {
+  try {
+    const sn = localStorage.getItem('civitas_student_name') || 'student';
+    const fn = localStorage.getItem('civitas_full_name') || sn;
+    const save = {
+      version:1, savedAt:new Date().toISOString(),
+      studentName:sn, fullName:fn, unitId:'apcmp_exam',
+      unitProgress:JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}'),
+      gold:parseInt(localStorage.getItem('civitas_gold')||'0'),
+      shellState:JSON.parse(localStorage.getItem('civitas_state')||'{}'),
+    };
+    QUESTION_BANK.rounds.forEach((_,i)=>{
+      const d=localStorage.getItem('civitas_apcmp_exam_r'+i);
+      if(d)save['round_'+i]=JSON.parse(d);
+    });
+    const blob=new Blob([JSON.stringify(save,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='civitas-save-'+fn.replace(/\s+/g,'-').toLowerCase()+'-apcmp_exam.json';
+    a.style.display='none'; document.body.appendChild(a); a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+    notify('&#128190; Progress saved!');
+  } catch(e){notify('Save failed.');}
+}
+
 function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
 
 window.addEventListener('load',()=>{
