@@ -194,6 +194,7 @@ body{background:var(--bg);color:var(--cream);font-family:var(--dm);}
 <div id="hub">
   <div class="hub-hero">
     <button class="back-btn" onclick="returnToShell()">&#8592; Back to Civitas</button>
+  <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">&#128190; Save</button>
     <div class="hub-hero-icon">🤝</div>
     <div class="hub-hero-info">
       <div class="hub-breadcrumb">CIVITAS · AP SEMINAR · UNIT 6</div>
@@ -212,7 +213,7 @@ body{background:var(--bg);color:var(--cream);font-family:var(--dm);}
     <button class="hub-tab" onclick="switchTab('briefing',this)">&#128203; Briefing</button>
     <button class="hub-tab" onclick="switchTab('vocab',this)">&#127183; Vocabulary</button>
     <button class="hub-tab" onclick="switchTab('quiz',this)">&#10003; Vocab Quiz</button>
-    <button class="hub-tab" onclick="switchTab('frq',this)">&#9999;&#65039; FRQ Practice</button>
+    
     <button class="hub-tab" onclick="switchTab('overview',this)">&#128202; Overview</button>
   </div>
 
@@ -1153,12 +1154,18 @@ async function submitUnitFRQ(frqId) {
   btnEl.disabled = true; btnEl.textContent = 'Grading...';
   feedbackEl.style.display = 'block';
   feedbackEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding:8px 0"><div style="font-size:22px">🌍</div><div style="font-family:var(--bebas);font-size:13px;color:'+tc.color+';letter-spacing:2px">Grading your '+tc.label+'...</div></div>';
+  var prevTaskScores = {};
+  try {
+    var _ps = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    var _psub = (_ps.courseProgress && _ps.courseProgress.ap_cmp && _ps.courseProgress.ap_cmp.frqSubmissions && _ps.courseProgress.ap_cmp.frqSubmissions[frqId]) || {};
+    prevTaskScores = _psub.bestTaskScores || {};
+  } catch(e) {}
   try {
     const apiResp = await fetch(AI_URL, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1400,
-        system: 'You are an expert AP Seminarernment and Politics FRQ grader. Grade strictly against the rubric. Respond ONLY in valid JSON, no other text or markdown.',
-        messages: [{role:'user', content: 'Grade this AP Seminar '+tc.label+' FRQ.\n\nRUBRIC:\n'+frq.rubric+'\n\nSTUDENT RESPONSE:\n'+response+'\n\nReturn ONLY this JSON:\n'+tc.jsonSchema}]
+        system: 'You are a supportive AP Seminar FRQ grader. Award points generously on borderline responses — if the student demonstrates understanding, give the point even if phrasing is imperfect. NEVER lower a previously earned task score on resubmission. Respond ONLY in valid JSON, no markdown.',
+        messages: [{role:'user', content: 'Grade this AP Seminar '+tc.label+' FRQ.\n\nRUBRIC:\n'+frq.rubric+'\n\nPREVIOUS BEST TASK SCORES (never go below these): '+JSON.stringify(prevTaskScores)+'\n\nSTUDENT RESPONSE:\n'+response+'\n\nReturn ONLY this JSON:\n'+tc.jsonSchema}]
       })
     });
     const data = await apiResp.json();
@@ -1175,12 +1182,15 @@ async function submitUnitFRQ(frqId) {
       if (!ss.courseProgress) ss.courseProgress = {};
       if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
       if (!ss.courseProgress.ap_cmp.frqSubmissions) ss.courseProgress.ap_cmp.frqSubmissions = {};
-      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[]};
+      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[],bestTaskScores:{}};
       ex.bestScore = Math.max(ex.bestScore, score); ex.maxScore = frq.points;
-      ex.attempts = (ex.attempts||0)+1; if (!ex.history) ex.history = [];
+      ex.attempts = (ex.attempts||0)+1;
+      if(!ex.bestTaskScores)ex.bestTaskScores={};
+      Object.keys(tasks).forEach(function(k){if((tasks[k]&&tasks[k].earned||0)>=(ex.bestTaskScores[k]||0))ex.bestTaskScores[k]=tasks[k].earned||0;}); if (!ex.history) ex.history = [];
       ex.history.push({score:score, ts:Date.now()});
       ss.courseProgress.ap_cmp.frqSubmissions[frqId] = ex;
-      localStorage.setItem('civitas_shell_state', JSON.stringify(ss));
+      localStorage.setItem('civitas_state', JSON.stringify(ss));
+      saveProgressToSupabase();
     } catch(e) {}
 
     if (isNew && score > 0) {
@@ -1424,6 +1434,7 @@ function submitAnswer() {
   }
   document.getElementById('btn-next').style.display = 'block';
   updateGoldDisplay();
+  savePartialProgress();
 }
 
 function nextQuestion() {
@@ -1475,6 +1486,88 @@ function finishRound() {
   }
 }
 
+
+// ── PARTIAL PROGRESS SAVE ──────────────────────────────────────────────
+let _saveDebounce = null;
+function savePartialProgress() {
+  try {
+    const partial = {
+      roundIdx: G.roundIdx,
+      questionIdx: G.questionIdx,
+      correct: G.sessionCorrect,
+      total: G.sessionTotal,
+      ts: Date.now()
+    };
+    localStorage.setItem('civitas_' + UNIT_ID + '_partial', JSON.stringify(partial));
+  } catch(e) {}
+  // Debounced Supabase push — waits 1.5s after last answer
+  clearTimeout(_saveDebounce);
+  _saveDebounce = setTimeout(() => saveProgressToSupabase(), 1500);
+}
+
+function saveGameToFile() {
+  try {
+    const sn = localStorage.getItem('civitas_student_name') || 'student';
+    const fn = localStorage.getItem('civitas_full_name') || sn;
+    const save = {
+      version: 1, savedAt: new Date().toISOString(),
+      studentName: sn, fullName: fn, unitId: UNIT_ID,
+      unitProgress: JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'),
+      gold: parseInt(localStorage.getItem('civitas_gold') || '0'),
+      shellState: JSON.parse(localStorage.getItem('civitas_state') || '{}'),
+    };
+    QUESTION_BANK.rounds.forEach((_, i) => {
+      const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+      if (d) save['round_' + i] = JSON.parse(d);
+    });
+    const partial = localStorage.getItem('civitas_' + UNIT_ID + '_partial');
+    if (partial) save.partial = JSON.parse(partial);
+    const blob = new Blob([JSON.stringify(save, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'civitas-save-' + fn.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.style.display = 'none'; document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    notify('\u{1F4BE} Progress saved to your device!');
+  } catch(e) { notify('Save failed — try again.'); }
+}
+
+async function saveProgressToSupabase() {
+  try {
+    const sn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
+    if (!sn || sn === 'Mr. Olson') return; // skip teacher
+    // Collect all round progress for this unit
+    const rounds = {};
+    QUESTION_BANK.rounds.forEach((_, i) => {
+      try {
+        const k = 'civitas_' + UNIT_ID + '_r' + i;
+        const d = localStorage.getItem(k);
+        if (d) rounds['r' + i] = JSON.parse(d);
+      } catch(e) {}
+    });
+    // Get full unit_progress from localStorage
+    let unitProg = {};
+    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    // Build payload — upsert into civitas_profiles on full_name conflict
+    const payload = {
+      full_name: sn,
+      unit_progress: JSON.stringify(unitProg),
+      ['unit_rounds_' + UNIT_ID]: JSON.stringify(rounds),
+      ['unit_partial_' + UNIT_ID]: (()=>{try{return localStorage.getItem('civitas_'+UNIT_ID+'_partial')||'{}'}catch(e){return'{}'}})(),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
 function syncProgressToShell(accuracy) {
   try {
     const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
@@ -1482,6 +1575,8 @@ function syncProgressToShell(accuracy) {
     prog[UNIT_ID] = { bestAccuracy: Math.max(prev.bestAccuracy || 0, accuracy), completedAt: new Date().toISOString() };
     localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
   } catch(e) {}
+  // Also save to Supabase so progress survives localStorage wipes
+  saveProgressToSupabase();
 }
 
 function showUnitComplete() {
