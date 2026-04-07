@@ -3763,11 +3763,14 @@ async function submitRecover(){
       return;
     }
     // Try partial match (first name, different capitalization)
-    const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.'+encodeURIComponent('%25'+name+'%25')+'&select=display_name,full_name,gold,courses,updated_at&limit=8');
-    if(Array.isArray(partial)&&partial.length>0){
-      status.textContent='Found '+partial.length+' matching profile'+(partial.length>1?'s':'')+'. Is this you?';
+    const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    const partial2=await sfetch('/rest/v1/civitas_profiles?full_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    const seen=new Set();
+    const combined=[...(Array.isArray(partial)?partial:[]),...(Array.isArray(partial2)?partial2:[])].filter(p=>{if(seen.has(p.full_name))return false;seen.add(p.full_name);return true;});
+    if(combined.length>0){
+      status.textContent='Found '+combined.length+' matching profile'+(combined.length>1?'s':'')+'. Is this you?';
       status.style.color='var(--civitas2)';
-      results.innerHTML=partial.map(p=>{
+      results.innerHTML=combined.map(p=>{
         const updated=p.updated_at?new Date(p.updated_at).toLocaleDateString():'unknown date';
         let courseList='';
         try{const c=JSON.parse(p.courses||'[]');courseList=c.map(x=>x.id).join(', ');}catch(e){}
@@ -3781,14 +3784,75 @@ async function submitRecover(){
         </div>`;
       }).join('');
     } else {
-      status.textContent='No profile found for "'+name+'". Check the spelling or create a new profile.';
+      status.textContent='No profile found for "'+name+'". Try a shorter name, or just a first name.';
       status.style.color='var(--red2)';
+      results.innerHTML='<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">'+
+        '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:6px">Teacher: browse all profiles to find a student manually.</div>'+
+        '<div style="display:flex;gap:6px;align-items:center">'+
+        '<input id="recover-teacher-pwd" type="password" maxlength="16" placeholder="Teacher code" '+
+        'style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:8px 10px;flex:1;outline:none" '+
+        'onkeydown="if(event.key===\'Enter\')checkTeacherAndBrowse()">'+
+        '<button class="btn" onclick="checkTeacherAndBrowse()" style="font-size:10px;padding:8px 12px"><span>Browse All</span></button>'+
+        '</div>'+
+        '<div id="recover-teacher-err" style="font-family:var(--dm);font-size:10px;color:var(--red2);min-height:14px;margin-top:4px"></div>'+
+        '</div>';
     }
   }catch(e){
     status.textContent='Connection error — check your internet and try again.';
     status.style.color='var(--red2)';
   }
   btn.disabled=false;
+}
+
+function checkTeacherAndBrowse(){
+  const pwd=document.getElementById('recover-teacher-pwd');
+  const err=document.getElementById('recover-teacher-err');
+  if(!pwd)return;
+  if(pwd.value===TEACHER_PWD){
+    err.textContent='';
+    showAllProfiles();
+  } else {
+    err.textContent='Incorrect code.';
+    pwd.value='';
+    setTimeout(()=>{if(err)err.textContent='';},2500);
+  }
+}
+
+async function showAllProfiles(){
+  const status=document.getElementById('recover-status');
+  const results=document.getElementById('recover-results');
+  status.textContent='Loading all profiles...';
+  status.style.color='var(--text2)';
+  results.innerHTML='';
+  try{
+    const all=await sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,gold,courses,updated_at&order=updated_at.desc&limit=200');
+    if(!Array.isArray(all)||all.length===0){
+      status.textContent='No profiles found in the database.';
+      status.style.color='var(--red2)';
+      return;
+    }
+    status.textContent=all.length+' profiles found — scroll to find yours:';
+    status.style.color='var(--civitas2)';
+    results.innerHTML='<div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);padding:4px">'+
+      all.map(p=>{
+        const updated=p.updated_at?new Date(p.updated_at).toLocaleDateString():'unknown';
+        let courseList='';
+        try{const c=JSON.parse(p.courses||'[]');courseList=c.map(x=>x.id).join(', ');}catch(e){}
+        return`<div onclick="recoverConfirm('${encodeURIComponent(p.full_name)}')"
+          style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"
+          onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='transparent'">
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">${p.display_name||p.full_name}</div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${courseList||'no courses'} · ${updated}</div>
+          </div>
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--civitas2);letter-spacing:1px">RESTORE</div>
+        </div>`;
+      }).join('')+
+    '</div>';
+  }catch(e){
+    status.textContent='Connection error.';
+    status.style.color='var(--red2)';
+  }
 }
 
 async function recoverConfirm(encodedName){
@@ -3974,6 +4038,29 @@ function applyProfile(p){
     });
     localStorage.setItem('civitas_unit_progress',JSON.stringify(existing));
   }}catch(e){}
+  // Restore per-round progress keys for each unit game
+  // These are stored in Supabase as unit_rounds_<UNIT_ID> columns
+  try {
+    const unitIds = ['apsem_u1','apsem_u2','apsem_u3','apsem_u4','apsem_u5','apsem_u6','apsem_exam','apsem_bi_bq'];
+    unitIds.forEach(uid => {
+      const col = 'unit_rounds_' + uid;
+      if (p[col] && p[col] !== '{}' && p[col] !== 'null') {
+        try {
+          const rounds = JSON.parse(p[col]);
+          Object.keys(rounds).forEach(rkey => {
+            // rkey is 'r0', 'r1' etc — restore to localStorage as 'civitas_apsem_u1_r0'
+            const lsKey = 'civitas_' + uid + '_' + rkey;
+            const existing = localStorage.getItem(lsKey);
+            const fromDB = rounds[rkey];
+            // Only overwrite if DB version is newer or local doesn't exist
+            if (!existing || (fromDB.completedAt && JSON.parse(existing).completedAt < fromDB.completedAt)) {
+              localStorage.setItem(lsKey, JSON.stringify(fromDB));
+            }
+          });
+        } catch(e) {}
+      }
+    });
+  } catch(e) {}
   S.setupDone=true;S.isGuest=false;
   // Sync US History progress now that S.courses is populated
   syncUSHistoryProgress();
