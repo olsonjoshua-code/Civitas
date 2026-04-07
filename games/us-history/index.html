@@ -574,6 +574,7 @@ body::before{content:'';position:fixed;inset:0;
         <button class="nav-btn" id="nav-wallet" onclick="showView('wallet')" style="display:none">🪙 Gold</button>
         <button class="nav-btn" id="nav-story" onclick="showView('story')" style="display:none">📜 Story</button>
       </div>
+      <button onclick="saveGameToFile()" style="font-family:var(--bebas,'Bebas Neue',sans-serif);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid #4878d0;color:#88aaee;padding:5px 14px;cursor:pointer;flex-shrink:0;margin-right:8px" onmouseover="this.style.background='#4878d0';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#88aaee'">&#128190; Save Progress</button>
     </div>
   </div>
 </div>
@@ -2050,6 +2051,31 @@ const BADGES=[
 let S={name:'',avatar:'scholar_f',period:'',isGuest:false,isTeacher:false,
   unitsCompleted:[],badgesEarned:[],unlocked:CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id),setupDone:false,
   gold:0,xp:0,vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{}};
+function saveGameToFile() {
+  try {
+    const fname = (S && S.name) ? S.name : 'student';
+    const save = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      studentName: fname,
+      fullName: S.fullName || fname,
+      period: S.period || '',
+      shellState: S,
+      localKey: SHELL_KEY
+    };
+    const blob = new Blob([JSON.stringify(save, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'civitas-ush-save-' + fname.replace(/\s+/g,'-').toLowerCase() + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    notify('\u{1F4BE} Progress saved to your device!', 'green');
+  } catch(e) { notify('Save failed.', 'red'); }
+}
+
 function saveS(){
   try{localStorage.setItem(SHELL_KEY,JSON.stringify(S));}catch(e){}
   // Debounced DB push — don't hammer Supabase on every state change
