@@ -2235,7 +2235,7 @@ function getUnitFRQs(){
 
   function _bestScore(id){
     try{
-      const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       const sub = s&&s.courseProgress&&s.courseProgress.ap_gov&&s.courseProgress.ap_gov.frqSubmissions||{};
       return (sub[id]&&sub[id].bestScore>0) ? sub[id].bestScore : null;
     }catch(e){return null;}
@@ -2278,7 +2278,7 @@ function getFRQDraft(id){try{return sessionStorage.getItem('civitas_frq_draft_'+
 function saveFRQDraft(id,t){try{sessionStorage.setItem('civitas_frq_draft_'+id,t);}catch(e){}}
 function getFRQFeedback(id){try{return sessionStorage.getItem('civitas_frq_fb_'+id)||'';}catch(e){return '';}}
 function getFRQBestScore(id){
-  try{const s=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+  try{const s=JSON.parse(localStorage.getItem('civitas_state')||'{}');
   const sub=s&&s.courseProgress&&s.courseProgress.ap_gov&&s.courseProgress.ap_gov.frqSubmissions||{};
   if(sub[id]&&sub[id].bestScore>0)return sub[id].bestScore;}catch(e){}return null;
 }
@@ -2433,7 +2433,7 @@ async function submitUnitFRQ(frqId){
     var prevBest=getFRQBestScore(frqId)||0;
     var isNew=score>prevBest;
     try{
-      var ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      var ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
       if(!ss.courseProgress)ss.courseProgress={};
       if(!ss.courseProgress.ap_gov)ss.courseProgress.ap_gov={};
       if(!ss.courseProgress.ap_gov.frqSubmissions)ss.courseProgress.ap_gov.frqSubmissions={};
@@ -2442,7 +2442,7 @@ async function submitUnitFRQ(frqId){
       ex.attempts=(ex.attempts||0)+1;if(!ex.history)ex.history=[];
       ex.history.push({score:score,ts:Date.now()});
       ss.courseProgress.ap_gov.frqSubmissions[frqId]=ex;
-      localStorage.setItem('civitas_shell_state',JSON.stringify(ss));
+      localStorage.setItem('civitas_state',JSON.stringify(ss));
     }catch(e){}
     if(isNew&&score>0){var g=Math.round((FRQ_GOLD[frq.type]||75)*(score/frq.points));awardGoldToShell(g,'FRQ: '+frq.title);spawnGold('+'+g+' 🪙');}
     var SU='https://dnmrwglrcvlbamzhlzlx.supabase.co';
