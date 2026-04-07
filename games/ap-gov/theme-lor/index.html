@@ -627,6 +627,39 @@ const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
 const SUPA_H = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
 
+
+async function saveProgressToSupabase() {
+  try {
+    const sn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
+    if (!sn || sn === 'Mr. Olson') return;
+    const rounds = {};
+    QUESTION_BANK.rounds.forEach((_, i) => {
+      try {
+        const k = 'civitas_' + UNIT_ID + '_r' + i;
+        const d = localStorage.getItem(k);
+        if (d) rounds['r' + i] = JSON.parse(d);
+      } catch(e) {}
+    });
+    let unitProg = {};
+    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    const payload = {
+      full_name: sn,
+      unit_progress: JSON.stringify(unitProg),
+      ['unit_rounds_apg_bi_lor']: JSON.stringify(rounds),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
 async function syncProgressToCloud() {
   try {
     const studentName = localStorage.getItem('civitas_student_name') || '';
@@ -1062,6 +1095,7 @@ function showRoundComplete() {
         }
       } catch(e) {}
       syncProgressToCloud();
+      saveProgressToSupabase();
       if (allRoundsComplete()) {
         showThemeComplete(pct);
       } else {
@@ -1083,6 +1117,7 @@ function getTrophyForAccuracy(pct) {
 function awardGoldToShell(amount, source) {
   try { const c = parseInt(localStorage.getItem('civitas_gold')||'0'); localStorage.setItem('civitas_gold', c+amount); localStorage.setItem('civitas_gold_pending', JSON.stringify({amount,source})); } catch(e) {}
   syncProgressToCloud();
+  saveProgressToSupabase();
 }
 function playAgain() {
   document.getElementById('unit-complete').style.display = 'none';
