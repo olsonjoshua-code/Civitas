@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit 1: The Research Foundation — AP Seminar · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080f;--bg2:#0f0f1a;--bg3:#141420;--panel:#11111e;
+  --border:#1a1a2e;--border2:#242440;
+  --acc:#6090c0;--acc2:#80b0e0;--acc3:#a8d0f8;
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffcc00;--gc:#f5c842;
+  --teal:#208878;--teal2:#30b898;
+  --green:#38a050;--green2:#5dba7a;
+  --blue:#4878d0;--blue2:#6898e8;
+  --purple:#7060c0;--purple2:#9080e0;
+  --red:#e04040;--red2:#f06060;
+  --cream:#f0ede4;--text2:#8a9ab8;--text3:#4a5a78;
+  --playfair:'Playfair Display',serif;
+  --bebas:'Bebas Neue',sans-serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--cream);font-family:var(--dm);}
+
+/* ── Loading ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:52px;margin-bottom:18px;animation:pop .6s ease both}
+.ld-title{font-family:var(--bebas);font-size:22px;color:var(--acc2);letter-spacing:4px;margin-bottom:6px}
+.ld-sub{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;margin-bottom:24px}
+.ld-bar-wrap{width:220px;height:3px;background:var(--border2);border-radius:2px}
+.ld-bar-fill{height:100%;width:0;background:var(--acc);border-radius:2px;transition:width .1s}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* ── Hub ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(12,12,24,.98),rgba(96,144,192,.06));border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(96,144,192,.08) 0%,transparent 70%);pointer-events:none}
+.hub-hero-icon{font-size:56px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(96,144,192,.3))}
+.hub-hero-info{flex:1;min-width:0}
+.hub-breadcrumb{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.hub-title{font-family:var(--playfair);font-size:clamp(20px,3vw,32px);font-weight:700;color:var(--cream);margin-bottom:8px;line-height:1.2}
+.hub-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7;max-width:720px}
+.hub-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px}
+.hub-meta-item{font-family:var(--dm);font-size:10px;color:var(--text3)}
+.hub-meta-item span{color:var(--acc2);font-weight:600}
+.back-btn{position:absolute;top:18px;right:20px;font-family:var(--bebas);font-size:10px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── Tabs ── */
+.hub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border2);background:var(--bg2);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);padding:12px 20px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.hub-tab:hover{color:var(--acc2)}
+.hub-tab.active{color:var(--acc2);border-bottom-color:var(--acc)}
+.hub-panel{display:none;padding:24px 40px;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Progress bar ── */
+.progress-wrap{background:var(--bg2);border-bottom:1px solid var(--border2);padding:10px 40px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.progress-bar{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .4s ease;width:0}
+.progress-label{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);white-space:nowrap}
+
+/* ── Round Cards ── */
+.sh{font-family:var(--bebas);font-size:11px;letter-spacing:3px;color:var(--text3);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:14px;margin-top:4px}
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px}
+.activity-card{background:var(--bg2);border:1px solid var(--border2);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.activity-card:hover:not(.locked){border-color:var(--acc);transform:translateY(-2px)}
+.activity-card.locked{opacity:.5;cursor:not-allowed}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:16px}
+.activity-card-icon{font-size:28px;margin-bottom:8px}
+.activity-card-label{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:15px;color:var(--cream);font-weight:700;margin-bottom:6px;line-height:1.35}
+.activity-card-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);font-style:italic;line-height:1.6}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 7px;border:1px solid;border-radius:2px}
+.activity-card-action{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-top:10px}
+
+/* ── Game ── */
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+#game-header{background:rgba(8,8,16,.97);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--acc2);letter-spacing:3px;flex:1}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:10px;height:10px;border-radius:50%;background:var(--border2);transition:all .3s}
+.gp-pip.active{background:var(--acc)}
+.gp-pip.done{background:var(--green2)}
+
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:-1}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+
+#question-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.stimulus-box{background:rgba(96,144,192,.05);border:1px solid rgba(96,144,192,.18);border-left:3px solid var(--acc);padding:16px 20px;margin-bottom:4px}
+.stimulus-label{font-family:var(--bebas);font-size:9px;letter-spacing:3px;color:var(--acc2);margin-bottom:8px}
+.stimulus-title{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:700;margin-bottom:4px}
+.stimulus-source{font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:10px;font-style:italic}
+.stimulus-text{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.8;font-style:italic}
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;animation:slideUp .3s ease both}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--text3)}
+.q-tag{font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;border-radius:2px}
+.q-tag.topic{border-color:rgba(96,144,192,.3);color:var(--acc2)}
+.q-tag.diff-accessible{border-color:rgba(56,160,80,.3);color:var(--green2)}
+.q-tag.diff-moderate{border-color:rgba(232,160,32,.3);color:var(--amber2)}
+.q-tag.diff-challenging{border-color:rgba(160,80,224,.3);color:var(--purple2)}
+.q-stem{font-family:var(--crimson);font-size:22px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;display:flex;align-items:flex-start;gap:14px;transition:all .15s}
+.choice:hover:not(.answered){border-color:var(--acc2);background:rgba(96,144,192,.06)}
+.choice.selected{border-color:var(--acc2);background:rgba(96,144,192,.08)}
+.choice.correct{border-color:var(--green2);background:rgba(56,160,80,.08)}
+.choice.wrong{border-color:var(--red2);background:rgba(224,64,64,.08)}
+.choice.dim{opacity:.4}
+.choice.answered{cursor:default}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice.correct .choice-letter{color:var(--green2)}
+.choice.wrong .choice-letter{color:var(--red2)}
+.choice.selected .choice-letter{color:var(--acc2)}
+.choice-text{font-family:var(--crimson);font-size:19px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.correct .choice-text{color:var(--cream)}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+#btn-next{font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:var(--acc);border:none;color:#fff;padding:10px 28px;cursor:pointer;display:none}
+.explanation-box{background:rgba(96,144,192,.06);border:1px solid rgba(96,144,192,.2);border-left:3px solid var(--acc);padding:14px 18px;margin-top:4px;animation:slideUp .2s ease both}
+.exp-label{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--acc2);margin-bottom:6px}
+.exp-text{font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.75;font-style:italic}
+
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.rc-icon{font-size:64px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;font-weight:700;color:var(--cream);margin-bottom:8px}
+.rc-score{font-family:var(--bebas);font-size:18px;letter-spacing:3px;color:var(--acc2);margin-bottom:24px}
+.rc-btn{font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--acc);color:var(--acc2);padding:11px 28px;cursor:pointer;transition:all .2s;margin:4px}
+.rc-btn:hover{background:var(--acc);color:#fff}
+
+#unit-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;z-index:200}
+
+/* ── FRQ ── */
+#frq-hub-content .frq-card{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:18px 22px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+#frq-hub-content .frq-card:hover{border-color:var(--acc2);transform:translateX(3px)}
+#frq-hub-content .frq-type-badge{font-family:var(--bebas);font-size:9px;letter-spacing:2px;padding:2px 8px;border:1px solid;margin-bottom:8px;display:inline-block}
+#frq-hub-content .frq-title{font-family:var(--playfair);font-size:15px;color:var(--cream);font-weight:700;margin-bottom:4px}
+#frq-hub-content .frq-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);font-style:italic}
+
+/* ── Vocab/FC ── */
+.vq-option{background:var(--bg2);border:1.5px solid var(--border2);padding:12px 16px;cursor:pointer;transition:all .15s;font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.vq-option:hover{border-color:var(--acc2)}
+.vq-option.vq-correct{border-color:var(--green2);background:rgba(56,160,80,.08);color:var(--cream)}
+.vq-option.vq-wrong{border-color:var(--red2);background:rgba(224,64,64,.08)}
+.vq-option.vq-reveal{border-color:var(--border2);opacity:.45}
+
+/* ── Notif + Gold ── */
+.notif{position:fixed;top:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--acc);padding:10px 18px;font-family:var(--dm);font-size:12px;z-index:10000;animation:slideIn .3s ease;pointer-events:none}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:14px;color:var(--gc);pointer-events:none;z-index:9999;animation:floatUp .9s ease forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+
+/* ── FRQ Workspace ── */
+.frq-submit-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;padding:7px 18px;cursor:pointer;transition:all .2s;border:1.5px solid}
+@media(max-width:600px){
+  .hub-hero{padding:20px 16px;gap:16px}
+  .hub-panel{padding:16px}
+  .hub-tabs{gap:0}
+  .hub-tab{padding:10px 12px;font-size:10px}
+  #question-area{padding:12px}
+  .q-stem{font-size:18px}
+  .choice-text{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-icon">🔍</div>
+  <div class="ld-title">AP Seminar</div>
+  <div class="ld-sub">Loading Unit 1: The Research Foundation...</div>
+  <div class="ld-bar-wrap"><div id="ld-fill" class="ld-bar-fill"></div></div>
+</div>
+
+<div id="hub">
+  <div class="hub-hero">
+    <button class="back-btn" onclick="returnToShell()">&#8592; Back to Civitas</button>
+    <div class="hub-hero-icon">🔍</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP SEMINAR · UNIT 1</div>
+      <div class="hub-title">The Research Foundation</div>
+      <div class="hub-desc">The skills at the heart of AP Seminar — how to ask researchable questions, navigate the QUEST framework, evaluate sources for credibility and perspective, and understand what makes an argument rigorous and persuasive.</div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Skills: <span>Questioning · Understanding · Evaluating Sources</span></div>
+        <div class="hub-meta-item">📝 Exam Weight: <span>AP Seminar Paper 1 &amp; End-of-Course Assessment</span></div>
+        <div class="hub-meta-item">🎯 Framework: <span>QUEST · SPAR · IWA · IRR</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">&#9654; Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">&#128203; Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">&#127183; Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">&#10003; Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('frq',this)">&#9999;&#65039; FRQ Practice</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">&#128202; Overview</button>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">UNIT PROGRESS</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-text">0 / 3 ROUNDS COMPLETE</div>
+  </div>
+
+  <!-- PLAY TAB -->
+  <div id="tab-play" class="hub-panel active">
+    <div class="sh">PRACTICE ROUNDS</div>
+    <div class="activity-grid" id="round-cards"></div>
+  </div>
+
+  <!-- BRIEFING TAB -->
+  <div id="tab-briefing" class="hub-panel">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:22px 28px;margin-bottom:24px">
+      <div style="font-family:var(--bebas);font-size:10px;letter-spacing:3px;color:var(--acc2);margin-bottom:6px">AP SEMINAR · UNIT 1</div>
+      <div style="font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px">The Research Foundation</div>
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.75">AP Seminar is built on one core idea: complex problems require careful thinking, credible evidence, and well-constructed arguments. Unit 1 gives you the foundational skills you need for everything else in the course.</div>
+    </div>
+
+    <div class="sh">THE QUEST FRAMEWORK</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px">
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.8">QUEST is the organizing framework for AP Seminar. Every major task — the Individual Written Argument, the Team Project, the End-of-Course Assessment — requires you to move through all five stages: <strong style="color:var(--cream)">Q</strong>uestion and Explore (ask a researchable question and understand context), <strong style="color:var(--cream)">U</strong>nderstand and Analyze Arguments (identify claims, evidence, and reasoning in sources), <strong style="color:var(--cream)">E</strong>valuate Multiple Perspectives (assess credibility, bias, and limitations), <strong style="color:var(--cream)">S</strong>ynthesize Ideas (connect sources to build your own argument), and <strong style="color:var(--cream)">T</strong>eam, Transform, and Transmit (communicate your findings effectively).</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(96,144,192,.07);border-left:3px solid var(--acc);font-family:var(--dm);font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:16px"><strong style="color:var(--acc2)">Exam tip:</strong> QUEST isn't just an acronym to memorize — it's a process. On Paper 1 (End-of-Course), you'll see a source packet and need to demonstrate ALL five stages in your written response.</div>
+
+    <div class="sh">WHAT MAKES A RESEARCHABLE QUESTION</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px">
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.8">A strong research question is <strong style="color:var(--cream)">complex</strong> (can't be answered with a simple yes/no or one fact), <strong style="color:var(--cream)">contestable</strong> (reasonable people can disagree based on evidence), <strong style="color:var(--cream)">focused</strong> (specific enough to be researchable), and <strong style="color:var(--cream)">significant</strong> (worth investigating). Weak: "Is climate change real?" Strong: "To what extent are market-based solutions more effective than government regulation in reducing carbon emissions in industrialized nations?"</div>
+    </div>
+
+    <div class="sh">EVALUATING SOURCES: SOAPSTONE + LIMITATIONS</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px">
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.8">Every source must be evaluated for <strong style="color:var(--cream)">credibility</strong> (is this author/publication trustworthy?), <strong style="color:var(--cream)">perspective</strong> (what values or interests shape this source?), <strong style="color:var(--cream)">context</strong> (when and why was this created?), and <strong style="color:var(--cream)">limitations</strong> (what does this source NOT tell us, or where might it be wrong?). Use SOAPSTONE: Speaker, Occasion, Audience, Purpose, Subject, Tone, and Evidence.</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(96,144,192,.07);border-left:3px solid var(--acc);font-family:var(--dm);font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:16px"><strong style="color:var(--acc2)">Exam tip:</strong> The most common mistake on source analysis is confusing "limitation" with "bias." A limitation is a structural gap — what the source can't tell you by its very nature (e.g., a survey can't explain WHY respondents chose an answer). Bias is a tendency to favor one perspective. Both matter, but they're different.</div>
+
+    <div class="sh">ARGUMENT ANATOMY</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px 20px;margin-bottom:16px">
+      <div style="font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.8">Every argument has three components: <strong style="color:var(--cream)">Claim</strong> — a debatable assertion that takes a position; <strong style="color:var(--cream)">Evidence</strong> — specific, accurate support (data, examples, expert testimony, primary sources); and <strong style="color:var(--cream)">Reasoning</strong> — the logical explanation of HOW the evidence supports the claim. The reasoning is the most commonly missing piece. Don't just say "As shown by X" — explain precisely why X proves your claim. Add a <strong style="color:var(--cream)">counterclaim</strong> to show you understand complexity and can rebut opposing views.</div>
+    </div>
+  </div>
+
+  <!-- VOCABULARY TAB -->
+  <div id="tab-vocab" class="hub-panel">
+    <div class="sh">Vocabulary Flashcards</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:24px 28px;text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:12px">&#127183;</div>
+      <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px">Flashcard Deck</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;max-width:480px;margin:0 auto 16px;line-height:1.7">Click any card to reveal the definition. Master these 20 terms before the AP Seminar End-of-Course Assessment.</div>
+      <button onclick="launchFlashcards()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--amber);color:var(--amber);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--amber)';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='var(--amber)'">Launch Flashcards</button>
+    </div>
+    <div class="sh">Key Terms</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">QUEST Framework</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Research Question</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Claim</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Evidence</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Reasoning</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Counterclaim</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Source Credibility</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Perspective</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Context</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Limitation</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Bias</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Synthesis</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Interdisciplinary</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">SOAPSTONE</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Logical Fallacy</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Peer-reviewed source</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Primary source</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Secondary source</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Stakeholder</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:9px 12px;font-family:var(--playfair);font-size:11px;color:var(--text2);font-style:italic">Big Question</div>
+    </div>
+  </div>
+
+  <!-- VOCAB QUIZ TAB -->
+  <div id="tab-quiz" class="hub-panel">
+    <div class="sh">Vocabulary Quiz</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div style="font-family:var(--bebas);font-size:13px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">Vocab Check &middot; 20 Questions</div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6">Score 80%+ to earn a <strong style="color:var(--purple2)">Vocab Medal</strong> and 75 gold.</div>
+      </div>
+      <button onclick="startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:10px 22px;cursor:pointer;flex-shrink:0;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">START QUIZ</button>
+    </div>
+    <div id="vq-area"></div>
+  </div>
+
+  <!-- FRQ PRACTICE TAB -->
+  <div id="tab-frq" class="hub-panel">
+    <div id="frq-hub-content"><div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:20px;text-align:center">Loading...</div></div>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div id="tab-overview" class="hub-panel">
+    <div class="sh">AP Seminar Skills at a Glance</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#128269;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">Question &amp; Explore</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">QUEST Stage 1</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Identify a complex, contestable research question. Understand the context, background, and significance of the problem. Avoid yes/no questions — ask "to what extent" or "how effectively."</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#128214;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">Understand &amp; Analyze</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">QUEST Stage 2</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Break down arguments in sources. Identify claim, evidence, and reasoning. Recognize what the author is arguing and how they support it.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#9878;&#65039;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">Evaluate Perspectives</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">QUEST Stage 3</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Assess credibility, bias, perspective, context, and limitations of sources. Ask: Who wrote this? Why? What are they NOT telling you? What assumptions underlie this argument?</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#129309;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">Synthesize Ideas</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">QUEST Stage 4</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Connect multiple sources across disciplines to build YOUR argument. Synthesis is not summary — it's using sources as evidence for a claim YOU are making.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#127908;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">Team, Transform, Transmit</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">QUEST Stage 5</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Communicate findings effectively — in writing (IWA, IRR) and presentation. Adapt to your audience. In team work, each member contributes meaningfully to the whole.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:20px">&#128203;</span>
+          <div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);font-weight:700">IWA &amp; IRR</div>
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--acc2)">Written Assessments</div>
+          </div>
+        </div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.6">Individual Written Argument (IWA): respond to a prompt using provided sources. Individual Research Report (IRR): independent research on a focused question. Both require claim + evidence + reasoning + counterclaim.</div>
+      </div>
+    </div>
+
+    <div class="sh">Argument Components</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:24px">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">CLAIM</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">A debatable assertion that takes a clear position. Not a fact. Not a question. Must be contestable.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">EVIDENCE</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">Specific support: data, statistics, expert testimony, examples, primary sources. Must be accurate and relevant.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">REASONING</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">The logical bridge explaining HOW/WHY the evidence supports the claim. Most often missing in student writing.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">COUNTERCLAIM</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">Acknowledges an opposing view and then rebuts or qualifies it. Shows intellectual honesty and complexity.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">LIMITATION</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">What a source structurally cannot tell us — scope, methodology, time period, perspective. Different from bias.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px">
+        <div style="font-family:var(--bebas);font-size:11px;color:var(--acc2);letter-spacing:1px;margin-bottom:4px">SYNTHESIS</div>
+        <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5">Using multiple sources to build YOUR argument — not just summarizing each one separately. The "so what" across sources.</div>
+      </div>
+    </div>
+
+    <div class="sh">Key Vocabulary</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:24px">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">QUEST Framework</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Research question</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Claim · Evidence · Reasoning</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Counterclaim &amp; rebuttal</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Source credibility</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Perspective &amp; context</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Limitation vs. bias</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">SOAPSTONE</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Synthesis</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Interdisciplinary lens</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Logical fallacy</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Peer-reviewed source</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Primary vs. secondary source</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Stakeholder</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px 12px;font-family:var(--dm);font-size:10px;color:var(--text2)">Big Question</div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">&#8592; Hub</button>
+    <div id="game-round-label">ROUND 1</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div class="gp-pips" id="game-pips"></div>
+      <div id="game-gold-disp">&#128337; 0</div>
+    </div>
+  </div>
+  <div id="round-intro">
+    <div class="ri-icon" id="ri-icon">🔍</div>
+    <div class="ri-round" id="ri-round">ROUND 1</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description.</div>
+    <button class="ri-btn" onclick="beginRound()"><span>&#9654; Begin</span></button>
+  </div>
+  <div id="question-area" style="display:none"></div>
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">&#11088;</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score"></div>
+    <button class="rc-btn" onclick="exitGame()">&#8592; Back to Hub</button>
+    <button class="rc-btn" id="rc-next-btn" onclick="nextRound()" style="display:none">Next Round &#8594;</button>
+  </div>
+  <div id="unit-complete" style="display:none">
+    <div style="font-size:64px;margin-bottom:16px;animation:pop .5s ease both">&#127942;</div>
+    <div style="font-family:var(--playfair);font-size:32px;font-weight:700;color:var(--cream);margin-bottom:8px">Unit Complete!</div>
+    <div style="font-family:var(--bebas);font-size:14px;letter-spacing:3px;color:var(--acc2);margin-bottom:24px" id="unit-complete-score"></div>
+    <button class="rc-btn" onclick="exitGame()">&#8592; Back to Hub</button>
+  </div>
+  <div class="btn-row">
+    <button id="btn-next" onclick="nextQuestion()">Next &#8594;</button>
+  </div>
+</div>
+
+<div id="fc-modal" style="display:none"></div>
+
+<script>
+const UNIT_ID    = 'apsem_u1';
+const SUPA_URL   = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
+const AI_URL     = 'https://aged-tooth-21e7.jonesolson79.workers.dev';
+const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+
+let G = {
+  gold: parseInt(localStorage.getItem('civitas_gold')||'0'),
+  roundIdx: 0, questionIdx: 0, questions: [],
+  selectedChoice: null, answered: false,
+  sessionCorrect: 0, sessionTotal: 0
+};
+
+// ── QUESTION BANK ─────────────────────────────────────────────────────────────
+const QUESTION_BANK = {
+  rounds: [
+    {
+      id:'r1', label:'Round 1 — The QUEST Framework',
+      type:'knowledge', icon:'🔍',
+      desc:'The foundations of AP Seminar: the QUEST framework, research questions, and argument structure.',
+      questions:[
+        {id:"r1_01",topic:"QUEST",difficulty:"accessible",
+          stem:"Which of the following best describes the purpose of the QUEST framework in AP Seminar?",
+          choices:[
+            {id:'A',text:"A grading rubric that teachers use to score student presentations"},
+            {id:'B',text:"A five-stage process for questioning, understanding, evaluating, synthesizing, and communicating about complex problems"},
+            {id:'C',text:"A set of five required sources that must appear in every research paper"},
+            {id:'D',text:"A debate format where students argue assigned positions on a topic"}
+          ],correct:"B",
+          explanation:"QUEST stands for Question and Explore, Understand and Analyze, Evaluate Multiple Perspectives, Synthesize Ideas, and Team/Transform/Transmit. It is the process framework that structures all AP Seminar work."},
+        {id:"r1_02",topic:"Research Questions",difficulty:"accessible",
+          stem:"Which of the following is the strongest AP Seminar research question?",
+          choices:[
+            {id:'A',text:"Is social media harmful to teenagers?"},
+            {id:'B',text:"When was social media invented?"},
+            {id:'C',text:"To what extent does social media use among adolescents correlate with measurable declines in mental health outcomes, and what mediating factors determine the strength of that relationship?"},
+            {id:'D',text:"Social media should be regulated by the government."}
+          ],correct:"C",
+          explanation:"A strong research question is complex, contestable, focused, and researchable. Option A is a yes/no question. Option B has a factual answer. Option D is a statement, not a question. Option C requires analysis of evidence and acknowledges complexity with 'to what extent' and 'mediating factors.'"},
+        {id:"r1_03",topic:"Research Questions",difficulty:"moderate",
+          stem:"A student wants to research climate change. Which revision best transforms a weak question into a strong AP Seminar research question?",
+          choices:[
+            {id:'A',text:"From 'Is climate change real?' to 'How real is climate change?'"},
+            {id:'B',text:"From 'What causes climate change?' to 'How effectively have international agreements addressed the root causes of climate change since the 1992 Rio Earth Summit?'"},
+            {id:'C',text:"From 'Is climate change bad?' to 'Why is climate change bad for the environment?'"},
+            {id:'D',text:"From 'What is climate change?' to 'What are the three main causes of climate change?'"}
+          ],correct:"B",
+          explanation:"Option B transforms a simple factual question into one that is complex (requires evaluation of effectiveness), contestable (reasonable people can disagree about how effective agreements have been), focused (specific time frame and policy context), and significant (international climate policy matters)."},
+        {id:"r1_04",topic:"Argument Structure",difficulty:"accessible",
+          stem:"In argument analysis, the 'reasoning' component refers to:",
+          choices:[
+            {id:'A',text:"The statistic or data point used to support the claim"},
+            {id:'B',text:"The author's emotional appeals to the audience"},
+            {id:'C',text:"The logical explanation of how and why the evidence supports the claim"},
+            {id:'D',text:"A restatement of the claim in different words at the end of the paragraph"}
+          ],correct:"C",
+          explanation:"Reasoning is the bridge between evidence and claim: the logical explanation of why the evidence matters and how it proves the point. Many student writers include evidence but skip this step, leaving the connection implicit rather than explicit."},
+        {id:"r1_05",topic:"Argument Structure",difficulty:"moderate",
+          stem:"A student writes: 'According to the CDC, teen suicide rates increased 57% between 2007 and 2018. Therefore, smartphones are dangerous.' What is the primary weakness in this argument?",
+          choices:[
+            {id:'A',text:"The evidence is not credible because the CDC is a government source"},
+            {id:'B',text:"The claim is too specific and needs to be broadened"},
+            {id:'C',text:"The argument lacks reasoning: it asserts correlation without explaining the causal mechanism"},
+            {id:'D',text:"The time period used is too long to be meaningful for a research argument"}
+          ],correct:"C",
+          explanation:"The student jumps from a statistic about suicide rates to a conclusion about smartphones without providing the reasoning that connects them. Correlation does not establish causation without explanation of the mechanism. This is also a post hoc ergo propter hoc fallacy."},
+        {id:"r1_06",topic:"QUEST",difficulty:"moderate",
+          stem:"During the 'Evaluate Multiple Perspectives' stage of QUEST, a student should primarily:",
+          choices:[
+            {id:'A',text:"Choose which single perspective is correct and focus the research on proving it"},
+            {id:'B',text:"Assess the credibility, perspective, context, and limitations of each source"},
+            {id:'C',text:"Count how many sources support each side and go with the majority position"},
+            {id:'D',text:"Only include sources from peer-reviewed academic journals"}
+          ],correct:"B",
+          explanation:"Evaluating multiple perspectives means critically examining each source: who wrote it, why, what assumptions they bring, what the source cannot tell us, and how its perspective shapes its conclusions. This goes beyond simply tallying sources."},
+        {id:"r1_07",topic:"Synthesis",difficulty:"moderate",
+          stem:"Which of the following best describes synthesis in AP Seminar?",
+          choices:[
+            {id:'A',text:"Summarizing each source in a separate paragraph so the reader understands all the views"},
+            {id:'B',text:"Using multiple sources from different disciplines to build and support your own argument or claim"},
+            {id:'C',text:"Finding two sources that agree with each other and combining their quotations"},
+            {id:'D',text:"Paraphrasing every source in the order they were read"}
+          ],correct:"B",
+          explanation:"Synthesis means weaving multiple sources together around YOUR argument: using them as evidence for claims you are making, not merely reporting what each one says. In synthesis, the student's argument drives the paper, and sources serve as support."},
+        {id:"r1_08",topic:"Research Questions",difficulty:"challenging",
+          stem:"A student proposes: 'What is the best way for the United States to address income inequality?' A teacher would most likely ask the student to revise this question because:",
+          choices:[
+            {id:'A',text:"Income inequality is not a significant enough topic for AP Seminar research"},
+            {id:'B',text:"The question assumes there is a single 'best' answer, limiting genuine inquiry and contestability"},
+            {id:'C',text:"The question is too focused on the United States and needs to be more global"},
+            {id:'D',text:"The question is too long and complex for a research paper"}
+          ],correct:"B",
+          explanation:"The phrase 'what is the best way' implies a single correct answer rather than inviting genuine analysis of tradeoffs. A stronger revision might ask: To what extent are market-based solutions, government redistribution, or education reform more effective in reducing income inequality in developed nations?"},
+        {id:"r1_09",topic:"Argument Structure",difficulty:"accessible",
+          stem:"A counterclaim in an AP Seminar argument serves primarily to:",
+          choices:[
+            {id:'A',text:"Undermine the student's own thesis and show the argument is weak"},
+            {id:'B',text:"Fill space in a paper that would otherwise be too short"},
+            {id:'C',text:"Acknowledge an opposing perspective and either rebut it or qualify the original claim"},
+            {id:'D',text:"Show the teacher that the student read sources with different viewpoints"}
+          ],correct:"C",
+          explanation:"A counterclaim demonstrates intellectual honesty and sophistication: you recognize that reasonable people can disagree and you engage with that disagreement directly. It is followed by a rebuttal or a qualification that shows your original claim still holds despite the opposition."},
+        {id:"r1_10",topic:"QUEST",difficulty:"accessible",
+          stem:"The 'Understand and Analyze Arguments' stage of QUEST involves:",
+          choices:[
+            {id:'A',text:"Deciding which sources to include based on whether they support your pre-existing view"},
+            {id:'B',text:"Identifying the claim, evidence, and reasoning within sources to understand how authors construct their arguments"},
+            {id:'C',text:"Reading sources quickly and highlighting the most interesting sentences"},
+            {id:'D',text:"Writing a summary of each source in one sentence"}
+          ],correct:"B",
+          explanation:"Understanding and analyzing arguments means breaking down a source's structure: what position the author takes (claim), what support they offer (evidence), and how they connect the two (reasoning). This analytical reading is essential before you can evaluate or synthesize sources effectively."},
+        {id:"r1_11",topic:"Argument Structure",difficulty:"moderate",
+          stem:"Which of the following is an example of a CLAIM rather than a fact or question?",
+          choices:[
+            {id:'A',text:"The United States spends more on healthcare than any other developed nation."},
+            {id:'B',text:"Why does the United States spend more on healthcare than other nations?"},
+            {id:'C',text:"The market-based healthcare system in the United States produces worse outcomes at higher cost than universal coverage models, making comprehensive reform a moral and economic necessity."},
+            {id:'D',text:"Many Americans believe the healthcare system needs reform."}
+          ],correct:"C",
+          explanation:"A claim is a debatable assertion that takes a position. Option A is a verifiable fact. Option B is a question. Option D is a statement about public opinion, not a position the writer is defending. Option C makes a contested, defensible argument about a complex issue."},
+        {id:"r1_12",topic:"Research Questions",difficulty:"challenging",
+          stem:"What does it mean for a research question to be 'interdisciplinary' in AP Seminar?",
+          choices:[
+            {id:'A',text:"The question must use vocabulary from multiple academic subjects in the same sentence"},
+            {id:'B',text:"The question can only be fully answered by drawing on perspectives from multiple disciplines such as economics, psychology, history, or science"},
+            {id:'C',text:"The student must interview experts from at least three different fields"},
+            {id:'D',text:"The research paper must be exactly the same length as papers written in other subjects"}
+          ],correct:"B",
+          explanation:"An interdisciplinary question requires multiple lenses to address fully. For example, 'How does chronic poverty affect childhood cognitive development?' cannot be answered by economics alone: it requires psychology, neuroscience, sociology, and education research. This is why AP Seminar deliberately draws from diverse disciplines."},
+        {id:"r1_13",topic:"QUEST",difficulty:"moderate",
+          stem:"In the 'Team, Transform, and Transmit' stage, what does 'transform' refer to?",
+          choices:[
+            {id:'A',text:"Changing your research question after getting feedback from your teacher"},
+            {id:'B',text:"Taking your research and adapting it into an appropriate format and medium for your intended audience"},
+            {id:'C',text:"Deleting sources that no longer fit your argument"},
+            {id:'D',text:"Transferring your written paper into a slideshow presentation"}
+          ],correct:"B",
+          explanation:"Transform means taking your research and thinking and reshaping it into the most effective format for communicating with your specific audience. A policy brief, academic paper, public speech, and infographic all transmit the same research differently."},
+        {id:"r1_14",topic:"Argument Structure",difficulty:"accessible",
+          stem:"Which of the following represents the correct order of the three core components of an argument?",
+          choices:[
+            {id:'A',text:"Evidence, Reasoning, Claim"},
+            {id:'B',text:"Claim, Evidence, Reasoning"},
+            {id:'C',text:"Reasoning, Claim, Evidence"},
+            {id:'D',text:"Evidence, Claim, Reasoning"}
+          ],correct:"B",
+          explanation:"Effective argument structure presents the Claim first (what you are arguing), then Evidence (specific support), then Reasoning (why the evidence proves the claim). All three components must be present for the argument to be complete."},
+        {id:"r1_15",topic:"Research Questions",difficulty:"challenging",
+          stem:"A student is developing a research question about artificial intelligence. Which question best demonstrates the complexity and contestability required for AP Seminar?",
+          choices:[
+            {id:'A',text:"What is artificial intelligence?"},
+            {id:'B',text:"Is artificial intelligence good or bad for society?"},
+            {id:'C',text:"How was artificial intelligence developed?"},
+            {id:'D',text:"To what extent do the economic benefits of AI-driven automation in manufacturing outweigh the social costs of job displacement for workers in developing nations?"}
+          ],correct:"D",
+          explanation:"Option D requires evaluating competing values (economic efficiency vs. social equity), examining evidence across economics, labor studies, and development theory, and acknowledging that 'to what extent' invites nuanced analysis rather than a binary answer. It is globally significant and contested among economists and policymakers."}
+      ]
+    },
+    {
+      id:'r2', label:'Round 2 — Source Evaluation',
+      type:'knowledge', icon:'⚖️',
+      desc:'Evaluating source credibility, identifying perspective and limitations, and analyzing argument quality.',
+      questions:[
+        {id:"r2_01",topic:"Source Evaluation",difficulty:"accessible",
+          stem:"A student finds an article arguing that a particular diet cures cancer, published on a website selling supplements. The most significant concern about this source is:",
+          choices:[
+            {id:'A',text:"The article is too short to be useful for research"},
+            {id:'B',text:"The source has a financial conflict of interest that may bias its claims"},
+            {id:'C',text:"Diet-related topics are not appropriate for AP Seminar research"},
+            {id:'D',text:"The website does not use academic language"}
+          ],correct:"B",
+          explanation:"A source selling products related to the topic it discusses has a direct financial incentive to present biased information. This is a significant credibility concern. Even if the information were accurate, the conflict of interest requires the reader to evaluate the source with extra skepticism."},
+        {id:"r2_02",topic:"Limitations",difficulty:"moderate",
+          stem:"A researcher surveys 500 college students about their political views and concludes that 'Americans are increasingly liberal.' The primary limitation of this conclusion is:",
+          choices:[
+            {id:'A',text:"Surveys are never reliable methods of collecting data"},
+            {id:'B',text:"The sample is not representative: college students are not demographically representative of all Americans"},
+            {id:'C',text:"The researcher should have asked about conservative views too"},
+            {id:'D',text:"Political views are too personal a topic for academic research"}
+          ],correct:"B",
+          explanation:"This is a sampling limitation: the methodology only reached a specific subgroup (college students) who differ from the broader population in age, education level, and socioeconomic background. Valid generalization requires a representative sample. The conclusion overstates what the evidence can actually support."},
+        {id:"r2_03",topic:"Perspective",difficulty:"moderate",
+          stem:"An editorial in a major newspaper supports expanding free trade agreements. To evaluate this source's perspective, a student should consider:",
+          choices:[
+            {id:'A',text:"Only whether the newspaper is liberal or conservative"},
+            {id:'B',text:"The publication's ownership, editorial tradition, and what values typically shape its economic coverage"},
+            {id:'C',text:"Whether the author has a PhD in economics"},
+            {id:'D',text:"How recently the article was published"}
+          ],correct:"B",
+          explanation:"Perspective analysis goes beyond simple left/right labels. Understanding who owns the publication, what economic interests they represent, what values consistently shape their positions, and what perspectives may be systematically underrepresented gives a richer picture of how perspective shapes content."},
+        {id:"r2_04",topic:"Limitations",difficulty:"challenging",
+          stem:"A peer-reviewed study from 2003 finds no significant link between video game violence and real-world aggression. Which of the following best identifies a limitation of this source for a 2024 research paper?",
+          choices:[
+            {id:'A',text:"Peer-reviewed studies are not appropriate sources for AP Seminar"},
+            {id:'B',text:"The 2003 study was conducted before modern high-definition, online multiplayer games existed, limiting its applicability to contemporary gaming"},
+            {id:'C',text:"The study is biased because it was funded by video game companies"},
+            {id:'D',text:"Academic studies are too difficult for high school students to read"}
+          ],correct:"B",
+          explanation:"This is a temporal and methodological limitation: the gaming landscape has changed dramatically since 2003 (graphic content, social dimensions of online play, screen time intensity). A study conducted in a different technological context may not be applicable to current conditions. This does not make the study worthless, but its scope is limited."},
+        {id:"r2_05",topic:"Source Evaluation",difficulty:"accessible",
+          stem:"Which of the following sources would generally be considered most credible for a claim about the health effects of a new medication?",
+          choices:[
+            {id:'A',text:"A celebrity's Instagram post about their personal experience with the medication"},
+            {id:'B',text:"A peer-reviewed article in the New England Journal of Medicine reporting results of a double-blind clinical trial"},
+            {id:'C',text:"A pharmaceutical company's marketing website describing the medication's benefits"},
+            {id:'D',text:"A Reddit forum thread where users discuss their experiences"}
+          ],correct:"B",
+          explanation:"Peer-reviewed clinical trials represent the gold standard for medical evidence: they use controlled methodology, undergo expert review, and are published in journals with accountability standards. Celebrity endorsements and personal anecdotes are not scientific evidence. Pharmaceutical company websites have commercial conflicts of interest."},
+        {id:"r2_06",topic:"Argument Analysis",difficulty:"moderate",
+          stem:"A student reads an argument that concludes: 'Since countries with more guns have higher murder rates, we should ban all guns.' Which logical fallacy is most clearly present?",
+          choices:[
+            {id:'A',text:"Ad hominem: attacking the person rather than the argument"},
+            {id:'B',text:"False dichotomy: presenting only two options when more exist"},
+            {id:'C',text:"Correlation-causation fallacy: assuming correlation proves causation without ruling out other explanations"},
+            {id:'D',text:"Straw man: misrepresenting the opposing view"}
+          ],correct:"C",
+          explanation:"The argument jumps from a correlation (countries with more guns have higher murder rates) to a causal conclusion (guns cause murder rates) without addressing confounding variables such as poverty levels, historical factors, or type of violence. Correlation is not causation."},
+        {id:"r2_07",topic:"Perspective",difficulty:"moderate",
+          stem:"The SOAPSTONE strategy for analyzing a source stands for:",
+          choices:[
+            {id:'A',text:"Subject, Opinion, Argument, Position, Structure, Tone, Organization, Note, Evidence"},
+            {id:'B',text:"Speaker, Occasion, Audience, Purpose, Subject, Tone, and Evidence"},
+            {id:'C',text:"Source, Origin, Author, Publication, Setting, Theme, Objective, Name, Era"},
+            {id:'D',text:"Style, Organization, Argument, Point, Summary, Theme, Opinion, Narrative, Evidence"}
+          ],correct:"B",
+          explanation:"SOAPSTONE is a framework for analyzing the rhetorical situation of a source: Speaker (who created it?), Occasion (what prompted it?), Audience (who is it for?), Purpose (what is it trying to do?), Subject (what is it about?), Tone (what attitude does it convey?), and Evidence (what support does it use?)."},
+        {id:"r2_08",topic:"Source Evaluation",difficulty:"challenging",
+          stem:"A student finds two peer-reviewed studies that contradict each other on the same topic. The best approach is to:",
+          choices:[
+            {id:'A',text:"Discard both studies since they cannot both be right"},
+            {id:'B',text:"Only cite the study that supports the student's argument"},
+            {id:'C',text:"Analyze the methodology, sample size, date, and context of both studies to explain the contradiction and acknowledge complexity in the research"},
+            {id:'D',text:"Ask the teacher which study to use"}
+          ],correct:"C",
+          explanation:"Contradictory studies are an opportunity for sophisticated research. Different methodologies, populations, time periods, or definitions of key terms can all produce different results. Acknowledging this complexity and analyzing it directly is a hallmark of AP Seminar-level thinking."},
+        {id:"r2_09",topic:"Argument Analysis",difficulty:"accessible",
+          stem:"Which of the following best identifies the claim in this argument: 'Schools should require financial literacy classes because young people who receive financial education make better financial decisions as adults, reducing debt and increasing savings rates.'",
+          choices:[
+            {id:'A',text:"Young people make better financial decisions with education"},
+            {id:'B',text:"Schools should require financial literacy classes"},
+            {id:'C',text:"Financial education reduces debt and increases savings rates"},
+            {id:'D',text:"Financial literacy is important for young people"}
+          ],correct:"B",
+          explanation:"The claim is the debatable assertion the argument defends: the policy position being taken. The rest of the sentence provides evidence (financial education improves outcomes) and reasoning (therefore schools should require it). Claims answer 'what are you arguing?'"},
+        {id:"r2_10",topic:"Limitations",difficulty:"moderate",
+          stem:"A qualitative study interviews 15 low-income mothers about barriers to healthy eating. Which of the following best identifies a key limitation?",
+          choices:[
+            {id:'A',text:"Interviewing mothers is not a valid research method"},
+            {id:'B',text:"The small, non-random sample limits generalizability: findings cannot be assumed to represent all low-income mothers"},
+            {id:'C',text:"The study should have interviewed fathers as well to be complete"},
+            {id:'D',text:"Food and nutrition topics are not appropriate for social science research"}
+          ],correct:"B",
+          explanation:"Qualitative studies with small samples produce rich, detailed insights but cannot be generalized broadly. The 15 mothers in this study may not represent the experiences of the millions of low-income mothers nationally. This is a structural limitation of the methodology, not a flaw, but a constraint that must be acknowledged."},
+        {id:"r2_11",topic:"Argument Analysis",difficulty:"challenging",
+          stem:"An essay argues: 'If we allow physician-assisted dying, soon doctors will be pressuring elderly patients to die. Therefore, it should be illegal.' This argument contains which fallacy?",
+          choices:[
+            {id:'A',text:"Ad hominem: attacking the character of physicians"},
+            {id:'B',text:"Slippery slope: assuming one action will inevitably lead to extreme negative consequences without evidence"},
+            {id:'C',text:"False authority: citing medical experts without proper credentials"},
+            {id:'D',text:"Circular reasoning: using the conclusion as a premise"}
+          ],correct:"B",
+          explanation:"The slippery slope fallacy assumes that permitting X will inevitably lead to extreme outcome Y, without providing evidence for that causal chain. Countries with legal physician-assisted dying have not seen the predicted outcome. The argument must provide evidence for the chain of consequences."},
+        {id:"r2_12",topic:"Source Evaluation",difficulty:"moderate",
+          stem:"A student wants to research the opioid crisis. Which source would be LEAST appropriate for evidence about the public health impact?",
+          choices:[
+            {id:'A',text:"CDC mortality data showing overdose death rates by year and state"},
+            {id:'B',text:"A personal memoir by someone who experienced opioid addiction"},
+            {id:'C',text:"Congressional testimony from public health officials about the scale of the crisis"},
+            {id:'D',text:"An internal Purdue Pharma document about OxyContin marketing strategy"}
+          ],correct:"B",
+          explanation:"A personal memoir is valuable for humanizing the issue and understanding lived experience, but it is the weakest source for claims about PUBLIC HEALTH IMPACT, which requires population-level data. The other options provide evidence about systemic and policy dimensions. Memoirs are not wrong to use, but they serve a different evidential purpose."},
+        {id:"r2_13",topic:"Perspective",difficulty:"moderate",
+          stem:"When analyzing a source's 'context' in AP Seminar, a student should consider:",
+          choices:[
+            {id:'A',text:"Only the date the source was published"},
+            {id:'B',text:"The historical moment, political climate, and social circumstances that shaped when and why this source was created"},
+            {id:'C',text:"Whether the source was written in English originally"},
+            {id:'D',text:"How many pages long the source is"}
+          ],correct:"B",
+          explanation:"Context is the full situation surrounding a source's creation: the historical moment, prevailing debates, political pressures, social norms of the time, and events that prompted the author to write. A 1960 government report on civil rights means something different than a 2020 report because the context is fundamentally different."},
+        {id:"r2_14",topic:"Argument Analysis",difficulty:"accessible",
+          stem:"Which of the following is NOT a component of a complete argument?",
+          choices:[
+            {id:'A',text:"Claim"},
+            {id:'B',text:"Evidence"},
+            {id:'C',text:"Reasoning"},
+            {id:'D',text:"Word count"}
+          ],correct:"D",
+          explanation:"The three essential components of an argument are Claim (the position), Evidence (the support), and Reasoning (the logical explanation of how the evidence proves the claim). Word count is not a component of argument quality. An argument can be thorough and rigorous at any length."},
+        {id:"r2_15",topic:"Source Evaluation",difficulty:"challenging",
+          stem:"A student uses a Wikipedia article as a primary source in an AP Seminar research paper. The teacher asks for revision. The most valid reason is:",
+          choices:[
+            {id:'A',text:"Wikipedia is always wrong and should never be read"},
+            {id:'B',text:"Wikipedia articles can be edited by anyone and lack the authorial accountability and expert peer review required for academic citation"},
+            {id:'C',text:"Wikipedia is too long to be useful for research"},
+            {id:'D',text:"Only sources published before 2000 are appropriate for AP Seminar"}
+          ],correct:"B",
+          explanation:"Wikipedia is a useful starting point for background information and finding primary sources, but it lacks authorial accountability and peer review. Any editor can change content. AP Seminar requires sources with clear authorship and scholarly or journalistic standards."}
+      ]
+    },
+    {
+      id:'r3', label:'Round 3 — Source-Based Stimulus',
+      type:'knowledge', icon:'📄',
+      desc:'Analyze excerpts and apply AP Seminar skills: identifying arguments, evaluating sources, and synthesizing perspectives.',
+      questions:[
+        {id:"r3_01",topic:"Source Analysis",difficulty:"moderate",
+          stem:"Read this excerpt: 'A 2022 Stanford study found that students who used laptops during lectures scored 18% lower on comprehension tests than students who took handwritten notes. Clearly, technology is destroying education and all devices should be banned from classrooms.' Which flaw is most clearly present?",
+          choices:[
+            {id:'A',text:"The Stanford study cannot be trusted because universities are biased"},
+            {id:'B',text:"The argument overgeneralizes from one study on one use of technology to a broad policy conclusion about all technology in all educational contexts"},
+            {id:'C',text:"The argument is correct because handwritten notes have always been superior"},
+            {id:'D',text:"The study should have used a larger sample to be valid"}
+          ],correct:"B",
+          explanation:"The leap from 'laptops reduce comprehension during lectures' to 'all technology should be banned from classrooms' is a massive overgeneralization. The evidence addresses one specific context; the conclusion covers all technology in all educational settings. Good reasoning requires the conclusion to match the scope of the evidence."},
+        {id:"r3_02",topic:"Perspective",difficulty:"moderate",
+          stem:"A student finds an opinion piece in The Wall Street Journal arguing that raising the minimum wage will cause unemployment, written by an economist who consults for the restaurant industry. Which response best evaluates this source?",
+          choices:[
+            {id:'A',text:"The source should be discarded because it is in a newspaper rather than an academic journal"},
+            {id:'B',text:"The source is credible because the author is an economist with expertise"},
+            {id:'C',text:"The source has potential credibility as expert opinion, but the author's financial relationship with the restaurant industry is a conflict of interest that may shape the conclusions"},
+            {id:'D',text:"The source is useless because The Wall Street Journal is biased"}
+          ],correct:"C",
+          explanation:"Nuanced source evaluation avoids both blanket acceptance and blanket rejection. The author's economics expertise adds credibility, but their consulting relationship with an industry directly affected by minimum wage policy is a significant conflict of interest that students must acknowledge."},
+        {id:"r3_03",topic:"Synthesis",difficulty:"challenging",
+          stem:"A student has three sources: a psychology study showing social media increases anxiety in teens, an economics paper showing social media creates jobs, and a sociologist arguing social media strengthens community ties for isolated populations. The best synthesis approach is to:",
+          choices:[
+            {id:'A',text:"Choose the source that best supports a predetermined conclusion and cite only that one"},
+            {id:'B',text:"Write three separate paragraphs summarizing each source without connecting them"},
+            {id:'C',text:"Develop an argument about the complexity of social media's effects, using all three sources as evidence for different dimensions of a nuanced claim"},
+            {id:'D',text:"Average the three perspectives to find a middle ground conclusion"}
+          ],correct:"C",
+          explanation:"Synthesis means using multiple sources to build a single argument, not summarizing each separately. A strong synthesis argues that social media's effects are context-dependent and uses all three sources as evidence for specific dimensions of that claim."},
+        {id:"r3_04",topic:"Argument Analysis",difficulty:"accessible",
+          stem:"A source states: 'Nine out of ten dentists recommend this toothpaste.' Which question most directly evaluates the strength of this evidence?",
+          choices:[
+            {id:'A',text:"Is this toothpaste available in my local store?"},
+            {id:'B',text:"Which nine dentists were surveyed, how were they selected, and what exactly were they asked to recommend?"},
+            {id:'C',text:"How white will this toothpaste make my teeth?"},
+            {id:'D',text:"What is the toothpaste's price compared to competitors?"}
+          ],correct:"B",
+          explanation:"Statistical claims require scrutiny of methodology. 'Nine out of ten dentists' could mean a self-selected group of ten, company employees, or dentists asked to recommend the product for a specific use rather than overall quality. The methodology question is the most direct evaluation of evidentiary strength."},
+        {id:"r3_05",topic:"Source Evaluation",difficulty:"moderate",
+          stem:"An AP Seminar student evaluating a government report on immigration should consider which of the following as the most significant perspective consideration?",
+          choices:[
+            {id:'A',text:"Government reports are automatically more credible than other sources"},
+            {id:'B',text:"The report reflects the priorities and framing of the administration that commissioned it, and may emphasize evidence consistent with existing policy positions"},
+            {id:'C',text:"Government reports are too long to read carefully"},
+            {id:'D',text:"Immigration is too politically controversial for AP Seminar research"}
+          ],correct:"B",
+          explanation:"Government reports are valuable sources: they often include extensive data and research. But they are produced by officials accountable to elected leaders with policy goals. The framing of questions, selection of data, and interpretation of findings can reflect the administration's perspective."},
+        {id:"r3_06",topic:"Argument Analysis",difficulty:"challenging",
+          stem:"A student writes: 'We must either fund the military fully or leave our nation defenseless.' This is an example of which logical fallacy?",
+          choices:[
+            {id:'A',text:"Ad hominem: attacking the character of military critics"},
+            {id:'B',text:"Straw man: misrepresenting what reduced military funding would mean"},
+            {id:'C',text:"False dichotomy: presenting only two options when a spectrum of funding levels exists"},
+            {id:'D',text:"Circular reasoning: using the conclusion as a premise"}
+          ],correct:"C",
+          explanation:"A false dichotomy presents only two options as if they are the only possibilities, when in reality a spectrum of choices exists. 'Full funding' or 'defenseless' ignores moderate funding levels, efficiency reforms, and many other options. Identifying false dichotomies is a key AP Seminar argument analysis skill."},
+        {id:"r3_07",topic:"Source Evaluation",difficulty:"moderate",
+          stem:"Which of the following best explains the difference between a source's 'bias' and its 'limitation'?",
+          choices:[
+            {id:'A',text:"Bias means the source is wrong; limitation means the source is outdated"},
+            {id:'B',text:"Bias is a tendency to favor a particular perspective or conclusion; limitation is a structural gap in what the source can tell us based on its methodology or scope"},
+            {id:'C',text:"Bias applies only to political sources; limitation applies only to scientific studies"},
+            {id:'D',text:"Both terms mean the same thing and can be used interchangeably"}
+          ],correct:"B",
+          explanation:"Bias and limitation are distinct evaluative concepts. Bias is about perspective and tendency. Limitation is structural: a survey cannot tell us WHY people answered as they did; a case study of one country cannot be generalized globally. Both matter for source evaluation but they identify different types of constraints."},
+        {id:"r3_08",topic:"Research Questions",difficulty:"challenging",
+          stem:"A student claims: 'My research question is complex because it asks about a complicated topic, climate change.' A teacher would most likely respond that:",
+          choices:[
+            {id:'A',text:"Climate change is not a complex enough topic for AP Seminar"},
+            {id:'B',text:"The complexity of the topic does not automatically make the question complex: the question itself must require nuanced analysis rather than having a simple, factual answer"},
+            {id:'C',text:"The student should choose a simpler topic"},
+            {id:'D',text:"A complex topic is sufficient for AP Seminar: no further revision needed"}
+          ],correct:"B",
+          explanation:"Complexity is a property of the QUESTION, not just the topic. 'What is climate change?' is a simple question about a complex topic. 'To what extent do carbon pricing mechanisms reduce industrial emissions more effectively in market economies than in state-directed economies?' is a complex question."},
+        {id:"r3_09",topic:"Synthesis",difficulty:"moderate",
+          stem:"A student needs to write an IWA using five provided sources on criminal justice reform. The student quotes extensively from each source in order, then writes a conclusion summarizing all five. The teacher says this is NOT synthesis. The most accurate explanation is:",
+          choices:[
+            {id:'A',text:"The student used too many sources and should use only three"},
+            {id:'B',text:"The student arranged sources sequentially rather than weaving them together around an original argument: the student's own claim never drives the paper"},
+            {id:'C',text:"Quoting sources directly is never appropriate in AP Seminar"},
+            {id:'D',text:"A conclusion is not required in an IWA"}
+          ],correct:"B",
+          explanation:"This describes the most common synthesis error: treating the paper as a series of source summaries rather than using sources as evidence for the student's own argument. In true synthesis, the student's claim comes first, and sources are selected and deployed to support specific points in that argument."},
+        {id:"r3_10",topic:"Argument Analysis",difficulty:"accessible",
+          stem:"A source argues: 'Everyone knows that standardized testing is unfair, so we should abolish it immediately.' Which weakness should a student first identify?",
+          choices:[
+            {id:'A',text:"The source is too short to be useful"},
+            {id:'B',text:"The claim that 'everyone knows' is an appeal to popular opinion rather than evidence, and 'immediately' overstates what the evidence supports"},
+            {id:'C',text:"Standardized testing is too narrow a topic for AP Seminar"},
+            {id:'D',text:"The argument is correct and needs no revision"}
+          ],correct:"B",
+          explanation:"'Everyone knows' is a form of bandwagon fallacy: it replaces evidence with assumed common knowledge. Additionally, even if the unfairness claim were well-supported, jumping to 'abolish immediately' without addressing alternatives or transition costs represents a logical leap the evidence does not support."},
+        {id:"r3_11",topic:"Source Evaluation",difficulty:"moderate",
+          stem:"A student finds a blog post written by a professor of public health at Johns Hopkins arguing that mask mandates are ineffective. How should the student evaluate this source?",
+          choices:[
+            {id:'A',text:"The source is automatically credible because the author has a PhD and works at a prestigious institution"},
+            {id:'B',text:"The source should be evaluated based on whether the argument is peer-reviewed, whether evidence is cited, and whether the views reflect expert consensus or a minority position"},
+            {id:'C',text:"Blog posts from academic professionals are not appropriate for any research"},
+            {id:'D',text:"The source should be discarded because it contradicts government health guidelines"}
+          ],correct:"B",
+          explanation:"Academic affiliation adds credibility but does not guarantee it. A blog post is not peer-reviewed. The student should look for cited evidence, check whether the position represents scientific consensus or a minority view, and evaluate the argument's quality directly. Credentials alone are not sufficient."},
+        {id:"r3_12",topic:"Perspective",difficulty:"challenging",
+          stem:"A researcher studying workplace discrimination publishes findings showing that resumes with certain names receive fewer callbacks. A critic argues the study is 'biased' because of the researcher's identity. Which response best evaluates this criticism?",
+          choices:[
+            {id:'A',text:"The critic is correct: researchers should not study topics related to their own identity"},
+            {id:'B',text:"The critic's concern is legitimate only if the research methodology is flawed: the researcher's identity alone is not sufficient to dismiss the findings"},
+            {id:'C',text:"All research is biased, so this criticism does not matter"},
+            {id:'D',text:"The study should be trusted without question because it was published academically"}
+          ],correct:"B",
+          explanation:"Evaluating bias requires examining methodology, not dismissing sources based on the researcher's identity. If the experimental design is sound and replicable, the findings stand. Ad hominem dismissal based on researcher identity does not substitute for methodological critique."},
+        {id:"r3_13",topic:"Argument Analysis",difficulty:"moderate",
+          stem:"An argument states: 'We know vaccines are safe because the government says so.' This argument relies primarily on:",
+          choices:[
+            {id:'A',text:"Strong empirical evidence from multiple independent sources"},
+            {id:'B',text:"Appeal to authority without engaging the actual evidence, making the argument weak even if the conclusion is correct"},
+            {id:'C',text:"A well-constructed logical syllogism"},
+            {id:'D',text:"A valid counterclaim that acknowledges the opposing view"}
+          ],correct:"B",
+          explanation:"Even when citing a legitimate authority, using authority as the ONLY argument rather than engaging with the actual clinical trial data, safety monitoring systems, and epidemiological evidence represents an appeal to authority. A stronger argument cites the government statement AND explains the evidence that supports it."},
+        {id:"r3_14",topic:"Synthesis",difficulty:"challenging",
+          stem:"A student argues that economic inequality is primarily caused by technological change and uses three sources supporting this view, ignoring four sources in the packet that offer alternative explanations. In AP Seminar terms, this response is weak because:",
+          choices:[
+            {id:'A',text:"The student should have used all seven sources with equal weight"},
+            {id:'B',text:"Economic inequality is not an appropriate AP Seminar topic"},
+            {id:'C',text:"The student demonstrates selection bias: cherry-picking only confirming evidence violates the expectation to engage with multiple perspectives and counterclaims"},
+            {id:'D',text:"Three sources is too few for an AP Seminar paper"}
+          ],correct:"C",
+          explanation:"AP Seminar's emphasis on evaluating multiple perspectives means students must engage with sources that challenge their argument. Ignoring counterevidence demonstrates selection bias and produces a less defensible argument. A strong response uses confirming sources as primary evidence, engages the alternative-explanation sources as counterclaims, and explains why the thesis is most persuasive despite them."},
+        {id:"r3_15",topic:"Source Evaluation",difficulty:"moderate",
+          stem:"When using a source that was originally written in a different historical period, students should primarily consider:",
+          choices:[
+            {id:'A',text:"Old sources are always less reliable than recent ones and should be avoided"},
+            {id:'B',text:"Historical context: how the norms, assumptions, and knowledge of the period shaped what the author could observe and how they interpreted it"},
+            {id:'C',text:"Sources over 20 years old cannot be cited in AP Seminar"},
+            {id:'D',text:"Only recent primary sources are appropriate for research papers"}
+          ],correct:"B",
+          explanation:"Historical distance requires contextual interpretation. A 1920 economist writing about labor markets was operating with different theoretical frameworks and different data availability than a 2020 economist. The age of a source is not itself a disqualification, but context shapes what the source can and cannot tell us."}
+      ]
+    },
+  ]
+};
+
+const VOCAB_TERMS = [{"term": "QUEST Framework", "def": "AP Seminar's five-stage research process: Question and Explore, Understand and Analyze, Evaluate Multiple Perspectives, Synthesize Ideas, and Team/Transform/Transmit."}, {"term": "Research Question", "def": "A complex, contestable, focused, and significant question that drives inquiry. Cannot be answered with a single fact or yes/no. Strong questions often begin with 'to what extent' or 'how effectively.'"}, {"term": "Claim", "def": "A debatable assertion that takes a clear position on a topic. Not a fact, not a question. The central argument a writer is defending."}, {"term": "Evidence", "def": "Specific, accurate support for a claim: data, statistics, expert testimony, primary sources, or examples that substantiate the argument."}, {"term": "Reasoning", "def": "The logical explanation of HOW and WHY the evidence supports the claim. The bridge between evidence and claim. The most commonly missing element in student arguments."}, {"term": "Counterclaim", "def": "An opposing argument or perspective that challenges the main claim. Strong AP Seminar writing acknowledges counterclaims and then rebuts or qualifies them."}, {"term": "Source Credibility", "def": "The trustworthiness of a source based on the author's expertise, the publication's standards, the methodology used, and the presence or absence of conflicts of interest."}, {"term": "Perspective", "def": "The particular point of view, values, assumptions, and interests that shape how a source frames information and what conclusions it draws. Every source has one."}, {"term": "Context", "def": "The historical moment, political climate, social circumstances, and events that shaped when and why a source was created. Context shapes meaning."}, {"term": "Limitation", "def": "A structural gap in what a source can tell us, based on its methodology, scope, sample, or time period. Different from bias: a limitation is inherent to the source's design."}, {"term": "Bias", "def": "A tendency to favor a particular perspective, outcome, or interpretation. Can result from financial interests, ideological commitments, or selective use of evidence."}, {"term": "Synthesis", "def": "Weaving together multiple sources from different disciplines to build and support your own argument. Synthesis is not summary: the student's argument drives the paper."}, {"term": "Interdisciplinary", "def": "Drawing on multiple academic disciplines such as economics, psychology, history, or science to address a complex question that no single field can fully answer."}, {"term": "SOAPSTONE", "def": "A framework for analyzing sources: Speaker, Occasion, Audience, Purpose, Subject, Tone, and Evidence. Helps reveal the rhetorical situation surrounding a source."}, {"term": "Logical Fallacy", "def": "An error in reasoning that makes an argument invalid despite appearing persuasive. Common examples: correlation/causation, slippery slope, false dichotomy, straw man, ad hominem."}, {"term": "Peer-reviewed source", "def": "A scholarly article reviewed by experts in the field before publication, ensuring methodological rigor and accountability. Generally the most credible source type for empirical claims."}, {"term": "Primary source", "def": "An original, firsthand source created at the time being studied: data, eyewitness accounts, original documents, artwork, speeches, interviews."}, {"term": "Secondary source", "def": "A source that analyzes, interprets, or summarizes primary sources: academic articles, biographies, documentaries, reviews. Most research uses both types."}, {"term": "Stakeholder", "def": "An individual, group, or institution with a direct interest in the outcome of an issue. Identifying stakeholders helps reveal who is affected and whose perspectives must be considered."}, {"term": "Big Question", "def": "A complex, open-ended inquiry that drives AP Seminar. Big Questions are contestable, significant, and require interdisciplinary analysis."}];
+
+const UNIT_FRQS = [{"id": "apsem_u1_iwa1", "type": "IWA", "typeLabel": "Individual Written Argument", "title": "Evaluating a Source for Research", "points": 4, "icon": "✍️", "prompt": "Read the following source description and complete all parts.\n\nSOURCE: A 2021 report titled \"The Economic Benefits of Universal Pre-K Education\" published by the Economic Policy Institute (EPI), a left-of-center think tank funded partly by labor unions. The report analyzes 15 studies and concludes that universal pre-K programs produce a $7 return for every $1 invested through reduced special education costs, higher graduation rates, and increased lifetime earnings.\n\nA. Identify the claim being made in this source.\n\nB. Evaluate one strength of this source for a researcher studying education policy.\n\nC. Identify one specific limitation of this source and explain how that limitation affects how a researcher should use it.\n\nD. Explain how a researcher could use this source responsibly in an argument about education policy, acknowledging its perspective.", "rubric": "PART A (1 pt): Must identify the central claim accurately: that universal pre-K produces a $7 return per $1 invested through specific economic mechanisms. Must go beyond restating the title.\n\nPART B (1 pt): Must identify a genuine strength AND explain it. Valid strengths: synthesizes 15 studies (breadth); uses specific ROI figures (quantifiable); EPI employs credentialed economists (expertise). Must explain WHY it is a strength.\n\nPART C (1 pt): Must identify a genuine limitation AND explain its impact. Valid limitations: EPI is ideologically aligned with pro-government-spending positions; labor union funding creates potential conflict of interest; meta-analysis quality depends on quality of the 15 included studies. Must explain how this changes how a researcher uses the source.\n\nPART D (1 pt): Must explain a concrete responsible use strategy: cite alongside a nonpartisan or conservative source to show the finding is not ideologically isolated; note EPI's perspective explicitly in the citation; use the data point while acknowledging the funding source and inviting reader scrutiny."}, {"id": "apsem_u1_iwa2", "type": "IWA", "typeLabel": "Individual Written Argument", "title": "Analyzing Argument Structure", "points": 4, "icon": "✍️", "prompt": "Read the following argument and complete all parts.\n\nARGUMENT: \"Social media companies should be required by law to display mental health warnings on their platforms, similar to cigarette warning labels. Research shows that heavy social media use correlates with increased rates of anxiety and depression in teenagers. Since cigarette warnings successfully reduced smoking rates, similar warnings could reduce harmful social media use and protect young people's mental health.\"\n\nA. Identify the claim of this argument.\n\nB. Evaluate the quality of the evidence provided. Is it sufficient to support the claim? Explain.\n\nC. Identify one logical weakness or fallacy in the reasoning and explain why it weakens the argument.\n\nD. Write a counterclaim to this argument and then explain how the original argument could be strengthened to address it.", "rubric": "PART A (1 pt): Social media companies should be required by law to display mental health warnings. Must identify the policy claim specifically.\n\nPART B (1 pt): Evidence is weak because correlation does not equal causation; social media use correlates with anxiety but does not prove causation without experimental data. The comparison to cigarettes also assumes parallelism without establishing it. Must explain why, not just label.\n\nPART C (1 pt): False analogy (cigarettes and social media are fundamentally different products); correlation-causation fallacy; or the assumption that what worked for cigarettes will work for social media without evidence. Must explain why it weakens.\n\nPART D (1 pt): Must write an actual counterclaim AND explain how to address it. Example: Warning labels have not reduced social media use in jurisdictions that have tried them. Strengthening: add experimental evidence; narrow the claim to adolescents; address the mechanism by which warnings would change behavior."}, {"id": "apsem_u1_iwa3", "type": "IWA", "typeLabel": "Individual Written Argument", "title": "Developing a Research Question", "points": 4, "icon": "✍️", "prompt": "Consider the following broad topic: ARTIFICIAL INTELLIGENCE AND EMPLOYMENT\n\nA. Write ONE strong AP Seminar research question about this topic. Your question must be complex, contestable, focused, and interdisciplinary.\n\nB. Explain why your question meets the criteria for a strong AP Seminar research question. Address at least two criteria specifically.\n\nC. Identify two different academic disciplines that would be needed to fully answer your research question and explain what each discipline would contribute.\n\nD. Write a defensible claim that could serve as the answer to your research question. Your claim must take a position, not just state that the issue is complex.", "rubric": "PART A (1 pt): Must produce a question (not a statement) that is: complex (cannot be answered with yes/no or a single fact), contestable (reasonable people can disagree based on evidence), and focused (specific enough to be researchable). Strong example: To what extent do policies providing worker retraining programs mitigate the employment displacement effects of AI automation in manufacturing sectors?\n\nPART B (1 pt): Must address at least two specific criteria with explanation, not just name them. Must explain HOW the question demonstrates those qualities.\n\nPART C (1 pt): Must identify two specific disciplines AND explain what each contributes. Valid pairs: economics (labor market data) plus sociology (community impact); computer science (what AI can do) plus ethics (what AI should be allowed to do); political science (policy analysis) plus psychology (worker adaptation). Each must have an explanation.\n\nPART D (1 pt): Must take a clear position. Not acceptable: 'it depends' or 'both sides have merit.' Must be arguable with evidence."}];
+
+
+const FRQ_TYPE_CONFIG = {
+  IWA: {
+    label: 'Individual Written Argument',
+    color: 'var(--acc2)',
+    bg: 'rgba(96,144,192,.08)',
+    minWords: 150,
+    taskLabels: { A: 'Identify the claim', B: 'Evaluate the source or evidence', C: 'Identify limitation or weakness', D: 'Counterclaim or application' },
+    taskColors: { A: 'var(--amber)', B: 'var(--acc2)', C: 'var(--green2)', D: 'var(--purple2)' },
+    jsonSchema: '{"totalScore":<0-4>,"tasks":{"A":{"earned":<0|1>,"feedback":"x"},"B":{"earned":<0|1>,"feedback":"x"},"C":{"earned":<0|1>,"feedback":"x"},"D":{"earned":<0|1>,"feedback":"x"}},"overallFeedback":"x","improveHint":"x"}'
+  }
+};
+const FRQ_GOLD = { IWA: 100 };
+
+function getUnitFRQs() {
+  const SEL_KEY = 'civitas_frq_sel_' + UNIT_ID;
+  const types = ['CA','QA','COMP','AE'];
+  function _bestScore(id) {
+    try {
+      const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
+      return (sub[id]&&sub[id].bestScore>0) ? sub[id].bestScore : null;
+    } catch(e) { return null; }
+  }
+  let savedIds = null;
+  try { savedIds = JSON.parse(localStorage.getItem(SEL_KEY)||'null'); } catch(e) {}
+  const result = [], newIds = [];
+  types.forEach(function(type, ti) {
+    const pool = UNIT_FRQS.filter(function(f){return f.type===type;});
+    if (!pool.length) return;
+    const savedId = savedIds && savedIds[ti];
+    const savedFRQ = savedId ? pool.find(function(f){return f.id===savedId;}) : null;
+    if (savedFRQ && _bestScore(savedId) !== null) { result.push(savedFRQ); newIds.push(savedFRQ.id); return; }
+    const seed = (Date.now() + ti * 999983) % pool.length;
+    const chosen = pool[Math.floor(seed) % pool.length];
+    result.push(chosen); newIds.push(chosen.id);
+  });
+  try { localStorage.setItem(SEL_KEY, JSON.stringify(newIds)); } catch(e) {}
+  return result.length ? result : UNIT_FRQS;
+}
+
+function getFRQDraft(id) { try { return sessionStorage.getItem('civitas_frq_draft_'+id)||''; } catch(e) { return ''; } }
+function saveFRQDraft(id,t) { try { sessionStorage.setItem('civitas_frq_draft_'+id,t); } catch(e) {} }
+function getFRQFeedback(id) { try { return sessionStorage.getItem('civitas_frq_fb_'+id)||''; } catch(e) { return ''; } }
+function getFRQBestScore(id) {
+  try {
+    const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+    const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
+    if (sub[id]&&sub[id].bestScore>0) return sub[id].bestScore;
+  } catch(e) {}
+  return null;
+}
+function updateFRQWC(id,el,min) {
+  const w = document.getElementById('frq-wc-'+id); if (!w) return;
+  const n = el.value.trim().split(/\s+/).filter(x=>x.length).length;
+  w.textContent = n + ' word' + (n!==1?'s':'');
+  w.style.color = n<min ? 'var(--red2)' : n<min*1.5 ? 'var(--amber)' : 'var(--green2)';
+}
+function toggleFRQReport(id) { const f=document.getElementById('frq-report-form-'+id); if(f) f.style.display=f.style.display==='none'?'block':'none'; }
+
+function renderFRQTab() {
+  const el = document.getElementById('frq-hub-content'); if (!el) return;
+  const frqs = getUnitFRQs();
+  if (!frqs.length) { el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No FRQs found.</div>'; return; }
+  const types = ['CA','QA','COMP','AE'];
+  let html = '<div style="background:rgba(32,136,120,.07);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
+    + '<strong style="color:var(--teal2)">How it works:</strong> Write your full response in one box, just like the real AP Exam. Submit for AI feedback against the official rubric, then resubmit to improve your score.'
+    + '</div>';
+  types.forEach(function(type) {
+    const typeFrqs = frqs.filter(function(f){return f.type===type;});
+    if (!typeFrqs.length) return;
+    const tc = FRQ_TYPE_CONFIG[type];
+    html += '<div style="font-family:var(--bebas);font-size:11px;color:'+tc.color+';letter-spacing:3px;border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:12px;margin-top:20px">'+tc.label+'</div>';
+    typeFrqs.forEach(function(frq) {
+      const best = getFRQBestScore(frq.id);
+      const pct = best!==null ? Math.round(best/frq.points*100) : null;
+      const sc = pct===null ? 'var(--text3)' : pct>=80 ? 'var(--green2)' : pct>=50 ? 'var(--amber)' : 'var(--red2)';
+      const fb = getFRQFeedback(frq.id);
+      html += '<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+tc.color+';margin-bottom:14px;overflow:hidden">'
+        // Header
+        +'<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
+        +'<div style="font-size:22px">'+(frq.icon||'✍️')+'</div>'
+        +'<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+        +'<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+tc.color+';background:'+tc.bg+';padding:2px 7px;border:1px solid '+tc.color+'">'+tc.label+'</span>'
+        +'<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">'+frq.points+' pts</span></div>'
+        +'<div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">'+frq.title+'</div></div>'
+        +(pct!==null
+          ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+best+'/'+frq.points+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
+          : '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple2);padding:3px 8px;flex-shrink:0">NOT ATTEMPTED</div>')
+        +'</div>'
+        // Chart if QA
+        +(frq.svgChart ? '<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3)">'+frq.svgChart+'</div>' : '')
+        // Prompt
+        +'<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
+        +'<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line">'+frq.prompt+'</div></div>'
+        // Response box
+        +'<div style="padding:14px 16px">'
+        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
+        +'<textarea id="frq-text-'+frq.id+'" data-frqid="'+frq.id+'" data-minwords="'+tc.minWords+'"'
+        +' style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.75;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
+        +' placeholder="Write your complete response here. Address each part (A, B, C...) in order. You do not need separate boxes, write it all here, just like the real AP Exam.">'+getFRQDraft(frq.id)+'</textarea>'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
+        +'<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-'+frq.id+'">0 words</div>'
+        +'<button data-frqid="'+frq.id+'" id="frq-btn-'+frq.id+'" class="frq-submit-btn"'
+        +' style="border-color:'+tc.color+';color:'+tc.color+'">'
+        +(fb?'&#8634; Resubmit':'&#9889; Submit for AI Grading')+'</button></div></div>'
+        // Feedback area
+        +'<div id="frq-feedback-'+frq.id+'" style="display:'+(fb?'block':'none')+';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">'+(fb||'')+'</div>'
+        // Report
+        +'<div style="padding:6px 16px 10px;border-top:1px solid var(--border)">'
+        +'<button data-frqid="'+frq.id+'" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
+        +'<div id="frq-report-form-'+frq.id+'" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
+        +'<select id="frq-report-type-'+frq.id+'" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
+        +'<option value="">-- Select issue type --</option>'
+        +'<option value="question_confusing">Question is confusing</option>'
+        +'<option value="grading_wrong">AI grading seems incorrect</option>'
+        +'<option value="factual_error">Factual error in prompt</option>'
+        +'<option value="other">Other</option></select>'
+        +'<textarea id="frq-report-note-'+frq.id+'" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
+        +'<div style="display:flex;gap:8px;align-items:center">'
+        +'<button data-frqid="'+frq.id+'" data-frqtitle="'+frq.title+'" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
+        +'<button data-frqid="'+frq.id+'" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
+        +'<div id="frq-report-status-'+frq.id+'" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
+        +'</div></div></div></div>';
+    });
+  });
+  el.innerHTML = html;
+
+  // Wire events
+  el.querySelectorAll('.frq-submit-btn').forEach(function(btn) {
+    const id = btn.getAttribute('data-frqid');
+    const frq = getUnitFRQs().find(function(f){return f.id===id;});
+    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
+    btn.addEventListener('mouseover', function(){ this.style.background=tc.color; this.style.color='#0e1018'; });
+    btn.addEventListener('mouseout', function(){ this.style.background='transparent'; this.style.color=tc.color; });
+    btn.addEventListener('click', function(){ submitUnitFRQ(id); });
+  });
+  el.querySelectorAll('.frq-report-toggle').forEach(function(btn) {
+    btn.addEventListener('mouseover', function(){ this.style.opacity='1'; });
+    btn.addEventListener('mouseout', function(){ this.style.opacity='.6'; });
+    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
+  });
+  el.querySelectorAll('.frq-report-submit').forEach(function(btn) {
+    btn.addEventListener('click', function(){ submitFRQReport(this.getAttribute('data-frqid'), this.getAttribute('data-frqtitle')); });
+  });
+  el.querySelectorAll('.frq-report-cancel').forEach(function(btn) {
+    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
+  });
+  el.querySelectorAll('textarea[data-frqid]').forEach(function(ta) {
+    const id = ta.getAttribute('data-frqid');
+    const min = parseInt(ta.getAttribute('data-minwords'))||80;
+    const frq = getUnitFRQs().find(function(f){return f.id===id;});
+    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
+    ta.addEventListener('input', function(){ updateFRQWC(id, this, min); saveFRQDraft(id, this.value); });
+    ta.addEventListener('paste', function(e){ e.preventDefault(); notify('Pasting is disabled on FRQ responses.'); });
+    ta.addEventListener('focus', function(){ this.style.borderColor=tc.color; });
+    ta.addEventListener('blur', function(){ this.style.borderColor='var(--border2)'; });
+  });
+}
+
+async function submitUnitFRQ(frqId) {
+  const frqs = getUnitFRQs();
+  const frq = frqs.find(function(f){return f.id===frqId;});
+  if (!frq) return;
+  const tc = FRQ_TYPE_CONFIG[frq.type] || FRQ_TYPE_CONFIG.CA;
+  const textEl = document.getElementById('frq-text-'+frqId);
+  const btnEl = document.getElementById('frq-btn-'+frqId);
+  const feedbackEl = document.getElementById('frq-feedback-'+frqId);
+  if (!textEl||!feedbackEl) return;
+  const response = textEl.value.trim();
+  if (response.split(/\s+/).filter(function(w){return w.length>0;}).length < 50) { notify('Write at least 50 words before submitting.'); return; }
+  btnEl.disabled = true; btnEl.textContent = 'Grading...';
+  feedbackEl.style.display = 'block';
+  feedbackEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding:8px 0"><div style="font-size:22px">🌍</div><div style="font-family:var(--bebas);font-size:13px;color:'+tc.color+';letter-spacing:2px">Grading your '+tc.label+'...</div></div>';
+  try {
+    const apiResp = await fetch(AI_URL, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1400,
+        system: 'You are an expert AP Seminarernment and Politics FRQ grader. Grade strictly against the rubric. Respond ONLY in valid JSON, no other text or markdown.',
+        messages: [{role:'user', content: 'Grade this AP Seminar '+tc.label+' FRQ.\n\nRUBRIC:\n'+frq.rubric+'\n\nSTUDENT RESPONSE:\n'+response+'\n\nReturn ONLY this JSON:\n'+tc.jsonSchema}]
+      })
+    });
+    const data = await apiResp.json();
+    const raw = (data.content&&data.content[0]&&data.content[0].text||'{}').replace(/```json|```/g,'').trim();
+    const result = JSON.parse(raw);
+    const score = Math.min(result.totalScore!=null ? result.totalScore : 0, frq.points);
+    const tasks = result.tasks || {};
+    const prevBest = getFRQBestScore(frqId) || 0;
+    const isNew = score > prevBest;
+
+    // Save to localStorage
+    try {
+      const ss = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      if (!ss.courseProgress) ss.courseProgress = {};
+      if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
+      if (!ss.courseProgress.ap_cmp.frqSubmissions) ss.courseProgress.ap_cmp.frqSubmissions = {};
+      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[]};
+      ex.bestScore = Math.max(ex.bestScore, score); ex.maxScore = frq.points;
+      ex.attempts = (ex.attempts||0)+1; if (!ex.history) ex.history = [];
+      ex.history.push({score:score, ts:Date.now()});
+      ss.courseProgress.ap_cmp.frqSubmissions[frqId] = ex;
+      localStorage.setItem('civitas_shell_state', JSON.stringify(ss));
+    } catch(e) {}
+
+    if (isNew && score > 0) {
+      const g = Math.round((FRQ_GOLD[frq.type]||75) * (score/frq.points));
+      awardGoldToShell(g, 'FRQ: '+frq.title);
+      spawnGold('+'+g+' 🪙');
+    }
+
+    const pct = Math.round(score/frq.points*100);
+    const sc = pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
+    let fbHtml = '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">'
+      +'<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:48px;line-height:1;color:'+sc+'">'+score+'/'+frq.points+'</div>'
+      +'<div style="font-family:var(--dm);font-size:8px;color:var(--text3)">'+pct+'% · AP SCORE</div></div>'
+      +'<div style="flex:1"><div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.6;font-style:italic">'+(result.overallFeedback||'')+'</div>'
+      +(isNew&&score>0?'<div style="font-family:var(--bebas);font-size:11px;color:var(--gc);margin-top:4px">New best score!</div>':'')+'</div></div>'
+      +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">POINT BREAKDOWN</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;margin-bottom:12px">';
+    Object.entries(tasks).forEach(function(e) {
+      const t=e[0], d=e[1];
+      const tc2 = tc.taskColors[t]||'var(--blue2)';
+      const maxPts = (frq.type==='COMP'&&t==='C') ? 2 : 1;
+      fbHtml += '<div style="background:var(--bg3);border:1px solid '+(d.earned?tc2:'var(--border)')+';border-left:3px solid '+(d.earned?tc2:'var(--border)')+';padding:9px 12px">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+        +'<span style="font-family:var(--bebas);font-size:10px;color:'+(d.earned?tc2:'var(--text3)')+'">'+(tc.taskLabels[t]||'Part '+t)+'</span>'
+        +'<span style="font-family:var(--bebas);font-size:13px;color:'+(d.earned?'var(--green2)':'var(--red2)')+'">'+((d.earned>0)?'✓ +'+d.earned:'✗ 0')+'</span></div>'
+        +'<div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">'+(d.feedback||'')+'</div></div>';
+    });
+    fbHtml += '</div>';
+    if (result.improveHint) fbHtml += '<div style="background:rgba(112,96,208,.08);border:1px solid var(--purple2);border-left:3px solid var(--purple2);padding:10px 14px;margin-bottom:8px">'
+      +'<div style="font-family:var(--bebas);font-size:9px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">KEY IMPROVEMENT</div>'
+      +'<div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">'+result.improveHint+'</div></div>';
+    fbHtml += '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Revise and resubmit to improve your score.</div>';
+    feedbackEl.innerHTML = fbHtml;
+    try { sessionStorage.setItem('civitas_frq_fb_'+frqId, fbHtml); } catch(e) {}
+    btnEl.textContent = 'Resubmit';
+  } catch(e) {
+    feedbackEl.innerHTML = '<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed, check your connection and try again.<br><small>'+e.message+'</small></div>';
+    btnEl.textContent = 'Submit for AI Grading';
+  }
+  btnEl.disabled = false;
+}
+
+async function submitFRQReport(id, title) {
+  const t = document.getElementById('frq-report-type-'+id);
+  const n = document.getElementById('frq-report-note-'+id);
+  const s = document.getElementById('frq-report-status-'+id);
+  if (!t||!t.value) { if(s){s.textContent='Select an issue type.';s.style.color='var(--red2)';} return; }
+  try {
+    if(s){s.textContent='Sending...';s.style.color='var(--text3)';}
+    await fetch(SUPA_URL+'/rest/v1/civitas_feedback', {method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({student_name:localStorage.getItem('civitas_student_name')||'Unknown',
+        course_id:'ap_sem',item_type:'frq',item_id:id,item_title:title,
+        issue_type:t.value,note:n?n.value.trim():'',unit_id:UNIT_ID,submitted_at:new Date().toISOString()})
+    });
+    if(s){s.textContent='Reported - thanks!';s.style.color='var(--green2)';}
+    if(t)t.value=''; if(n)n.value='';
+    setTimeout(()=>{toggleFRQReport(id);if(s)s.textContent='';},2000);
+  } catch(e) { if(s){s.textContent='Failed.';s.style.color='var(--red2)';} }
+}
+
+// ── GAME ENGINE ────────────────────────────────────────────────────────────────
+function startRound(idx) {
+  if (!isRoundComplete(idx - 1) && idx > 0) { notify('Complete Round ' + idx + ' first!'); return; }
+  G.roundIdx = idx;
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  G.sessionCorrect = 0;
+  G.sessionTotal = 0;
+  G.roundScores = [];
+
+  const round = QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+
+  document.getElementById('ri-icon').textContent = round.icon;
+  document.getElementById('ri-round').textContent = 'ROUND ' + (idx + 1) + ' OF ' + QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent = round.label;
+  document.getElementById('ri-desc').textContent = round.desc;
+
+  buildPips();
+  updateGoldDisplay();
+}
+
+function buildPips() {
+  const pips = document.getElementById('game-pips');
+  pips.innerHTML = QUESTION_BANK.rounds.map((_, i) => `<div class="gp-pip ${i < G.roundIdx ? 'done' : i === G.roundIdx ? 'active' : ''}"></div>`).join('');
+}
+
+function beginRound() {
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'flex';
+
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  if (round.type === 'knowledge') {
+    G.questions = shuffle([...round.questions]);
+    G.questions = shuffleChoices(G.questions);
+    renderQuestion();
+  } else if (round.type === 'data_stimulus' || round.type === 'document_stimulus') {
+    loadStimulusRound(round);
+  }
+
+}
+
+function loadStimulusRound(round) {
+  G.questions = [];
+  const sets = round.sets || [];
+  sets.forEach(set => {
+    set.questions.forEach(q => {
+      G.questions.push({ ...q, _set: set });
+    });
+  });
+  G.questions = shuffle(G.questions);
+  G.questions = shuffleChoices(G.questions);
+  renderQuestion();
+}
+
+// Shuffle answer choices, re-assign letters A-D, update q.correct to match
+function shuffleChoices(questions) {
+  const LETTERS = ['A','B','C','D'];
+  return questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctChoice = q.choices.find(c => c.id === q.correct);
+    const correctText = correctChoice ? correctChoice.text : null;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c, i) => ({ ...c, id: LETTERS[i] }));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return { ...q, choices: reLabeled, correct: newCorrect ? newCorrect.id : q.correct };
+  });
+}
+
+function renderQuestion() {
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  G.selectedChoice = null;
+  G.answered = false;
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('game-round-label').textContent = 'ROUND ' + (G.roundIdx + 1) + ' · Q ' + (G.questionIdx + 1) + '/' + G.questions.length;
+
+  let html = '';
+  const set = q._set;
+  if (set) {
+    if (set.chartType === 'bar' && set.data) {
+      const maxVal = Math.max(...set.data.map(d => d.value));
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📊 DATA STIMULUS</div>
+        <div class="stimulus-title">${set.title}</div>
+        <div class="stimulus-source">${set.source}</div>
+        <div class="chart-bars">${set.data.map(d => `<div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:${Math.round(d.value / maxVal * 90)}px;background:${d.color || 'var(--acc)'}"></div>
+          <div style="font-family:var(--bebas);font-size:9px;color:${d.color || 'var(--acc2)'};text-align:center">${d.value}</div>
+          <div class="chart-label">${d.label}</div>
+        </div>`).join('')}</div>
+      </div>`;
+    } else if (set.chartType === 'table' && set.tableData) {
+      const td = set.tableData;
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📋 DATA TABLE</div>
+        <div class="stimulus-title">${set.title}</div>
+        <div class="stimulus-source">${set.source}</div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:10px">
+            <tr>${td.headers.map(h => `<th style="border-bottom:1px solid var(--border2);padding:6px 10px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px">${h}</th>`).join('')}</tr>
+            ${td.rows.map((row, ri) => `<tr style="background:${ri % 2 ? 'rgba(56,160,80,.03)' : 'transparent'}">${row.map(cell => `<td style="padding:6px 10px;color:var(--text2);border-bottom:1px solid var(--border)">${cell}</td>`).join('')}</tr>`).join('')}
+          </table>
+        </div>
+      </div>`;
+    } else if (set.document) {
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📄 DOCUMENT STIMULUS</div>
+        <div class="stimulus-title">${set.document}</div>
+        <div class="stimulus-source">${set.author} (${set.year}), ${set.source}</div>
+        <div class="stimulus-text">"${set.excerpt}"</div>
+      </div>`;
+    }
+  }
+
+  html += `<div class="question-card" id="qcard">
+    <div class="q-meta">
+      <div class="q-num">Q ${G.questionIdx + 1} / ${G.questions.length}</div>
+      ${q.topic ? `<div class="q-tag topic">TOPIC ${q.topic}</div>` : ''}
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">
+      ${q.choices.map(c => `<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+        <div class="choice-letter">${c.id}</div>
+        <div class="choice-text">${c.text}</div>
+      </div>`).join('')}
+    </div>
+    <div style="text-align:right;margin-top:8px">
+      <button onclick="submitQuestionReport('${q.stem.replace(/'/g,'\\\'').substring(0,80)}','${q.id||''}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report question</button>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+  el.scrollTop = 0;
+}
+
+function selectChoice(id) {
+  if (G.answered) return;
+  G.selectedChoice = id;
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.remove('selected');
+    if (c.id === 'choice-' + id) c.classList.add('selected');
+  });
+  submitAnswer();
+}
+
+function submitAnswer() {
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    const gold = 5 + (q.difficulty === 'challenging' ? 5 : q.difficulty === 'moderate' ? 3 : 1);
+    G.gold += gold;
+    spawnGold('+' + gold + ' 🪙');
+    awardGoldToShell(gold, 'AP Seminar Unit 1');
+  }
+
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cid = c.id.replace('choice-', '');
+    if (cid === q.correct) c.classList.add('correct');
+    else if (cid === G.selectedChoice && !correct) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    qcard.insertAdjacentHTML('beforeend', `<div class="explanation"><strong>${correct ? '✓ Correct!' : '✗ Incorrect.'}</strong> ${q.explanation}</div>`);
+  }
+  document.getElementById('btn-next').style.display = 'block';
+  updateGoldDisplay();
+}
+
+function nextQuestion() {
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    finishRound();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+function finishRound() {
+  const accuracy = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+  try {
+    const k = 'civitas_' + UNIT_ID + '_r' + G.roundIdx;
+    localStorage.setItem(k, JSON.stringify({ accuracy, correct: G.sessionCorrect, total: G.sessionTotal, completedAt: new Date().toISOString() }));
+    syncProgressToShell(accuracy);
+  } catch(e) {}
+
+  const icon = accuracy >= 80 ? '⭐' : accuracy >= 60 ? '✅' : '📋';
+  const scoreColor = accuracy >= 80 ? 'var(--green2)' : accuracy >= 60 ? 'var(--amber)' : 'var(--red2)';
+
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+  const rc = document.getElementById('round-complete');
+  rc.style.display = 'flex';
+  document.getElementById('rc-icon').textContent = icon;
+  document.getElementById('rc-title').textContent = QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent = accuracy + '%';
+  document.getElementById('rc-score').style.color = scoreColor;
+  document.getElementById('rc-sub').textContent = G.sessionCorrect + ' / ' + G.sessionTotal + ' CORRECT';
+  document.getElementById('rc-stats').innerHTML = `
+    <div class="rc-stat"><div class="rc-stat-val" style="color:${scoreColor}">${accuracy}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+    <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+
+  const nextIdx = G.roundIdx + 1;
+  const hasNext = nextIdx < QUESTION_BANK.rounds.length;
+  const nextBtn = document.getElementById('rc-next-btn');
+  if (hasNext) {
+    nextBtn.textContent = 'Continue to Round ' + (nextIdx + 1) + ' →';
+    nextBtn.onclick = () => {
+      rc.style.display = 'none';
+      startRound(nextIdx);
+    };
+  } else {
+    nextBtn.textContent = '🏆 Complete Unit';
+    nextBtn.onclick = showUnitComplete;
+  }
+}
+
+function syncProgressToShell(accuracy) {
+  try {
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const prev = prog[UNIT_ID] || { bestAccuracy: 0 };
+    prog[UNIT_ID] = { bestAccuracy: Math.max(prev.bestAccuracy || 0, accuracy), completedAt: new Date().toISOString() };
+    localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+  } catch(e) {}
+}
+
+function showUnitComplete() {
+  const totalCorrect = QUESTION_BANK.rounds.reduce((sum, _, i) => {
+    const p = getRoundProgress(i);
+    return sum + (p ? p.correct : 0);
+  }, 0);
+  const totalQ = QUESTION_BANK.rounds.reduce((sum, _, i) => {
+    const p = getRoundProgress(i);
+    return sum + (p ? p.total : 0);
+  }, 0);
+  const overall = totalQ > 0 ? Math.round(totalCorrect / totalQ * 100) : 0;
+  const grade = overall >= 90 ? 'A+' : overall >= 80 ? 'A' : overall >= 70 ? 'B' : overall >= 60 ? 'C' : 'D';
+  const gc = overall >= 80 ? 'var(--green2)' : overall >= 60 ? 'var(--amber)' : 'var(--red2)';
+
+  document.getElementById('round-complete').style.display = 'none';
+  const uc = document.getElementById('unit-complete');
+  uc.style.display = 'flex';
+  document.getElementById('uc-score').textContent = grade;
+  document.getElementById('uc-score').style.color = gc;
+  document.getElementById('uc-grade').textContent = overall + '% Overall · Unit 1 Complete';
+
+  awardGoldToShell(50, 'Unit 1 Completion Bonus');
+  spawnGold('+50 🪙 Completion Bonus');
+  syncProgressToShell(overall);
+}
+
+function replayUnit() {
+  QUESTION_BANK.rounds.forEach((_, i) => {
+    try { localStorage.removeItem('civitas_' + UNIT_ID + '_r' + i); } catch(e) {}
+  });
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  buildRoundCards();
+}
+
+function exitGame() {
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  buildRoundCards();
+  const done = QUESTION_BANK.rounds.filter((_, i) => isRoundComplete(i)).length;
+  updateProgressBar(done, QUESTION_BANK.rounds.length);
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function returnToShell() {
+  try { localStorage.setItem('civitas_returning', '1'); localStorage.setItem('civitas_last_course', 'ap_sem'); } catch(e) {}
+  window.location.href = CIVITAS_URL;
+}
+
+function updateGoldDisplay() {
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.gold;
+}
+
+function awardGoldToShell(amount, source) {
+  try {
+    const cur = parseInt(localStorage.getItem('civitas_gold') || '0');
+    localStorage.setItem('civitas_gold', cur + amount);
+    localStorage.setItem('civitas_gold_pending', JSON.stringify({ amount, source }));
+  } catch(e) {}
+}
+
+function spawnGold(text) {
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random() * 60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg) {
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+async function submitQuestionReport(stem, qId) {
+  const sn = localStorage.getItem('civitas_student_name') || 'Unknown';
+  try {
+    await fetch(SUPA_URL + '/rest/v1/civitas_feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ student_name: sn, course_id: 'ap_sem', item_type: 'question', item_id: qId || UNIT_ID, item_title: 'AP Seminar Unit 1', issue_type: 'question_error', note: (stem || '').slice(0, 300), unit_id: UNIT_ID, submitted_at: new Date().toISOString() })
+    });
+    notify('✓ Question reported, thanks!');
+  } catch(e) { notify('Report failed.'); }
+}
+
+
+
+function shuffleChoices(questions) {
+  const LETTERS = ['A','B','C','D'];
+  return questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c, i) => ({...c, id: LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices: reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+}
+
+// ── FLASHCARD ENGINE ──────────────────────────────────────────────────────────
+let _fcIdx = 0, _fcFlipped = false, _fcShuffle = [];
+
+function launchFlashcards() {
+  _fcShuffle = [...VOCAB_TERMS].sort(() => Math.random() - 0.5);
+  _fcIdx = 0; _fcFlipped = false;
+  renderFlashcardModal();
+  document.getElementById('fc-modal').style.display = 'block';
+}
+
+function renderFlashcardModal() {
+  const el = document.getElementById('fc-modal');
+  if (!el) return;
+  const card = _fcShuffle[_fcIdx];
+  const pct = Math.round((_fcIdx / _fcShuffle.length) * 100);
+  el.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeFlashcards()">
+      <div style="width:100%;max-width:640px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-family:var(--bebas);font-size:12px;color:var(--amber);letter-spacing:2px">🃏 FLASHCARDS, AP COMP UNIT 1</div>
+          <div style="font-family:var(--dm);font-size:10px;color:var(--text3)">${_fcIdx + 1} / ${_fcShuffle.length}</div>
+          <button onclick="closeFlashcards()" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer">✕</button>
+        </div>
+        <div style="height:3px;background:var(--border2);border-radius:2px;margin-bottom:18px">
+          <div style="height:100%;width:${pct}%;background:var(--amber);border-radius:2px;transition:width .3s"></div>
+        </div>
+        <div onclick="flipCard()" style="background:var(--bg2);border:2px solid ${_fcFlipped ? 'var(--acc)' : 'var(--amber)'};padding:40px 36px;text-align:center;cursor:pointer;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:border-color .2s;position:relative">
+          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:3px;color:${_fcFlipped ? 'var(--acc2)' : 'var(--amber)'};margin-bottom:12px">${_fcFlipped ? 'DEFINITION' : 'TERM'}</div>
+          <div style="font-family:${_fcFlipped ? 'var(--crimson)' : 'var(--playfair)'};font-size:${_fcFlipped ? '15px' : '24px'};color:var(--cream);line-height:1.6;font-style:${_fcFlipped ? 'italic' : 'normal'}">${_fcFlipped ? card.def : card.term}</div>
+          <div style="position:absolute;bottom:10px;right:14px;font-family:var(--dm);font-size:8px;color:var(--text3)">click to ${_fcFlipped ? 'hide' : 'reveal'}</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;justify-content:center">
+          <button onclick="fcPrev()" ${_fcIdx === 0 ? 'disabled' : ''} style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--border2);color:var(--text3);padding:9px 20px;cursor:pointer;transition:all .15s;opacity:${_fcIdx === 0 ? '.3' : '1'}">← PREV</button>
+          <button onclick="fcShuffleCards()" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--border2);color:var(--text3);padding:9px 20px;cursor:pointer;transition:all .15s">🔀 SHUFFLE</button>
+          <button onclick="fcNext()" style="font-family:var(--bebas);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--amber);color:var(--amber);padding:9px 20px;cursor:pointer;transition:all .15s">${_fcIdx === _fcShuffle.length - 1 ? '✓ DONE' : 'NEXT →'}</button>
+        </div>
+        ${_fcIdx === _fcShuffle.length - 1 ? '<div style="text-align:center;margin-top:12px"><button onclick="closeFlashcards();startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:var(--purple);border:none;color:#fff;padding:10px 24px;cursor:pointer">✅ TAKE THE VOCAB QUIZ →</button></div>' : ''}
+      </div>
+    </div>`;
+}
+
+function flipCard() { _fcFlipped = !_fcFlipped; renderFlashcardModal(); }
+function fcNext() {
+  if (_fcIdx < _fcShuffle.length - 1) { _fcIdx++; _fcFlipped = false; renderFlashcardModal(); }
+  else { closeFlashcards(); }
+}
+function fcPrev() {
+  if (_fcIdx > 0) { _fcIdx--; _fcFlipped = false; renderFlashcardModal(); }
+}
+function fcShuffleCards() {
+  _fcShuffle = [...VOCAB_TERMS].sort(() => Math.random() - 0.5);
+  _fcIdx = 0; _fcFlipped = false; renderFlashcardModal();
+}
+function closeFlashcards() {
+  const el = document.getElementById('fc-modal');
+  if (el) el.innerHTML = '';
+}
+
+// ── VOCAB QUIZ ENGINE ─────────────────────────────────────────────────────────
+let _vqQuestions = [], _vqIdx = 0, _vqScore = 0, _vqAnswered = false;
+
+function startVocabQuiz() {
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  const qt = document.querySelector(".hub-tab[onclick*=\"'quiz'\"]");
+  if (qt) qt.classList.add('active');
+  const qp = document.getElementById('tab-quiz');
+  if (qp) qp.classList.add('active');
+
+  const shuffled = [...VOCAB_TERMS].sort(() => Math.random() - 0.5);
+  const pool = shuffled.slice(0, 20);
+  _vqQuestions = pool.map(item => {
+    const wrong = VOCAB_TERMS.filter(v => v.term !== item.term)
+      .sort(() => Math.random() - 0.5).slice(0, 3);
+    const choices = [item, ...wrong].sort(() => Math.random() - 0.5);
+    return { term: item.term, correct: item.def, choices };
+  });
+  _vqIdx = 0; _vqScore = 0; _vqAnswered = false;
+  renderVocabQuiz();
+}
+
+function renderVocabQuiz() {
+  const el = document.getElementById('vq-area');
+  if (!el) return;
+  if (_vqIdx >= _vqQuestions.length) { renderVocabQuizComplete(); return; }
+
+  const q = _vqQuestions[_vqIdx];
+  const pct = Math.round((_vqIdx / _vqQuestions.length) * 100);
+
+  el.innerHTML = `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px">QUESTION ${_vqIdx + 1} OF ${_vqQuestions.length}</div>
+        <div style="font-family:var(--bebas);font-size:12px;color:var(--purple2)">Score: ${_vqScore}/${_vqIdx}</div>
+      </div>
+      <div style="height:3px;background:var(--border2);border-radius:2px">
+        <div style="height:100%;width:${pct}%;background:var(--purple);border-radius:2px;transition:width .3s"></div>
+      </div>
+    </div>
+    <div style="background:rgba(112,96,208,.08);border:1px solid var(--purple);border-left:3px solid var(--purple2);padding:18px 20px;margin-bottom:16px">
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--purple2);letter-spacing:3px;margin-bottom:6px">DEFINE THIS TERM</div>
+      <div style="font-family:var(--playfair);font-size:22px;color:var(--cream)">${q.term}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="vq-choices">
+      ${q.choices.map((c, ci) => `
+        <div onclick="answerVocabQ(${ci})" data-idx="${ci}" style="background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;transition:all .15s;font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.55" onmouseover="if(!this.classList.contains('vq-answered'))this.style.borderColor='var(--purple2)'" onmouseout="if(!this.classList.contains('vq-answered'))this.style.borderColor='var(--border2)'">${c.def}</div>
+      `).join('')}
+    </div>`;
+}
+
+function answerVocabQ(choiceIdx) {
+  if (_vqAnswered) return;
+  _vqAnswered = true;
+  const q = _vqQuestions[_vqIdx];
+  const isCorrect = q.choices[choiceIdx].def === q.correct;
+  if (isCorrect) _vqScore++;
+
+  document.querySelectorAll('#vq-choices > div').forEach((el, i) => {
+    el.classList.add('vq-answered');
+    el.style.cursor = 'default';
+    if (q.choices[i].def === q.correct) {
+      el.style.borderColor = 'var(--green)';
+      el.style.background = 'rgba(42,170,80,.08)';
+      el.style.color = 'var(--green2)';
+    } else if (i === choiceIdx && !isCorrect) {
+      el.style.borderColor = 'var(--red)';
+      el.style.background = 'rgba(224,64,64,.06)';
+      el.style.color = 'var(--red2)';
+    } else {
+      el.style.opacity = '.35';
+    }
+  });
+
+  const area = document.getElementById('vq-area');
+  const nextBtn = document.createElement('button');
+  nextBtn.style.cssText = 'font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:2px solid var(--purple);color:var(--purple2);padding:10px 28px;cursor:pointer;display:block;margin:14px auto 0;transition:all .2s';
+  nextBtn.textContent = _vqIdx === _vqQuestions.length - 1 ? 'SEE RESULTS →' : 'NEXT →';
+  nextBtn.onmouseover = () => { nextBtn.style.background = 'var(--purple)'; nextBtn.style.color = '#fff'; };
+  nextBtn.onmouseout = () => { nextBtn.style.background = 'transparent'; nextBtn.style.color = 'var(--purple2)'; };
+  nextBtn.onclick = () => { _vqIdx++; _vqAnswered = false; renderVocabQuiz(); };
+  area.appendChild(nextBtn);
+}
+
+function renderVocabQuizComplete() {
+  const el = document.getElementById('vq-area');
+  const pct = Math.round((_vqScore / _vqQuestions.length) * 100);
+  const passed = pct >= 80;
+  const color = pct >= 90 ? 'var(--gold)' : pct >= 80 ? 'var(--green2)' : pct >= 60 ? 'var(--amber)' : 'var(--red2)';
+  const medal = pct >= 90 ? '🏆' : pct >= 80 ? '🎖️' : pct >= 60 ? '⭐' : '📋';
+
+  try {
+    const key = 'civitas_vocab_' + UNIT_ID;
+    const prev = parseInt(localStorage.getItem(key) || '0');
+    if (pct > prev) localStorage.setItem(key, pct);
+    if (passed && prev < 80) {
+      const cur = parseInt(localStorage.getItem('civitas_gold') || '0');
+      localStorage.setItem('civitas_gold', cur + 75);
+      spawnGold('+75 🪙 Vocab Medal!');
+    }
+  } catch(e) {}
+
+  el.innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:56px;margin-bottom:14px;animation:pop .5s ease both">${medal}</div>
+      <div style="font-family:var(--bebas);font-size:48px;line-height:1;color:${color};margin-bottom:4px">${pct}%</div>
+      <div style="font-family:var(--dm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">${_vqScore} / ${_vqQuestions.length} CORRECT</div>
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;margin-bottom:20px">
+        ${passed ? '🎖️ Vocab Medal earned! You passed with 80%+.' : 'Score 80% or higher to earn a Vocab Medal and 75 gold. Keep studying!'}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button onclick="startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:2px solid var(--purple);color:var(--purple2);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">↺ RETAKE QUIZ</button>
+        <button onclick="launchFlashcards()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:2px solid var(--amber);color:var(--amber);padding:10px 24px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--amber)';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='var(--amber)'">🃏 STUDY FLASHCARDS</button>
+      </div>
+    </div>`;
+}
+
+
+// ── Anti-cheat ────────────────────────────────────────────────────────────────
+(function() {
+  function isInput(el) { return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'); }
+  // Block right-click outside inputs
+  document.addEventListener('contextmenu', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block text selection outside inputs (stops highlighting question text)
+  document.addEventListener('selectstart', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block copy outside inputs
+  document.addEventListener('copy', e => { if (!isInput(e.target)) e.preventDefault(); });
+  // Block Ctrl+U (view source), Ctrl+S (save), Ctrl+A (select all) outside inputs
+  document.addEventListener('keydown', e => {
+    if (isInput(e.target)) return;
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && ['u','s','a'].includes(e.key.toLowerCase())) e.preventDefault();
+  });
+})();
+function shuffleChoices(questions) {
+  const LETTERS = ['A','B','C','D'];
+  return questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctChoice = q.choices.find(c => c.id === q.correct);
+    const correctText = correctChoice ? correctChoice.text : null;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c, i) => ({ ...c, id: LETTERS[i] }));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return { ...q, choices: reLabeled, correct: newCorrect ? newCorrect.id : q.correct };
+  });
+}
+
+function returnToShell() {
+  try { localStorage.setItem('civitas_returning', '1'); localStorage.setItem('civitas_last_course', 'ap_sem'); } catch(e) {}
+  window.location.href = CIVITAS_URL;
+}
+
+function updateGoldDisplay() {
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.gold;
+}
+
+function awardGoldToShell(amount, source) {
+  try {
+    const cur = parseInt(localStorage.getItem('civitas_gold') || '0');
+    localStorage.setItem('civitas_gold', cur + amount);
+    localStorage.setItem('civitas_gold_pending', JSON.stringify({ amount, source }));
+  } catch(e) {}
+}
+
+function spawnGold(text) {
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random() * 60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg) {
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+function getRoundProgress(idx) {
+  try {
+    const k = 'civitas_' + UNIT_ID + '_r' + idx;
+    return JSON.parse(localStorage.getItem(k) || 'null');
+  } catch(e) { return null; }
+}
+
+function isRoundComplete(idx) {
+  try {
+    const k = 'civitas_' + UNIT_ID + '_r' + idx;
+    const d = JSON.parse(localStorage.getItem(k) || 'null');
+    return d && d.accuracy >= 0;
+  } catch(e) { return false; }
+}
+
+function buildPips() {
+  const pips = document.getElementById('game-pips');
+  pips.innerHTML = QUESTION_BANK.rounds.map((_, i) => `<div class="gp-pip ${i < G.roundIdx ? 'done' : i === G.roundIdx ? 'active' : ''}"></div>`).join('');
+}
+
+function updateProgressBar(done, total) {
+  const pct = Math.round(done / total * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = done + ' / ' + total + ' Rounds Complete';
+}
+
+function loadSavedProgress() {
+  try {
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const u = prog[UNIT_ID];
+    if (u) {
+      const done = QUESTION_BANK.rounds.filter((_,i) => isRoundComplete(i)).length;
+      updateProgressBar(done, QUESTION_BANK.rounds.length);
+    }
+  } catch(e) {}
+}
+
+function buildRoundCards() {
+  const grid = document.getElementById('round-cards');
+  grid.innerHTML = QUESTION_BANK.rounds.map((r, i) => {
+    const prog = getRoundProgress(i);
+    const done = prog !== null;
+    const locked = i > 0 && !isRoundComplete(i - 1);
+    const acc = done ? prog.accuracy : null;
+    const scoreColor = acc >= 80 ? 'var(--green2)' : acc >= 60 ? 'var(--amber)' : 'var(--red2)';
+    return `<div class="activity-card ${locked ? 'locked' : ''}" onclick="${locked ? 'notify(\'Complete Round ' + i + ' first!\')' : 'startRound(' + i + ')'}">
+      <div class="activity-card-strip" style="background:${done ? 'var(--green)' : locked ? 'var(--border2)' : 'var(--acc)'}"></div>
+      <div class="activity-card-body">
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${i + 1} · ${r.type.toUpperCase()}</div>
+        <div class="activity-card-title">${r.label}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action" style="color:${done ? 'var(--green2)' : locked ? 'var(--text3)' : 'var(--acc2)'}">
+          ${locked ? '🔒 Locked' : done ? '✓ Complete, ' + acc + '% accuracy' : '▶ Play Now'}
+        </div>
+        ${done ? `<div class="activity-card-badge" style="border-color:${scoreColor};color:${scoreColor}">${acc}%</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startRound(idx) {
+  if (!isRoundComplete(idx - 1) && idx > 0) { notify('Complete Round ' + idx + ' first!'); return; }
+  G.roundIdx = idx;
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  G.sessionCorrect = 0;
+  G.sessionTotal = 0;
+  G.roundScores = [];
+
+  const round = QUESTION_BANK.rounds[idx];
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+
+  document.getElementById('ri-icon').textContent = round.icon;
+  document.getElementById('ri-round').textContent = 'ROUND ' + (idx + 1) + ' OF ' + QUESTION_BANK.rounds.length;
+  document.getElementById('ri-title').textContent = round.label;
+  document.getElementById('ri-desc').textContent = round.desc;
+
+  buildPips();
+  updateGoldDisplay();
+}
+
+function exitGame() {
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  buildRoundCards();
+  const done = QUESTION_BANK.rounds.filter((_, i) => isRoundComplete(i)).length;
+  updateProgressBar(done, QUESTION_BANK.rounds.length);
+}
+
+function replayUnit() {
+  QUESTION_BANK.rounds.forEach((_, i) => {
+    try { localStorage.removeItem('civitas_' + UNIT_ID + '_r' + i); } catch(e) {}
+  });
+  document.getElementById('unit-complete').style.display = 'none';
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  buildRoundCards();
+}
+
+function beginRound() {
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'flex';
+
+  const round = QUESTION_BANK.rounds[G.roundIdx];
+  if (round.type === 'knowledge') {
+    G.questions = shuffle([...round.questions]);
+    G.questions = shuffleChoices(G.questions);
+    renderQuestion();
+  } else if (round.type === 'data_stimulus' || round.type === 'document_stimulus') {
+    loadStimulusRound(round);
+  }
+
+}
+
+function renderQuestion() {
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  G.selectedChoice = null;
+  G.answered = false;
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('game-round-label').textContent = 'ROUND ' + (G.roundIdx + 1) + ' · Q ' + (G.questionIdx + 1) + '/' + G.questions.length;
+
+  let html = '';
+  const set = q._set;
+  if (set) {
+    if (set.chartType === 'bar' && set.data) {
+      const maxVal = Math.max(...set.data.map(d => d.value));
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📊 DATA STIMULUS</div>
+        <div class="stimulus-title">${set.title}</div>
+        <div class="stimulus-source">${set.source}</div>
+        <div class="chart-bars">${set.data.map(d => `<div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:${Math.round(d.value / maxVal * 90)}px;background:${d.color || 'var(--acc)'}"></div>
+          <div style="font-family:var(--bebas);font-size:9px;color:${d.color || 'var(--acc2)'};text-align:center">${d.value}</div>
+          <div class="chart-label">${d.label}</div>
+        </div>`).join('')}</div>
+      </div>`;
+    } else if (set.chartType === 'table' && set.tableData) {
+      const td = set.tableData;
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📋 DATA TABLE</div>
+        <div class="stimulus-title">${set.title}</div>
+        <div class="stimulus-source">${set.source}</div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table style="width:100%;border-collapse:collapse;font-family:var(--dm);font-size:10px">
+            <tr>${td.headers.map(h => `<th style="border-bottom:1px solid var(--border2);padding:6px 10px;text-align:left;color:var(--acc2);font-family:var(--bebas);letter-spacing:1px">${h}</th>`).join('')}</tr>
+            ${td.rows.map((row, ri) => `<tr style="background:${ri % 2 ? 'rgba(56,160,80,.03)' : 'transparent'}">${row.map(cell => `<td style="padding:6px 10px;color:var(--text2);border-bottom:1px solid var(--border)">${cell}</td>`).join('')}</tr>`).join('')}
+          </table>
+        </div>
+      </div>`;
+    } else if (set.document) {
+      html += `<div class="stimulus-box">
+        <div class="stimulus-label">📄 DOCUMENT STIMULUS</div>
+        <div class="stimulus-title">${set.document}</div>
+        <div class="stimulus-source">${set.author} (${set.year}), ${set.source}</div>
+        <div class="stimulus-text">"${set.excerpt}"</div>
+      </div>`;
+    }
+  }
+
+  html += `<div class="question-card" id="qcard">
+    <div class="q-meta">
+      <div class="q-num">Q ${G.questionIdx + 1} / ${G.questions.length}</div>
+      ${q.topic ? `<div class="q-tag topic">TOPIC ${q.topic}</div>` : ''}
+      <div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="choices" id="choices">
+      ${q.choices.map(c => `<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+        <div class="choice-letter">${c.id}</div>
+        <div class="choice-text">${c.text}</div>
+      </div>`).join('')}
+    </div>
+    <div style="text-align:right;margin-top:8px">
+      <button onclick="submitQuestionReport('${q.stem.replace(/'/g,'\\\'').substring(0,80)}','${q.id||''}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">⚑ Report question</button>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+  el.scrollTop = 0;
+}
+
+function selectChoice(id) {
+  if (G.answered) return;
+  G.selectedChoice = id;
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.remove('selected');
+    if (c.id === 'choice-' + id) c.classList.add('selected');
+  });
+  submitAnswer();
+}
+
+function submitAnswer() {
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    const gold = 5 + (q.difficulty === 'challenging' ? 5 : q.difficulty === 'moderate' ? 3 : 1);
+    G.gold += gold;
+    spawnGold('+' + gold + ' 🪙');
+    awardGoldToShell(gold, 'AP Seminar Unit 1');
+  }
+
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cid = c.id.replace('choice-', '');
+    if (cid === q.correct) c.classList.add('correct');
+    else if (cid === G.selectedChoice && !correct) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    qcard.insertAdjacentHTML('beforeend', `<div class="explanation"><strong>${correct ? '✓ Correct!' : '✗ Incorrect.'}</strong> ${q.explanation}</div>`);
+  }
+  document.getElementById('btn-next').style.display = 'block';
+  updateGoldDisplay();
+}
+
+function nextQuestion() {
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    finishRound();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+function finishRound() {
+  const accuracy = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
+  try {
+    const k = 'civitas_' + UNIT_ID + '_r' + G.roundIdx;
+    localStorage.setItem(k, JSON.stringify({ accuracy, correct: G.sessionCorrect, total: G.sessionTotal, completedAt: new Date().toISOString() }));
+    syncProgressToShell(accuracy);
+  } catch(e) {}
+
+  const icon = accuracy >= 80 ? '⭐' : accuracy >= 60 ? '✅' : '📋';
+  const scoreColor = accuracy >= 80 ? 'var(--green2)' : accuracy >= 60 ? 'var(--amber)' : 'var(--red2)';
+
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+  const rc = document.getElementById('round-complete');
+  rc.style.display = 'flex';
+  document.getElementById('rc-icon').textContent = icon;
+  document.getElementById('rc-title').textContent = QUESTION_BANK.rounds[G.roundIdx].label;
+  document.getElementById('rc-score').textContent = accuracy + '%';
+  document.getElementById('rc-score').style.color = scoreColor;
+  document.getElementById('rc-sub').textContent = G.sessionCorrect + ' / ' + G.sessionTotal + ' CORRECT';
+  document.getElementById('rc-stats').innerHTML = `
+    <div class="rc-stat"><div class="rc-stat-val" style="color:${scoreColor}">${accuracy}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+    <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
+
+  const nextIdx = G.roundIdx + 1;
+  const hasNext = nextIdx < QUESTION_BANK.rounds.length;
+  const nextBtn = document.getElementById('rc-next-btn');
+  if (hasNext) {
+    nextBtn.textContent = 'Continue to Round ' + (nextIdx + 1) + ' →';
+    nextBtn.onclick = () => {
+      rc.style.display = 'none';
+      startRound(nextIdx);
+    };
+  } else {
+    nextBtn.textContent = '🏆 Complete Unit';
+    nextBtn.onclick = showUnitComplete;
+  }
+}
+
+function doneLoading() {
+  const ld = document.getElementById('loading');
+  ld.style.opacity = '0';
+  setTimeout(() => { ld.style.display = 'none'; document.getElementById('hub').style.display = 'flex'; }, 500);
+  buildRoundCards();
+  loadSavedProgress();
+}
+
+async function submitQuestionReport(stem, qId) {
+  const sn = localStorage.getItem('civitas_student_name') || 'Unknown';
+  try {
+    await fetch(SUPA_URL + '/rest/v1/civitas_feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ student_name: sn, course_id: 'ap_sem', item_type: 'question', item_id: qId || UNIT_ID, item_title: 'AP Seminar Unit 1', issue_type: 'question_error', note: (stem || '').slice(0, 300), unit_id: UNIT_ID, submitted_at: new Date().toISOString() })
+    });
+    notify('Question reported, thanks!');
+  } catch(e) { notify('Report failed.'); }
+}
+
+window.addEventListener('load', () => {
+  const fill = document.getElementById('ld-fill');
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 25;
+    if (p >= 100) { p = 100; clearInterval(iv); setTimeout(doneLoading, 300); }
+    fill.style.width = p + '%';
+  }, 120);
+});
+</script>
+</body>
+</html>
