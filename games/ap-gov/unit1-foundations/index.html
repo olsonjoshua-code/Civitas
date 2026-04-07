@@ -1943,8 +1943,10 @@ function saveGameToFile() {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'civitas-save-' + fn.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
     notify('💾 Progress saved to your device!');
   } catch(e) { notify('Save failed — try again.'); }
 }
