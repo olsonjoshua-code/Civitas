@@ -202,6 +202,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       </div>
     </div>
     <button class="back-btn" onclick="returnToShell()">← Back to AP Comparative</button>
+  <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">&#128190; Save</button>
   </div>
 
     <div class="hub-tabs">
@@ -209,7 +210,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <button class="hub-tab" onclick="switchTab('briefing',this)">&#128203; Briefing</button>
     <button class="hub-tab" onclick="switchTab('vocab',this)">&#127183; Vocabulary</button>
     <button class="hub-tab" onclick="switchTab('quiz',this)">&#10003; Vocab Quiz</button>
-    <button class="hub-tab" onclick="switchTab('frq',this)">&#9999;&#65039; FRQ Practice</button>
+    
     <button class="hub-tab" onclick="switchTab('overview',this)">&#128202; Overview</button>
   </div>
 
@@ -804,12 +805,12 @@ async function submitUnitFRQ(frqId){
     const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
     const score=grade.totalScore||0;
     try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);
-      const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
       if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};
       if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};
       const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};
       ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;
-      ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}
+      ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_state',JSON.stringify(ss));}catch(e){}
     const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
     btn.innerHTML='✓ Graded';
     const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
@@ -1005,7 +1006,7 @@ function getUnitFRQs() {
   const types = ['CA','QA','COMP','AE'];
   function _bestScore(id) {
     try {
-      const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
       return (sub[id]&&sub[id].bestScore>0) ? sub[id].bestScore : null;
     } catch(e) { return null; }
@@ -1032,7 +1033,7 @@ function saveFRQDraft(id,t) { try { sessionStorage.setItem('civitas_frq_draft_'+
 function getFRQFeedback(id) { try { return sessionStorage.getItem('civitas_frq_fb_'+id)||''; } catch(e) { return ''; } }
 function getFRQBestScore(id) {
   try {
-    const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+    const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
     const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
     if (sub[id]&&sub[id].bestScore>0) return sub[id].bestScore;
   } catch(e) {}
@@ -1161,11 +1162,17 @@ async function submitUnitFRQ(frqId) {
   btnEl.disabled = true; btnEl.textContent = 'Grading...';
   feedbackEl.style.display = 'block';
   feedbackEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding:8px 0"><div style="font-size:22px">🌍</div><div style="font-family:var(--bebas);font-size:13px;color:'+tc.color+';letter-spacing:2px">Grading your '+tc.label+'...</div></div>';
+  var prevTaskScores = {};
+  try {
+    var _ps = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    var _psub = (_ps.courseProgress && _ps.courseProgress.ap_cmp && _ps.courseProgress.ap_cmp.frqSubmissions && _ps.courseProgress.ap_cmp.frqSubmissions[frqId]) || {};
+    prevTaskScores = _psub.bestTaskScores || {};
+  } catch(e) {}
   try {
     const apiResp = await fetch(AI_URL, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1400,
-        system: 'You are an expert AP Comparative Government and Politics FRQ grader. Grade strictly against the rubric. Respond ONLY in valid JSON, no other text or markdown.',
+        system: 'You are a supportive AP Comparative Government FRQ grader. Award points generously on borderline responses — if the student demonstrates understanding, give the point even if phrasing is imperfect. NEVER lower a previously earned task score on resubmission. Respond ONLY in valid JSON, no markdown.',
         messages: [{role:'user', content: 'Grade this AP Comparative Gov '+tc.label+' FRQ.\n\nRUBRIC:\n'+frq.rubric+'\n\nSTUDENT RESPONSE:\n'+response+'\n\nReturn ONLY this JSON:\n'+tc.jsonSchema}]
       })
     });
@@ -1179,16 +1186,18 @@ async function submitUnitFRQ(frqId) {
 
     // Save to localStorage
     try {
-      const ss = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const ss = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       if (!ss.courseProgress) ss.courseProgress = {};
       if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
       if (!ss.courseProgress.ap_cmp.frqSubmissions) ss.courseProgress.ap_cmp.frqSubmissions = {};
-      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[]};
+      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[],bestTaskScores:{}};
       ex.bestScore = Math.max(ex.bestScore, score); ex.maxScore = frq.points;
-      ex.attempts = (ex.attempts||0)+1; if (!ex.history) ex.history = [];
+      ex.attempts = (ex.attempts||0)+1;
+      if(!ex.bestTaskScores)ex.bestTaskScores={};
+      Object.keys(tasks).forEach(function(k){if((tasks[k]&&tasks[k].earned||0)>=(ex.bestTaskScores[k]||0))ex.bestTaskScores[k]=tasks[k].earned||0;}); if (!ex.history) ex.history = [];
       ex.history.push({score:score, ts:Date.now()});
       ss.courseProgress.ap_cmp.frqSubmissions[frqId] = ex;
-      localStorage.setItem('civitas_shell_state', JSON.stringify(ss));
+      localStorage.setItem('civitas_state', JSON.stringify(ss));
     } catch(e) {}
 
     if (isNew && score > 0) {
@@ -1336,6 +1345,7 @@ function submitAnswer() {
   }
   document.getElementById('btn-next').style.display = 'block';
   updateGoldDisplay();
+  savePartialProgress();
 }
 
 function nextQuestion() {
