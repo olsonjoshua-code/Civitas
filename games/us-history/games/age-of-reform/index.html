@@ -2291,6 +2291,7 @@ function selectChoice(btn) {
   P.totalAnswered = (P.totalAnswered || 0) + 1;
   if (isCorrect) P.totalCorrect = (P.totalCorrect || 0) + 1;
   saveP();
+  savePartialToSupabase();
 
   const fp = document.getElementById('feedback-panel');
   fp.className = 'feedback-panel show ' + (isCorrect ? 'correct' : 'incorrect');
@@ -2650,6 +2651,59 @@ function printCertificate() {
 // ════════════════════════════════════════════
 // SUPABASE PUSH
 // ════════════════════════════════════════════
+
+// ── PARTIAL PROGRESS SAVE ─────────────────────────────────────────────
+let _acSaveDebounce = null;
+function savePartialToSupabase() {
+  clearTimeout(_acSaveDebounce);
+  _acSaveDebounce = setTimeout(async function() {
+    try {
+      if (!P || !P.name || P.name === 'Guest') return;
+      const payload = {
+        name: P.name,
+        period: P.period || 'guest',
+        unit_id: UNIT_ID,
+        partial_progress: JSON.stringify({
+          totalAnswered: P.totalAnswered || 0,
+          totalCorrect: P.totalCorrect || 0,
+          score: P.score || 0,
+          gold: P.gold || 0,
+          ts: Date.now()
+        }),
+        updated_at: new Date().toISOString()
+      };
+      await fetch(AC_SUPA_URL + '/rest/v1/ac_partial_progress?on_conflict=name,period,unit_id', {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+        body: JSON.stringify(payload)
+      });
+    } catch(e) {}
+  }, 1500);
+}
+
+function saveGameToFile() {
+  try {
+    const fname = (P && P.name) ? P.name : 'student';
+    const save = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      studentName: fname,
+      unitId: UNIT_ID,
+      playerState: P,
+      localSaveKey: SAVE_KEY
+    };
+    const blob = new Blob([JSON.stringify(save, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'civitas-save-' + fname.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    notify('\u{1F4BE} Progress saved to your device!', 'green');
+  } catch(e) { notify('Save failed.', 'red'); }
+}
 
 async function pushACResult(acc) {
   if (!P || !P.name || P.name === 'Guest') return;
