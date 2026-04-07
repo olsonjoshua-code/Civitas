@@ -158,13 +158,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);background-ima
       </div>
     </div>
     <button class="back-btn" onclick="returnToShell()">&larr; Back to AP Comparative</button>
+  <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">&#128190; Save</button>
   </div>
     <div class="hub-tabs">
     <button class="hub-tab active" onclick="switchTab('play',this)">&#9654; Play</button>
     <button class="hub-tab" onclick="switchTab('briefing',this)">&#128203; Briefing</button>
     <button class="hub-tab" onclick="switchTab('vocab',this)">&#127183; Vocabulary</button>
     <button class="hub-tab" onclick="switchTab('quiz',this)">&#10003; Vocab Quiz</button>
-    <button class="hub-tab" onclick="switchTab('frq',this)">&#9999;&#65039; FRQ Practice</button>
+    
     <button class="hub-tab" onclick="switchTab('review',this)">&#128202; Review</button>
   </div>
   <div class="hub-content">
@@ -520,7 +521,7 @@ function buildRoundCards(){document.getElementById('round-cards').innerHTML=ROUN
 function buildFRQList(){const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};document.getElementById('frq-list').innerHTML=UNIT_FRQS.map(frq=>`<div class="frq-card" onclick="openFRQ('${frq.id}')"><div style="display:flex;align-items:flex-start;justify-content:space-between"><div><div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${cols[frq.type]||'var(--acc)'};margin-bottom:4px">${frq.label} &middot; ${frq.maxScore} pts</div><div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:4px">${frq.title}</div><div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Cross-country &middot; AI-graded</div></div><div class="frq-badge" id="frq-badge-${frq.id}"></div></div></div>`).join('');}
 function openFRQ(frqId){const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;const cols={CA:'var(--acc)',QA:'var(--amber)',COMP:'var(--teal)',AE:'var(--purple)'};const col=cols[frq.type]||'var(--acc)';document.getElementById('frq-workspace-area').innerHTML=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><button onclick="closeFRQ()" style="font-family:var(--bebas);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:4px 10px;cursor:pointer">&larr; Back</button><div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:${col}">${frq.label} &middot; ${frq.maxScore} PTS</div></div><div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-weight:700;margin-bottom:12px">${frq.title}</div><div class="frq-prompt">${frq.prompt}</div>${frq.parts.map((p,pi)=>`<div class="frq-part"><div class="frq-part-header"><div class="frq-part-letter">Part ${p.part}</div><div class="frq-part-pts">${p.points} PT${p.points>1?'S':''}</div></div><div class="frq-part-prompt">${p.prompt}</div><textarea class="frq-textarea" id="frq-ans-${frq.id}-${pi}" placeholder="Write your response here..."></textarea></div>`).join('')}<button class="frq-submit-btn" id="frq-submit-${frqId}" onclick="submitFRQ('${frqId}')">&#9889; Submit for AI Grading</button><div class="frq-grading" id="frq-grade-${frqId}" style="margin-top:16px"></div>`;document.getElementById('frq-workspace-area').scrollIntoView({behavior:'smooth',block:'start'});}
 function closeFRQ(){document.getElementById('frq-workspace-area').innerHTML='';}
-async function submitFRQ(frqId){const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');if(answers.join('').length<30){notify('Please write responses first.');return;}const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);btn.disabled=true;btn.innerHTML='&#9203; Grading...';const partsText=frq.parts.map((p,i)=>`Part ${p.part}(${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');try{const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\n${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],system:'You are an AP Comparative Government FRQ expert grader. Grade strictly per rubric. Return ONLY valid JSON.'})});const data=await resp.json();const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());const score=grade.totalScore||0;try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);const ss=JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_shell_state',JSON.stringify(ss));}catch(e){}const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}btn.innerHTML='&#10003; Graded';const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';gradeDiv.style.display='block';gradeDiv.innerHTML=`<div class="frq-score-banner"><div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div><div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE &middot; ${pct}%</div><div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span><span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'&#10003; +'+p.earned:'&#10007; 0'}</span></div><div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div></div>`;}).join('')}</div><div class="frq-overall-feedback">${grade.overallFeedback||''}</div>${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>&#x1F4A1; Improve:</strong> ${grade.improveHint}</div>`:''}`;} catch(e){btn.innerHTML='&#9888; Error';btn.disabled=false;notify('Grading error.');}}
+async function submitFRQ(frqId){const frq=UNIT_FRQS.find(f=>f.id===frqId);if(!frq)return;const answers=frq.parts.map((_,pi)=>(document.getElementById('frq-ans-'+frqId+'-'+pi)||{}).value||'');if(answers.join('').length<30){notify('Please write responses first.');return;}const btn=document.getElementById('frq-submit-'+frqId);const gradeDiv=document.getElementById('frq-grade-'+frqId);btn.disabled=true;btn.innerHTML='&#9203; Grading...';const partsText=frq.parts.map((p,i)=>`Part ${p.part}(${p.points}pt): ${p.prompt}\nRubric: ${frq.rubric[p.part]||frq.rubric.B_sim||frq.rubric.Essay||''}\nAnswer: ${answers[i]||'[blank]'}`).join('\n\n');try{const resp=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:`FRQ: ${frq.label}\nTitle: ${frq.title}\nMax: ${frq.maxScore}\n${frq.prompt}\n\n${partsText}\n\nReturn JSON: {"totalScore":N,"maxScore":${frq.maxScore},"parts":[{"part":"A","earned":0,"feedback":"..."}],"overallFeedback":"...","improveHint":"..."}`}],system:'You are an AP Comparative Government FRQ expert grader. Grade strictly per rubric. Return ONLY valid JSON.'})});const data=await resp.json();const grade=JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());const score=grade.totalScore||0;try{localStorage.setItem('civitas_frq_'+UNIT_ID+'_'+frqId,score);const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');if(!ss.courseProgress)ss.courseProgress={};if(!ss.courseProgress.ap_cmp)ss.courseProgress.ap_cmp={};if(!ss.courseProgress.ap_cmp.frqSubmissions)ss.courseProgress.ap_cmp.frqSubmissions={};const ex=ss.courseProgress.ap_cmp.frqSubmissions[frqId]||{bestScore:0,maxScore:frq.maxScore,attempts:0};ex.bestScore=Math.max(ex.bestScore,score);ex.maxScore=frq.maxScore;ex.attempts=(ex.attempts||0)+1;ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_state',JSON.stringify(ss));}catch(e){}const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}btn.innerHTML='&#10003; Graded';const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';gradeDiv.style.display='block';gradeDiv.innerHTML=`<div class="frq-score-banner"><div class="frq-total-score" style="color:${sc}">${score}/${frq.maxScore}</div><div><div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px">AI SCORE &middot; ${pct}%</div><div style="font-family:var(--playfair);font-size:15px;color:var(--cream)">${frq.title}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px">${(grade.parts||[]).map(p=>{const e=p.earned>0;return`<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${e?'var(--green)':'var(--red)'};padding:10px 14px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span style="font-family:var(--bebas);font-size:11px;color:${e?'var(--acc2)':'var(--text3)'}">Part ${p.part}</span><span style="font-family:var(--bebas);font-size:13px;color:${e?'var(--green2)':'var(--red2)'}">${e?'&#10003; +'+p.earned:'&#10007; 0'}</span></div><div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.5">${p.feedback||''}</div></div>`;}).join('')}</div><div class="frq-overall-feedback">${grade.overallFeedback||''}</div>${grade.improveHint?`<div style="background:rgba(56,160,80,.06);border:1px solid rgba(56,160,80,.2);border-left:3px solid var(--acc);padding:12px;margin-top:10px;font-family:var(--crimson);font-size:13px;color:var(--acc3);line-height:1.65"><strong>&#x1F4A1; Improve:</strong> ${grade.improveHint}</div>`:''}`;} catch(e){btn.innerHTML='&#9888; Error';btn.disabled=false;notify('Grading error.');}}
 function startRound(idx){if(!isRoundComplete(idx-1)&&idx>0){notify('Complete Round '+idx+' first!');return;}G={...G,roundIdx:idx,questionIdx:0,selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};const round=ROUNDS[idx];document.getElementById('hub').style.display='none';document.getElementById('game').style.display='flex';document.getElementById('round-intro').style.display='flex';['question-area','round-complete','unit-complete'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('btn-next').style.display='none';document.getElementById('ri-icon').textContent=round.icon;document.getElementById('ri-round').textContent='ROUND '+(idx+1)+' OF '+ROUNDS.length;document.getElementById('ri-title').textContent=round.label;document.getElementById('ri-desc').textContent=round.desc;document.getElementById('game-pips').innerHTML=ROUNDS.map((_,i)=>`<div class="gp-pip ${i<idx?'done':i===idx?'active':''}"></div>`).join('');updateGoldDisplay();}
 function beginRound(){document.getElementById('round-intro').style.display='none';document.getElementById('question-area').style.display='flex';G.questions=shuffleChoices(shuffle([...QUESTION_BANK.rounds[G.roundIdx].questions]));renderQuestion();}
 function renderQuestion(){const q=G.questions[G.questionIdx];const el=document.getElementById('question-area');G.selectedChoice=null;G.answered=false;document.getElementById('btn-next').style.display='none';document.getElementById('game-round-label').textContent='ROUND '+(G.roundIdx+1)+' &middot; Q '+(G.questionIdx+1)+'/'+G.questions.length;el.innerHTML=`<div class="question-card" id="qcard"><div class="q-meta"><div class="q-num">Q ${G.questionIdx+1} / ${G.questions.length}</div><div class="q-tag countries">&#x1F30D; ${q.countries}</div><div class="q-tag diff-${q.difficulty}">${q.difficulty}</div></div><div class="q-stem">${q.stem}</div><div class="choices">${q.choices.map(c=>`<div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')"><div class="choice-letter">${c.id}</div><div class="choice-text">${c.text}</div></div>`).join('')}</div><div style="text-align:right;margin-top:8px"><button onclick="submitQuestionReport('${q.stem.replace(/'/g,"\\'").substring(0,80)}')" style="font-family:var(--dm);font-size:8px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.5">&#9876; Report</button></div></div>`;el.scrollTop=0;}
@@ -557,7 +558,7 @@ function getUnitFRQs() {
   const types = ['CA','QA','COMP','AE'];
   function _bestScore(id) {
     try {
-      const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
       return (sub[id]&&sub[id].bestScore>0) ? sub[id].bestScore : null;
     } catch(e) { return null; }
@@ -584,7 +585,7 @@ function saveFRQDraft(id,t) { try { sessionStorage.setItem('civitas_frq_draft_'+
 function getFRQFeedback(id) { try { return sessionStorage.getItem('civitas_frq_fb_'+id)||''; } catch(e) { return ''; } }
 function getFRQBestScore(id) {
   try {
-    const s = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+    const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
     const sub = s&&s.courseProgress&&s.courseProgress.ap_cmp&&s.courseProgress.ap_cmp.frqSubmissions||{};
     if (sub[id]&&sub[id].bestScore>0) return sub[id].bestScore;
   } catch(e) {}
@@ -713,11 +714,17 @@ async function submitUnitFRQ(frqId) {
   btnEl.disabled = true; btnEl.textContent = 'Grading...';
   feedbackEl.style.display = 'block';
   feedbackEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding:8px 0"><div style="font-size:22px">🌍</div><div style="font-family:var(--bebas);font-size:13px;color:'+tc.color+';letter-spacing:2px">Grading your '+tc.label+'...</div></div>';
+  var prevTaskScores = {};
+  try {
+    var _ps = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    var _psub = (_ps.courseProgress && _ps.courseProgress.ap_cmp && _ps.courseProgress.ap_cmp.frqSubmissions && _ps.courseProgress.ap_cmp.frqSubmissions[frqId]) || {};
+    prevTaskScores = _psub.bestTaskScores || {};
+  } catch(e) {}
   try {
     const apiResp = await fetch(AI_URL, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1400,
-        system: 'You are an expert AP Comparative Government and Politics FRQ grader. Grade strictly against the rubric. Respond ONLY in valid JSON, no other text or markdown.',
+        system: 'You are a supportive AP Comparative Government FRQ grader. Award points generously on borderline responses — if the student demonstrates understanding, give the point even if phrasing is imperfect. NEVER lower a previously earned task score on resubmission. Respond ONLY in valid JSON, no markdown.',
         messages: [{role:'user', content: 'Grade this AP Comparative Gov '+tc.label+' FRQ.\n\nRUBRIC:\n'+frq.rubric+'\n\nSTUDENT RESPONSE:\n'+response+'\n\nReturn ONLY this JSON:\n'+tc.jsonSchema}]
       })
     });
@@ -731,16 +738,18 @@ async function submitUnitFRQ(frqId) {
 
     // Save to localStorage
     try {
-      const ss = JSON.parse(localStorage.getItem('civitas_shell_state')||'{}');
+      const ss = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       if (!ss.courseProgress) ss.courseProgress = {};
       if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
       if (!ss.courseProgress.ap_cmp.frqSubmissions) ss.courseProgress.ap_cmp.frqSubmissions = {};
-      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[]};
+      const ex = ss.courseProgress.ap_cmp.frqSubmissions[frqId] || {bestScore:0,maxScore:frq.points,attempts:0,history:[],bestTaskScores:{}};
       ex.bestScore = Math.max(ex.bestScore, score); ex.maxScore = frq.points;
-      ex.attempts = (ex.attempts||0)+1; if (!ex.history) ex.history = [];
+      ex.attempts = (ex.attempts||0)+1;
+      if(!ex.bestTaskScores)ex.bestTaskScores={};
+      Object.keys(tasks).forEach(function(k){if((tasks[k]&&tasks[k].earned||0)>=(ex.bestTaskScores[k]||0))ex.bestTaskScores[k]=tasks[k].earned||0;}); if (!ex.history) ex.history = [];
       ex.history.push({score:score, ts:Date.now()});
       ss.courseProgress.ap_cmp.frqSubmissions[frqId] = ex;
-      localStorage.setItem('civitas_shell_state', JSON.stringify(ss));
+      localStorage.setItem('civitas_state', JSON.stringify(ss));
     } catch(e) {}
 
     if (isNew && score > 0) {
@@ -888,6 +897,7 @@ function submitAnswer() {
   }
   document.getElementById('btn-next').style.display = 'block';
   updateGoldDisplay();
+  savePartialProgress();
 }
 
 function nextQuestion() {
