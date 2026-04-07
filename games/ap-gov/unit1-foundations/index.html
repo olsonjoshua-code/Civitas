@@ -322,7 +322,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         <div class="hub-meta-item">🎮 Rounds: <span>4</span></div>
       </div>
     </div>
+    <div style="display:flex;align-items:center;gap:8px">
     <button class="back-btn" onclick="returnToShell()">← Back to AP Gov</button>
+    <button onclick="saveGameToFile()" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:8px 14px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">💾 Save Game</button>
+  </div>
   </div>
 
   <!-- Tabs -->
@@ -936,6 +939,7 @@ function renderRoundCards() {
   }
   // Show unit trophy if all done (rounds + FRQ)
   if (allRoundsComplete()) renderUnitTrophyBanner();
+  appendFRQRoundCard();
 }
 
 function renderUnitTrophyBanner() {
@@ -1714,6 +1718,7 @@ function submitAnswer() {
 
   const el = document.getElementById('question-area');
   setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+  savePartialProgress();
 }
 
 function nextQuestion() {
@@ -1852,6 +1857,98 @@ function saveProgress(pct) {
 }
 
 
+// ── PARTIAL PROGRESS SAVE ──────────────────────────────────────────────
+let _saveDebounce = null;
+function savePartialProgress() {
+  try {
+    const partial = {
+      roundIdx: G.roundIdx,
+      questionIdx: G.questionIdx,
+      correct: G.sessionCorrect,
+      total: G.sessionTotal,
+      ts: Date.now()
+    };
+    localStorage.setItem('civitas_' + UNIT_ID + '_partial', JSON.stringify(partial));
+  } catch(e) {}
+  // Debounced Supabase push — waits 1.5s after last answer
+  clearTimeout(_saveDebounce);
+  _saveDebounce = setTimeout(() => saveProgressToSupabase(), 1500);
+}
+
+function appendFRQRoundCard() {
+  const el = document.getElementById('round-cards');
+  if (!el || document.getElementById('frq-round-card')) return;
+  const allDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const frqDone = hasAnyFRQSubmitted();
+  const totalRounds = QUESTION_BANK.rounds.length;
+  const color = 'var(--purple)';
+  const color2 = 'var(--purple2)';
+  const card = document.createElement('div');
+  card.id = 'frq-round-card';
+  card.style.cssText = `background:var(--bg2);border:1px solid ${frqDone ? color : allDone ? 'var(--border2)' : 'var(--border)'};border-left:4px solid ${frqDone ? color : allDone ? 'var(--border2)' : 'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${allDone ? 'cursor:pointer' : 'opacity:.45;cursor:not-allowed'}`;
+  if (allDone) {
+    card.onmouseover = () => card.style.borderColor = color;
+    card.onmouseout  = () => card.style.borderColor = frqDone ? color : 'var(--border2)';
+    card.onclick = () => {
+      document.querySelectorAll('.hub-tab').forEach(t => {
+        if (t.textContent.includes('FRQ')) { switchTab('frq', t); }
+      });
+    };
+  }
+  card.innerHTML = `
+    <div style="font-size:28px;flex-shrink:0">✍️</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${totalRounds + 1} OF ${totalRounds + 1} · FINAL STEP</div>
+      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">FRQ Practice</div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">AI-graded free response — submit at least one to complete the unit.</div>
+    </div>
+    <div style="flex-shrink:0;text-align:right">
+      ${frqDone
+        ? `<div style="font-family:var(--bebas);font-size:11px;color:${color2};letter-spacing:1px">✓ SUBMITTED</div>`
+        : allDone
+          ? `<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color2};border:1px solid ${color};padding:6px 16px">▶ Go to FRQ</div>`
+          : `<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete all rounds first</div>`
+      }
+    </div>`;
+  el.appendChild(card);
+}
+
+function saveGameToFile() {
+  try {
+    const sn = localStorage.getItem('civitas_student_name') || 'student';
+    const fn = localStorage.getItem('civitas_full_name') || sn;
+    // Collect everything relevant
+    const save = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      studentName: sn,
+      fullName: fn,
+      unitId: UNIT_ID,
+      unitProgress: JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'),
+      gold: parseInt(localStorage.getItem('civitas_gold') || '0'),
+      shellState: JSON.parse(localStorage.getItem('civitas_state') || '{}'),
+    };
+    // Add all round keys for this unit
+    QUESTION_BANK.rounds.forEach((_, i) => {
+      const k = 'civitas_' + UNIT_ID + '_r' + i;
+      const d = localStorage.getItem(k);
+      if (d) save['round_' + i] = JSON.parse(d);
+    });
+    // Add partial
+    const partial = localStorage.getItem('civitas_' + UNIT_ID + '_partial');
+    if (partial) save.partial = JSON.parse(partial);
+    const json = JSON.stringify(save, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'civitas-save-' + fn.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('💾 Progress saved to your device!');
+  } catch(e) { notify('Save failed — try again.'); }
+}
+
 async function saveProgressToSupabase() {
   try {
     const sn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
@@ -1870,6 +1967,7 @@ async function saveProgressToSupabase() {
       full_name: sn,
       unit_progress: JSON.stringify(unitProg),
       ['unit_rounds_apg_u1']: JSON.stringify(rounds),
+      ['unit_partial_apg_u1']: (()=>{try{return localStorage.getItem('civitas_apg_u1_partial')||'{}'}catch(e){return'{}'}})(),
       updated_at: new Date().toISOString()
     };
     await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
