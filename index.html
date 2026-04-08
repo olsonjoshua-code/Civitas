@@ -2939,7 +2939,7 @@ function loadS(){
       if(!S.goldLedger)S.goldLedger=[];
       if(!S.unlocked||!S.unlocked.length)S.unlocked=CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id);
       mergeSharedUnlocks();
-      S.isTeacher=false;
+      S.isTeacher=(S.period==='teacher')||S.isTeacher||false;
     }
   }catch(e){}
 }
@@ -3928,18 +3928,22 @@ async function recoverConfirm(encodedName){
 }
 
 function recoverFromProfile(profile){
-  IS_TEACHER=false;
+  const isTeacher=(profile.period==='teacher');
+  IS_TEACHER=isTeacher;
   loadS();
   applyProfile(profile);
   S.setupDone=true;
   S.isGuest=false;
-  S.isTeacher=false;
+  S.isTeacher=isTeacher;
+  if(isTeacher) S.period='teacher';
   saveS();
-  // Hard-hide teacher UI elements
-  const tb=document.getElementById('nav-teacher');
-  if(tb)tb.style.display='none';
-  const vt=document.getElementById('view-teacher');
-  if(vt)vt.classList.remove('active');
+  // Only hide teacher UI if not a teacher
+  if(!isTeacher){
+    const tb=document.getElementById('nav-teacher');
+    if(tb)tb.style.display='none';
+    const vt=document.getElementById('view-teacher');
+    if(vt)vt.classList.remove('active');
+  }
   document.getElementById('recover-screen').style.display='none';
   enterShell();
 }
@@ -3985,7 +3989,7 @@ async function boot(){
           S.courses=[{id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()}];
         }
       }
-      if(savedFull==='Joshua Olson'){IS_TEACHER=true;S.isTeacher=true;}
+      if(savedFull==='Joshua Olson'||S.period==='teacher'){IS_TEACHER=true;S.isTeacher=true;S.period='teacher';}
       enterShell();return;
     }
   }
