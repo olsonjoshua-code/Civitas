@@ -365,7 +365,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       <div class="activity-grid">
 
         <!-- Briefing -->
-        <div class="activity-card" onclick="switchTab('briefing',document.querySelectorAll('.hub-tab')[1])" style="border-top:3px solid var(--teal)">
+        <div class="activity-card" onclick="switchTab('briefing',Array.from(document.querySelectorAll('.hub-tab')).find(t=>t.textContent.includes('Briefing')))" style="border-top:3px solid var(--teal)">
           <div class="activity-card-strip" style="background:var(--teal)"></div>
           <div class="activity-card-body">
             <div class="activity-card-icon">📋</div>
@@ -389,7 +389,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         </div>
 
         <!-- Vocab Quiz -->
-        <div class="activity-card" onclick="switchTab('quiz',document.querySelectorAll('.hub-tab')[3])" style="border-top:3px solid var(--purple)">
+        <div class="activity-card" onclick="switchTab('quiz',Array.from(document.querySelectorAll('.hub-tab')).find(t=>t.textContent.includes('Vocab Quiz')))" style="border-top:3px solid var(--purple)">
           <div class="activity-card-strip" style="background:var(--purple)"></div>
           <div class="activity-card-body">
             <div class="activity-card-icon">✅</div>
@@ -399,11 +399,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
             <div class="activity-card-action" style="color:var(--purple2)">→ Take Quiz</div>
           </div>
           <div class="activity-card-badge" id="vocab-badge" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
-        </div>
-
-      </div>
-    </div>
-
         </div>
 
       </div>
@@ -1933,9 +1928,10 @@ function appendFRQRoundCard() {
     card.onmouseover = () => card.style.borderColor = color;
     card.onmouseout  = () => card.style.borderColor = frqDone ? color : 'var(--border2)';
     card.onclick = () => {
-      document.querySelectorAll('.hub-tab').forEach(t => {
-        if (t.textContent.includes('FRQ')) { switchTab('frq', t); }
-      });
+      document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+      const frqPanel = document.getElementById('tab-frq');
+      if (frqPanel) { frqPanel.classList.add('active'); renderFRQTab(); }
     };
   }
   card.innerHTML = `
