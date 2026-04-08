@@ -7046,6 +7046,7 @@ const MPE_UNITS = {
     extras: [
       {id:'apsem_bi_bq', label:'Big Questions Theme'},
       {id:'apsem_exam', label:'AP Exam Practice'},
+      {id:'apsem_rpg', label:'The Crucible RPG (Campaign)'},
     ]
   },
   hs_ush: {
@@ -7158,6 +7159,10 @@ async function commitManualProgress() {
         bestAccuracy: Math.max(acc, existing_acc),
         completedAt: unitProg[u.id]?.completedAt || now
       };
+      // Campaign unit: also write chaptersComplete so trophy renders correctly
+      if (u.id === 'apsem_rpg') {
+        unitProg[u.id].chaptersComplete = ['ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8'];
+      }
       // Build round keys for core units
       if (selectedUnits.find(su => su.id === u.id)) {
         const rounds = {};
