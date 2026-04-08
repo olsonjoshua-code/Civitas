@@ -2859,6 +2859,13 @@ function pushLessonProgress(acc) {
         completedAt: allDone ? (prevUnit.completedAt || new Date().toISOString()) : null
       };
 
+      // Build courses array so the teacher dashboard filter includes this student
+      let existingCourses = [];
+      try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+      if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+        existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+      }
+
       await fetch(
         AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
         {
@@ -2869,6 +2876,7 @@ function pushLessonProgress(acc) {
             display_name:    P.name,
             period:          String(P.period || ''),
             avatar:          P.avatar || 'scholar_f',
+            courses:         JSON.stringify(existingCourses),
             unit_progress:   JSON.stringify(unitProgress),
             course_progress: JSON.stringify(courseProgress),
             updated_at:      new Date().toISOString()
@@ -2958,6 +2966,13 @@ async function pushACResult(acc) {
     const shellState = shellRaw ? JSON.parse(shellRaw) : {};
     const currentGold = Math.max(shellState.gold || 0, existing?.gold || 0);
 
+    // Build courses array so teacher dashboard filter includes this student
+    let existingCourses = [];
+    try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+      existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+    }
+
     await fetch(
       AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
       {
@@ -2969,6 +2984,7 @@ async function pushACResult(acc) {
           period:          String(P.period || ''),
           avatar:          P.avatar || 'scholar_f',
           gold:            currentGold,
+          courses:         JSON.stringify(existingCourses),
           unit_progress:   JSON.stringify(unitProgress),
           course_progress: JSON.stringify(courseProgress),
           updated_at:      new Date().toISOString()

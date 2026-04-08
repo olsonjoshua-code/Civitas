@@ -834,7 +834,9 @@ body.hud-active #root{padding-top:68px;}
 // ════════════════════════════════════════════
 const SHELL_KEY   = 'ac_shell_state';
 const SAVE_KEY   = 'liberty_theme_v1_save';
-const UNIT_ID     = 'theme_liberty';
+const UNIT_ID     = 'theme_liberty';       // internal game ID
+const CIV_UNIT_ID = 'ush_theme_freedom';   // Civitas dashboard ID
+const CIV_COURSE  = 'hs_ush';      // Civitas course ID
 
 // ── GOLD ECONOMY ──────────────────────────────────────
 // These are the canonical reward values for Unit 5B.
@@ -1626,27 +1628,54 @@ const DEFAULT_P = {
 };
 
 function loadP() {
-  // 1. Try shell state first (seamless session from American Chronicles)
+  // 1. Try Civitas shell state first (civitas_state key)
   try {
-    const raw = localStorage.getItem(SHELL_KEY);
-    if (raw) {
-      const shell = JSON.parse(raw);
-      if (shell && shell.name && shell.name !== 'Guest') {
-        // Build a P from shell identity
+    const civRaw = localStorage.getItem('civitas_state');
+    if (civRaw) {
+      const civ = JSON.parse(civRaw);
+      if (civ && civ.name && civ.name !== 'Guest') {
         const saved = loadSavedUnit();
         P = Object.assign({}, DEFAULT_P, saved || {}, {
-          name: shell.name,
-          period: shell.period || null,
-          avatar: shell.avatar || 'scholar_f',
-          globalRank: shell.rank || 'Curious Citizen',
-          fromShell: true
+          name:        civ.name,
+          fullName:    civ.fullName || civ.name,
+          period:      civ.period || null,
+          avatar:      civ.avatar || 'scholar_f',
+          globalRank:  civ.rank || 'Curious Citizen',
+          fromShell:   true,
+          fromCivitas: true
         });
+        if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
+          restoreProgressFromCivitas(civ.fullName || civ.name);
+        }
         return true;
       }
     }
   } catch(e) {}
 
-  // 2. Try local save
+  // 2. Try legacy AC shell state
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    if (raw) {
+      const shell = JSON.parse(raw);
+      if (shell && shell.name && shell.name !== 'Guest') {
+        const saved = loadSavedUnit();
+        P = Object.assign({}, DEFAULT_P, saved || {}, {
+          name:        shell.name,
+          fullName:    shell.fullName || shell.name,
+          period:      shell.period || null,
+          avatar:      shell.avatar || 'scholar_f',
+          globalRank:  shell.rank || 'Curious Citizen',
+          fromShell:   true
+        });
+        if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
+          restoreProgressFromCivitas(shell.fullName || shell.name);
+        }
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // 3. Try local save
   const saved = loadSavedUnit();
   if (saved && saved.name) {
     P = Object.assign({}, DEFAULT_P, saved);
@@ -1654,6 +1683,52 @@ function loadP() {
   }
   return false;
 }
+
+// Async restore from civitas_profiles — fills in lesson progress if localStorage was lost
+async function restoreProgressFromCivitas(fullName) {
+  if (!fullName || fullName === 'Guest') return;
+  try {
+    const resp = await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress',
+      {headers: AC_HEADERS}
+    );
+    const rows = await resp.json();
+    if (!rows || !rows[0]) return;
+    const profile = rows[0];
+
+    // Restore lesson progress from course_progress.us_history
+    try {
+      const cp = JSON.parse(profile.course_progress || '{}');
+      const ush = cp.us_history || {};
+
+      // Restore lesson best scores
+      if (ush.lessonBestScores && Object.keys(ush.lessonBestScores).length) {
+        P.lessonBestScores = Object.assign({}, ush.lessonBestScores, P.lessonBestScores || {});
+      }
+
+      // Restore lessonsCompleted — prefer explicit list, fall back to inferring from scores
+      const storedCompleted = (ush.lessonsCompleted || {})[CIV_UNIT_ID] || [];
+      if (storedCompleted.length) {
+        storedCompleted.forEach(id => {
+          if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
+        });
+      } else {
+        // Fallback: infer from best scores (any lesson passed at 60%+ counts)
+        Object.entries(P.lessonBestScores)
+          .filter(([, s]) => s.accuracy >= 60)
+          .forEach(([id]) => {
+            if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
+          });
+      }
+
+      if (P.lessonsCompleted.length) {
+        saveP(); // persist restored state to localStorage
+        console.log('Progress restored from civitas_profiles — lessons done:', P.lessonsCompleted);
+        try { renderLessonMap(); } catch(e) {}
+      }
+    } catch(e) {}
+  } catch(e) { console.log('restoreProgressFromCivitas failed', e); }
+
 
 function loadSavedUnit() {
   try {
@@ -2631,9 +2706,90 @@ function saveGameToFile() {
   } catch(e) { notify('Save failed.', 'red'); }
 }
 
+// ── PER-LESSON PROGRESS SAVE ─────────────────────────────────────────
+// Fires after every individual lesson completes.
+// Writes lessonsCompleted + lessonBestScores to civitas_profiles so
+// students can resume mid-unit on any device.
+let _lessonSaveDebounce = null;
+function pushLessonProgress(acc) {
+  clearTimeout(_lessonSaveDebounce);
+  _lessonSaveDebounce = setTimeout(async function() {
+    try {
+      if (!P || !P.name || P.name === 'Guest') return;
+      const fullName = P.fullName || P.name;
+
+      // Fetch existing profile to merge cleanly
+      const profResp = await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress',
+        {headers: AC_HEADERS}
+      );
+      const profRows = await profResp.json();
+      const existing = profRows && profRows[0];
+
+      // Merge course_progress
+      let courseProgress = {};
+      try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+      if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+      const ush = courseProgress[CIV_COURSE];
+
+      // Save all lesson best scores so far
+      ush.lessonBestScores = ush.lessonBestScores || {};
+      Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+
+      // Save which lessons are completed
+      if (!Array.isArray(ush.lessonsCompleted)) ush.lessonsCompleted = {};
+      if (!ush.lessonsCompleted[CIV_UNIT_ID]) ush.lessonsCompleted[CIV_UNIT_ID] = [];
+      P.lessonsCompleted.forEach(id => {
+        if (!ush.lessonsCompleted[CIV_UNIT_ID].includes(id)) ush.lessonsCompleted[CIV_UNIT_ID].push(id);
+      });
+
+      // Merge unit_progress — track in-progress units too, not just completed
+      let unitProgress = {};
+      try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+      const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+      const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      unitProgress[CIV_UNIT_ID] = {
+        bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
+        lessonsCompleted: P.lessonsCompleted.length,
+        lessonsTotal: LESSONS.length,
+        inProgress: !allDone,
+        completedAt: allDone ? (prevUnit.completedAt || new Date().toISOString()) : null
+      };
+
+      // Build courses array so the teacher dashboard filter includes this student
+      let existingCourses = [];
+      try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+      if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+        existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+      }
+
+      await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
+        {
+          method: 'POST',
+          headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+          body: JSON.stringify({
+            full_name:       fullName,
+            display_name:    P.name,
+            period:          String(P.period || ''),
+            avatar:          P.avatar || 'scholar_f',
+            courses:         JSON.stringify(existingCourses),
+            unit_progress:   JSON.stringify(unitProgress),
+            course_progress: JSON.stringify(courseProgress),
+            updated_at:      new Date().toISOString()
+          })
+        }
+      );
+      console.log('Lesson progress saved:', activeLesson.id, '— lessons done:', P.lessonsCompleted);
+    } catch(e) { console.log('pushLessonProgress failed', e); }
+  }, 800);
+}
+
 async function pushACResult(acc) {
   if (!P || !P.name || P.name === 'Guest') return;
   const tier = calcTier(acc);
+
+  // ── 1. Write to ac_results (leaderboard / trophy) ─────────────────
   try {
     const existing = await fetch(
       AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(P.name) +
@@ -2666,8 +2822,77 @@ async function pushACResult(acc) {
         })
       }
     );
-  } catch(e) { console.log('AC push failed', e); }
+  } catch(e) { console.log('AC results push failed', e); }
+
+  // ── 2. Write to civitas_profiles (cross-device progress restore) ───
+  // Pulls the existing profile first so we merge rather than overwrite
+  try {
+    const fullName = P.fullName || P.name;
+
+    // Fetch existing civitas profile
+    const profResp = await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=*',
+      {headers: AC_HEADERS}
+    );
+    const profRows = await profResp.json();
+    const existing = profRows && profRows[0];
+
+    // Merge unit_progress — keep best accuracy per unit
+    let unitProgress = {};
+    try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+    const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+    unitProgress[CIV_UNIT_ID] = {
+      bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
+      completedAt: prevUnit.completedAt || new Date().toISOString()
+    };
+
+    // Merge course_progress — preserve frqSubmissions and other fields
+    let courseProgress = {};
+    try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+    if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    const ush = courseProgress[CIV_COURSE];
+    if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
+    if (!ush.unitsCompleted.includes(CIV_UNIT_ID)) ush.unitsCompleted.push(CIV_UNIT_ID);
+
+    // Merge lesson best scores into course_progress so they survive device switches
+    ush.lessonBestScores = ush.lessonBestScores || {};
+    Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+
+    // Merge gold — always keep the higher value
+    const shellRaw = localStorage.getItem('ac_shell_state');
+    const shellState = shellRaw ? JSON.parse(shellRaw) : {};
+    const currentGold = Math.max(shellState.gold || 0, existing?.gold || 0);
+
+    // Build courses array so teacher dashboard filter includes this student
+    let existingCourses = [];
+    try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+      existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+    }
+
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          full_name:       fullName,
+          display_name:    P.name,
+          period:          String(P.period || ''),
+          avatar:          P.avatar || 'scholar_f',
+          gold:            currentGold,
+          courses:         JSON.stringify(existingCourses),
+          unit_progress:   JSON.stringify(unitProgress),
+          course_progress: JSON.stringify(courseProgress),
+          updated_at:      new Date().toISOString()
+        })
+      }
+    );
+    console.log('civitas_profiles updated for', fullName, '— unit_progress:', unitProgress);
+  } catch(e) { console.log('civitas_profiles push failed', e); }
 }
+
+
 
 // ════════════════════════════════════════════
 // LOGIN GATE
@@ -2971,7 +3196,8 @@ window.addEventListener('DOMContentLoaded', () => {
     showUnitHub();
   } else {
   // No shell session — redirect to shell to login with Google
-  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+    const returnURL = localStorage.getItem('civitas_shell_url') || localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.href = returnURL;
   }
 });
 
