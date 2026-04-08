@@ -845,7 +845,9 @@ body.hud-active #root{padding-top:68px;}
 // ════════════════════════════════════════════
 const SHELL_KEY   = 'ac_shell_state';
 const SAVE_KEY   = 'housedivided_v1_save';
-const UNIT_ID     = 'unit1';
+const UNIT_ID     = 'unit1';       // internal game ID
+const CIV_UNIT_ID = 'ush_u1';       // Civitas dashboard ID
+const CIV_COURSE  = 'hs_ush';       // Civitas course ID
 
 // ── GOLD ECONOMY ──────────────────────────────────────
 // These are the canonical reward values for UNIT 1.
@@ -1784,7 +1786,7 @@ async function restoreProgressFromCivitas(fullName) {
       }
 
       // Restore lessonsCompleted — prefer explicit list, fall back to inferring from scores
-      const storedCompleted = (ush.lessonsCompleted || {})[UNIT_ID] || [];
+      const storedCompleted = (ush.lessonsCompleted || {})[CIV_UNIT_ID] || [];
       if (storedCompleted.length) {
         storedCompleted.forEach(id => {
           if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
@@ -2830,8 +2832,8 @@ function pushLessonProgress(acc) {
       // Merge course_progress
       let courseProgress = {};
       try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
-      if (!courseProgress.us_history) courseProgress.us_history = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
-      const ush = courseProgress.us_history;
+      if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+      const ush = courseProgress[CIV_COURSE];
 
       // Save all lesson best scores so far
       ush.lessonBestScores = ush.lessonBestScores || {};
@@ -2839,17 +2841,17 @@ function pushLessonProgress(acc) {
 
       // Save which lessons are completed
       if (!Array.isArray(ush.lessonsCompleted)) ush.lessonsCompleted = {};
-      if (!ush.lessonsCompleted[UNIT_ID]) ush.lessonsCompleted[UNIT_ID] = [];
+      if (!ush.lessonsCompleted[CIV_UNIT_ID]) ush.lessonsCompleted[CIV_UNIT_ID] = [];
       P.lessonsCompleted.forEach(id => {
-        if (!ush.lessonsCompleted[UNIT_ID].includes(id)) ush.lessonsCompleted[UNIT_ID].push(id);
+        if (!ush.lessonsCompleted[CIV_UNIT_ID].includes(id)) ush.lessonsCompleted[CIV_UNIT_ID].push(id);
       });
 
       // Merge unit_progress — track in-progress units too, not just completed
       let unitProgress = {};
       try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
-      const prevUnit = unitProgress[UNIT_ID] || {};
+      const prevUnit = unitProgress[CIV_UNIT_ID] || {};
       const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
-      unitProgress[UNIT_ID] = {
+      unitProgress[CIV_UNIT_ID] = {
         bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
         lessonsCompleted: P.lessonsCompleted.length,
         lessonsTotal: LESSONS.length,
@@ -2933,8 +2935,8 @@ async function pushACResult(acc) {
     // Merge unit_progress — keep best accuracy per unit
     let unitProgress = {};
     try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
-    const prevUnit = unitProgress[UNIT_ID] || {};
-    unitProgress[UNIT_ID] = {
+    const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+    unitProgress[CIV_UNIT_ID] = {
       bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
       completedAt: prevUnit.completedAt || new Date().toISOString()
     };
@@ -2942,10 +2944,10 @@ async function pushACResult(acc) {
     // Merge course_progress — preserve frqSubmissions and other fields
     let courseProgress = {};
     try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
-    if (!courseProgress.us_history) courseProgress.us_history = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
-    const ush = courseProgress.us_history;
+    if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    const ush = courseProgress[CIV_COURSE];
     if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
-    if (!ush.unitsCompleted.includes(UNIT_ID)) ush.unitsCompleted.push(UNIT_ID);
+    if (!ush.unitsCompleted.includes(CIV_UNIT_ID)) ush.unitsCompleted.push(CIV_UNIT_ID);
 
     // Merge lesson best scores into course_progress so they survive device switches
     ush.lessonBestScores = ush.lessonBestScores || {};
