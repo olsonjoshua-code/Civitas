@@ -1705,13 +1705,36 @@ const DEFAULT_P = {
 };
 
 function loadP() {
-  // 1. Try shell state first (seamless session from American Chronicles)
+  // 1. Try Civitas shell state first (civitas_state key — Civitas hub)
+  try {
+    const civRaw = localStorage.getItem('civitas_state');
+    if (civRaw) {
+      const civ = JSON.parse(civRaw);
+      if (civ && civ.name && civ.name !== 'Guest') {
+        const saved = loadSavedUnit();
+        P = Object.assign({}, DEFAULT_P, saved || {}, {
+          name:       civ.name,
+          fullName:   civ.fullName || civ.name,
+          period:     civ.period || null,
+          avatar:     civ.avatar || 'scholar_f',
+          globalRank: civ.rank || 'Curious Citizen',
+          fromShell:  true,
+          fromCivitas: true
+        });
+        if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
+          restoreProgressFromCivitas(civ.fullName || civ.name);
+        }
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // 2. Try legacy AC shell state (ac_shell_state key — old standalone shell)
   try {
     const raw = localStorage.getItem(SHELL_KEY);
     if (raw) {
       const shell = JSON.parse(raw);
       if (shell && shell.name && shell.name !== 'Guest') {
-        // Build P from shell identity + any locally saved unit progress
         const saved = loadSavedUnit();
         P = Object.assign({}, DEFAULT_P, saved || {}, {
           name:        shell.name,
@@ -1721,8 +1744,6 @@ function loadP() {
           globalRank:  shell.rank || 'Curious Citizen',
           fromShell:   true
         });
-        // If local save had no lesson progress, try to restore from civitas_profiles
-        // This fixes same-device loss when localStorage is cleared between sessions
         if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
           restoreProgressFromCivitas(shell.fullName || shell.name);
         }
@@ -1731,7 +1752,7 @@ function loadP() {
     }
   } catch(e) {}
 
-  // 2. Try local save
+  // 3. Try local save
   const saved = loadSavedUnit();
   if (saved && saved.name) {
     P = Object.assign({}, DEFAULT_P, saved);
@@ -2653,8 +2674,18 @@ function returnToShell() {
   saveP();
   if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
   try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
-  notify('Returning to American Chronicles…');
-  const shellURL = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+  // Set the correct returning flag depending on which shell launched us
+  const fromCivitas = P.fromCivitas || !!localStorage.getItem('civitas_shell_url');
+  if (fromCivitas) {
+    try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+    try { localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
+  } else {
+    try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
+  }
+  notify('Returning to Civitas…');
+  const shellURL = localStorage.getItem('civitas_shell_url')
+    || localStorage.getItem('ac_shell_url')
+    || 'https://olsonjoshua-code.github.io/Civitas/';
   setTimeout(() => { window.location.href = shellURL; }, 600);
 }
 
@@ -3245,8 +3276,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (wbo) wbo.classList.remove('show');
     showUnitHub();
   } else {
-  // No shell session — redirect to shell to login with Google
-  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+    // No shell session — redirect back to Civitas to log in
+    const returnURL = localStorage.getItem('civitas_shell_url')
+      || localStorage.getItem('ac_shell_url')
+      || 'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.href = returnURL;
   }
 });
 
@@ -3255,7 +3289,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ════════════════════════════════════════════
 
 function showWelcomeBack() {
-  if (!P) { window.location.href = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/'; return; }
+  if (!P) { window.location.href = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/'; return; }
 
   // Populate avatar
   const avatarEl = document.getElementById('wb-avatar');
