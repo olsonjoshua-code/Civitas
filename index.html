@@ -722,7 +722,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
             <select id="mpe-course" onchange="renderMPEUnits()"
               style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
               <option value="ap_gov">AP U.S. Government</option>
+              <option value="ap_cmp">AP Comparative Government</option>
               <option value="ap_sem">AP Seminar</option>
+              <option value="hs_ush">U.S. History</option>
             </select>
           </div>
         </div>
@@ -4606,6 +4608,15 @@ function enterShell(){
   const tcShortcut=document.getElementById('cnav-teacher-shortcut');
   if(tcShortcut)tcShortcut.style.display=IS_TEACHER?'block':'none';
 
+  // Restore teacher status from period field if needed
+  if(!IS_TEACHER&&(S.period==='teacher'||S.isTeacher)){IS_TEACHER=true;S.isTeacher=true;}
+
+  // Always set teacher button visibility first
+  const tcBtnEarly=document.getElementById('nav-teacher');
+  if(tcBtnEarly)tcBtnEarly.style.display=IS_TEACHER?'inline-block':'none';
+  const tcShortcut=document.getElementById('cnav-teacher-shortcut');
+  if(tcShortcut)tcShortcut.style.display=IS_TEACHER?'block':'none';
+
   // Auto-return to last active course if coming back from a game
   try{
     const lastCourse=localStorage.getItem('civitas_last_course');
@@ -6916,43 +6927,129 @@ function resetProfile(){
 
 // ── TEACHER: MANUAL PROGRESS EDITOR ──────────────────────────────────────────
 const MPE_UNITS = {
-  ap_gov: [
-    {id:'apg_u1', label:'Unit 1 — Foundations of Democracy'},
-    {id:'apg_u2', label:'Unit 2 — Branches of Government'},
-    {id:'apg_u3', label:'Unit 3 — Civil Liberties & Rights'},
-    {id:'apg_u4', label:'Unit 4 — American Political Ideologies'},
-    {id:'apg_u5', label:'Unit 5 — Political Participation'},
-    {id:'apg_u6', label:'Unit 6 — Public Policy'},
-  ],
-  ap_sem: [
-    {id:'apsem_u1', label:'Unit 1 — The Research Foundation'},
-    {id:'apsem_u2', label:'Unit 2 — Reading Arguments'},
-    {id:'apsem_u3', label:'Unit 3 — Evaluating Sources'},
-    {id:'apsem_u4', label:'Unit 4 — Building Arguments'},
-    {id:'apsem_u5', label:'Unit 5 — Individual Research & the IRR'},
-    {id:'apsem_u6', label:'Unit 6 — Team Collaboration & Presentation'},
-    {id:'apsem_exam', label:'AP Exam Practice'},
-    {id:'apsem_bi_bq', label:'Big Questions Theme'},
-  ]
+  ap_gov: {
+    units: [
+      {id:'apg_u1', label:'Unit 1 — Foundations of Democracy'},
+      {id:'apg_u2', label:'Unit 2 — Branches of Government'},
+      {id:'apg_u3', label:'Unit 3 — Civil Liberties & Rights'},
+      {id:'apg_u4', label:'Unit 4 — American Political Ideologies'},
+      {id:'apg_u5', label:'Unit 5 — Political Participation'},
+      {id:'apg_u6', label:'Unit 6 — Public Policy'},
+    ],
+    vocab: [
+      {id:'apg_u1', label:'Unit 1 Vocab'},
+      {id:'apg_u2', label:'Unit 2 Vocab'},
+      {id:'apg_u3', label:'Unit 3 Vocab'},
+      {id:'apg_u4', label:'Unit 4 Vocab'},
+      {id:'apg_u5', label:'Unit 5 Vocab'},
+    ],
+    extras: [
+      {id:'apg_bi_con', label:'Big Idea — Constitutionalism'},
+      {id:'apg_bi_lor', label:'Big Idea — Liberty & Order'},
+      {id:'apg_bi_pmcd', label:'Big Idea — Competing Interests'},
+      {id:'apg_bi_mk', label:'Big Idea — Civic Participation'},
+      {id:'apg_bi_mpa', label:'Big Idea — Political Analysis'},
+      {id:'apg_exam_practice', label:'AP Exam Practice'},
+      {id:'apg_rpg', label:'Civitas RPG Campaign'},
+    ]
+  },
+  ap_cmp: {
+    units: [
+      {id:'apcmp_u1', label:'Unit 1 — Introduction to Comparative Politics'},
+      {id:'apcmp_u2', label:'Unit 2 — United Kingdom'},
+      {id:'apcmp_u3', label:'Unit 3 — Mexico'},
+      {id:'apcmp_u4', label:'Unit 4 — Russia'},
+      {id:'apcmp_u5', label:'Unit 5 — China'},
+      {id:'apcmp_u6', label:'Unit 6 — Iran'},
+      {id:'apcmp_u7', label:'Unit 7 — Nigeria'},
+    ],
+    vocab: [],
+    extras: [
+      {id:'apcmp_bi_pd', label:'Big Idea — Power & Democracy'},
+      {id:'apcmp_bi_ci', label:'Big Idea — Citizens & Society'},
+      {id:'apcmp_bi_de', label:'Big Idea — Development & Inequality'},
+      {id:'apcmp_exam', label:'AP Exam Practice'},
+      {id:'apcmp_rpg', label:'Comparative Chronicles RPG'},
+    ]
+  },
+  ap_sem: {
+    units: [
+      {id:'apsem_u1', label:'Unit 1 — The Research Foundation'},
+      {id:'apsem_u2', label:'Unit 2 — Reading Arguments'},
+      {id:'apsem_u3', label:'Unit 3 — Evaluating Sources'},
+      {id:'apsem_u4', label:'Unit 4 — Building Arguments'},
+      {id:'apsem_u5', label:'Unit 5 — Individual Research & the IRR'},
+      {id:'apsem_u6', label:'Unit 6 — Team Collaboration & Presentation'},
+    ],
+    vocab: [],
+    extras: [
+      {id:'apsem_bi_bq', label:'Big Questions Theme'},
+      {id:'apsem_exam', label:'AP Exam Practice'},
+    ]
+  },
+  hs_ush: {
+    units: [
+      {id:'ush_u1', label:'Unit 1 — A House Divided'},
+      {id:'ush_u2a', label:'Unit 2A — Boomtown Nation'},
+      {id:'ush_u2b', label:'Unit 2B — Age of Reform'},
+      {id:'ush_u3a', label:'Unit 3A — Empire Rising'},
+      {id:'ush_u3b', label:'Unit 3B — Into the Trenches'},
+      {id:'ush_u4a', label:'Unit 4A — Boom or Bust'},
+      {id:'ush_u4b', label:'Unit 4B — Crash & Recovery'},
+      {id:'ush_u5a', label:'Unit 5A — Arsenal of Democracy'},
+      {id:'ush_u5b', label:'Unit 5B — Iron Curtain'},
+      {id:'ush_u6', label:'Unit 6 — Chronicles of Change'},
+      {id:'ush_u7a', label:'Unit 7A — Camelot'},
+      {id:'ush_u7b', label:'Unit 7B — Napalm Dawn'},
+      {id:'ush_u8', label:'Unit 8 — Modern America'},
+    ],
+    vocab: [
+      {id:'ush_u1', label:'Unit 1 Vocab'},
+      {id:'ush_u2a', label:'Unit 2A Vocab'},
+      {id:'ush_u2b', label:'Unit 2B Vocab'},
+      {id:'ush_u3a', label:'Unit 3A Vocab'},
+      {id:'ush_u3b', label:'Unit 3B Vocab'},
+      {id:'ush_u4a', label:'Unit 4A Vocab'},
+      {id:'ush_u4b', label:'Unit 4B Vocab'},
+    ],
+    extras: [
+      {id:'ush_theme_power', label:'Theme — Balance of Power'},
+      {id:'ush_theme_freedom', label:'Theme — Promise of Liberty'},
+      {id:'ush_theme_economy', label:'Theme — Engines of Change'},
+      {id:'ush_theme_conflict', label:'Theme — Conflict & Change'},
+      {id:'ush_theme_identity', label:'Theme — We the People'},
+      {id:'ush_eoc', label:'EOC Practice Test'},
+    ]
+  }
 };
 
 function renderMPEUnits() {
   const course = document.getElementById('mpe-course').value;
-  const units = MPE_UNITS[course] || [];
+  const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
   const el = document.getElementById('mpe-units');
-  el.innerHTML = '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">SELECT COMPLETED UNITS & ACCURACY</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">' +
-    units.map(u => `
-      <div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">
-        <input type="checkbox" id="mpe-chk-${u.id}" style="cursor:pointer;width:14px;height:14px;flex-shrink:0">
-        <label for="mpe-chk-${u.id}" style="font-family:var(--dm);font-size:10px;color:var(--text2);flex:1;cursor:pointer">${u.label}</label>
-        <div style="display:flex;align-items:center;gap:4px">
-          <input type="number" id="mpe-acc-${u.id}" min="0" max="100" value="80" 
-            style="width:46px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
-          <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
-        </div>
-      </div>`).join('') +
-    '</div>';
+
+  function renderSection(label, items, color) {
+    if (!items || !items.length) return '';
+    return `
+      <div style="font-family:var(--bebas);font-size:9px;color:${color};letter-spacing:2px;margin:10px 0 6px">${label}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">
+        ${items.map(u => `
+          <div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="mpe-chk-${u.id}" style="cursor:pointer;width:14px;height:14px;flex-shrink:0">
+            <label for="mpe-chk-${u.id}" style="font-family:var(--dm);font-size:10px;color:var(--text2);flex:1;cursor:pointer">${u.label}</label>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" id="mpe-acc-${u.id}" min="0" max="100" value="80"
+                style="width:46px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  el.innerHTML =
+    renderSection('CORE UNITS', data.units, 'var(--civitas2)') +
+    renderSection('VOCAB QUIZZES', data.vocab, 'var(--amber)') +
+    renderSection('BIG IDEAS / EXAM / CAMPAIGN', data.extras, 'var(--teal2)');
 }
 
 async function commitManualProgress() {
@@ -6963,15 +7060,19 @@ async function commitManualProgress() {
 
   if (!studentName) { status.innerHTML = '<span style="color:var(--red2)">Enter a student name.</span>'; return; }
 
-  const units = MPE_UNITS[course] || [];
-  const selected = units.filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
-  if (!selected.length) { status.innerHTML = '<span style="color:var(--red2)">Select at least one unit.</span>'; return; }
+  const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
+  const allItems = [...(data.units||[]), ...(data.vocab||[]), ...(data.extras||[])];
+  const selectedUnits = (data.units||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
+  const selectedVocab = (data.vocab||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
+  const selectedExtras = (data.extras||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
+  const allSelected = [...selectedUnits, ...selectedVocab, ...selectedExtras];
+
+  if (!allSelected.length) { status.innerHTML = '<span style="color:var(--red2)">Select at least one item.</span>'; return; }
 
   btn.disabled = true;
   status.innerHTML = '<span style="color:var(--text2)">Looking up student...</span>';
 
   try {
-    // Fetch existing profile
     const existing = await sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*');
     if (!Array.isArray(existing) || !existing[0]) {
       status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '". Check spelling.</span>';
@@ -6979,38 +7080,46 @@ async function commitManualProgress() {
     }
     const profile = existing[0];
     let unitProg = {};
+    let vocabPassed = {};
+    let vocabBestScore = {};
     try { unitProg = JSON.parse(profile.unit_progress || '{}'); } catch(e) {}
+    try { vocabPassed = JSON.parse(profile.vocab_passed || '{}'); } catch(e) {}
+    try { vocabBestScore = JSON.parse(profile.vocab_best_score || '{}'); } catch(e) {}
 
     const now = new Date().toISOString();
     const payload = { full_name: studentName, updated_at: now };
 
-    // Add each selected unit to unit_progress
-    selected.forEach(u => {
+    // Handle core units and extras (go into unit_progress)
+    [...selectedUnits, ...selectedExtras].forEach(u => {
       const acc = parseInt(document.getElementById('mpe-acc-' + u.id)?.value || '80');
-      // Only update if new accuracy is better than existing
       const existing_acc = unitProg[u.id]?.bestAccuracy || 0;
       unitProg[u.id] = {
         bestAccuracy: Math.max(acc, existing_acc),
         completedAt: unitProg[u.id]?.completedAt || now
       };
-      // Also build full round keys so the game shows rounds as done
-      const rounds = {};
-      const numRounds = 4;
-      for (let i = 0; i < numRounds; i++) {
-        const rAcc = Math.min(100, acc + Math.floor(Math.random()*10 - 5));
-        rounds['r' + i] = {
-          bestPct: rAcc,
-          bestCorrect: Math.round(rAcc / 100 * 15),
-          bestTotal: 15,
-          attempts: 1,
-          completedAt: now
-        };
+      // Build round keys for core units
+      if (selectedUnits.find(su => su.id === u.id)) {
+        const rounds = {};
+        for (let i = 0; i < 4; i++) {
+          const rAcc = Math.min(100, acc + Math.floor(Math.random()*10 - 5));
+          rounds['r' + i] = { bestPct: rAcc, bestCorrect: Math.round(rAcc/100*15), bestTotal: 15, attempts: 1, completedAt: now };
+        }
+        payload['unit_rounds_' + u.id] = JSON.stringify(rounds);
       }
-      payload['unit_rounds_' + u.id] = JSON.stringify(rounds);
     });
     payload.unit_progress = JSON.stringify(unitProg);
 
-    // Upsert
+    // Handle vocab
+    if (selectedVocab.length) {
+      selectedVocab.forEach(u => {
+        const acc = parseInt(document.getElementById('mpe-acc-' + u.id)?.value || '80');
+        vocabPassed[u.id] = true;
+        vocabBestScore[u.id] = Math.max(acc, vocabBestScore[u.id] || 0);
+      });
+      payload.vocab_passed = JSON.stringify(vocabPassed);
+      payload.vocab_best_score = JSON.stringify(vocabBestScore);
+    }
+
     const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
       headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
@@ -7018,12 +7127,11 @@ async function commitManualProgress() {
     });
 
     if (resp.ok || resp.status === 200 || resp.status === 201) {
-      const unitList = selected.map(u => u.label).join(', ');
+      const itemList = allSelected.map(u => u.label).join(', ');
       status.innerHTML = '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2)">' +
-        '✓ Updated <strong>' + studentName + '</strong> — marked complete: ' + unitList + 
+        '✓ Updated <strong>' + studentName + '</strong> — marked complete: ' + itemList +
         '<br><span style="font-size:10px;opacity:.7">Student can recover their profile using "Returning Student" on the title screen.</span></div>';
-      // Uncheck all
-      selected.forEach(u => { const chk = document.getElementById('mpe-chk-' + u.id); if(chk) chk.checked = false; });
+      allSelected.forEach(u => { const chk = document.getElementById('mpe-chk-' + u.id); if(chk) chk.checked = false; });
     } else {
       throw new Error('Supabase returned ' + resp.status);
     }
