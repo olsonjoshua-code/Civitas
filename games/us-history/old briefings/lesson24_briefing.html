@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson 24 Briefing | The Home Front</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #151822;
+      --bg2: #24355a;
+      --accent: #d1a34a;
+      --accent-2: #c65252;
+      --text: #f3efe7;
+      --muted: #d0d5df;
+      --rule: rgba(209, 163, 74, 0.18);
+      --rule-strong: rgba(209, 163, 74, 0.34);
+      --chip: rgba(209, 163, 74, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(126, 150, 182, 0.2) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    body {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 36px 20px 60px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: linear-gradient(170deg, #1d2431 0%, #141923 58%, #0b0e14 100%);
+      border: 1px solid var(--rule);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-color: var(--rule-strong);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .app::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .app::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 36px 52px 28px;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 52px;
+      right: 52px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.35;
+    }
+
+    .kicker {
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.67rem;
+      font-weight: 400;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kicker::before,
+    .kicker::after {
+      content: "";
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--rule-strong);
+    }
+
+    .title {
+      font-family: "Cormorant Garamond", serif;
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+    }
+
+    .title span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 630px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .shell-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      font-weight: 400;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color 0.25s, background 0.25s;
+    }
+
+    .shell-link:hover {
+      border-color: var(--rule-strong);
+      background: rgba(200, 163, 90, 0.16);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr;
+      min-height: 640px;
+    }
+
+    .slide-area {
+      padding: 32px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .slide-shell {
+      min-height: 540px;
+      background: linear-gradient(160deg, rgba(33, 40, 56, 0.97) 0%, rgba(16, 20, 28, 0.99) 100%);
+      border: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .image-band {
+      height: 240px;
+      background-color: #161b25;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+    }
+
+    .media-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 0;
+      background: #000;
+    }
+
+    .image-band.has-video .media-video {
+      display: block;
+    }
+
+    .image-band.has-video {
+      background-image: none !important;
+    }
+
+    .image-band::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(4, 10, 20, 0.12), rgba(4, 10, 20, 0.82));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .image-label {
+      position: relative;
+      z-index: 2;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.67rem;
+      color: var(--text);
+      background: rgba(22, 17, 13, 0.82);
+      border: 1px solid var(--rule);
+      padding: 7px 12px;
+    }
+
+    .slide-content {
+      padding: 26px 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .slide-heading {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.5rem, 2.5vw, 2.08rem);
+      line-height: 1.12;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .slide-text {
+      margin: 0;
+      font-family: "Jost", sans-serif;
+      font-size: 0.89rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .bullet-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bullet-list li {
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.58;
+      color: var(--text);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .remember {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-left: 2px solid var(--accent);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: #d9ecfb;
+    }
+
+    .remember strong {
+      display: block;
+      margin-bottom: 7px;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.64rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 28px 18px;
+      border-top: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .nav-btn {
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      color: var(--text);
+      padding: 11px 20px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(107, 145, 126, 0.17);
+      border-color: var(--rule-strong);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-text {
+      font-family: "Jost", sans-serif;
+      text-align: center;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      height: 2px;
+      background: rgba(107, 145, 126, 0.13);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 6.7%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+
+    .sidebar {
+      padding: 32px 26px;
+      background: linear-gradient(180deg, rgba(31, 24, 16, 0.88) 0%, rgba(14, 11, 8, 0.95) 100%);
+    }
+
+    .section-label {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .side-panel {
+      margin-bottom: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .side-title {
+      margin: 0 0 14px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .eq {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.12rem;
+      font-style: italic;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .term {
+      border: 1px solid var(--rule);
+      background: rgba(122, 138, 161, 0.14);
+      padding: 10px 8px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .mini-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: guide;
+    }
+
+    .mini-list li {
+      position: relative;
+      padding: 5px 0 5px 24px;
+      border-bottom: 1px solid rgba(107, 145, 126, 0.12);
+      counter-increment: guide;
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+
+    .mini-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .mini-list li::before {
+      content: counter(guide);
+      position: absolute;
+      left: 0;
+      top: 5px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 0.95rem;
+      color: var(--accent);
+      opacity: 0.72;
+    }
+
+    .foot {
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .foot-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule);
+      position: relative;
+      z-index: 1;
+    }
+
+    .foot-ornament::before,
+    .foot-ornament::after {
+      content: "";
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+      opacity: 0.35;
+    }
+
+    .foot-ornament::after {
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .foot-ornament span {
+      color: var(--accent);
+      opacity: 0.45;
+      font-size: 0.95rem;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-content.animating {
+      animation: reveal 0.28s ease both;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .slide-area {
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 20px 10px 34px;
+      }
+
+      .topbar {
+        padding: 26px 18px 22px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .topbar::after {
+        left: 18px;
+        right: 18px;
+      }
+
+      .slide-area,
+      .sidebar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn {
+        flex: 1 1 140px;
+      }
+
+      .progress-wrap {
+        order: -1;
+        width: 100%;
+      }
+
+      .image-band {
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <div class="kicker">American Chronicles Briefing</div>
+        <h1 class="title">Lesson 24: <span>The Home Front</span></h1>
+        <p class="subtitle">
+          A student study file on how fighting overseas reshaped life at home through propaganda, food conservation, bond drives, expanded work roles, volunteer service, civil-liberties restrictions, and debates over loyalty and dissent.
+        </p>
+      </div>
+
+      <a class="shell-link" href="javascript:history.back()">&larr; Return to Unit</a>
+    </div>
+
+    <div class="main">
+      <section class="slide-area">
+        <div class="slide-shell">
+          <div class="image-band" id="imageBand">
+            <video class="media-video" id="mediaVideo" muted loop playsinline controls preload="metadata"></video>
+            <div class="image-label" id="imageLabel">Historical Briefing</div>
+          </div>
+
+          <div class="slide-content" id="slideContent">
+            <h2 class="slide-heading" id="slideHeading"></h2>
+            <p class="slide-text" id="slideText"></p>
+            <ul class="bullet-list" id="bulletList"></ul>
+            <div class="remember" id="rememberBox"></div>
+          </div>
+
+          <div class="controls">
+            <button class="nav-btn" id="prevBtn">&#9664; Previous</button>
+
+            <div class="progress-wrap">
+              <div class="progress-text" id="progressText">Slide 1 of 12</div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <button class="nav-btn" id="nextBtn">Next &#9654;</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="section-label">Study Guide</div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Essential Question</h3>
+          <p class="eq">How did World War I transform life inside the United States, and what tensions did wartime mobilization create on the home front?</p>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Key Terms</h3>
+          <div class="term-grid">
+            <div class="term">Liberty Bonds</div>
+            <div class="term">Food Administration</div>
+            <div class="term">Committee on Public Information</div>
+            <div class="term">Four-Minute Men</div>
+            <div class="term">Espionage Act</div>
+            <div class="term">Sedition Act</div>
+            <div class="term">Great Migration</div>
+            <div class="term">Red Cross</div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">What to Watch For</h3>
+          <ol class="mini-list">
+            <li>How the federal government shaped food use, borrowing, labor, and public opinion to support the war effort.</li>
+            <li>How propaganda and the Four-Minute Men encouraged loyalty while criticism of the war became more dangerous.</li>
+            <li>How women, immigrants, African Americans, and volunteers took on larger public roles during wartime.</li>
+            <li>How the war expanded participation at home while also creating tensions over free speech, race, and citizenship.</li>
+          </ol>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Study Tip</h3>
+            <p class="foot">
+              Track the lesson in three parts: how the government mobilized society, how ordinary people were asked to contribute, and how dissent and inequality persisted underneath wartime unity. That pattern keeps the home-front story organized.
+            </p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot-ornament"><span>&#10022;</span></div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        label: "Peace Activism",
+        image: "url('images/lesson24/peace groups formed after 1914.jpg')",
+        heading: "Before the United States Fully Mobilized for War, Peace Groups Tried to Keep the Nation Out of the Conflict",
+        text: "Many Americans, especially reformers and activists, feared that World War I would bring needless bloodshed and threaten democracy at home. Peace groups argued for negotiation and caution, showing that national unity behind the war did not exist from the beginning.",
+        bullets: [
+          "Peace activism reflected genuine concern about war’s human and political costs.",
+          "Many Americans believed the United States should stay focused on reform at home rather than war abroad.",
+          "This early dissent mattered because later wartime policy made criticism much riskier."
+        ],
+        remember: "The home front began with debate, not with automatic unity."
+      },
+      {
+        label: "CPI",
+        image: "url('images/lesson24/Four-Minute Men.jpg')",
+        heading: "The Committee on Public Information Used Speakers and Media to Build Support for the War",
+        text: "The federal government created the Committee on Public Information to shape public opinion in favor of mobilization. Four-Minute Men delivered short patriotic speeches in theaters and public places, turning persuasion into an organized part of the war effort.",
+        bullets: [
+          "The CPI treated information as a weapon of mobilization.",
+          "Four-Minute Men spread official talking points quickly to large audiences.",
+          "Public opinion was managed as carefully as food, money, and manpower."
+        ],
+        remember: "The government did not wait for support to grow naturally. It helped create that support."
+      },
+      {
+        label: "Propaganda",
+        image: "url('images/lesson24/Propaganda posters discouraged Americans from publicly criticizing the war.jpg')",
+        heading: "Wartime Propaganda Pressured Americans to Show Loyalty and Stay Silent About Criticism",
+        text: "Posters and slogans warned that careless speech could aid the enemy and that criticism of the war effort was dangerous. The home front depended not only on persuasion but also on social pressure that defined loyalty in narrow wartime terms.",
+        bullets: [
+          "Propaganda linked patriotism to obedience and caution in speech.",
+          "Suspicion and fear made public criticism seem un-American to many people.",
+          "The pressure for unity often came at the expense of open disagreement."
+        ],
+        remember: "On the home front, words themselves were treated like part of the war effort."
+      },
+      {
+        label: "Food Administration",
+        image: "url('images/lesson24/The Food Administration.jpg')",
+        heading: "The Food Administration Asked Americans to Change Daily Habits So Soldiers and Allies Could Be Supplied",
+        text: "Under Herbert Hoover, the Food Administration encouraged families to conserve wheat, meat, and other staples. Food conservation was presented as patriotic service, proving that everyday household choices could be tied directly to victory overseas.",
+        bullets: [
+          "The government wanted more food sent to troops and Allied civilians.",
+          "Voluntary sacrifice at home became part of national wartime duty.",
+          "The home front connected kitchens and farms to the battlefield."
+        ],
+        remember: "Food became part of war policy, not just private life."
+      },
+      {
+        label: "Liberty Bonds",
+        image: "url('images/lesson24/This poster urged immigrants to buy government bonds.jpg')",
+        heading: "Liberty Bond Campaigns Turned War Finance Into a Test of Patriotism for Citizens and Immigrants Alike",
+        text: "The government raised money for the war by selling Liberty Bonds, urging Americans to invest directly in victory. Posters targeting immigrants showed that loyalty was expected not just in words, but also in financial support for the war effort.",
+        bullets: [
+          "Bond drives connected war finance to public participation.",
+          "Buying bonds became a visible sign of loyalty and civic duty.",
+          "Immigrant communities were often pressured to prove their patriotism."
+        ],
+        remember: "Liberty Bonds made patriotism measurable in dollars as well as emotion."
+      },
+      {
+        label: "Women's Work",
+        image: "url('images/lesson24/women occupied jobs traditionally held by me.jpg')",
+        heading: "World War I Opened New Jobs and Public Roles for Women on the Home Front",
+        text: "As men left for the military, women entered positions in factories, offices, transportation, and war organizations. Their wartime service strengthened the argument that women were essential participants in national life and deserved greater political rights.",
+        bullets: [
+          "Women’s labor helped keep wartime production and services running.",
+          "Public service during the war supported the broader case for suffrage.",
+          "The war changed expectations about what women could do in public life."
+        ],
+        remember: "Wartime work helped connect women’s service to claims for full citizenship."
+      },
+      {
+        label: "Red Cross",
+        image: "url('images/lesson24/American Red Cross released an urgent request for knitted wristlets.jpg')",
+        heading: "Volunteer Organizations Like the Red Cross Drew Ordinary Americans Into Hands-On Wartime Service",
+        text: "The Red Cross organized drives for bandages, clothing, hospital supplies, and knitted goods for soldiers. These campaigns let civilians, especially women, participate directly in the war effort even if they never entered factories or uniformed service.",
+        bullets: [
+          "Volunteer work became a major part of patriotic participation.",
+          "Relief efforts linked home-front labor to soldier welfare overseas.",
+          "Wartime service expanded the idea of what counted as national contribution."
+        ],
+        remember: "Home-front mobilization included unpaid care work as well as formal government policy."
+      },
+      {
+        label: "Patriotic Culture",
+        image: "url('images/lesson24/George M. Cohan’s “Over There.jpg')",
+        heading: "Songs, Posters, and Popular Entertainment Helped Turn the War Into a Shared Cultural Experience",
+        text: "Patriotic music such as George M. Cohan’s 'Over There' helped celebrate military service and encourage enthusiasm for the war. Popular culture did not just reflect public feeling. It helped produce it, making war support part of everyday American life.",
+        bullets: [
+          "Music and entertainment made the war feel emotional, immediate, and communal.",
+          "Patriotic culture encouraged enlistment, sacrifice, and optimism.",
+          "The home front was shaped by morale as much as by law or economics."
+        ],
+        remember: "The war effort depended on culture and emotion as much as on administration."
+      },
+      {
+        label: "Celebrity Service",
+        image: "url('images/lesson24/Entertainer Elsie Janis.jpeg')",
+        heading: "Celebrities Such as Elsie Janis Helped Sustain Morale by Bringing Entertainment Into Wartime Service",
+        text: "Performers traveled, entertained troops, and became public symbols of patriotic support. Their work showed that wartime mobilization stretched beyond factories and offices into the emotional life of soldiers and civilians alike.",
+        bullets: [
+          "Entertainment was used to maintain morale and connection with home.",
+          "Celebrity support helped normalize patriotic participation across society.",
+          "War culture reached into music, theater, and public appearances."
+        ],
+        remember: "Even entertainment became part of the machinery of wartime mobilization."
+      },
+      {
+        label: "Dissent and Debs",
+        image: "url('images/lesson24/Eugene Deb.jpg')",
+        heading: "Critics Like Eugene Debs Showed How Wartime Patriotism Could Clash With Civil Liberties",
+        text: "Socialist leader Eugene V. Debs criticized the war and was prosecuted under wartime laws that restricted speech. His case revealed how the Espionage and Sedition Acts tested the limits of free expression when the government treated dissent as a threat to national unity.",
+        bullets: [
+          "Wartime law punished some forms of antiwar speech and resistance.",
+          "Critics argued that civil liberties were being sacrificed to fear and conformity.",
+          "The home front was not only a story of unity, but also of coercion and repression."
+        ],
+        remember: "World War I expanded federal power not just over industry and food, but over speech itself."
+      },
+      {
+        label: "African American Protest",
+        image: "url('images/lesson24/African Americans in New York City staged a peaceful march in 1917.jpg')",
+        heading: "African Americans Used the War Years to Press for Dignity, Safety, and a Fuller Place in American Democracy",
+        text: "The wartime economy helped accelerate the Great Migration northward, but racism and violence continued. Marches such as the 1917 protest in New York City showed that Black Americans were demanding justice even as the nation asked them to support democracy abroad.",
+        bullets: [
+          "Wartime labor demand opened opportunities in northern cities.",
+          "Migration and activism grew alongside continued discrimination and racial violence.",
+          "The war exposed the contradiction between democratic ideals overseas and inequality at home."
+        ],
+        remember: "For African Americans, the home front was a place of opportunity, protest, and unresolved injustice."
+      },
+      {
+        label: "Women and Bonds",
+        image: "url('images/lesson24/World War I propaganda poster.jpg')",
+        heading: "Wartime Posters Linked Women, Finance, and Patriotism Into One Vision of National Service",
+        text: "Propaganda posters often showed women as organizers, moral leaders, and essential supporters of the war effort. These images encouraged bond purchases and service while reinforcing the idea that citizenship and sacrifice on the home front were deeply connected.",
+        bullets: [
+          "Women were portrayed as central to sustaining families, morale, and war finance.",
+          "Propaganda helped turn gendered ideals into practical wartime expectations.",
+          "Support for the war on the home front blended persuasion, duty, and public symbolism."
+        ],
+        remember: "The home front redefined service broadly, and propaganda helped decide who that service included."
+      }
+    ];
+
+    let current = 0;
+
+    const imageBand = document.getElementById("imageBand");
+    const mediaVideo = document.getElementById("mediaVideo");
+    const imageLabel = document.getElementById("imageLabel");
+    const slideContent = document.getElementById("slideContent");
+    const slideHeading = document.getElementById("slideHeading");
+    const slideText = document.getElementById("slideText");
+    const bulletList = document.getElementById("bulletList");
+    const rememberBox = document.getElementById("rememberBox");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function renderSlide(index) {
+      const slide = slides[index];
+      if (slide.video) {
+        imageBand.classList.add("has-video");
+        imageBand.style.backgroundImage = slide.poster ? `url('${slide.poster}')` : "none";
+        mediaVideo.src = slide.video;
+        mediaVideo.poster = slide.poster || "";
+        mediaVideo.load();
+        const playAttempt = mediaVideo.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(() => {});
+        }
+      } else {
+        imageBand.classList.remove("has-video");
+        imageBand.style.backgroundImage = slide.image || "none";
+        mediaVideo.pause();
+        mediaVideo.removeAttribute("src");
+        mediaVideo.removeAttribute("poster");
+        mediaVideo.load();
+      }
+
+      imageLabel.textContent = slide.label;
+
+      slideContent.classList.remove("animating");
+      void slideContent.offsetWidth;
+      slideContent.classList.add("animating");
+
+      slideHeading.textContent = slide.heading;
+      slideText.textContent = slide.text;
+      bulletList.innerHTML = slide.bullets.map((bullet) => `<li>${bullet}</li>`).join("");
+      rememberBox.innerHTML = `<strong>Remember This</strong>${slide.remember}`;
+      progressText.textContent = `Slide ${index + 1} of ${slides.length}`;
+      progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" && current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+
+      if (event.key === "ArrowRight" && current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    renderSlide(current);
+  </script>
+</body>
+</html>
+

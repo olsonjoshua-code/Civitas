@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson 28 Briefing | The Jazz Age</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #140d16;
+      --bg2: #2f8a80;
+      --accent: #f1c15b;
+      --accent-2: #9a5772;
+      --text: #f8f1e4;
+      --muted: #ded1c3;
+      --rule: rgba(241, 193, 91, 0.18);
+      --rule-strong: rgba(241, 193, 91, 0.34);
+      --chip: rgba(241, 193, 91, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(47, 138, 128, 0.22) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    body {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 36px 20px 60px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      background: linear-gradient(170deg, #2d1424 0%, #181119 58%, #09080d 100%);
+      border: 1px solid var(--rule);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-color: var(--rule-strong);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .app::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .app::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 36px 52px 28px;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 52px;
+      right: 52px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.35;
+    }
+
+    .kicker {
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.67rem;
+      font-weight: 400;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kicker::before,
+    .kicker::after {
+      content: "";
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--rule-strong);
+    }
+
+    .title {
+      font-family: "Cormorant Garamond", serif;
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+    }
+
+    .title span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 630px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .shell-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      font-weight: 400;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color 0.25s, background 0.25s;
+    }
+
+    .shell-link:hover {
+      border-color: var(--rule-strong);
+      background: rgba(200, 163, 90, 0.16);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr;
+      min-height: 640px;
+    }
+
+    .slide-area {
+      padding: 32px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .slide-shell {
+      min-height: 540px;
+      background: linear-gradient(160deg, rgba(33, 40, 56, 0.97) 0%, rgba(16, 20, 28, 0.99) 100%);
+      border: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .image-band {
+      height: 240px;
+      background-color: #161b25;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+    }
+
+    .media-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 0;
+      background: #000;
+    }
+
+    .image-band.has-video .media-video {
+      display: block;
+    }
+
+    .image-band.has-video {
+      background-image: none !important;
+    }
+
+    .image-band::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(4, 10, 20, 0.12), rgba(4, 10, 20, 0.82));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .image-label {
+      position: relative;
+      z-index: 2;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.67rem;
+      color: var(--text);
+      background: rgba(22, 17, 13, 0.82);
+      border: 1px solid var(--rule);
+      padding: 7px 12px;
+    }
+
+    .slide-content {
+      padding: 26px 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .slide-heading {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.5rem, 2.5vw, 2.08rem);
+      line-height: 1.12;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .slide-text {
+      margin: 0;
+      font-family: "Jost", sans-serif;
+      font-size: 0.89rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .bullet-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bullet-list li {
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.58;
+      color: var(--text);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .remember {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-left: 2px solid var(--accent);
+      background: var(--chip);
+      font-family: "Jost", sans-serif;
+      font-size: 0.86rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: #d9ecfb;
+    }
+
+    .remember strong {
+      display: block;
+      margin-bottom: 7px;
+      font-family: "Jost", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.64rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 28px 18px;
+      border-top: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .nav-btn {
+      border: 1px solid var(--rule);
+      background: var(--chip);
+      color: var(--text);
+      padding: 11px 20px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(107, 145, 126, 0.17);
+      border-color: var(--rule-strong);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      min-width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-text {
+      font-family: "Jost", sans-serif;
+      text-align: center;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      height: 2px;
+      background: rgba(107, 145, 126, 0.13);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 6.7%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+
+    .sidebar {
+      padding: 32px 26px;
+      background: linear-gradient(180deg, rgba(31, 24, 16, 0.88) 0%, rgba(14, 11, 8, 0.95) 100%);
+    }
+
+    .section-label {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .side-panel {
+      margin-bottom: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--rule);
+      background: rgba(107, 145, 126, 0.08);
+    }
+
+    .side-title {
+      margin: 0 0 14px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .eq {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.12rem;
+      font-style: italic;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .term {
+      border: 1px solid var(--rule);
+      background: rgba(122, 138, 161, 0.14);
+      padding: 10px 8px;
+      font-family: "Jost", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .mini-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: guide;
+    }
+
+    .mini-list li {
+      position: relative;
+      padding: 5px 0 5px 24px;
+      border-bottom: 1px solid rgba(107, 145, 126, 0.12);
+      counter-increment: guide;
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+
+    .mini-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .mini-list li::before {
+      content: counter(guide);
+      position: absolute;
+      left: 0;
+      top: 5px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 0.95rem;
+      color: var(--accent);
+      opacity: 0.72;
+    }
+
+    .foot {
+      font-family: "Jost", sans-serif;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.72;
+      color: var(--muted);
+    }
+
+    .foot-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule);
+      position: relative;
+      z-index: 1;
+    }
+
+    .foot-ornament::before,
+    .foot-ornament::after {
+      content: "";
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+      opacity: 0.35;
+    }
+
+    .foot-ornament::after {
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .foot-ornament span {
+      color: var(--accent);
+      opacity: 0.45;
+      font-size: 0.95rem;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-content.animating {
+      animation: reveal 0.28s ease both;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .slide-area {
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 20px 10px 34px;
+      }
+
+      .topbar {
+        padding: 26px 18px 22px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .topbar::after {
+        left: 18px;
+        right: 18px;
+      }
+
+      .slide-area,
+      .sidebar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn {
+        flex: 1 1 140px;
+      }
+
+      .progress-wrap {
+        order: -1;
+        width: 100%;
+      }
+
+      .image-band {
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <div class="kicker">American Chronicles Briefing</div>
+        <h1 class="title">Lesson 28: <span>The Jazz Age</span></h1>
+        <p class="subtitle">
+          A student study file on how radio, advertising, cars, movies, jazz, sports, literature, and changing public roles turned the Roaring Twenties into a new age of mass culture, celebrity, and modern style.
+        </p>
+      </div>
+
+      <a class="shell-link" href="javascript:history.back()">&larr; Return to Unit</a>
+    </div>
+
+    <div class="main">
+      <section class="slide-area">
+        <div class="slide-shell">
+          <div class="image-band" id="imageBand">
+            <video class="media-video" id="mediaVideo" muted loop playsinline controls preload="metadata"></video>
+            <div class="image-label" id="imageLabel">Historical Briefing</div>
+          </div>
+
+          <div class="slide-content" id="slideContent">
+            <h2 class="slide-heading" id="slideHeading"></h2>
+            <p class="slide-text" id="slideText"></p>
+            <ul class="bullet-list" id="bulletList"></ul>
+            <div class="remember" id="rememberBox"></div>
+          </div>
+
+          <div class="controls">
+            <button class="nav-btn" id="prevBtn">&#9664; Previous</button>
+
+            <div class="progress-wrap">
+              <div class="progress-text" id="progressText">Slide 1 of 14</div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <button class="nav-btn" id="nextBtn">Next &#9654;</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="section-label">Study Guide</div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Essential Question</h3>
+          <p class="eq">How did new technology, consumer culture, and urban creativity turn the 1920s into the Jazz Age, and why did that popular culture change how Americans thought about entertainment, identity, and modern life?</p>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Key Terms</h3>
+          <div class="term-grid">
+            <div class="term">mass media</div>
+            <div class="term">consumer culture</div>
+            <div class="term">installment buying</div>
+            <div class="term">Jazz Age</div>
+            <div class="term">Harlem Renaissance</div>
+            <div class="term">modernism</div>
+            <div class="term">celebrity culture</div>
+            <div class="term">flapper</div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">What to Watch For</h3>
+          <ol class="mini-list">
+            <li>How radio, movies, and advertising created shared national experiences and helped build a true mass audience.</li>
+            <li>How cars, dance, fashion, and city nightlife reshaped daily behavior, leisure, and youth culture.</li>
+            <li>How African American musicians, writers, and artists stood at the center of the Jazz Age and the Harlem Renaissance.</li>
+            <li>How athletes, pilots, writers, and reformers became celebrities who redefined fame, gender roles, and modern identity.</li>
+          </ol>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">Study Tip</h3>
+            <p class="foot">
+              Group the lesson into four lanes: media, consumer life, arts, and famous public figures. That makes it easier to see how different parts of the decade combined into one larger modern mass culture.
+            </p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot-ornament"><span>&#10022;</span></div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        label: "Mass Media",
+        image: "url('images/lesson28/growth of radio.jpg')",
+        heading: "Radio Turned the 1920s Into a Shared National Conversation and Helped Build a True Mass Culture",
+        text: "Affordable radios carried music, comedy, sports, news, and advertising into millions of homes. For the first time, Americans in very different places could hear the same voices and events almost at the same moment, creating a broader shared culture.",
+        bullets: [
+          "Radio connected national advertisers to national audiences.",
+          "It made songs, broadcasts, and sports heroes part of everyday life.",
+          "Shared listening helped local tastes become national trends."
+        ],
+        remember: "Radio helped shift American culture from local and scattered to national and immediate."
+      },
+      {
+        label: "Advertising",
+        image: "url('images/lesson28/Listerine ads.jpeg')",
+        heading: "Advertising Sold More Than Products; It Sold Modern Identity, Desire, and Social Status",
+        text: "1920s advertisers used emotion, insecurity, and aspiration to persuade consumers to buy brand-name goods. Installment buying and aggressive marketing encouraged Americans to connect personal success with style, appearance, and consumption.",
+        bullets: [
+          "Ads reached consumers through magazines, billboards, and radio.",
+          "Bruce Barton and other ad men helped turn persuasion into a major profession.",
+          "Consumer culture expanded because goods seemed tied to confidence and status."
+        ],
+        remember: "In the Jazz Age, buying something often felt like buying a version of yourself."
+      },
+      {
+        label: "Automobiles",
+        image: "url('images/lesson28/Henry Ford.jpg')",
+        heading: "Cheap Cars Reshaped Leisure, Dating, Work, and the Geography of Everyday American Life",
+        text: "Henry Ford's methods made automobiles far more affordable, and millions of Americans used cars to travel, commute, and enjoy new freedoms. The auto industry also boosted oil, steel, road building, tourism, and suburban growth.",
+        bullets: [
+          "Cars expanded mobility beyond rail lines and streetcar routes.",
+          "Young people gained more privacy and independence.",
+          "The automobile became a symbol of modern efficiency and abundance."
+        ],
+        remember: "Cars changed more than transportation. They changed how Americans organized life and leisure."
+      },
+      {
+        label: "Motion Pictures",
+        image: "url('images/lesson28/Charlie Chaplin.jpg')",
+        heading: "Movies Created a New Visual Culture and Turned Performers Into National Stars",
+        text: "Silent films drew huge audiences and helped people everywhere share the same jokes, fashions, and stories. Stars like Charlie Chaplin became instantly recognizable, proving that modern fame could be created by mass entertainment.",
+        bullets: [
+          "Movie theaters became major urban and neighborhood gathering spaces.",
+          "Films spread style and behavior as well as entertainment.",
+          "Hollywood helped make celebrity a permanent feature of national culture."
+        ],
+        remember: "The film industry did not just reflect culture. It actively taught Americans what modern life should look like."
+      },
+      {
+        label: "Dance Craze",
+        image: "url('images/lesson28/The Charleston.jpeg')",
+        heading: "Dance, Fashion, and Nightlife Made the 1920s Feel Fast, Urban, and Openly Rebellious",
+        text: "The Charleston and other dance crazes symbolized a younger culture that challenged older expectations of restraint and behavior. Jazz clubs, shorter skirts, new beauty standards, and late-night amusements became part of the era's image of freedom and excitement.",
+        bullets: [
+          "New dances reflected the influence of jazz rhythms and city nightlife.",
+          "Flapper style became a symbol of generational change, even if many women lived more traditional lives.",
+          "Popular culture increasingly celebrated novelty, energy, and visibility."
+        ],
+        remember: "The Jazz Age was remembered as much for attitude and style as for any single invention."
+      },
+      {
+        label: "Jazz",
+        image: "url('images/lesson28/Louis Armstrong.jpeg')",
+        heading: "Jazz Became the Sound of the Decade and Showed the National Power of African American Creativity",
+        text: "Musicians like Louis Armstrong transformed American music with improvisation, swing, and unmistakable personal style. Jazz sounded modern because it felt energetic, surprising, and alive, and radio and records helped carry it across the nation.",
+        bullets: [
+          "Jazz became closely linked to nightlife, freedom, and urban culture.",
+          "Black musicians shaped the national soundtrack of the 1920s.",
+          "Many Americans celebrated jazz while others condemned it as too bold or too modern."
+        ],
+        remember: "Jazz was both entertainment and proof that Black culture stood at the center of American modernity."
+      },
+      {
+        label: "Harlem Music",
+        image: "url('images/lesson28/Duke Ellington.jpg')",
+        heading: "Harlem Nightlife and Big-Band Performance Turned Black Urban Music Into a Major National Influence",
+        text: "Duke Ellington and other performers made Harlem a symbol of elegance, sophistication, and artistic innovation. Their music connected local Black creative communities to national audiences eager for new sounds and new ideas.",
+        bullets: [
+          "Harlem clubs became symbols of glamour and cultural experimentation.",
+          "Jazz orchestras helped transform live performance into mass appeal.",
+          "Cultural influence expanded even while racial discrimination remained severe."
+        ],
+        remember: "The nation embraced Harlem's music long before it embraced racial equality."
+      },
+      {
+        label: "Harlem Renaissance",
+        image: "url('images/lesson28/Langston Hughes.jpeg')",
+        heading: "The Harlem Renaissance Was a Major Flowering of Black Literature, Thought, and Artistic Pride",
+        text: "Writers like Langston Hughes celebrated Black life, dignity, and creativity while confronting racism and exclusion. The movement made African American intellectual and artistic achievement central to the story of modern American culture.",
+        bullets: [
+          "Harlem became a center for poetry, fiction, criticism, and political thought.",
+          "The movement rejected the idea that modern culture belonged only to white artists.",
+          "Art became a way to express identity, history, and community pride."
+        ],
+        remember: "The Harlem Renaissance helped redefine who could speak for modern America."
+      },
+      {
+        label: "Modern Art",
+        image: "url('images/lesson28/Georgia O’Keeffe.jpg')",
+        heading: "Modern Artists Used Bold Forms and Fresh Perspectives to Break with Older Traditions",
+        text: "Artists like Georgia O'Keeffe experimented with color, scale, abstraction, and unusual viewpoints. Their work reflected a broader willingness in the 1920s to challenge established rules and search for new ways to represent modern life.",
+        bullets: [
+          "Modernism valued originality over strict tradition.",
+          "New art could feel exciting, unsettling, or controversial.",
+          "Visual art joined music and literature in reshaping the culture of the decade."
+        ],
+        remember: "The 1920s were not just louder than earlier decades. They were more experimental too."
+      },
+      {
+        label: "Fitzgerald",
+        image: "url('images/lesson28/F. Scott Fitzgerald.jpg')",
+        heading: "Writers Such as F. Scott Fitzgerald Captured Both the Glitter and the Restlessness of the Jazz Age",
+        text: "Fitzgerald helped give the decade its famous nickname and wrote about parties, wealth, youth, and the emptiness that could hide beneath them. His work showed that the Roaring Twenties mixed real excitement with anxiety about excess, status, and change.",
+        bullets: [
+          "Literature helped Americans interpret their own fast-changing world.",
+          "Writers often admired the era's glamour while exposing its shallowness.",
+          "The mood of the decade included both celebration and criticism."
+        ],
+        remember: "The phrase 'Jazz Age' described noise and pleasure, but also tension beneath the shine."
+      },
+      {
+        label: "Sports Heroes",
+        image: "url('images/lesson28/Babe Ruth.jpeg')",
+        heading: "Athletes Became National Celebrities Because Mass Media Let Millions Follow the Same Heroes",
+        text: "Babe Ruth represented the new scale of fame in the 1920s. His home runs, personality, and nonstop publicity made sports part of everyday conversation and turned athletes into shared national idols.",
+        bullets: [
+          "Sports pages and broadcasts expanded fan culture.",
+          "Celebrity now came from performances seen or heard by enormous audiences.",
+          "Mass media made heroes feel both larger than life and close at hand."
+        ],
+        remember: "Sports mattered culturally because they produced national idols in a mass-media age."
+      },
+      {
+        label: "Women Athletes",
+        image: "url('images/lesson28/Gertrude Ederle.jpg')",
+        heading: "Women Athletes Proved That Fame, Strength, and Public Admiration Were No Longer Reserved for Men",
+        text: "Gertrude Ederle's famous swim across the English Channel made her an international celebrity, and stars like Helen Wills drew huge crowds as well. Their success helped normalize the idea that women could be competitive, strong, and publicly admired.",
+        bullets: [
+          "Female athletes challenged older expectations about proper womanhood.",
+          "Crowds and newspapers turned athletic success into celebrity.",
+          "Popular culture widened the range of female achievements Americans celebrated."
+        ],
+        remember: "The new woman of the 1920s could be admired for strength and skill, not only for style."
+      },
+      {
+        label: "Aviation Icon",
+        image: "url('images/lesson28/Amelia Earhart.jpeg')",
+        heading: "Aviators Became Heroes Because Flight Seemed to Represent Courage, Technology, and the Future",
+        text: "Amelia Earhart became one of the decade's most admired public figures because flight embodied modern risk and possibility. Aviation mixed technology with spectacle, turning pilots into symbols of daring independence and progress.",
+        bullets: [
+          "Air travel seemed futuristic and thrilling to ordinary Americans.",
+          "Earhart expanded ideas about what women could do in public life.",
+          "Aviation celebrity reflected the decade's fascination with speed and innovation."
+        ],
+        remember: "In the 1920s, the future was something Americans wanted to watch, cheer, and imitate."
+      },
+      {
+        label: "Women's Public Life",
+        image: "url('images/lesson28/Alice Paul.jpeg')",
+        heading: "Popular Culture Also Changed Ideas About Women's Voices, Choices, and Place in Public Life",
+        text: "Figures such as Alice Paul, Margaret Sanger, and Jeannette Rankin showed that the 1920s were not only about entertainment. Debates over voting, equality, birth control, work, and independence pushed Americans to argue over what modern womanhood should mean.",
+        bullets: [
+          "The Nineteenth Amendment expanded political citizenship, but equality debates continued.",
+          "Reformers and public figures challenged older expectations about family life and public behavior.",
+          "The decade felt modern partly because social roles became more visible and more contested."
+        ],
+        remember: "The Jazz Age changed culture through music and movies, but also through new arguments about freedom, identity, and gender."
+      }
+    ];
+
+    let current = 0;
+
+    const imageBand = document.getElementById("imageBand");
+    const mediaVideo = document.getElementById("mediaVideo");
+    const imageLabel = document.getElementById("imageLabel");
+    const slideContent = document.getElementById("slideContent");
+    const slideHeading = document.getElementById("slideHeading");
+    const slideText = document.getElementById("slideText");
+    const bulletList = document.getElementById("bulletList");
+    const rememberBox = document.getElementById("rememberBox");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function renderSlide(index) {
+      const slide = slides[index];
+      if (slide.video) {
+        imageBand.classList.add("has-video");
+        imageBand.style.backgroundImage = slide.poster ? `url('${slide.poster}')` : "none";
+        mediaVideo.src = slide.video;
+        mediaVideo.poster = slide.poster || "";
+        mediaVideo.load();
+        const playAttempt = mediaVideo.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(() => {});
+        }
+      } else {
+        imageBand.classList.remove("has-video");
+        imageBand.style.backgroundImage = slide.image || "none";
+        mediaVideo.pause();
+        mediaVideo.removeAttribute("src");
+        mediaVideo.removeAttribute("poster");
+        mediaVideo.load();
+      }
+
+      imageLabel.textContent = slide.label;
+
+      slideContent.classList.remove("animating");
+      void slideContent.offsetWidth;
+      slideContent.classList.add("animating");
+
+      slideHeading.textContent = slide.heading;
+      slideText.textContent = slide.text;
+      bulletList.innerHTML = slide.bullets.map((bullet) => `<li>${bullet}</li>`).join("");
+      rememberBox.innerHTML = `<strong>Remember This</strong>${slide.remember}`;
+      progressText.textContent = `Slide ${index + 1} of ${slides.length}`;
+      progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" && current > 0) {
+        current -= 1;
+        renderSlide(current);
+      }
+
+      if (event.key === "ArrowRight" && current < slides.length - 1) {
+        current += 1;
+        renderSlide(current);
+      }
+    });
+
+    renderSlide(current);
+  </script>
+</body>
+</html>
+
