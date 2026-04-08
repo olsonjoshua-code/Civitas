@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Crucible — AP Seminar · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#080810;--bg2:#0e0e1a;--bg3:#14142a;--panel:#1a1a2e;
+  --border:#2a2a45;--border2:#3a3a60;
+  --gold:#f5c842;--gold2:#d4a820;--gold3:#ffe680;--gold-dim:#3a2808;
+  --crimson:#c03040;--crimson2:#e04050;
+  --ivory:#f0e8d8;--ivory2:#c8c0b0;--ivory3:#706860;
+  --emerald:#208060;--emerald2:#30b080;
+  --sapphire:#4060c0;--sapphire2:#6080e0;
+  --purple:#7040c0;--purple2:#9060e0;
+  --axiom:#e8d0ff;--axiom2:#c0a0f0;--axiom-dim:#2a1a45;
+  --teal:#208878;--teal2:#2aaa98;
+  --cinzel:'Cinzel',serif;
+  --garamond:'EB Garamond',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--ivory);font-family:var(--garamond);font-size:15px;
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(112,64,192,.1) 0%,transparent 55%),radial-gradient(ellipse at 80% 80%,rgba(192,48,64,.07) 0%,transparent 55%);}
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9998;opacity:.35;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes glowGold{0%,100%{box-shadow:0 0 15px rgba(245,200,66,.2)}50%{box-shadow:0 0 40px rgba(245,200,66,.5)}}
+@keyframes glowAxiom{0%,100%{box-shadow:0 0 15px rgba(192,160,240,.25)}50%{box-shadow:0 0 50px rgba(192,160,240,.7)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes particleUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(1.2)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes correctFlash{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(32,128,96,.5)}}
+@keyframes wrongFlash{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(192,48,64,.5)}}
+@keyframes hpPulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes typewriter{from{width:0}to{width:100%}}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;overflow-y:auto;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ── LOADING ── */
+#screen-loading{align-items:center;justify-content:center;background:var(--bg);z-index:9000;}
+.ld-seal{width:90px;height:90px;border:2px solid var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:18px;animation:glowGold 2s infinite;}
+.ld-title{font-family:var(--cinzel);font-size:28px;color:var(--gold);letter-spacing:7px;margin-bottom:5px;}
+.ld-sub{font-family:var(--garamond);font-size:13px;color:var(--ivory3);font-style:italic;margin-bottom:22px;}
+.ld-bar-wrap{width:220px;height:2px;background:var(--border2);}
+.ld-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));transition:width .3s;width:0;}
+
+/* ── TITLE ── */
+#screen-title{align-items:center;justify-content:center;text-align:center;padding:2rem 1rem;background:var(--bg);}
+.title-ornament{font-size:56px;margin-bottom:14px;animation:float 4s ease-in-out infinite;}
+.title-main{font-family:'Cinzel Decorative',serif;font-size:clamp(32px,7vw,64px);color:var(--gold);letter-spacing:4px;text-shadow:0 0 60px rgba(245,200,66,.35),0 3px 0 rgba(0,0,0,.7);line-height:1.1;margin-bottom:6px;}
+.title-sub{font-family:var(--cinzel);font-size:13px;color:var(--ivory3);letter-spacing:6px;margin-bottom:6px;}
+.title-tagline{font-family:var(--garamond);font-size:17px;color:var(--ivory2);font-style:italic;margin-bottom:1.5rem;max-width:480px;}
+.divider-line{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);margin:0 auto 1.5rem;}
+
+/* Btn */
+.btn{font-family:var(--cinzel);font-size:12px;letter-spacing:2px;background:transparent;border:1.5px solid var(--gold2);color:var(--gold);padding:12px 28px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;text-transform:uppercase;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0;opacity:.08;}
+.btn:hover{box-shadow:0 0 20px rgba(245,200,66,.3);}
+.btn:hover::before{transform:scaleX(1);}
+.btn span{position:relative;z-index:1;}
+.btn.full{display:block;width:100%;text-align:center;}
+.btn.sm{font-size:10px;padding:8px 18px;}
+.btn.teal{border-color:var(--teal2);color:var(--teal2)}.btn.teal::before{background:var(--teal2)}
+.btn.red{border-color:var(--crimson2);color:var(--crimson2)}.btn.red::before{background:var(--crimson2)}
+.btn.purple{border-color:var(--purple2);color:var(--axiom2)}.btn.purple::before{background:var(--purple)}
+.btn:disabled{opacity:.25;cursor:not-allowed;pointer-events:none;}
+
+/* ── INTRO ── */
+#screen-intro{align-items:center;justify-content:center;padding:2rem;background:var(--bg);}
+.intro-box{max-width:620px;width:100%;background:rgba(14,14,26,.97);border:1px solid var(--border2);border-top:3px solid var(--gold);padding:30px;animation:fadeIn .5s ease;}
+.intro-eyebrow{font-family:var(--cinzel);font-size:9px;color:var(--gold2);letter-spacing:4px;margin-bottom:10px;}
+.intro-title{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold);margin-bottom:14px;line-height:1.3;}
+.intro-text{font-family:var(--garamond);font-size:15px;color:var(--ivory2);line-height:1.85;margin-bottom:12px;font-style:italic;}
+.intro-text strong{color:var(--ivory);font-style:normal;}
+.axiom-callout{background:rgba(112,64,192,.1);border:1px solid var(--purple);border-left:3px solid var(--axiom2);padding:12px 16px;margin:14px 0;font-family:var(--garamond);font-size:14px;color:var(--axiom);font-style:italic;line-height:1.6;}
+
+/* ── MAP ── */
+#screen-map{align-items:center;padding:16px;background:var(--bg);}
+.map-header{width:100%;max-width:700px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.map-title{font-family:'Cinzel Decorative',serif;font-size:20px;color:var(--gold);}
+.map-stats{display:flex;gap:16px;}
+.map-stat{font-family:var(--dm);font-size:9px;color:var(--ivory3);text-align:center;letter-spacing:1px;}
+.map-stat span{display:block;font-family:var(--cinzel);font-size:14px;color:var(--gold);}
+.map-scroll{width:100%;max-width:700px;overflow-y:auto;flex:1;}
+.chapter-node{background:var(--bg2);border:1px solid var(--border);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;gap:14px;align-items:center;}
+.chapter-node::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0;opacity:.04;}
+.chapter-node:hover{border-color:var(--gold2);}
+.chapter-node:hover::before{transform:scaleX(1);}
+.chapter-node.locked{opacity:.45;cursor:not-allowed;pointer-events:none;}
+.chapter-node.complete{border-color:var(--emerald);}
+.chapter-node.boss{border-color:var(--crimson);}
+.chapter-node.boss:hover{border-color:var(--crimson2);}
+.chapter-node > *{position:relative;z-index:1;}
+.cn-icon{font-size:32px;flex-shrink:0;width:48px;text-align:center;}
+.cn-info{flex:1;}
+.cn-num{font-family:var(--cinzel);font-size:9px;color:var(--ivory3);letter-spacing:3px;margin-bottom:2px;}
+.cn-title{font-family:var(--cinzel);font-size:13px;color:var(--ivory);margin-bottom:3px;}
+.cn-desc{font-family:var(--garamond);font-size:12px;color:var(--ivory3);font-style:italic;}
+.cn-badge{font-family:var(--cinzel);font-size:8px;padding:2px 8px;border:1px solid;letter-spacing:2px;flex-shrink:0;}
+.cn-badge.complete{border-color:var(--emerald);color:var(--emerald2);}
+.cn-badge.locked{border-color:var(--border2);color:var(--ivory3);}
+.cn-badge.available{border-color:var(--gold2);color:var(--gold);animation:glowGold 2s infinite;}
+.cn-badge.boss{border-color:var(--crimson);color:var(--crimson2);}
+
+/* ── BATTLE SCREEN ── */
+#screen-battle{background:var(--bg);flex-direction:column;overflow:hidden;}
+
+/* HUD */
+#battle-hud{display:flex;align-items:center;gap:10px;padding:7px 14px;background:rgba(8,8,16,.97);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.hud-back-btn{font-family:var(--cinzel);font-size:9px;letter-spacing:2px;color:var(--ivory3);cursor:pointer;padding:4px 9px;border:1px solid var(--border);background:transparent;transition:all .2s;}
+.hud-back-btn:hover{color:var(--gold);border-color:var(--gold2);}
+.hud-center{flex:1;text-align:center;}
+.hud-chapter{font-family:var(--cinzel);font-size:10px;color:var(--gold);letter-spacing:3px;}
+.hud-round{font-family:var(--dm);font-size:9px;color:var(--ivory3);margin-top:1px;}
+.hud-right{display:flex;gap:12px;align-items:center;flex-shrink:0;}
+.hud-mini{font-family:var(--dm);font-size:9px;color:var(--ivory3);text-align:center;letter-spacing:1px;}
+.hud-mini span{display:block;font-family:var(--cinzel);font-size:13px;color:var(--gold);}
+
+/* Combatants */
+#combatants-row{display:flex;align-items:flex-end;justify-content:space-between;padding:10px 24px 0;flex-shrink:0;position:relative;}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:140px;}
+.fighter-name{font-family:var(--cinzel);font-size:10px;letter-spacing:2px;color:var(--ivory2);text-align:center;}
+.fighter-title{font-family:var(--garamond);font-size:11px;color:var(--ivory3);font-style:italic;margin-top:-3px;text-align:center;}
+.fighter-avatar{width:72px;height:72px;border-radius:50%;border:2px solid var(--gold2);display:flex;align-items:center;justify-content:center;font-size:36px;background:radial-gradient(circle,rgba(245,200,66,.08),transparent 70%);position:relative;transition:all .3s;}
+.fighter-avatar.enemy-av{border-color:var(--crimson2);background:radial-gradient(circle,rgba(192,48,64,.08),transparent 70%);}
+.fighter-avatar.axiom-glow{animation:glowAxiom 1.5s infinite;}
+.fighter-avatar.hit{animation:shake .4s ease;}
+.fighter-lv{position:absolute;bottom:-5px;right:-5px;background:var(--gold2);color:var(--bg);font-family:var(--cinzel);font-size:8px;padding:1px 4px;border-radius:8px;}
+.hp-wrap{width:140px;}
+.hp-labels{display:flex;justify-content:space-between;font-family:var(--dm);font-size:8px;color:var(--ivory3);margin-bottom:2px;letter-spacing:1px;}
+.hp-track{height:7px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.hp-bar{height:100%;border-radius:3px;transition:width .6s ease;}
+.hp-bar.p-bar{background:linear-gradient(90deg,var(--emerald),var(--emerald2));}
+.hp-bar.e-bar{background:linear-gradient(90deg,var(--crimson),var(--crimson2));}
+.status-chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:18px;margin-top:2px;}
+.chip{font-family:var(--dm);font-size:7px;padding:1px 5px;border-radius:8px;letter-spacing:.5px;}
+.chip.buff{background:rgba(32,128,96,.25);border:1px solid var(--emerald);color:var(--emerald2);}
+.chip.debuff{background:rgba(192,48,64,.25);border:1px solid var(--crimson);color:var(--crimson2);}
+.chip.axiom{background:rgba(112,64,192,.25);border:1px solid var(--axiom2);color:var(--axiom);}
+#vs-zone{display:flex;flex-direction:column;align-items:center;padding-bottom:18px;}
+.vs-txt{font-family:'Cinzel Decorative',serif;font-size:18px;color:var(--crimson2);text-shadow:0 0 15px rgba(192,48,64,.5);}
+
+/* Battle log */
+#battle-log-bar{padding:0 14px 6px;flex-shrink:0;}
+#battle-log{background:rgba(14,14,26,.88);border:1px solid var(--border);border-left:3px solid var(--gold2);padding:8px 12px;min-height:44px;max-height:68px;overflow-y:auto;font-family:var(--garamond);font-size:13px;color:var(--ivory2);font-style:italic;line-height:1.5;}
+.log-line{animation:fadeIn .25s ease;}
+.log-line.good{color:var(--emerald2);font-style:normal;}
+.log-line.bad{color:var(--crimson2);font-style:normal;}
+.log-line.axiom{color:var(--axiom);font-style:normal;}
+.log-line.sys{color:var(--gold);font-style:normal;font-family:var(--cinzel);font-size:10px;letter-spacing:2px;}
+
+/* Battle content */
+#battle-body{flex:1;overflow-y:auto;padding:8px 14px 6px;}
+
+/* Argument panel */
+.arg-panel{background:rgba(14,14,26,.92);border:1px solid var(--border2);border-left:3px solid var(--crimson2);padding:12px 16px;margin-bottom:10px;animation:fadeIn .3s ease;}
+.arg-label{font-family:var(--cinzel);font-size:8px;color:var(--crimson2);letter-spacing:3px;margin-bottom:5px;}
+.arg-speaker{font-family:var(--cinzel);font-size:10px;color:var(--ivory2);margin-bottom:3px;}
+.arg-text{font-family:var(--garamond);font-size:15px;color:var(--ivory);line-height:1.65;font-style:italic;}
+.arg-note{font-family:var(--dm);font-size:9px;color:var(--ivory3);margin-top:5px;}
+
+.prompt-txt{font-family:var(--cinzel);font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;text-align:center;}
+
+/* Options */
+#options-wrap{display:grid;gap:6px;}
+.opt{background:rgba(20,20,42,.9);border:1px solid var(--border2);padding:10px 14px;cursor:pointer;transition:all .2s;text-align:left;display:flex;gap:10px;align-items:flex-start;position:relative;overflow:hidden;}
+.opt::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .2s;z-index:0;opacity:.05;}
+.opt:hover{border-color:var(--gold2);}
+.opt:hover::before{transform:scaleX(1);}
+.opt.correct{border-color:var(--emerald2);background:rgba(32,128,96,.12);animation:correctFlash .4s ease;}
+.opt.wrong{border-color:var(--crimson2);background:rgba(192,48,64,.12);animation:wrongFlash .4s ease;}
+.opt.disabled{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.opt-letter{font-family:var(--cinzel);font-size:10px;color:var(--gold2);flex-shrink:0;margin-top:1px;position:relative;z-index:1;}
+.opt-body{position:relative;z-index:1;font-family:var(--garamond);font-size:14px;color:var(--ivory2);line-height:1.4;}
+
+/* Axiom button */
+#axiom-btn{width:100%;margin-top:8px;background:var(--axiom-dim);border:1px solid var(--purple);padding:9px;cursor:pointer;font-family:var(--cinzel);font-size:10px;color:var(--axiom2);letter-spacing:2px;transition:all .2s;display:none;text-align:center;}
+#axiom-btn:hover{background:rgba(112,64,192,.25);border-color:var(--axiom2);}
+#axiom-btn.ready{display:block;animation:glowAxiom 2s infinite;}
+
+/* Feedback box */
+.fb-box{background:var(--bg2);border-left:3px solid var(--gold);padding:11px 13px;margin-top:8px;font-family:var(--garamond);font-size:14px;color:var(--ivory2);line-height:1.6;display:none;animation:fadeIn .3s ease;}
+.fb-box.show{display:block;}
+.fb-box.correct-fb{border-left-color:var(--emerald2);}
+.fb-box.wrong-fb{border-left-color:var(--crimson2);}
+.fb-label{font-family:var(--cinzel);font-size:9px;letter-spacing:3px;margin-bottom:5px;}
+.fb-label.correct-fb{color:var(--emerald2);}
+.fb-label.wrong-fb{color:var(--crimson2);}
+.fb-principle{background:rgba(112,64,192,.08);border:1px solid var(--purple);padding:8px 10px;margin-top:8px;font-family:var(--garamond);font-size:13px;color:var(--axiom2);font-style:italic;line-height:1.5;}
+
+/* ── ACTION BAR ── */
+#action-bar{display:flex;gap:7px;padding:7px 14px;background:rgba(8,8,16,.97);border-top:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;align-items:center;}
+.act-btn{font-family:var(--cinzel);font-size:9px;letter-spacing:2px;padding:7px 14px;border:1px solid var(--border2);background:transparent;color:var(--ivory3);cursor:pointer;transition:all .2s;}
+.act-btn:hover{border-color:var(--gold2);color:var(--gold);}
+.act-btn.primary{border-color:var(--gold2);color:var(--gold);}
+.act-btn.primary:hover{background:rgba(245,200,66,.08);}
+#potion-info{font-family:var(--dm);font-size:9px;color:var(--ivory3);margin-left:auto;}
+
+/* ── SHOP OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.ov-box{background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--gold);max-width:560px;width:100%;max-height:85vh;overflow-y:auto;animation:popIn .3s ease;}
+.ov-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.ov-title{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold);}
+.ov-close{font-family:var(--cinzel);font-size:9px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--ivory3);padding:5px 12px;cursor:pointer;}
+.ov-close:hover{border-color:var(--gold2);color:var(--gold);}
+.ov-body{padding:16px 18px;}
+.shop-section{margin-bottom:18px;}
+.shop-section-title{font-family:var(--cinzel);font-size:9px;color:var(--ivory3);letter-spacing:3px;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:5px;}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.shop-item{background:var(--bg3);border:1px solid var(--border);padding:10px;cursor:pointer;transition:all .2s;text-align:center;}
+.shop-item:hover{border-color:var(--gold2);}
+.shop-item.equipped{border-color:var(--gold-dim);}
+.shop-item.owned{border-color:var(--emerald);}
+.shop-item.cant-afford{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.si-icon{font-size:28px;margin-bottom:5px;}
+.si-name{font-family:var(--cinzel);font-size:9px;color:var(--ivory2);letter-spacing:1px;margin-bottom:3px;}
+.si-desc{font-family:var(--dm);font-size:8px;color:var(--ivory3);line-height:1.4;margin-bottom:4px;}
+.si-price{font-family:var(--cinzel);font-size:9px;color:var(--gold);}
+.si-badge{font-family:var(--cinzel);font-size:7px;padding:1px 5px;border-radius:8px;margin-top:3px;display:inline-block;}
+.si-badge.equipped{background:rgba(245,200,66,.15);color:var(--gold);border:1px solid var(--gold2);}
+.si-badge.owned{background:rgba(32,128,96,.15);color:var(--emerald2);border:1px solid var(--emerald);}
+
+/* ── CHARACTER UNLOCK OVERLAY ── */
+#char-overlay .ov-box{border-top-color:var(--axiom2);}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.char-card{background:var(--bg3);border:1px solid var(--border);padding:12px 8px;text-align:center;transition:all .2s;}
+.char-card.unlocked{border-color:var(--gold-dim);}
+.char-card.locked-card{opacity:.4;}
+.char-icon{font-size:32px;margin-bottom:5px;}
+.char-name{font-family:var(--cinzel);font-size:9px;color:var(--ivory2);letter-spacing:1px;margin-bottom:2px;}
+.char-desc{font-family:var(--dm);font-size:8px;color:var(--ivory3);line-height:1.3;}
+.char-unlock{font-family:var(--cinzel);font-size:7px;color:var(--gold);margin-top:4px;}
+
+/* ── VICTORY / DEFEAT ── */
+#screen-victory,#screen-defeat{align-items:center;justify-content:center;padding:2rem;background:var(--bg);}
+.result-icon{font-size:60px;margin-bottom:14px;animation:float 3s ease-in-out infinite;}
+.result-title{font-family:'Cinzel Decorative',serif;font-size:clamp(26px,5vw,44px);margin-bottom:6px;animation:popIn .5s ease;}
+.result-title.win{color:var(--gold);text-shadow:0 0 40px rgba(245,200,66,.4);}
+.result-title.lose{color:var(--crimson2);}
+.result-sub{font-family:var(--cinzel);font-size:11px;color:var(--ivory3);letter-spacing:4px;margin-bottom:20px;}
+.result-box{background:var(--bg2);border:1px solid var(--border2);padding:18px 22px;max-width:460px;width:100%;margin-bottom:18px;}
+.result-stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-family:var(--dm);font-size:11px;color:var(--ivory3);}
+.result-stat-row:last-child{border-bottom:none;}
+.result-stat-val{font-family:var(--cinzel);font-size:13px;color:var(--gold);}
+.lesson-box{background:rgba(112,64,192,.08);border:1px solid var(--purple);border-left:3px solid var(--axiom2);padding:12px 16px;max-width:460px;width:100%;margin-bottom:18px;}
+.lesson-label{font-family:var(--cinzel);font-size:8px;color:var(--axiom2);letter-spacing:3px;margin-bottom:6px;}
+.lesson-text{font-family:var(--garamond);font-size:14px;color:var(--axiom);font-style:italic;line-height:1.6;}
+
+/* ── FULL COMPLETE ── */
+#screen-complete{align-items:center;justify-content:center;padding:2rem;text-align:center;background:var(--bg);}
+
+/* ── NOTIF ── */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--gold2);padding:8px 18px;font-family:var(--dm);font-size:11px;color:var(--gold);z-index:8000;animation:popIn .3s ease;white-space:nowrap;pointer-events:none;}
+
+/* ── PARTICLE ── */
+.particle{position:fixed;font-family:var(--cinzel);font-size:14px;pointer-events:none;z-index:9000;animation:particleUp 1.6s ease-out forwards;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="screen active" id="screen-loading">
+  <div class="ld-seal">⚖️</div>
+  <div class="ld-title">THE CRUCIBLE</div>
+  <div class="ld-sub">Forging Minds in the Fire of Reason</div>
+  <div class="ld-bar-wrap"><div class="ld-bar-fill" id="ld-bar"></div></div>
+</div>
+
+<!-- TITLE -->
+<div class="screen" id="screen-title">
+  <div class="title-ornament">⚖️</div>
+  <div class="title-main">The Crucible</div>
+  <div class="title-sub">AP Seminar · Civitas</div>
+  <div class="title-tagline">"Anyone can win an argument. Only the wise can find the truth."</div>
+  <div class="divider-line"></div>
+  <div id="title-player-name" style="font-family:var(--cinzel);font-size:13px;color:var(--ivory3);letter-spacing:3px;margin-bottom:16px;"></div>
+  <button class="btn" onclick="showScreen('screen-intro')"><span>⚔️ ENTER THE CRUCIBLE</span></button>
+  <div style="height:12px"></div>
+  <button class="btn sm teal" onclick="showScreen('screen-map')"><span>📜 CHAPTER SELECT</span></button>
+  <div style="height:12px"></div>
+  <button class="btn sm" onclick="openShop()"><span>🏪 ARMORY</span></button>
+  <div style="height:12px"></div>
+  <button class="btn sm" style="border-color:var(--border2);color:var(--ivory3)" onclick="returnToShell()"><span>🏛 BACK TO CIVITAS</span></button>
+  <div style="height:8px;font-family:var(--dm);font-size:9px;color:var(--ivory3);margin-top:8px;" id="title-gold-disp"></div>
+</div>
+
+<!-- INTRO STORY -->
+<div class="screen" id="screen-intro">
+  <div class="intro-box">
+    <div class="intro-eyebrow">PROLOGUE</div>
+    <div class="intro-title">The Crucible Has Been Corrupted</div>
+    <div class="intro-text">
+      For centuries, <strong>The Crucible</strong> stood as the highest test of the thinking mind. Scholars came not merely to win, but to seek truth — to strip arguments down to their foundations and rebuild them on solid ground.
+    </div>
+    <div class="intro-text">
+      But something has changed. The Sophists have taken over. They win by manipulation, not logic. By emotion, not evidence. They have turned the sacred art of argumentation into a weapon of deception.
+    </div>
+    <div class="axiom-callout">
+      Your mentor, the Elder Logician, tells you: <strong>"Every argument rests on a foundation. The Sophist builds on sand and hopes you don't look down. Your job is to look down — always."</strong>
+    </div>
+    <div class="intro-text">
+      You will face eight opponents, each representing a different kind of intellectual corruption. To defeat them, you must identify their fallacies, evaluate their evidence, choose the correct rebuttal — and when the moment is right, unleash an <strong>Axiom Strike</strong>: a move that cuts to the moral or logical foundation they are violating.
+    </div>
+    <div class="intro-text">
+      <strong>This is not about winning. It is about being right.</strong>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn full" onclick="showScreen('screen-map')"><span>⚔️ BEGIN YOUR JOURNEY</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAPTER MAP -->
+<div class="screen" id="screen-map">
+  <div class="map-header">
+    <div>
+      <div class="map-title">Chapter Select</div>
+      <div style="font-family:var(--garamond);font-size:12px;color:var(--ivory3);font-style:italic;">The Crucible — AP Seminar</div>
+    </div>
+    <div class="map-stats">
+      <div class="map-stat">GOLD<span id="map-gold">0</span></div>
+      <div class="map-stat">CHAPTERS<span id="map-progress">0/8</span></div>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      <button class="btn sm" onclick="openShop()"><span>🏪 Armory</span></button>
+      <button class="btn sm" onclick="openChars()"><span>🧙 Scholars</span></button>
+      <button class="btn sm" style="border-color:var(--border2);color:var(--ivory3)" onclick="returnToShell()"><span>🏛 Civitas</span></button>
+    </div>
+  </div>
+  <div class="map-scroll" id="chapter-list"></div>
+</div>
+
+<!-- BATTLE -->
+<div class="screen" id="screen-battle">
+  <div id="battle-hud">
+    <button class="hud-back-btn" onclick="confirmLeave()">← MAP</button>
+    <div class="hud-center">
+      <div class="hud-chapter" id="hud-chapter-name">Chapter 1</div>
+      <div class="hud-round" id="hud-round-info">Round 1 of 5</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-mini">GOLD<span id="hud-gold">0</span></div>
+      <div class="hud-mini">STREAK<span id="hud-streak">0</span></div>
+      <div class="hud-mini">SCORE<span id="hud-score">0</span></div>
+    </div>
+  </div>
+
+  <div id="combatants-row">
+    <!-- Player -->
+    <div class="fighter">
+      <div class="fighter-name" id="p-name">Scholar</div>
+      <div class="fighter-title" id="p-title">Seeker of Truth</div>
+      <div class="fighter-avatar" id="p-avatar">
+        <span id="p-avatar-icon">🧙</span>
+        <div class="fighter-lv" id="p-level">Lv1</div>
+      </div>
+      <div class="hp-wrap">
+        <div class="hp-labels"><span>HP</span><span id="p-hp-val">100/100</span></div>
+        <div class="hp-track"><div class="hp-bar p-bar" id="p-hp-bar" style="width:100%"></div></div>
+      </div>
+      <div class="status-chips" id="p-status"></div>
+    </div>
+
+    <div id="vs-zone">
+      <div class="vs-txt">VS</div>
+      <div style="font-family:var(--cinzel);font-size:8px;color:var(--ivory3);letter-spacing:2px;margin-top:2px;" id="vs-chapter-lbl"></div>
+    </div>
+
+    <!-- Enemy -->
+    <div class="fighter">
+      <div class="fighter-name" id="e-name">The Demagogue</div>
+      <div class="fighter-title" id="e-title">Master of Manipulation</div>
+      <div class="fighter-avatar enemy-av" id="e-avatar">
+        <span id="e-avatar-icon">🎭</span>
+      </div>
+      <div class="hp-wrap">
+        <div class="hp-labels"><span>HP</span><span id="e-hp-val">100/100</span></div>
+        <div class="hp-track"><div class="hp-bar e-bar" id="e-hp-bar" style="width:100%"></div></div>
+      </div>
+      <div class="status-chips" id="e-status"></div>
+    </div>
+  </div>
+
+  <div id="battle-log-bar">
+    <div id="battle-log"><div class="log-line sys">THE BATTLE BEGINS...</div></div>
+  </div>
+
+  <div id="battle-body">
+    <div class="arg-panel" id="arg-panel">
+      <div class="arg-label">OPPONENT'S ARGUMENT</div>
+      <div class="arg-speaker" id="arg-speaker"></div>
+      <div class="arg-text" id="arg-text"></div>
+      <div class="arg-note" id="arg-note"></div>
+    </div>
+    <div class="prompt-txt" id="prompt-txt"></div>
+    <div id="options-wrap"></div>
+    <button id="axiom-btn" onclick="useAxiom()">✦ AXIOM STRIKE AVAILABLE ✦</button>
+    <div class="fb-box" id="fb-box">
+      <div class="fb-label" id="fb-label"></div>
+      <div id="fb-text"></div>
+      <div class="fb-principle" id="fb-principle" style="display:none"></div>
+    </div>
+  </div>
+
+  <div id="action-bar">
+    <button class="act-btn primary" id="next-btn" onclick="nextQuestion()" style="display:none"><span>NEXT →</span></button>
+    <button class="act-btn" onclick="usePotion()" id="potion-btn">🧪 HINT</button>
+    <button class="act-btn" onclick="openShop()">🏪 SHOP</button>
+    <div id="potion-info">Hints: <span id="potion-count">3</span></div>
+  </div>
+</div>
+
+<!-- CHAPTER VICTORY -->
+<div class="screen" id="screen-victory">
+  <div class="result-icon">⚔️</div>
+  <div class="result-title win" id="v-title">SOPHIST DEFEATED</div>
+  <div class="result-sub" id="v-sub">CHAPTER COMPLETE</div>
+  <div class="result-box">
+    <div class="result-stat-row"><span>Accuracy</span><span class="result-stat-val" id="v-acc">—</span></div>
+    <div class="result-stat-row"><span>Questions Answered</span><span class="result-stat-val" id="v-qs">—</span></div>
+    <div class="result-stat-row"><span>Gold Earned</span><span class="result-stat-val" id="v-gold">—</span></div>
+    <div class="result-stat-row"><span>Axiom Strikes</span><span class="result-stat-val" id="v-axioms">—</span></div>
+  </div>
+  <div class="lesson-box">
+    <div class="lesson-label">LESSON OF THE CRUCIBLE</div>
+    <div class="lesson-text" id="v-lesson"></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn" onclick="afterVictory()"><span>CONTINUE →</span></button>
+    <button class="btn sm teal" onclick="showScreen('screen-map')"><span>📜 Chapter Map</span></button>
+  </div>
+</div>
+
+<!-- DEFEAT -->
+<div class="screen" id="screen-defeat">
+  <div class="result-icon">💀</div>
+  <div class="result-title lose">ARGUMENT COLLAPSED</div>
+  <div class="result-sub">YOUR LOGIC FAILED YOU THIS TIME</div>
+  <div class="result-box">
+    <div class="result-stat-row"><span>Accuracy</span><span class="result-stat-val" id="d-acc">—</span></div>
+    <div class="result-stat-row"><span>Reached Question</span><span class="result-stat-val" id="d-qs">—</span></div>
+    <div class="result-stat-row"><span>HP Remaining</span><span class="result-stat-val" id="d-hp">0</span></div>
+  </div>
+  <div class="lesson-box" style="border-left-color:var(--crimson2);">
+    <div class="lesson-label" style="color:var(--crimson2);">WHERE YOUR ARGUMENT BROKE DOWN</div>
+    <div class="lesson-text" id="d-lesson" style="color:var(--ivory2)"></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn" onclick="retryChapter()"><span>↺ TRY AGAIN</span></button>
+    <button class="btn sm teal" onclick="showScreen('screen-map')"><span>📜 Chapter Map</span></button>
+    <button class="btn sm" onclick="usePotion();retryChapter()"><span>🧪 Retry with Hint</span></button>
+  </div>
+</div>
+
+<!-- FULL COMPLETE -->
+<div class="screen" id="screen-complete">
+  <div style="font-size:64px;margin-bottom:16px;animation:float 3s ease-in-out infinite;">🏆</div>
+  <div style="font-family:'Cinzel Decorative',serif;font-size:clamp(24px,5vw,40px);color:var(--gold);text-shadow:0 0 40px rgba(245,200,66,.4);margin-bottom:6px;animation:popIn .5s ease;">THE CRUCIBLE MASTERED</div>
+  <div style="font-family:var(--cinzel);font-size:11px;color:var(--ivory3);letter-spacing:4px;margin-bottom:20px;">WORLD-CLASS DEBATER ACHIEVED</div>
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--gold);padding:20px 24px;max-width:480px;width:100%;margin-bottom:18px;">
+    <div style="font-family:var(--garamond);font-size:15px;color:var(--ivory);font-style:italic;line-height:1.8;margin-bottom:14px;">
+      "You have done what few dare attempt — you have looked beneath the argument, found the foundation, and refused to build on sand. The Crucible has forged you. Go now and think clearly."
+    </div>
+    <div style="font-family:var(--cinzel);font-size:9px;color:var(--gold2);letter-spacing:2px;">— THE ELDER LOGICIAN</div>
+  </div>
+  <div id="complete-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:480px;width:100%;margin-bottom:18px;"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn" onclick="returnToShell(true)"><span>🏛 RETURN TO CIVITAS</span></button>
+    <button class="btn sm teal" onclick="showScreen('screen-map')"><span>📜 Play Again</span></button>
+  </div>
+</div>
+
+<!-- SHOP OVERLAY -->
+<div class="overlay" id="shop-overlay">
+  <div class="ov-box">
+    <div class="ov-header">
+      <div class="ov-title">⚔️ The Armory</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-family:var(--cinzel);font-size:12px;color:var(--gold);">🪙 <span id="shop-gold">0</span></div>
+        <button class="ov-close" onclick="closeShop()">CLOSE</button>
+      </div>
+    </div>
+    <div class="ov-body" id="shop-body"></div>
+  </div>
+</div>
+
+<!-- CHARACTERS OVERLAY -->
+<div class="overlay" id="char-overlay">
+  <div class="ov-box">
+    <div class="ov-header">
+      <div class="ov-title">🧙 Scholar Companions</div>
+      <button class="ov-close" onclick="closeChars()">CLOSE</button>
+    </div>
+    <div class="ov-body" id="char-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONSTANTS & CONFIG
+// ══════════════════════════════════════════════════════
+const UNIT_ID = 'apsem_rpg';
+const SAVE_KEY = 'crucible_v1_save';
+const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+
+async function sfetch(path, opts={}) {
+  try { const r = await fetch(SUPA_URL+path,{headers:SUPA_H,...opts}); return await r.json(); }
+  catch(e) { return []; }
+}
+
+// ══════════════════════════════════════════════════════
+//  GAME DATA — CHAPTERS
+// ══════════════════════════════════════════════════════
+const CHAPTERS = [
+  {
+    id:'ch1', num:1, title:'The Demagogue', icon:'🎭',
+    enemy:{name:'The Demagogue', title:'Master of Emotional Manipulation', icon:'🎭', maxHp:80, attack:{min:8,max:14}},
+    isBoss:false, unlocked:true,
+    lesson:'The Demagogue wins by making you feel, not think. Emotional appeals are powerful — but emotion is not evidence.',
+    questions:'ch1'
+  },
+  {
+    id:'ch2', num:2, title:'The Straw Builder', icon:'🌾',
+    enemy:{name:'The Straw Builder', title:'Destroyer of Arguments That Were Never Made', icon:'🌾', maxHp:90, attack:{min:10,max:16}},
+    isBoss:false, unlocked:false,
+    lesson:'The Straw Man is built to be burned. Always ask: did my opponent actually say that? Represent positions faithfully before you rebut them.',
+    questions:'ch2'
+  },
+  {
+    id:'ch3', num:3, title:'The False Prophet', icon:'🔮',
+    enemy:{name:'The False Prophet', title:'Peddler of False Dilemmas', icon:'🔮', maxHp:100, attack:{min:12,max:18}},
+    isBoss:false, unlocked:false,
+    lesson:'The world rarely offers only two choices. When someone says "you\'re either with us or against us," ask: what other options exist?',
+    questions:'ch3'
+  },
+  {
+    id:'ch4', num:4, title:'The Evidence Broker', icon:'📊',
+    enemy:{name:'The Evidence Broker', title:'Manipulator of Data and Sources', icon:'📊', maxHp:110, attack:{min:14,max:20}},
+    isBoss:false, unlocked:false,
+    lesson:'Evidence can be cherry-picked, misattributed, or taken out of context. Always ask: where did this come from, and what does it actually show?',
+    questions:'ch4'
+  },
+  {
+    id:'ch5', num:5, title:'The Tribal Champion', icon:'🛡️',
+    enemy:{name:'The Tribal Champion', title:'Warrior of Identity Over Logic', icon:'🛡️', maxHp:120, attack:{min:16,max:22}},
+    isBoss:false, unlocked:false,
+    lesson:'An argument is not stronger because of who makes it. Truth has no tribe. Evaluate the claim, not the claimant.',
+    questions:'ch5'
+  },
+  {
+    id:'ch6', num:6, title:'The Relativist', icon:'🌀',
+    enemy:{name:'The Relativist', title:'Destroyer of Objective Truth', icon:'🌀', maxHp:130, attack:{min:18,max:26}},
+    isBoss:false, unlocked:false,
+    lesson:'Not all opinions are equally valid. Some claims are better supported than others. Relativism, taken too far, makes knowledge impossible.',
+    questions:'ch6'
+  },
+  {
+    id:'ch7', num:7, title:'The Grand Sophist', icon:'🐍',
+    enemy:{name:'The Grand Sophist', title:'Master of All Deceptions', icon:'🐍', maxHp:150, attack:{min:20,max:30}},
+    isBoss:true, unlocked:false,
+    lesson:'The Grand Sophist combines every trick. The only defense is a mind trained to ask: what is the foundation of this claim? Is it solid?',
+    questions:'ch7'
+  },
+  {
+    id:'ch8', num:8, title:'The Elder Logician', icon:'⚖️',
+    enemy:{name:'The Elder Logician', title:'The Final Test', icon:'⚖️', maxHp:200, attack:{min:24,max:36}},
+    isBoss:true, unlocked:false,
+    lesson:'The Elder Logician is not your enemy — they are your greatest teacher. To defeat them is to prove you have truly learned to think from first principles.',
+    questions:'ch8'
+  }
+];
+
+// ══════════════════════════════════════════════════════
+//  QUESTION BANK — Placeholder (JSON will replace this)
+// ══════════════════════════════════════════════════════
+// Each question: { id, type, argument, speaker, prompt, options:[{text,correct,feedback}], 
+//                  axiomAvailable, axiomPrompt, axiomOptions, principle, fallacy, damage, goldReward }
+// Types: 'fallacy_id' | 'evidence_eval' | 'rebuttal' | 'axiom_select' | 'first_principles'
+
+const QUESTION_BANK = {
+  ch1: [
+    {
+      id:'ch1_q1', type:'fallacy_id',
+      argument:'Our country has always been great. The values of our forefathers built this nation. Anyone who questions our traditions is a threat to everything we hold dear!',
+      speaker:'The Demagogue thunders:',
+      prompt:'Which logical fallacy is the Demagogue committing?',
+      options:[
+        {text:'Appeal to Tradition (Ad Antiquitatem) — arguing something is right because it has always been done that way', correct:true, feedback:'Correct. The Demagogue assumes that because something is traditional, it must be good. But age alone does not make something right or wrong.'},
+        {text:'Straw Man — misrepresenting an opponent\'s position to make it easier to attack', correct:false, feedback:'Not quite. The Demagogue is not misrepresenting a specific opponent — they are using tradition as a shield against all criticism.'},
+        {text:'False Dichotomy — presenting only two options when more exist', correct:false, feedback:'Close, but the primary fallacy here is the appeal to tradition. The binary framing ("question = threat") is secondary.'},
+        {text:'Ad Hominem — attacking the person rather than the argument', correct:false, feedback:'While the Demagogue does label questioners as "threats," the core fallacy is the appeal to tradition as evidence of rightness.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What first principle does the Demagogue\'s argument violate?',
+      axiomOptions:[
+        {text:'The truth-value of a claim is independent of its age or popularity', correct:true, feedback:'Axiom Strike! The foundational principle is that truth does not age. Old ideas can be wrong; new ideas can be right. Only evidence and logic determine validity.'},
+        {text:'Traditions should always be preserved for social stability', correct:false, feedback:'This is actually what the Demagogue believes — not the axiom that exposes their fallacy.'},
+        {text:'Emotional appeals have no place in public discourse', correct:false, feedback:'While emotions can distort reasoning, the core axiom here is about the age-independence of truth, not the exclusion of emotion.'}
+      ],
+      principle:'The age of a belief is not evidence of its truth. Every tradition was once a new idea.',
+      fallacy:'Appeal to Tradition',
+      damage:{correct:18, wrong:0},
+      goldReward:25
+    },
+    {
+      id:'ch1_q2', type:'rebuttal',
+      argument:'People across this nation FEEL that things are getting worse. And when millions of people feel something, that feeling IS the evidence. Can you really argue with the feelings of millions?',
+      speaker:'The Demagogue gestures to the crowd:',
+      prompt:'Choose the strongest rebuttal to this argument:',
+      options:[
+        {text:'Feelings are real experiences, but they are not reliable indicators of objective facts. Millions once felt the earth was flat.', correct:true, feedback:'Excellent rebuttal. You acknowledge the reality of feelings while correctly identifying that collective emotion is not the same as collective evidence.'},
+        {text:'You\'re just appealing to the masses. Argumentum ad Populum is a clear fallacy.', correct:false, feedback:'You\'ve named the fallacy correctly, but just labeling a fallacy without explaining why is not a strong rebuttal. You need to show why feelings alone are insufficient evidence.'},
+        {text:'Those people\'s feelings are wrong — they\'re being manipulated by the Demagogue.', correct:false, feedback:'This commits an ad hominem. You\'re attacking the source of the feeling rather than engaging with the logical structure of the argument.'},
+        {text:'Feelings change over time, so they can\'t be trusted at all.', correct:false, feedback:'This overcorrects. The problem is not that feelings change — it is that feelings, even consistent ones, are not sufficient evidence for objective claims.'}
+      ],
+      axiomAvailable:false,
+      principle:'Consensus of feeling is not consensus of fact. Social agreement does not create empirical truth.',
+      fallacy:'Appeal to Emotion / Ad Populum',
+      damage:{correct:18, wrong:0},
+      goldReward:20
+    },
+    {
+      id:'ch1_q3', type:'evidence_eval',
+      argument:'Studies show that immigrants are responsible for rising crime rates. I\'ve seen the headlines. The data is clear.',
+      speaker:'The Demagogue shifts tactics:',
+      prompt:'What is the most important question to ask about this evidence claim?',
+      options:[
+        {text:'Which studies? Who conducted them, when, where, and do they show correlation or causation?', correct:true, feedback:'Perfect. Vague appeals to "studies" without citation are a classic manipulation. Source, methodology, and the correlation/causation distinction are essential.'},
+        {text:'Are immigrants actually good for the economy? That\'s the real question.', correct:false, feedback:'This changes the subject. Before you counter with different evidence, you need to interrogate the evidence actually presented.'},
+        {text:'Headlines are not academic sources, so this argument is automatically invalid.', correct:false, feedback:'While media headlines are unreliable, dismissing them completely misses the deeper issue: even cited studies must be evaluated for methodology and context.'},
+        {text:'How many immigrants are we talking about? The number matters.', correct:false, feedback:'Numbers matter, but the more fundamental question is the study\'s methodology and what the data actually shows — correlation vs. causation especially.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What foundational principle of evidence is being violated here?',
+      axiomOptions:[
+        {text:'A claim is only as strong as its weakest unexamined assumption. Evidence must be traceable, reproducible, and interpreted in context.', correct:true, feedback:'Axiom Strike! The bedrock principle of evidence: you cannot evaluate what you cannot examine. Unnamed sources and headline summaries are not evidence — they are assertions dressed as evidence.'},
+        {text:'Statistical data is always more reliable than personal testimony', correct:false, feedback:'Not always true. Statistics can be manipulated. The principle at stake is about traceability and context, not the format of evidence.'},
+        {text:'Extraordinary claims require extraordinary evidence', correct:false, feedback:'This is a useful heuristic but is not the core axiom being violated here — which is about the examinability and context of any evidence claim.'}
+      ],
+      principle:'Evidence must be traceable to its source. "Studies show" without citation is not evidence — it is an assertion.',
+      fallacy:'Unsupported Authority / Cherry-picking',
+      damage:{correct:18, wrong:0},
+      goldReward:30
+    },
+    {
+      id:'ch1_q4', type:'first_principles',
+      argument:'I don\'t need to prove my point with facts and logic. My heart tells me I\'m right, and that\'s enough. The truth is what you feel it to be.',
+      speaker:'The Demagogue makes his final appeal:',
+      prompt:'This argument advocates for a specific view of truth. What is the deepest problem with it?',
+      options:[
+        {text:'If truth is purely subjective, then no argument — including this one — can be called correct, which makes the claim self-defeating.', correct:true, feedback:'Masterful. You have identified the fatal self-refutation: a relativist claim about truth cannot itself be true in any meaningful sense. This is a first-principles collapse.'},
+        {text:'Feelings are unreliable because they change over time and person to person.', correct:false, feedback:'True but insufficient. The deeper problem is logical, not psychological — the claim destroys the very framework needed to evaluate it.'},
+        {text:'Science and logic have proven that objective truth exists.', correct:false, feedback:'This is circular — you can\'t use science to justify science against someone who rejects objective standards. The argument must go deeper.'},
+        {text:'The Demagogue is confusing opinion with fact.', correct:false, feedback:'This labels the problem without exposing the root contradiction: if truth is subjective, the Demagogue\'s own claim "that\'s enough" cannot be objectively true.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What is the bedrock axiom being violated?',
+      axiomOptions:[
+        {text:'Any claim that denies the possibility of objective evaluation is self-refuting. Truth-claims require a standard external to the individual making them.', correct:true, feedback:'AXIOM STRIKE — FINISHING BLOW! You have struck at the foundation. Without a shared standard of truth, no argument — including the Demagogue\'s — can be evaluated. The claim destroys itself.'},
+        {text:'Feelings are private; facts are public. Mixing them leads to confusion.', correct:false, feedback:'A useful distinction, but not the deepest axiom. The self-refutation is the killing blow.'},
+        {text:'Democratic societies require shared epistemological standards', correct:false, feedback:'True and important — but for a first-principles strike, we need the logical axiom, not the sociological one.'}
+      ],
+      principle:'A claim that makes truth purely subjective cannot itself be true. Self-refuting arguments destroy themselves.',
+      fallacy:'Subjectivism / Self-refutation',
+      damage:{correct:25, wrong:0},
+      goldReward:40
+    },
+    {
+      id:'ch1_q5', type:'rebuttal',
+      argument:'You keep talking about logic and evidence. But the REAL people — the people who work hard every day — they don\'t have time for your fancy academic arguments. Are you saying ordinary people are stupid?',
+      speaker:'The Demagogue plays his final card:',
+      prompt:'This is a clever trap. What is the strongest response?',
+      options:[
+        {text:'I am not saying ordinary people are stupid — I am saying that logical reasoning is a skill available to everyone, not a privilege. We owe it to ordinary people to reason carefully on their behalf.', correct:true, feedback:'Perfect. You reject the false framing, affirm the dignity of all people, and redirect: careful reasoning is not elitism — it is respect.'},
+        {text:'Yes, academic arguments are complex, but that\'s just the nature of the truth.', correct:false, feedback:'This walks directly into the trap — conceding that logic is for academics, which undermines your entire position.'},
+        {text:'The Demagogue is using the common man as a prop — this is itself manipulative.', correct:false, feedback:'True, but accusatory. A stronger response engages the implied claim rather than attacking the Demagogue\'s motives.'},
+        {text:'Logic applies to everyone equally — there\'s no such thing as a "people\'s truth."', correct:false, feedback:'Partially correct, but the phrasing sounds dismissive. The best answer affirms ordinary people\'s dignity while defending rigor.'}
+      ],
+      axiomAvailable:false,
+      principle:'Rigor in reasoning is not elitist — it is the highest form of respect for any audience. Sloppy thinking on behalf of ordinary people is not kindness; it is condescension.',
+      fallacy:'Appeal to the Common Man / Ad Populum',
+      damage:{correct:22, wrong:0},
+      goldReward:35
+    }
+  ],
+  ch2: [
+    {
+      id:'ch2_q1', type:'fallacy_id',
+      argument:'My opponent believes we should reform the criminal justice system. So my opponent clearly wants to let all criminals walk free and doesn\'t care about victims.',
+      speaker:'The Straw Builder presents:',
+      prompt:'Name this fallacy and explain what makes it a distortion:',
+      options:[
+        {text:'Straw Man — the opponent never said "let all criminals walk free." The Straw Builder invented an extreme position to attack instead of the actual one.', correct:true, feedback:'Exactly right. The Straw Man replaces a nuanced position with an easy-to-attack caricature. Reform ≠ abolition. The Straw Builder must show what was actually said.'},
+        {text:'False Dichotomy — you either support reform or you support victims, with no middle ground.', correct:false, feedback:'There is a false dichotomy embedded here, but the primary fallacy is the Straw Man — the misrepresentation of the opponent\'s actual position.'},
+        {text:'Slippery Slope — reform leads to criminals walking free leads to chaos.', correct:false, feedback:'Not quite. The Straw Builder isn\'t arguing that one thing leads to another — they are replacing the opponent\'s actual view with a fabrication.'},
+        {text:'Ad Hominem — attacking the opponent\'s character by calling them indifferent to victims.', correct:false, feedback:'The emotional attack on character is present, but it is secondary. The foundational fallacy is the Straw Man — the misrepresentation of the position itself.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What principle of honest discourse is being violated?',
+      axiomOptions:[
+        {text:'The Steel Man Principle: you are obligated to engage with the strongest version of your opponent\'s argument, not the weakest distortion of it.', correct:true, feedback:'Axiom Strike! The Steel Man is the antidote to the Straw Man. Intellectual honesty requires you to represent opposing views faithfully and charitably. If you can only win against a distortion, you haven\'t actually won.'},
+        {text:'Arguments should be judged on their logical structure, not their emotional content', correct:false, feedback:'True but not the core axiom. The specific violation here is the misrepresentation of an opponent\'s position.'},
+        {text:'Extreme positions are always fallacious', correct:false, feedback:'Not true — sometimes the extreme position is the correct one. The problem is not extremism but misrepresentation.'}
+      ],
+      principle:'The Steel Man Principle: engage with the strongest version of opposing arguments, not convenient distortions.',
+      fallacy:'Straw Man',
+      damage:{correct:20, wrong:0},
+      goldReward:25
+    },
+    {
+      id:'ch2_q2', type:'evidence_eval',
+      argument:'I have here a study from the Hartwell Institute showing that this policy causes economic damage. The evidence is definitive.',
+      speaker:'The Straw Builder shifts to evidence:',
+      prompt:'Before accepting or rejecting this evidence, what is your first move?',
+      options:[
+        {text:'Research the Hartwell Institute: Who funds it? What is its methodological reputation? Has the study been peer-reviewed and replicated?', correct:true, feedback:'Correct. Source credibility is the first gate. A study from a think tank funded by interested parties, with no peer review, is very different from independent academic research.'},
+        {text:'Find a different study that contradicts this one.', correct:false, feedback:'Finding counter-evidence is valuable, but the first step is evaluating the evidence presented. You cannot rebut what you haven\'t examined.'},
+        {text:'Ask what "economic damage" means specifically — is it GDP, employment, inequality?', correct:false, feedback:'A good second question — but the first question is about the source itself. Even a precisely defined metric means little if the study is unreliable.'},
+        {text:'Accept the evidence and argue about interpretation instead.', correct:false, feedback:'Accepting unverified evidence before examining its source is dangerous. The Straw Builder is counting on you to do exactly this.'}
+      ],
+      axiomAvailable:false,
+      principle:'The credibility of evidence is inseparable from the credibility of its source and methodology.',
+      fallacy:'Appeal to Authority (Unexamined)',
+      damage:{correct:20, wrong:0},
+      goldReward:25
+    },
+    {
+      id:'ch2_q3', type:'rebuttal',
+      argument:'Critics of this policy say it\'s complicated and hard to understand. I say: if it\'s too complicated to explain simply, it\'s too complicated to be right. Simple solutions for simple problems.',
+      speaker:'The Straw Builder oversimplifies:',
+      prompt:'What is wrong with the claim "if you can\'t explain it simply, it\'s wrong"?',
+      options:[
+        {text:'Complexity in an explanation reflects complexity in reality. Oversimplification is not clarity — it is distortion. Quantum mechanics cannot be explained simply, but it is not wrong.', correct:true, feedback:'Exactly. The demand for simplicity is sometimes a demand for distortion. Reality is often complex. A map that simplifies too much stops being useful.'},
+        {text:'Simple solutions are actually usually wrong because the world is complex.', correct:false, feedback:'This overcorrects. Simple solutions can be correct. The issue is that complexity of explanation does not determine truth.'},
+        {text:'The critic never actually said the policy is hard to understand — they just said it\'s complicated.', correct:false, feedback:'A reasonable point, but the stronger rebuttal attacks the false equivalence between complexity and wrongness.'},
+        {text:'Being too simple is just as bad as being too complicated.', correct:false, feedback:'True but vague. The strongest rebuttal challenges the specific false premise: that simplicity is a marker of truth.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What first principle applies here?',
+      axiomOptions:[
+        {text:'The map is not the territory. Our explanations are simplifications of reality, not reality itself. Demanding simplicity of explanation is demanding a less accurate map.', correct:true, feedback:'Axiom Strike! "The map is not the territory" is one of the great epistemological principles. We should not confuse the simplicity of our description with the simplicity of what we are describing.'},
+        {text:'Occam\'s Razor: the simplest explanation is usually correct', correct:false, feedback:'Occam\'s Razor is about explanations with equal predictive power. It does not mean complex phenomena must have simple explanations.'},
+        {text:'All truths can eventually be reduced to simple principles', correct:false, feedback:'This is actually what the Straw Builder believes — not the axiom that exposes their fallacy.'}
+      ],
+      principle:'The map is not the territory. Demanding simplicity of explanation is not the same as demanding truth.',
+      fallacy:'Oversimplification / False Standard',
+      damage:{correct:20, wrong:0},
+      goldReward:30
+    },
+    {
+      id:'ch2_q4', type:'first_principles',
+      argument:'Every policy expert I\'ve debated has eventually admitted they don\'t have all the answers. If the experts don\'t know, why should we trust any of them?',
+      speaker:'The Straw Builder goes for the foundations:',
+      prompt:'What is the fundamental error in concluding "experts don\'t know everything, therefore we shouldn\'t trust them"?',
+      options:[
+        {text:'Partial ignorance is not total ignorance. An expert who admits uncertainty about X may still be vastly more reliable about Y than a non-expert. "Not knowing everything" ≠ "knowing nothing."', correct:true, feedback:'Precisely. This is a composition fallacy — concluding from a true partial fact (they don\'t know everything) to a false total conclusion (they know nothing useful). Expertise is domain-specific and calibrated, not omniscient.'},
+        {text:'We should trust experts because they have more training than us.', correct:false, feedback:'This begs the question. You need to show why partial ignorance doesn\'t invalidate expertise, not just reassert that expertise matters.'},
+        {text:'The Straw Builder hasn\'t provided evidence that experts admit they don\'t know things.', correct:false, feedback:'Actually, admitting uncertainty is a sign of epistemic integrity, not weakness. The real issue is the faulty inference from partial ignorance to total uselessness.'},
+        {text:'We should trust our own judgment over expert opinion.', correct:false, feedback:'This is the conclusion the Straw Builder wants you to reach. It does not address the faulty reasoning.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What epistemological axiom applies?',
+      axiomOptions:[
+        {text:'Calibrated uncertainty is the hallmark of honest expertise. A doctor who says "I\'m 80% confident" is more trustworthy than one who claims certainty about everything.', correct:true, feedback:'Axiom Strike! Admitting the limits of one\'s knowledge is not a weakness — it is intellectual honesty. The Straw Builder has inverted the virtue: uncertainty admission is evidence OF reliability, not against it.'},
+        {text:'Experts should always give definitive answers or admit they are not experts', correct:false, feedback:'This standard would eliminate honest expertise. Calibrated uncertainty is the appropriate epistemic standard, not false certainty.'},
+        {text:'The scientific method requires experts to be right more often than wrong', correct:false, feedback:'True but not the core axiom. The key insight is that admitting uncertainty is a marker of trustworthiness, not its absence.'}
+      ],
+      principle:'Admitting the limits of knowledge is a sign of intellectual integrity. Calibrated uncertainty is more trustworthy than false confidence.',
+      fallacy:'Composition Fallacy / Nirvana Fallacy',
+      damage:{correct:22, wrong:0},
+      goldReward:35
+    },
+    {
+      id:'ch2_q5', type:'rebuttal',
+      argument:'You want to raise the minimum wage. I see. So you want to destroy small businesses, eliminate entry-level jobs, and make it impossible for anyone to start a company in this country.',
+      speaker:'The Straw Builder makes his final move:',
+      prompt:'How do you defeat this Straw Man in a single, powerful response?',
+      options:[
+        {text:'I want to raise the minimum wage. I said nothing about destroying businesses or eliminating jobs. Those are your conclusions, not my position. Let\'s debate what I actually said.', correct:true, feedback:'Perfect Steel Man defense. You name the distortion directly, refuse to engage with the fabricated version, and redirect to the actual claim. This is how you kill the Straw Man.'},
+        {text:'Raising the minimum wage has actually been shown to have minimal effects on employment.', correct:false, feedback:'Bringing evidence is good — but you\'re still engaging with the Straw Man\'s framing. First, you must reject the misrepresentation. Then bring evidence.'},
+        {text:'You\'re putting words in my mouth, and that\'s dishonest.', correct:false, feedback:'Correct diagnosis, but the response is too personal. Name the fallacy and redirect to the actual argument rather than accusing dishonesty.'},
+        {text:'Small businesses need to pay living wages too — they\'re not exempt from moral obligations.', correct:false, feedback:'This engages with one element of the Straw Man (the business destruction claim) without rejecting the overall distortion of your position.'}
+      ],
+      axiomAvailable:false,
+      principle:'Never defend a position you did not take. Name the distortion, reject it, and return to what was actually claimed.',
+      fallacy:'Straw Man',
+      damage:{correct:25, wrong:0},
+      goldReward:40
+    }
+  ],
+  ch3: [
+    {
+      id:'ch3_q1', type:'fallacy_id',
+      argument:'You either support complete free speech with no limits whatsoever, or you believe the government should control everything people say. There is no middle ground.',
+      speaker:'The False Prophet declares:',
+      prompt:'Identify the fallacy and explain why this framing is false:',
+      options:[
+        {text:'False Dichotomy — there are many positions between "no limits on speech" and "total government control." The False Prophet has artificially eliminated all middle ground.', correct:true, feedback:'Exactly right. The False Dichotomy (also called the Black-and-White Fallacy) presents a complex issue as having only two extreme options. In reality, speech law exists on a broad spectrum with many defensible positions.'},
+        {text:'Ad Hominem — the False Prophet is implying that people who support any speech limits want government control.', correct:false, feedback:'There is an implicit insult here, but the primary fallacy is structural — the forced binary choice, not the personal attack.'},
+        {text:'Slippery Slope — any speech restriction leads inevitably to total government control.', correct:false, feedback:'Close! There is a slippery slope implication, but the more direct fallacy is the False Dichotomy — the explicit claim that only two options exist.'},
+        {text:'Appeal to Extremes — both positions presented are extreme and therefore invalid.', correct:false, feedback:'The problem is not that the positions are extreme — it is that all the middle positions have been falsely eliminated. The extremes might exist; the issue is the false claim that nothing exists between them.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What principle cuts through the False Dichotomy?',
+      axiomOptions:[
+        {text:'The Principle of the Excluded Middle does not apply to empirical and policy questions. Between two extreme positions, there is almost always a spectrum of viable alternatives.', correct:true, feedback:'Axiom Strike! The logical law of excluded middle (something is either A or not-A) applies in formal logic but not to complex real-world questions. "Support complete free speech or support total censorship" is not an exhaustive binary — it is a manufactured one.'},
+        {text:'Extreme positions are always wrong in policy debates', correct:false, feedback:'Not always — sometimes the extreme position is correct. The problem is claiming the extremes are the only options.'},
+        {text:'Government and individual rights must always be balanced equally', correct:false, feedback:'A reasonable political principle but not the logical axiom that dismantles the False Dichotomy.'}
+      ],
+      principle:'Complex questions have complex answer spaces. Binary framing of non-binary questions is a manipulation, not an argument.',
+      fallacy:'False Dichotomy',
+      damage:{correct:22, wrong:0},
+      goldReward:28
+    },
+    {
+      id:'ch3_q2', type:'rebuttal',
+      argument:'If we allow any restrictions on firearms, the next step is total confiscation of all weapons, and the step after that is tyranny. It always starts small.',
+      speaker:'The False Prophet invokes the slope:',
+      prompt:'How do you rebut the Slippery Slope fallacy without dismissing legitimate concerns?',
+      options:[
+        {text:'A slippery slope requires evidence that each step actually causes the next. What evidence shows that any gun regulation has led to total confiscation in a comparable democracy?', correct:true, feedback:'Excellent. You acknowledge the form of the argument while demanding the evidence that the slope is actually slippery. This is the key: slopes can be real or fallacious depending on whether there is evidence for each causal link.'},
+        {text:'That\'s a slippery slope fallacy — not all slopes are slippery.', correct:false, feedback:'Technically correct but too dismissive. Some slopes are real. The stronger response demands evidence for the causal chain rather than just labeling and dismissing.'},
+        {text:'Many countries have gun regulations without becoming tyrannies.', correct:false, feedback:'Good counter-evidence, but you should first challenge the logical structure of the slope argument before introducing counter-examples.'},
+        {text:'People have a constitutional right to firearms, so this argument is irrelevant.', correct:false, feedback:'This changes the subject to constitutional law rather than addressing the logical structure of the slope argument.'}
+      ],
+      axiomAvailable:false,
+      principle:'Slippery Slope arguments require evidence for each causal link in the chain. Without that evidence, the slope is asserted, not demonstrated.',
+      fallacy:'Slippery Slope (Unsubstantiated)',
+      damage:{correct:22, wrong:0},
+      goldReward:28
+    },
+    {
+      id:'ch3_q3', type:'evidence_eval',
+      argument:'A recent poll shows 78% of Americans agree with my position. Clearly, the majority supports this approach.',
+      speaker:'The False Prophet appeals to numbers:',
+      prompt:'Why is majority opinion insufficient as evidence for a policy claim?',
+      options:[
+        {text:'Majority opinion is data about what people believe, not about what is true or effective. 78% once believed the earth was the center of the universe.', correct:true, feedback:'Strong answer. Polling data measures belief, not truth. The history of science is full of things the majority got wrong. Popularity is relevant to democracy but not to factual or policy effectiveness questions.'},
+        {text:'Polls can be biased based on how questions are worded.', correct:false, feedback:'True — methodology matters. But this is a secondary concern. The deeper issue is that even a perfect poll measuring genuine majority opinion does not establish factual truth.'},
+        {text:'78% is not a supermajority, so this doesn\'t represent true consensus.', correct:false, feedback:'This engages with the number rather than the type of evidence. Even 95% support would not make a policy factually correct or effective.'},
+        {text:'We need to know which Americans were polled and their demographics.', correct:false, feedback:'Sample quality matters, but this misses the fundamental issue: majority opinion is not a substitute for evidence about effectiveness or truth.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What is the foundational principle here?',
+      axiomOptions:[
+        {text:'Argumentum ad Populum is a fallacy because truth is not determined by vote. Galileo was wrong to the majority; the majority was wrong about Galileo.', correct:true, feedback:'Axiom Strike! The history of human knowledge is a story of majorities being wrong and minorities being right. Truth does not submit to democratic vote. This is one of the most important first principles in epistemology.'},
+        {text:'Scientific consensus IS majority opinion among experts, so majority opinion can be valid', correct:false, feedback:'Scientific consensus is not mere majority opinion — it is the result of a rigorous process of evidence evaluation and peer review. The distinction matters enormously.'},
+        {text:'Democratic decisions require majority support, so majority opinion is always relevant', correct:false, feedback:'Majority opinion is relevant to political legitimacy, not to factual truth. The False Prophet is using a political standard to answer an empirical question.'}
+      ],
+      principle:'Truth is not subject to majority vote. Ad Populum is one of the oldest fallacies in human thought.',
+      fallacy:'Argumentum ad Populum',
+      damage:{correct:22, wrong:0},
+      goldReward:30
+    },
+    {
+      id:'ch3_q4', type:'first_principles',
+      argument:'This is a completely new situation. The old rules don\'t apply. We have to act now and ask questions later.',
+      speaker:'The False Prophet creates urgency:',
+      prompt:'What is the danger of the "completely new situation" argument combined with calls for immediate action?',
+      options:[
+        {text:'Novelty does not suspend the need for reasoning. Even unprecedented situations require careful thought — especially them, because mistakes in novel contexts are harder to reverse.', correct:true, feedback:'Excellent. The "this is different" move combined with urgency is one of the oldest manipulation techniques. It asks you to abandon your reasoning at precisely the moment you need it most.'},
+        {text:'No situation is truly new — history always provides relevant precedents.', correct:false, feedback:'Partially true, but not entirely. Genuinely novel situations do arise. The real issue is that novelty does not justify abandoning careful reasoning.'},
+        {text:'We should always take time to gather more information before acting.', correct:false, feedback:'Sometimes urgency is real. The problem is not the call to action — it is the call to suspend reasoning. Quick thinking is not the same as uncritical thinking.'},
+        {text:'Old rules are often outdated and need to be replaced anyway.', correct:false, feedback:'This concedes the False Prophet\'s framing entirely. Old principles of reasoning — like examining evidence before acting — are not "old rules" in the problematic sense.'}
+      ],
+      axiomAvailable:true,
+      axiomPrompt:'What axiom applies to the "act now, think later" imperative?',
+      axiomOptions:[
+        {text:'The urgency of a decision does not reduce the need for reasoning — it increases it. Irreversible actions taken without thought cause the deepest harm.', correct:true, feedback:'Axiom Strike! One of the most important practical principles in philosophy: the more consequential and irreversible the action, the more carefully it must be reasoned. Urgency is a reason for faster reasoning, not the suspension of it.'},
+        {text:'In emergencies, intuition is more reliable than deliberate reasoning', correct:false, feedback:'This is the False Prophet\'s own position. Trained intuition can be valuable, but the call here is to abandon reasoning entirely, which is never justified.'},
+        {text:'Precedent and tradition should guide all major decisions', correct:false, feedback:'Precedent is useful but not the core axiom. The key principle is about the relationship between urgency and the need for careful thought.'}
+      ],
+      principle:'Urgency demands faster reasoning, not the suspension of reasoning. The more irreversible the action, the more careful the thought must be.',
+      fallacy:'Appeal to Urgency / False Novelty',
+      damage:{correct:25, wrong:0},
+      goldReward:35
+    },
+    {
+      id:'ch3_q5', type:'rebuttal',
+      argument:'My conclusion is supported by the fact that no one has successfully proven me wrong. The absence of a refutation is proof of correctness.',
+      speaker:'The False Prophet makes a logical error:',
+      prompt:'This is a classic logical fallacy. Which one, and why is it wrong?',
+      options:[
+        {text:'Argument from Ignorance (Ad Ignorantiam) — the absence of evidence against a claim is not evidence for it. The burden of proof lies with the one making the positive claim.', correct:true, feedback:'Correct. "I haven\'t been proven wrong" is not evidence of being right. The burden of proof rests with whoever makes a claim. The absence of refutation proves only that no refutation has been attempted or succeeded yet.'},
+        {text:'Appeal to Authority — claiming expertise to avoid being challenged.', correct:false, feedback:'Not quite. The False Prophet is not appealing to authority — they are using the absence of refutation as a positive form of proof, which is the Argument from Ignorance.'},
+        {text:'Circular Reasoning — the conclusion is used to support itself.', correct:false, feedback:'Not circular — the False Prophet is not using the conclusion as a premise. They are treating absence of disproof as proof, which is a distinct fallacy.'},
+        {text:'Confirmation Bias — only noticing evidence that supports one\'s view.', correct:false, feedback:'Confirmation bias is a cognitive error, not a logical fallacy. The specific logical error here is treating absence of disproof as proof.'}
+      ],
+      axiomAvailable:false,
+      principle:'The burden of proof rests with the positive claim. Absence of evidence against a claim is not evidence for it.',
+      fallacy:'Argument from Ignorance (Ad Ignorantiam)',
+      damage:{correct:25, wrong:0},
+      goldReward:40
+    }
+  ],
+  ch4:[
+    {id:'ch4_q1',type:'evidence_eval',argument:'This graph shows crime went up 40% after the policy was implemented. The policy caused the crime increase.',speaker:'The Evidence Broker presents data:',prompt:'What critical error is being made in interpreting this data?',options:[{text:'Correlation is being treated as causation. The policy and crime increase happened at the same time, but the data does not show the policy caused the crime.',correct:true,feedback:'Excellent. Post hoc ergo propter hoc — "after this, therefore because of this" — is one of the most common errors in data interpretation. Simultaneous events are not necessarily causally linked.'},{text:'The graph only shows 40% — that\'s not a significant enough increase to matter.',correct:false,feedback:'The significance of 40% depends on context. The core error is not the magnitude but the causal inference from correlational data.'},{text:'We need to know who collected this data.',correct:false,feedback:'Source quality matters, but the primary error here is the logical leap from correlation to causation, not the source of the data.'},{text:'One data point is never enough to draw conclusions.',correct:false,feedback:'Sample size matters, but the most fundamental error is the causal inference. Even with abundant data, correlation does not imply causation.'}],axiomAvailable:true,axiomPrompt:'What is the foundational principle of causal inference?',axiomOptions:[{text:'Correlation demonstrates relationship; causation requires ruling out alternative explanations and demonstrating mechanism. These are different standards of evidence.',correct:true,feedback:'Axiom Strike! The difference between correlation and causation is one of the most important distinctions in empirical reasoning. A causal claim requires: temporal precedence, correlation, AND elimination of alternative causes.'},{text:'Statistical significance is the gold standard for determining causation',correct:false,feedback:'Statistical significance tells us about the reliability of a correlation, not about causation. Highly significant correlations can still be non-causal.'},{text:'Experiments are the only way to establish causation',correct:false,feedback:'While randomized controlled trials are powerful, other methods (natural experiments, difference-in-differences) can also support causal inference. The core principle is about the standards required, not one specific method.'}],principle:'Correlation is not causation. Causal claims require temporal precedence, correlation, AND elimination of alternative explanations.',fallacy:'Post Hoc Ergo Propter Hoc',damage:{correct:22,wrong:0},goldReward:30},
+    {id:'ch4_q2',type:'rebuttal',argument:'The IPCC says global temperatures have risen 1.1°C. But my local weather station recorded a colder-than-average winter last year. So much for global warming.',speaker:'The Evidence Broker cherry-picks:',prompt:'This is cherry-picking. What is the correct way to address this misuse of local data?',options:[{text:'Weather is local and short-term; climate is global and long-term. A cold local winter is consistent with — and even predicted by — global warming models.',correct:true,feedback:'Perfect. This is the classic weather vs. climate confusion. Cherry-picking one data point from one location over one short time period, and using it to reject a global long-term trend, is a fundamental error of scale and scope.'},{text:'The IPCC data is more reliable than a local weather station.',correct:false,feedback:'True but insufficient. The deeper issue is not source quality but the error of scale — using local, short-term data to refute global, long-term trends.'},{text:'One cold winter means nothing statistically.',correct:false,feedback:'Correct but incomplete. The answer needs to explain why it means nothing — the scale mismatch between local weather and global climate.'},{text:'Local weather stations can be miscalibrated.',correct:false,feedback:'Possible but irrelevant to the logical structure of the error, which is about using local data to refute global claims.'}],axiomAvailable:false,principle:'The scope of evidence must match the scope of the claim. Local data cannot refute global trends, and short-term data cannot refute long-term patterns.',fallacy:'Cherry-picking / Ecological Fallacy',damage:{correct:22,wrong:0},goldReward:28},
+    {id:'ch4_q3',type:'evidence_eval',argument:'This peer-reviewed study published in a major journal proves my point definitively.',speaker:'The Evidence Broker invokes authority:',prompt:'Even peer-reviewed studies require critical evaluation. What should you examine?',options:[{text:'The study\'s methodology, sample size, funding sources, whether findings have been replicated, and whether the journal has a strong peer-review process.',correct:true,feedback:'Excellent comprehensive answer. Peer review is a quality signal, not a guarantee of truth. Replication, methodology, and funding independence are all critical factors in evaluating even published research.'},{text:'Whether the journal is high-impact and well-known.',correct:false,feedback:'Journal prestige is one factor, but high-impact journals also publish flawed studies. Methodology and replication matter more than journal status.'},{text:'Whether the authors have any conflicts of interest.',correct:false,feedback:'Important, but one of several factors. The full evaluation requires methodology, sample, replication, and funding scrutiny, not just conflict of interest.'},{text:'Whether the conclusions align with previous research.',correct:false,feedback:'Prior consistency is relevant, but paradigm-shifting research often contradicts previous findings. The key is methodology and replication, not just alignment with consensus.'}],axiomAvailable:false,principle:'Peer review is a quality filter, not a truth guarantee. All empirical claims must be evaluated for methodology, sample quality, replication, and independence.',fallacy:'Unexamined Appeal to Authority',damage:{correct:22,wrong:0},goldReward:30},
+    {id:'ch4_q4',type:'first_principles',argument:'The data shows a 2% improvement. Our policy works.',speaker:'The Evidence Broker claims success:',prompt:'What questions must be answered before concluding a policy "works"?',options:[{text:'Compared to what baseline? Over what time period? Is the improvement statistically significant? Could it be explained by other factors? Is 2% meaningful in context?',correct:true,feedback:'Perfect critical thinking. "Works" requires a counterfactual (what would have happened without the policy), statistical significance, temporal scope, and contextual meaningfulness. A 2% change in isolation tells us almost nothing.'},{text:'Who collected the data and for what purpose.',correct:false,feedback:'Source independence matters, but the deeper issue is the interpretive framework: a 2% change means nothing without a baseline, counterfactual, and context.'},{text:'Whether 2% is a large or small number.',correct:false,feedback:'Size is relative to context — which is exactly the point. But the question of "works" also requires counterfactual reasoning that goes beyond just interpreting the number.'},{text:'How many people the policy affected.',correct:false,feedback:'Scale matters for impact assessment, but the logical question of whether the policy "caused" the improvement requires more than scale — it requires counterfactual reasoning.'}],axiomAvailable:true,axiomPrompt:'What first principle governs causal policy evaluation?',axiomOptions:[{text:'Counterfactual reasoning: the question is never "what happened?" but "what would have happened otherwise?" Policy evaluation without a control or comparison group answers the wrong question.',correct:true,feedback:'Axiom Strike! Counterfactual thinking is the foundation of causal inference. We can never directly observe the counterfactual world, so we must construct it carefully through comparison groups, natural experiments, or models. "It happened and it improved" is not evidence that the policy caused the improvement.'},{text:'The scientific method requires multiple replications before a policy can be declared effective',correct:false,feedback:'Replication is important, but the core principle here is counterfactual reasoning — the comparison to what would have happened otherwise.'},{text:'Large sample sizes eliminate the need for control groups',correct:false,feedback:'Sample size reduces noise but does not substitute for comparison groups. Even with a million observations, without a counterfactual, you cannot establish causation.'}],principle:'Counterfactual reasoning: a policy "works" only if it produces outcomes better than would have occurred without it.',fallacy:'Post Hoc / Missing Counterfactual',damage:{correct:25,wrong:0},goldReward:35},
+    {id:'ch4_q5',type:'rebuttal',argument:'Experts disagree about this data. Since the experts can\'t agree, the data is inconclusive and we should do nothing until they reach consensus.',speaker:'The Evidence Broker exploits uncertainty:',prompt:'Why is "experts disagree therefore do nothing" a logical error?',options:[{text:'Expert disagreement is about the degree of certainty, not always about whether action is warranted. Under uncertainty, the question becomes: what is the cost of acting vs. not acting if each side is right?',correct:true,feedback:'Superb. This is decision theory under uncertainty. The right response to expert disagreement is not paralysis — it is to map the risk of different errors. Inaction is itself a choice with costs and consequences.'},{text:'If enough experts agree, the minority should defer to the majority.',correct:false,feedback:'This reinstates the ad populum fallacy. Even among experts, truth is not determined by majority vote — though expert consensus carries more weight than popular consensus.'},{text:'We should always act cautiously when evidence is uncertain.',correct:false,feedback:'Caution is often wise, but this doesn\'t address the logical error. Sometimes inaction under uncertainty is the riskier choice. The analysis requires comparing the costs of different types of errors.'},{text:'Expert disagreement proves the question is too complex to answer.',correct:false,feedback:'Complexity does not mean unanswerable. Expert disagreement usually means the question has a spectrum of reasonable answers, not that no answer is possible.'}],axiomAvailable:false,principle:'Uncertainty does not justify inaction by default. Decision-making under uncertainty requires comparing the costs of different types of errors.',fallacy:'Appeal to Ignorance / False Standard of Certainty',damage:{correct:25,wrong:0},goldReward:40}
+  ],
+  ch5:[
+    {id:'ch5_q1',type:'fallacy_id',argument:'Of course she supports this policy — she\'s from that part of the country. What would you expect?',speaker:'The Tribal Champion sneers:',prompt:'What fallacy is being committed?',options:[{text:'Genetic Fallacy / Ad Hominem — the argument is rejected based on the arguer\'s origin rather than its merits. Where someone is from does not determine the validity of what they say.',correct:true,feedback:'Exactly. The Genetic Fallacy dismisses an argument by attacking its source rather than engaging with its content. The origin, background, or motives of an arguer are irrelevant to whether their argument is logically sound.'},{text:'Appeal to Authority — using regional identity as a form of expertise.',correct:false,feedback:'Not quite. An appeal to authority would use the origin as a reason TO believe. Here it is used as a reason NOT to believe — which is the Genetic Fallacy.'},{text:'Stereotyping — making assumptions about individuals based on group membership.',correct:false,feedback:'Stereotyping is present, but the logical fallacy is the Genetic Fallacy — the argument is being dismissed because of its source, not evaluated on its merits.'},{text:'Circular Reasoning — assuming that regional origin determines policy views.',correct:false,feedback:'Not circular. The argument does not use its conclusion as its premise. It commits the Genetic Fallacy by treating origin as evidence against the argument\'s validity.'}],axiomAvailable:true,axiomPrompt:'What principle should govern how we evaluate arguments?',axiomOptions:[{text:'The validity of an argument is entirely independent of who makes it. Truth has no birthplace, no tribe, and no demographic. Evaluate the claim, not the claimant.',correct:true,feedback:'Axiom Strike! This is one of the foundational principles of rational discourse: the source of an argument is irrelevant to its logical validity. Ad hominem and genetic fallacies both violate this principle.'},{text:'We should always consider context when evaluating arguments',correct:false,feedback:'Context can be relevant to interpreting claims, but not to their logical validity. An argument is valid or invalid regardless of who makes it.'},{text:'Personal experience gives special authority to certain claims',correct:false,feedback:'Lived experience can be a form of evidence, but it does not validate or invalidate logical arguments. The tribal champion would love this principle.'}],principle:'The validity of an argument is independent of its source. Evaluate claims on their merits, not their origins.',fallacy:'Genetic Fallacy / Ad Hominem',damage:{correct:22,wrong:0},goldReward:28},
+    {id:'ch5_q2',type:'rebuttal',argument:'Everyone in my community agrees with this position. If you grew up here, you\'d understand why.',speaker:'The Tribal Champion appeals to community:',prompt:'How do you respond to "you\'d understand if you were one of us"?',options:[{text:'Community experience can provide evidence and perspective, but it does not validate logical claims. I can take your experience seriously while still evaluating your argument on its merits.',correct:true,feedback:'Excellent balance. You honor lived experience as a form of evidence without allowing it to function as an argument-stopper. This is the respectful and rigorous response.'},{text:'My community disagrees with your community, so this proves nothing.',correct:false,feedback:'This mirrors the tribal logic rather than challenging it. Two communities disagreeing does not resolve anything — you need to engage with the actual argument.'},{text:'Community consensus is just another form of ad populum fallacy.',correct:false,feedback:'True in principle, but dismissive. Acknowledging the value of lived experience while insisting on argument evaluation is more persuasive and more accurate.'},{text:'Only people directly affected by an issue can have valid opinions on it.',correct:false,feedback:'This actually endorses the tribal principle — that identity determines who can speak validly. The correct principle is that everyone can evaluate arguments, though some have more relevant evidence.'}],axiomAvailable:false,principle:'Lived experience provides evidence; it does not suspend the need for logical evaluation of claims derived from that experience.',fallacy:'Appeal to Shared Experience / Tribal Epistemology',damage:{correct:22,wrong:0},goldReward:28},
+    {id:'ch5_q3',type:'evidence_eval',argument:'Our side has suffered enormously. That suffering gives us the moral authority to demand this policy, and anyone who opposes it is opposing justice itself.',speaker:'The Tribal Champion appeals to suffering:',prompt:'What is the logical error in claiming that suffering creates moral authority for specific policy demands?',options:[{text:'Suffering establishes moral weight and demands attention, but it does not automatically validate any specific policy solution. The suffering is real; the policy question requires separate evidence.',correct:true,feedback:'Nuanced and correct. Acknowledging suffering is morally necessary. But moral weight does not automatically translate into policy correctness. The solution proposed still requires evaluation on its merits.'},{text:'Suffering should not be used in political arguments.',correct:false,feedback:'This overcorrects. Suffering is morally relevant and should be heard. The error is not its invocation but the logical leap from suffering to policy validity.'},{text:'Both sides have suffered, so this argument cancels out.',correct:false,feedback:'This reduces to "comparative suffering," which misses the point. The issue is not whose suffering is greater but the logical step from any suffering to policy validity.'},{text:'Moral authority is not a valid form of evidence in policy debates.',correct:false,feedback:'Too broad. Moral considerations are entirely valid in policy debates. The specific error is the inference that suffering validates a specific policy solution.'}],axiomAvailable:false,principle:'Moral weight and policy correctness are different standards. Suffering demands attention; the solution still requires evidence.',fallacy:'Appeal to Pity / Non Sequitur',damage:{correct:22,wrong:0},goldReward:30},
+    {id:'ch5_q4',type:'first_principles',argument:'You can\'t understand this issue unless you\'ve lived it. Your opinion simply doesn\'t count.',speaker:'The Tribal Champion plays the identity card:',prompt:'What is the deepest problem with "your opinion doesn\'t count because of who you are"?',options:[{text:'It creates an epistemological closed circle: only insiders can evaluate insider claims, making the claims immune to external scrutiny, which is the antithesis of honest discourse.',correct:true,feedback:'Profound analysis. When a claim can only be evaluated by those who already accept its framework, it has become unfalsifiable. This is intellectually dangerous regardless of the moral weight of the underlying issue.'},{text:'Everyone\'s opinion counts equally in a democracy.',correct:false,feedback:'Democratic legitimacy and epistemic validity are different. Not all opinions are equally well-reasoned. The issue is not equality of voices but the conditions for legitimate reasoning.'},{text:'Outsiders sometimes have more objective perspectives.',correct:false,feedback:'True but insufficient. The deeper problem is the logical closure: if only insiders can evaluate insider claims, the claims are insulated from honest examination.'},{text:'Identity politics divides rather than unites society.',correct:false,feedback:'A political observation, not a logical argument. The specific logical problem is the unfalsifiability created by identity-based epistemology.'}],axiomAvailable:true,axiomPrompt:'What foundational principle is at stake?',axiomOptions:[{text:'For any claim to be knowledge rather than mere belief, it must be open to evaluation and potential falsification from outside the community that holds it. Closed epistemic circles produce dogma, not knowledge.',correct:true,feedback:'Axiom Strike! This is Karl Popper\'s falsifiability principle applied to social epistemology. Knowledge requires the possibility of being wrong and being shown to be wrong. A claim immune to outside evaluation is not knowledge — it is ideology.'},{text:'All knowledge is socially constructed and therefore relative to communities',correct:false,feedback:'This is the Tribal Champion\'s own epistemology. The axiom that dismantles the tribal position is precisely the opposite: knowledge requires external evaluability.'},{text:'Academic expertise grants authority to evaluate all claims',correct:false,feedback:'Academic expertise is one form of relevant evaluation, but not the core axiom. The key principle is about the open evaluability of claims, not the privileging of academic credentials.'}],principle:'Knowledge requires the possibility of external evaluation. Claims immune to outside scrutiny are not knowledge — they are dogma.',fallacy:'Tribal Epistemology / Closed Circle',damage:{correct:25,wrong:0},goldReward:35},
+    {id:'ch5_q5',type:'rebuttal',argument:'You keep quoting statistics and studies, but real people don\'t live in statistics. My story — and the stories of people like me — is the real truth.',speaker:'The Tribal Champion makes a final appeal:',prompt:'How do you honor personal testimony while maintaining the primacy of evidence?',options:[{text:'Personal stories are crucial evidence — they reveal what statistics can miss and give human meaning to data. But one story, however powerful, cannot replace population-level evidence for population-level claims.',correct:true,feedback:'This is the synthesis. Stories are evidence and matter deeply. But the scope of a claim must match the scope of the evidence. A single testimony cannot support a universal policy claim — it can motivate us to seek the population-level evidence that the story suggests we should find.'},{text:'Statistics are more objective than stories, so statistics should always take precedence.',correct:false,feedback:'This dismisses the genuine epistemic value of testimony. Statistics also have biases and limitations. The relationship is complementary, not hierarchical.'},{text:'Personal stories are more emotionally compelling, so they are more persuasive.',correct:false,feedback:'Persuasiveness is not the same as validity. This conflates rhetorical power with evidential weight.'},{text:'We need both stories and statistics, and neither is more important.',correct:false,feedback:'Too vague. The key distinction is the scope of claims. Stories support claims about experiences; statistics support claims about populations. Matching scope to evidence type is the principle.'}],axiomAvailable:false,principle:'Personal testimony is genuine evidence about individual experience. Population-level claims require population-level evidence. Match the scope of evidence to the scope of the claim.',fallacy:'Anecdotal Fallacy / Scope Mismatch',damage:{correct:25,wrong:0},goldReward:40}
+  ],
+  ch6:[
+    {id:'ch6_q1',type:'fallacy_id',argument:'That\'s just your opinion. My opinion is just as valid as yours. Nobody has the right to say their view is more correct than anyone else\'s.',speaker:'The Relativist opens:',prompt:'What is the fundamental problem with radical epistemic relativism?',options:[{text:'The claim "no view is more correct than another" is itself a view that claims to be more correct than the opposing view — it is self-refuting.',correct:true,feedback:'Perfect. Radical relativism destroys itself. If truly no view is more correct than any other, then the relativist position is no more correct than the position that some views ARE more correct. The claim is self-refuting at the moment of utterance.'},{text:'Some opinions are based on better evidence than others, so they deserve more weight.',correct:false,feedback:'True and important, but this doesn\'t expose the deepest problem. The self-refutation is more devastating than simply asserting that evidence creates differential validity.'},{text:'Relativism leads to moral chaos if nobody can be called wrong.',correct:false,feedback:'A consequentialist concern, but not the logical core. The self-refutation is the decisive philosophical move against radical relativism.'},{text:'Everyone has different experiences, so different views can all be partially right.',correct:false,feedback:'This actually endorses a moderate form of relativism. The target here is radical relativism, and the strongest attack is its self-refuting nature.'}],axiomAvailable:true,axiomPrompt:'What is the axiom that destroys radical relativism?',axiomOptions:[{text:'Any universal claim — including "all truth is relative" — must itself be either true or not true. A universal relativist claim is self-contradictory: if all truth is relative, so is this claim, which means it might not be true.',correct:true,feedback:'Axiom Strike! The Liar\'s Paradox at the heart of radical relativism: "All truth is relative" must be an absolute truth to be meaningful, which contradicts itself. This is not a clever rhetorical trick — it is a genuine logical catastrophe for radical relativism.'},{text:'Objective truth exists because science has discovered universal laws',correct:false,feedback:'Circular — the Relativist would question the objectivity of science too. The self-refutation argument works without appealing to science.'},{text:'Moral relativism and epistemic relativism are different and should not be confused',correct:false,feedback:'An important distinction for careful analysis, but not the decisive axiom against relativism in this context.'}],principle:'Radical relativism is self-refuting. "All truth is relative" cannot itself be absolutely true without contradiction.',fallacy:'Self-refuting Relativism',damage:{correct:22,wrong:0},goldReward:30},
+    {id:'ch6_q2',type:'rebuttal',argument:'Philosophers have debated the nature of truth for thousands of years without agreement. If they can\'t figure it out, how can you claim to know what\'s true?',speaker:'The Relativist invokes philosophical history:',prompt:'How do you use philosophical history to strengthen rather than undermine the case for truth?',options:[{text:'Philosophical disagreement about the NATURE of truth does not mean there is no truth. We disagree about what gravity IS at the deepest level, but things still fall. Practice can outrun theory.',correct:true,feedback:'Excellent. This distinguishes between philosophical disagreement about the metaphysics of truth and the practical reality of knowing things. We can reliably distinguish better from worse-supported claims even without a complete theory of truth.'},{text:'Philosophy has actually converged on many truths over time.',correct:false,feedback:'True in some domains but contested in others. The stronger argument is that philosophical uncertainty about the nature of truth doesn\'t prevent practical knowledge.'},{text:'We don\'t need to solve the philosophy of truth — we just need to look at evidence.',correct:false,feedback:'Partially right, but dismissive of genuine philosophical questions. The better move is to show that practice works even where theory is incomplete.'},{text:'Ancient philosophers didn\'t have access to modern science, so their disagreements are outdated.',correct:false,feedback:'Many philosophical debates about truth predate and are independent of empirical science. This response misses the scope of the question.'}],axiomAvailable:false,principle:'Theoretical disagreement about the nature of truth does not prevent practical knowledge. We can distinguish better from worse-supported claims even without a complete metaphysical account of truth.',fallacy:'Appeal to Philosophical Uncertainty',damage:{correct:22,wrong:0},goldReward:28},
+    {id:'ch6_q3',type:'evidence_eval',argument:'Different cultures have completely different moral systems. Since cultures disagree, there can be no universal moral truths.',speaker:'The Relativist invokes culture:',prompt:'What is the logical error in this argument from cultural diversity?',options:[{text:'Cultural disagreement about morality is evidence of moral diversity in practice, not evidence that there are no moral truths. Cultures once disagreed about whether the earth was flat — that disagreement was not evidence that geography was relative.',correct:true,feedback:'Precisely. The argument confuses the fact of disagreement with the conclusion that there is no truth to disagree about. Disagreement requires a truth to be wrong about — otherwise there is nothing to disagree about.'},{text:'All cultures share some universal moral principles, like prohibitions against murder.',correct:false,feedback:'True but contested — the universals are often more limited than this claim suggests. The stronger logical point is about what disagreement itself implies.'},{text:'Western moral philosophy has discovered objective moral truths that others haven\'t found yet.',correct:false,feedback:'This commits cultural chauvinism — the very problem relativism was designed to address. The logical move is better than this cultural one.'},{text:'Moral relativism is fine for personal choices but doesn\'t apply to universal human rights.',correct:false,feedback:'A reasonable political position, but it concedes too much relativism. The logical problem with the argument from disagreement applies to all truth claims, not just political ones.'}],axiomAvailable:false,principle:'Disagreement is not evidence of the absence of truth. It is evidence that at least some parties to the disagreement are wrong.',fallacy:'Is-Ought Fallacy / Cultural Relativism',damage:{correct:22,wrong:0},goldReward:30},
+    {id:'ch6_q4',type:'first_principles',argument:'Language shapes reality. Since different languages describe the world differently, there is no single reality — only different linguistic realities.',speaker:'The Relativist goes deep:',prompt:'What is right and what is wrong about the Sapir-Whorf hypothesis in this form?',options:[{text:'Language shapes PERCEPTION of reality and CONCEPTS about it, but does not determine what physically exists. A tree is a tree whether or not a language has a precise word for it.',correct:true,feedback:'Sophisticated and correct. The strong version of linguistic relativity (that language determines reality) is false. The weak version (that language shapes perception) has real support. The Relativist is using the weak version to claim the strong conclusion.'},{text:'Language is just a tool for describing reality — it has no effect on how we see things.',correct:false,feedback:'This dismisses the genuine insights of linguistic relativity. Language does shape perception and categorization — the question is the degree and scope of that influence.'},{text:'We should develop a universal language that describes reality objectively.',correct:false,feedback:'An interesting proposal but not a logical rebuttal. It doesn\'t address whether reality is shaped by language or merely described differently through different languages.'},{text:'Different languages reflect different equally valid ways of understanding the world.',correct:false,feedback:'This concedes the Relativist\'s main claim. The issue is not validity of different perspectives but whether language constructs reality or merely describes it.'}],axiomAvailable:true,axiomPrompt:'What first principle applies to the relationship between language and reality?',axiomOptions:[{text:'The map is not the territory, and the word is not the thing. Language describes, organizes, and shapes perception of reality — but physical reality exists prior to and independent of any particular linguistic description of it.',correct:true,feedback:'Axiom Strike! This is one of the great distinctions in epistemology. The existence of multiple maps of the same territory does not make the territory itself multiple or relative. Language is a representational system — powerful and perspective-shaping, but not constitutive of the physical world.'},{text:'Reality is fundamentally constructed through social and linguistic practices',correct:false,feedback:'This is the Relativist\'s own position — the social constructivist view. The first-principles axiom that counters it is the distinction between representation and reality.'},{text:'Scientific measurement provides language-independent access to reality',correct:false,feedback:'Partly true — measurement is less linguistically determined than description. But the core axiom is about the distinction between the map and the territory, not the privileging of scientific language.'}],principle:'Language maps reality; it does not constitute it. Multiple descriptions of the same reality do not make reality multiple.',fallacy:'Strong Linguistic Relativity',damage:{correct:25,wrong:0},goldReward:35},
+    {id:'ch6_q5',type:'rebuttal',argument:'You claim to be reasoning objectively, but your reasoning reflects your own cultural biases and assumptions. No one can reason from nowhere.',speaker:'The Relativist\'s cleverest move:',prompt:'This is a sophisticated challenge. What is the truthful and strong response?',options:[{text:'You are right that perfect objectivity is impossible — all reasoners have starting assumptions. But this is a reason for transparency about our assumptions and working to correct biases, not a reason to abandon the project of objective reasoning.',correct:true,feedback:'This is the intellectually honest and strong response. The insight about situated knowledge is correct — but it is a reason for epistemic humility and transparency, not for abandoning truth-seeking. Acknowledging bias is the beginning of good reasoning, not its end.'},{text:'Logic and mathematics are culture-independent, so objective reasoning is possible.',correct:false,feedback:'True for formal logic, but the Relativist is making a point about applied reasoning in social contexts. The stronger response acknowledges the valid insight while explaining why it doesn\'t vindicate relativism.'},{text:'Western science has transcended cultural bias through the scientific method.',correct:false,feedback:'This claims too much and walks into a cultural trap. Science has cultural biases too. The better answer is to acknowledge the bias problem and explain why it doesn\'t imply relativism.'},{text:'Everyone\'s biases cancel out when they reason together.',correct:false,feedback:'This is optimistic but unsubstantiated. Biases can also compound. The stronger move is to acknowledge the problem and explain the proper response: transparency and correction, not relativism.'}],axiomAvailable:false,principle:'Situated reasoning is not subjective reasoning. Acknowledging our biases and working to correct them is the path to better knowledge, not evidence that knowledge is impossible.',fallacy:'Genetic Fallacy / Perspectivism',damage:{correct:25,wrong:0},goldReward:40}
+  ],
+  ch7:[
+    {id:'ch7_q1',type:'fallacy_id',argument:'The experts agreed for decades that saturated fat caused heart disease. They were wrong. So how can you trust any expert consensus?',speaker:'The Grand Sophist opens strategically:',prompt:'What legitimate point is the Sophist making, and what fallacy are they committing?',options:[{text:'The legitimate point: scientific consensus can be wrong. The fallacy: inferring that because some consensus was wrong, no consensus can be trusted — a hasty generalization.',correct:true,feedback:'Sophisticated analysis. The Sophist is exploiting a real and important epistemological point. Yes, consensus can be wrong. But the appropriate response is calibrated skepticism, not wholesale rejection of expert consensus. "Some consensus was wrong" does not imply "all consensus is unreliable."'},{text:'It\'s a pure ad hominem — attacking scientists to avoid their arguments.',correct:false,feedback:'Not quite. The attack is on the institution of consensus, not a specific person. And the underlying point — that consensus can be wrong — is legitimate. The fallacy is in the hasty generalization from some failures to total unreliability.'},{text:'The Sophist is cherry-picking one example of scientific error.',correct:false,feedback:'True — cherry-picking is present. But the deeper issue is the logical move from "some consensus failed" to "all consensus is untrustworthy," which is the hasty generalization.'},{text:'Scientific consensus is always reliable, so this argument is simply wrong.',correct:false,feedback:'This overcorrects. Scientific consensus is the best available guide to current knowledge, but it is fallible and has been wrong. The honest position is calibrated trust, not blind deference.'}],axiomAvailable:true,axiomPrompt:'What principle governs how we should respond to the fallibility of expert consensus?',axiomOptions:[{text:'The fallibility of any knowledge system is a reason for calibrated skepticism and ongoing inquiry, not for rejection of the system. We update on evidence of failure; we do not abandon reason because reason is imperfect.',correct:true,feedback:'Axiom Strike! This is the principle of epistemic fallibilism: acknowledging that our best current knowledge might be wrong is the foundation of good science — but it is also consistent with acting on the best available evidence. Fallibilism is not the same as relativism.'},{text:'We should only trust consensus when it has been stable for many decades',correct:false,feedback:'Temporal stability is one weak signal of reliability, but not a principled standard. Young consensus on well-supported evidence can be more reliable than old consensus on weak evidence.'},{text:'Individual expert judgment is more reliable than consensus because consensus lags reality',correct:false,feedback:'Sometimes true — iconoclasts are occasionally right before the consensus catches up. But systematically preferring individual judgment to consensus is epistemically reckless.'}],principle:'The fallibility of knowledge systems is a reason for calibrated skepticism and continuous inquiry, not wholesale rejection.',fallacy:'Hasty Generalization / Nirvana Fallacy',damage:{correct:25,wrong:0},goldReward:38},
+    {id:'ch7_q2',type:'rebuttal',argument:'I agree with you that logic is important. But logic itself is a human construct. Other cultures have developed different logical systems. So even your "laws of logic" are culturally contingent.',speaker:'The Grand Sophist targets the tools:',prompt:'Is this argument correct? How do you respond?',options:[{text:'Different logical traditions exist, but the core laws of non-contradiction and identity appear across them. More importantly, the argument against logic uses logic — it is self-undermining at the moment of construction.',correct:true,feedback:'Brilliant. The Sophist\'s argument uses the laws of logic (non-contradiction, valid inference) to argue against the laws of logic. This is performative self-refutation — the most powerful form of philosophical rebuttal.'},{text:'Logic was developed by the ancient Greeks and has been universally adopted because it works.',correct:false,feedback:'Historical claims and pragmatic success don\'t fully answer the challenge. The self-refutation argument is more powerful: the argument against logic uses logic.'},{text:'Formal logic is culture-independent because it is mathematical.',correct:false,feedback:'Partially true for formal systems, but the Sophist would question even mathematical universality. The self-refutation argument works better here.'},{text:'Without logic, no argument — including the Sophist\'s — can be made.',correct:false,feedback:'Close to the correct move, but less precise. The key is not just that the argument can\'t be made without logic — it\'s that it actually uses logic, making it self-refuting.'}],axiomAvailable:false,principle:'Arguments against the foundations of logic use those very foundations — they are self-refuting at the moment of construction.',fallacy:'Performative Self-Refutation',damage:{correct:25,wrong:0},goldReward:38},
+    {id:'ch7_q3',type:'evidence_eval',argument:'Here is an argument you cannot immediately rebut. You hesitate. Your hesitation proves my point.',speaker:'The Grand Sophist exploits difficulty:',prompt:'What is the error in treating hesitation or difficulty in rebuttal as evidence that an argument is correct?',options:[{text:'The difficulty of rebutting an argument is not evidence of its truth — it may reflect the argument\'s complexity, the responder\'s limited time, or the Sophist\'s rhetorical skill. An argument is evaluated by its logical structure, not by how quickly it can be challenged.',correct:true,feedback:'Exactly. This exploits a common confusion: rhetorically powerful arguments feel more true. But persuasiveness is a feature of argumentation, not of truth. A complex fallacy may be harder to untangle than a simple truth.'},{text:'I can always rebut any argument given enough time.',correct:false,feedback:'This is an overclaim. Some arguments are genuinely strong and deserve careful response. The point is that difficulty of rebuttal is not evidence of truth, not that all arguments can always be rebutted.'},{text:'You\'re using my silence against me, which is unfair.',correct:false,feedback:'The emotional reaction misses the logical point. The issue is the inference from hesitation to truth — that\'s the fallacy to expose.'},{text:'Complex arguments require complex rebuttals — give me more time.',correct:false,feedback:'A reasonable request but not a logical rebuttal. The important point is to expose the fallacious inference from hesitation to truth.'}],axiomAvailable:false,principle:'The persuasive power of an argument is not evidence of its truth. Difficulty in rebutting an argument is evidence of its complexity, not its correctness.',fallacy:'Argument from Difficulty / Sophistry',damage:{correct:25,wrong:0},goldReward:38},
+    {id:'ch7_q4',type:'first_principles',argument:'Every argument ultimately rests on assumptions you cannot prove. Even your most basic beliefs — in logic, in evidence, in your own senses — are unproven. Your entire epistemology is built on faith, just like mine.',speaker:'The Grand Sophist goes to the foundations:',prompt:'This is Descartes\' problem revisited. What is the strongest response?',options:[{text:'You are correct that every system rests on foundational axioms that cannot be proven within that system. But some foundations are more coherent, more self-consistent, and more practically successful than others — and we can and must act on our best foundations while remaining open to revising them.',correct:true,feedback:'Philosophical mastery. You have acknowledged the genuine insight of foundationalism — the regress of justification — while pointing to the practical and coherence-based reasons for preferring some foundations over others. This is the mature epistemological response.'},{text:'My foundations are based on evidence and science, which are reliable.',correct:false,feedback:'This begs the question against the Sophist\'s challenge. If the foundations of evidence and science are themselves unproven, you cannot appeal to them to justify themselves.'},{text:'We should be completely skeptical of all beliefs until proven.',correct:false,feedback:'Radical skepticism is self-undermining and practically paralysing. Even the recommendation to "be completely skeptical" requires non-skeptical foundations.'},{text:'The Sophist is using philosophical skepticism to escape accountability.',correct:false,feedback:'True as a rhetorical observation, but it doesn\'t answer the philosophical challenge. The Sophist has made a real epistemological point that deserves a real epistemological response.'}],axiomAvailable:true,axiomPrompt:'What is the foundational response to the regress of justification?',axiomOptions:[{text:'Pragmatic coherentism: we choose foundational axioms based on their coherence, their practical success, and their ability to generate a self-consistent worldview. We act on our best available foundations while acknowledging their revisability. This is not faith — it is calibrated commitment.',correct:true,feedback:'AXIOM STRIKE — DECISIVE BLOW! The regress of justification is a genuine philosophical problem, but it does not lead to paralysis or relativism. Coherentism and pragmatism offer principled ways to choose among competing foundations. The difference between rational foundations and faith is precisely this: rational foundations are held revisably, tested against reality, and evaluated for coherence.'},{text:'Some beliefs — like the existence of the external world — are properly basic and require no justification',correct:false,feedback:'Reformed epistemology makes this move, but it risks re-introducing the very faith/reason confusion the Sophist is exploiting. The coherentist/pragmatist response is more defensible.'},{text:'The foundations of reason are innate to human cognition and therefore universally valid',correct:false,feedback:'A rationalist move that the Sophist can challenge — what evidence do we have for innate cognitive structures that accurately represent reality? The pragmatic coherentist response is stronger.'}],principle:'We act on our best available foundations, chosen for coherence, practical success, and revisability. This is not faith — it is calibrated rational commitment.',fallacy:'Infinite Regress / Epistemic Nihilism',damage:{correct:28,wrong:0},goldReward:45},
+    {id:'ch7_q5',type:'rebuttal',argument:'You have demonstrated skill in identifying fallacies. But a skilled Sophist can always construct an argument that appears fallacy-free. How do you know I haven\'t been doing that all along?',speaker:'The Grand Sophist makes his final move:',prompt:'This is the deepest challenge: what if sophisticated deception is indistinguishable from truth? How do you respond?',options:[{text:'The possibility that a sophisticated argument might be deceptive is itself a reason for developing better tools of analysis — not for abandoning analysis. The antidote to sophisticated deception is sophisticated detection, not resignation.',correct:true,feedback:'The culminating insight. The Sophist\'s final move is a counsel of epistemic despair — "you can\'t really know, so don\'t try." The answer is to embrace the endless work of careful reasoning, knowing it will never be complete but always being worth doing. This is intellectual courage.'},{text:'If you\'re a perfect Sophist, no one could ever detect you — therefore Sophistry is impossible to disprove.',correct:false,feedback:'This concedes the Sophist\'s point. The unfalsifiability of perfect Sophistry does not mean we should stop trying to detect it. Most real Sophistry is imperfect and detectable.'},{text:'I trust in the ultimate detectability of all deception.',correct:false,feedback:'Too optimistic and unsubstantiated. The Sophist is making a valid epistemological point about the limits of detection. The correct response is to acknowledge the challenge while affirming the ongoing project of careful reasoning.'},{text:'Your inability to construct a truly perfect argument is itself evidence of the limits of Sophistry.',correct:false,feedback:'Observational and unclear. The stronger response goes to the heart of the challenge: the possibility of deception is a reason for better reasoning, not a reason for no reasoning.'}],axiomAvailable:false,principle:'The possibility of deception is an argument for better reasoning, not for no reasoning. Intellectual courage means continuing to reason carefully even when certainty is impossible.',fallacy:'Epistemic Despair / Counsel of Paralysis',damage:{correct:30,wrong:0},goldReward:50}
+  ],
+  ch8:[
+    {id:'ch8_q1',type:'first_principles',argument:'A student once told me they had been changed by their education. I asked: changed from what, to what, and by whose standard? They could not answer. Neither, I suspect, can you.',speaker:'The Elder Logician challenges you directly:',prompt:'This is a Socratic challenge. What is the correct response?',options:[{text:'Changed from unreflective acceptance of received ideas, to reasoned examination of foundations. By the standard of logical coherence and evidential rigor — standards I can justify and defend, even if imperfectly.',correct:true,feedback:'This is the answer of a trained mind. You identify the direction of change (unreflective to examined), the standard (logical coherence and evidence), and acknowledge the incompleteness of your own justification. This is intellectual honesty combined with intellectual courage.'},{text:'I have been changed by learning new facts and information.',correct:false,feedback:'The Elder would push back: changed from ignorance to knowledge is trivial. The deeper change is in how you reason, not what facts you hold.'},{text:'Education changed me by exposing me to new perspectives and people.',correct:false,feedback:'Experientially true but philosophically shallow. The Elder is asking about the standard of evaluation — what makes a change an improvement, not just a difference.'},{text:'I cannot answer that question — it is unanswerable.',correct:false,feedback:'This is intellectual retreat. The Elder is testing whether you will engage with the hard question or hide from it. The correct move is to attempt an answer while acknowledging its incompleteness.'}],axiomAvailable:true,axiomPrompt:'What foundational commitment underlies intellectual growth?',axiomOptions:[{text:'The examined life: the commitment to submitting one\'s own beliefs, assumptions, and foundations to the same scrutiny one applies to others. Intellectual growth is the ongoing process of examining the examiner.',correct:true,feedback:'AXIOM STRIKE! The Socratic principle: the unexamined life is not worth living — not because life without reflection is meaningless, but because the greatest intellectual courage is turning the critical lens on oneself. This is the final lesson of The Crucible.'},{text:'Openness to new experiences and perspectives is the foundation of growth',correct:false,feedback:'Too passive. Growth requires active critical examination, not just openness to experience. The Elder would ask: by what standard do you evaluate new experiences?'},{text:'Knowledge accumulation is the measure of intellectual progress',correct:false,feedback:'The Elder would reject this. Knowledge accumulation without critical examination is the accumulation of possibly wrong beliefs. The examined life is the goal.'}],principle:'The examined life: submitting your own beliefs and foundations to the same scrutiny you apply to others\' arguments.',fallacy:'None — this is the final lesson',damage:{correct:30,wrong:0},goldReward:50},
+    {id:'ch8_q2',type:'rebuttal',argument:'You have learned to identify fallacies in others\' arguments. But the greatest fallacy is the belief that identifying fallacies is the same as knowing the truth. What do you actually know?',speaker:'The Elder Logician presses deeper:',prompt:'What is the relationship between fallacy detection and truth-seeking?',options:[{text:'Fallacy detection clears the ground — it removes what we know to be false reasoning. Truth-seeking requires the additional work of constructing and testing positive claims. Clearing false paths is necessary but not sufficient for finding the true one.',correct:true,feedback:'Mature and precise. Critical thinking has two phases: negative (detecting error) and positive (constructing knowledge). The Crucible has trained you in the first; the second is the lifelong work of intellectual practice.'},{text:'Knowing what is false is the same as knowing what is true in binary questions.',correct:false,feedback:'Only in formal logic with perfectly binary propositions. In the real world, knowing X is wrong leaves open an unlimited space of possible right answers.'},{text:'Fallacy detection is the more important skill because it protects against manipulation.',correct:false,feedback:'Important but incomplete. Protection against manipulation is necessary but not sufficient for wisdom. The Elder is pushing you toward the positive project of truth-seeking, not just error-avoidance.'},{text:'I know what the evidence supports, even if I can\'t be certain it\'s true.',correct:false,feedback:'True but underdeveloped. The question is about the relationship between the negative project (fallacy detection) and the positive project (knowledge construction). Clarify that relationship.'}],axiomAvailable:false,principle:'Critical thinking has two projects: the negative (detecting error) and the positive (constructing knowledge). Both are necessary for wisdom.',fallacy:'None — dialectical development',damage:{correct:30,wrong:0},goldReward:50},
+    {id:'ch8_q3',type:'evidence_eval',argument:'Here is a claim: "Humans are fundamentally rational beings." Evaluate this claim according to everything you have learned in The Crucible.',speaker:'The Elder Logician presents a test:',prompt:'Using the tools you have developed, evaluate the claim "humans are fundamentally rational beings":',options:[{text:'The claim overstates the case. Humans have rational capacities but also systematic cognitive biases (confirmation bias, motivated reasoning, etc.) well-documented by behavioral psychology. A more accurate claim: "Humans can reason, but often don\'t, and developing rationality is a practice, not a given."',correct:true,feedback:'This is the answer of a Crucible graduate. You use evidence (behavioral psychology), identify the overgeneralization, propose a more accurate formulation, and connect it to the practical implication: rationality must be cultivated. This demonstrates everything The Crucible has taught.'},{text:'This is true because humans can do mathematics and science that other animals cannot.',correct:false,feedback:'The capability for reason in some domains doesn\'t establish that humans are "fundamentally rational." The evidence of systematic irrationality must be weighed against the evidence of rational capacity.'},{text:'This is a philosophical question, not an empirical one, and cannot be evaluated with evidence.',correct:false,feedback:'Partly right — it has philosophical dimensions. But it is also an empirical claim about human behavior and cognition that behavioral science has substantially addressed. The Elder would push back on the fact-value separation here.'},{text:'The claim is too vague to evaluate — what does "fundamentally" mean?',correct:false,feedback:'Conceptual analysis is valuable and this is a reasonable starting move. But The Elder would then expect you to proceed with evaluation once the concept is clarified, not stop at the definitional challenge.'}],axiomAvailable:false,principle:'Apply all tools: evaluate claims for accuracy, scope, evidence, and practical implication. Overclaiming is itself a form of intellectual error.',fallacy:'Overgeneralization / Idealization',damage:{correct:30,wrong:0},goldReward:50},
+    {id:'ch8_q4',type:'first_principles',argument:'You have defeated many Sophists. But here is my question: if a Sophist is someone who argues skillfully without caring about truth — what ensures that you are not one?',speaker:'The Elder Logician asks the hardest question:',prompt:'What distinguishes a genuine truth-seeker from a sophisticated Sophist?',options:[{text:'The Sophist asks: "how do I win?" The truth-seeker asks: "how do I know?" The distinction is in the fundamental orientation — toward victory or toward truth. It shows in whether you seek evidence that confirms you or evidence that might change you.',correct:true,feedback:'This is the deepest lesson of The Crucible. The behavioral distinction between Sophist and truth-seeker is their response to disconfirming evidence. The Sophist ignores or rationalizes it; the truth-seeker updates on it. This is the essence of intellectual integrity.'},{text:'The truth-seeker uses better logic and evidence than the Sophist.',correct:false,feedback:'The Grand Sophist used sophisticated logic and cited evidence. The difference is not the tools but the orientation: toward winning or toward truth. A Sophist can use excellent logic in service of deception.'},{text:'The truth-seeker is more honest about their motivations.',correct:false,feedback:'Closer, but motivational self-knowledge is unreliable. We often don\'t know our own motivations. The behavioral test is more reliable: what do you do when evidence goes against you?'},{text:'The truth-seeker has no personal stake in the outcome of the argument.',correct:false,feedback:'Impossible standard. All reasoners have perspectives and interests. The key is not the absence of stake but the willingness to update even against one\'s interests when evidence demands it.'}],axiomAvailable:true,axiomPrompt:'What is the foundational commitment that separates truth-seekers from Sophists?',axiomOptions:[{text:'Epistemic courage: the willingness to follow the argument wherever it leads, even when it leads somewhere uncomfortable. The truth-seeker commits to updating on evidence even when it costs them — in status, in cherished beliefs, in tribal belonging.',correct:true,feedback:'AXIOM STRIKE — THE DEEPEST BLOW! Epistemic courage is the final virtue of The Crucible. It is not enough to reason well — you must reason honestly, especially when honest reasoning is costly. This is what distinguishes the scholar from the Sophist: not skill, but integrity.'},{text:'Epistemic humility: recognizing the limits of what you know',correct:false,feedback:'Necessary but insufficient. Humility without courage can lead to endless agnosticism. The Sophist can also perform epistemic humility strategically. Courage — the willingness to commit and update — is the distinguishing virtue.'},{text:'Methodological rigor: following the scientific method in all reasoning',correct:false,feedback:'Method without integrity is Sophistry with better tools. The core virtue is the honest commitment to go where the evidence leads, regardless of personal cost.'}],principle:'Epistemic courage: the willingness to follow an argument wherever it leads, even at personal cost. This is what separates truth-seekers from Sophists.',fallacy:'None — the deepest lesson',damage:{correct:35,wrong:0},goldReward:60},
+    {id:'ch8_q5',type:'first_principles',argument:'One final question, and then you may claim victory. Why does any of this matter? In a world of competing interests, political manipulation, and existential threats — why should a person spend their time learning to argue correctly?',speaker:'The Elder Logician asks the final question:',prompt:'Give the best answer you can to: Why does careful reasoning matter?',options:[{text:'Because every decision — personal, political, medical, moral — is made on the basis of someone\'s reasoning. Better reasoning means better decisions. And the alternative — reasoning badly or not at all — does not eliminate the need for decisions; it just makes them worse.',correct:true,feedback:'This is the answer. You have connected abstract reasoning skills to their concrete human significance. Reasoning is not an academic luxury — it is the mechanism by which every consequential human decision is made. The Crucible\'s work is the work of making those decisions better. You are ready. You have passed.'},{text:'Because truth is intrinsically valuable regardless of its consequences.',correct:false,feedback:'A noble position but vulnerable to the pragmatist\'s challenge: why value truth if it leads to worse outcomes? The better answer connects careful reasoning to its consequences for human life.'},{text:'Because an educated citizenry is the foundation of democracy.',correct:false,feedback:'True and important, but too political in scope. The Elder is asking a more fundamental question: why does careful reasoning matter to a person\'s life, not just to their political role.'},{text:'Because the pursuit of knowledge is what distinguishes humans from other animals.',correct:false,feedback:'A philosophical observation, but it doesn\'t answer why this matters practically. The Elder wants to know: so what? Why should YOU care to reason carefully about YOUR life?'}],axiomAvailable:false,principle:'The Final Axiom: Every human decision is made on someone\'s reasoning. Better reasoning is better living. This is why The Crucible exists.',fallacy:'None — the conclusion',damage:{correct:40,wrong:0},goldReward:75}
+  ]
+};
+
+// ══════════════════════════════════════════════════════
+//  WEAPONS / ARMOR / ITEMS
+// ══════════════════════════════════════════════════════
+const WEAPONS = [
+  {id:'quill', name:'Scholar\'s Quill', icon:'✒️', desc:'Your starting weapon. Deals standard damage.', bonus:{damage:0}, price:0, rarity:'common'},
+  {id:'dialectic_blade', name:'Dialectic Blade', icon:'⚔️', desc:'Forged from pure logic. +15% damage on correct answers.', bonus:{damage:0.15}, price:120, rarity:'uncommon'},
+  {id:'socratic_lance', name:'Socratic Lance', icon:'🏹', desc:'Strike with questions. Correct answers deal +30% damage.', bonus:{damage:0.30}, price:280, rarity:'rare'},
+  {id:'axiom_sword', name:'Axiom Sword', icon:'🗡️', desc:'The blade of first principles. Axiom Strikes deal double damage.', bonus:{damage:0.25, axiomBonus:2.0}, price:500, rarity:'legendary'}
+];
+
+const ARMOR = [
+  {id:'scholars_robe', name:'Scholar\'s Robe', icon:'👘', desc:'Basic protection. Your starting armor.', bonus:{defense:0}, price:0, rarity:'common'},
+  {id:'critical_shield', name:'Critical Shield', icon:'🛡️', desc:'Block some damage on wrong answers. -20% damage received.', bonus:{defense:0.20}, price:100, rarity:'uncommon'},
+  {id:'logic_plate', name:'Logic Plate', icon:'🔰', desc:'Reinforce your foundations. -40% damage received.', bonus:{defense:0.40}, price:250, rarity:'rare'},
+  {id:'axiom_aegis', name:'Axiom Aegis', icon:'✨', desc:'Legendary protection. -50% damage + restore 5 HP per Axiom Strike.', bonus:{defense:0.50, axiomHeal:5}, price:480, rarity:'legendary'}
+];
+
+const POTIONS = [
+  {id:'hint_potion', name:'Hint Potion', icon:'🧪', desc:'Eliminate one wrong answer.', price:40, uses:1},
+  {id:'hp_potion', name:'Restoration Potion', icon:'💊', desc:'Restore 25 HP.', price:60, uses:1},
+  {id:'axiom_crystal', name:'Axiom Crystal', icon:'💎', desc:'Immediately charge your Axiom Strike.', price:80, uses:1}
+];
+
+const SCHOLAR_CHARS = [
+  {id:'socrates', name:'Socrates', icon:'🏛️', desc:'The Father of Dialectic. +10% Axiom Strike damage.', bonus:'axiom_damage', unlockChapter:2},
+  {id:'aristotle', name:'Aristotle', icon:'📚', desc:'Master of Logic. +15% damage on fallacy questions.', bonus:'fallacy_damage', unlockChapter:3},
+  {id:'harriet', name:'Harriet Tubman', icon:'⭐', desc:'Moral Courage. Take 20% less damage when HP is below 30%.', bonus:'courage', unlockChapter:4},
+  {id:'mlk', name:'Dr. King', icon:'✊', desc:'Moral Foundation. Axiom Strikes available one question earlier.', bonus:'axiom_early', unlockChapter:5},
+  {id:'malala', name:'Malala Yousafzai', icon:'📖', desc:'Fearless Reasoning. Wrong answers deal 25% less damage.', bonus:'resilience', unlockChapter:6},
+  {id:'socrates_elder', name:'The Elder Logician', icon:'⚖️', desc:'Ultimate Scholar. All bonuses combined at 50%.', bonus:'all', unlockChapter:8}
+];
+
+// ══════════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════════
+function defaultState() {
+  return {
+    name: '', period: '', isGuest: false,
+    gold: 150,
+    totalGoldEarned: 0,
+    hp: 100, maxHp: 100,
+    level: 1,
+    xp: 0,
+    weapon: 'quill',
+    armor: 'scholars_robe',
+    ownedWeapons: ['quill'],
+    ownedArmor: ['scholars_robe'],
+    potions: 3,
+    ownedPotions: [],
+    unlockedChars: [],
+    activeChar: null,
+    chaptersComplete: [],
+    chapterBestAcc: {},
+    axiomStrikes: 0,
+    totalCorrect: 0,
+    totalAnswered: 0
+  };
+}
+
+let G = defaultState();
+let BATTLE = {
+  chapterId: null,
+  questions: [],
+  qIndex: 0,
+  playerHp: 100,
+  enemyHp: 100,
+  enemyMaxHp: 100,
+  score: 0,
+  correct: 0,
+  total: 0,
+  axiomStrikes: 0,
+  streak: 0,
+  axiomCharged: false,
+  answered: false,
+  potionUsed: false,
+  hintsUsed: 0
+};
+
+// ══════════════════════════════════════════════════════
+//  PERSISTENCE
+// ══════════════════════════════════════════════════════
+function saveG() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch(e) {}
+  // Sync gold to Civitas
+  try {
+    const prev = parseInt(localStorage.getItem('civitas_gold') || '0');
+    if (G.gold > prev) {
+      localStorage.setItem('civitas_gold', G.gold);
+      localStorage.setItem('civitas_gold_pending', JSON.stringify({amount: G.gold - prev, source: 'The Crucible'}));
+    }
+  } catch(e) {}
+}
+
+function loadG() {
+  try {
+    const r = localStorage.getItem(SAVE_KEY);
+    if (r) { const d = JSON.parse(r); G = {...defaultState(), ...d}; }
+  } catch(e) {}
+}
+
+// Push completion to Civitas
+function pushCivitasProgress(acc) {
+  try {
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    if (!prog[UNIT_ID] || acc > (prog[UNIT_ID].bestAccuracy || 0)) {
+      prog[UNIT_ID] = {bestAccuracy: acc, completedAt: new Date().toISOString()};
+      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    }
+  } catch(e) {}
+  // Also push to Supabase
+  const fn = localStorage.getItem('civitas_full_name') || G.name;
+  if (!fn) return;
+  sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=unit_progress', {}).then(data => {
+    if (!Array.isArray(data) || !data[0]) return;
+    let up = {};
+    try { up = JSON.parse(data[0].unit_progress || '{}'); } catch(e) {}
+    if (!up[UNIT_ID] || acc > (up[UNIT_ID].bestAccuracy || 0)) {
+      up[UNIT_ID] = {bestAccuracy: acc, completedAt: new Date().toISOString()};
+      sfetch('/rest/v1/civitas_profiles?on_conflict=full_name', {
+        method:'POST',
+        headers:{...SUPA_H,'Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify({full_name:fn, unit_progress:JSON.stringify(up), gold:G.gold, updated_at:new Date().toISOString()})
+      });
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-map') renderMap();
+  if (id === 'screen-title') updateTitleScreen();
+}
+
+function updateTitleScreen() {
+  document.getElementById('title-player-name').textContent = G.name ? ('SCHOLAR: ' + G.name.toUpperCase()) : '';
+  document.getElementById('title-gold-disp').textContent = '🪙 ' + G.gold + ' Gold  ·  ' + G.chaptersComplete.length + '/8 Chapters';
+}
+
+// ══════════════════════════════════════════════════════
+//  RETURN TO SHELL
+// ══════════════════════════════════════════════════════
+function returnToShell(complete = false) {
+  saveG();
+  if (complete) {
+    const acc = G.totalAnswered > 0 ? Math.round(G.totalCorrect / G.totalAnswered * 100) : 0;
+    pushCivitasProgress(acc);
+    localStorage.setItem('civitas_returning', '1');
+  }
+  window.location.href = CIVITAS_URL;
+}
+
+// ══════════════════════════════════════════════════════
+//  MAP
+// ══════════════════════════════════════════════════════
+function renderMap() {
+  document.getElementById('map-gold').textContent = G.gold;
+  document.getElementById('map-progress').textContent = G.chaptersComplete.length + '/8';
+  const list = document.getElementById('chapter-list');
+  list.innerHTML = CHAPTERS.map((ch, i) => {
+    const done = G.chaptersComplete.includes(ch.id);
+    const unlocked = i === 0 || G.chaptersComplete.includes(CHAPTERS[i-1].id);
+    const bestAcc = G.chapterBestAcc[ch.id] ? G.chapterBestAcc[ch.id] + '%' : '';
+    let badgeClass = 'locked', badgeText = '🔒 LOCKED';
+    if (done) { badgeClass = 'complete'; badgeText = '✓ ' + (bestAcc || 'COMPLETE'); }
+    else if (unlocked) { badgeClass = 'available'; badgeText = '▶ ENTER'; }
+    return `<div class="chapter-node ${done?'complete':''} ${ch.isBoss?'boss':''} ${!unlocked?'locked':''}" onclick="startChapter('${ch.id}')">
+      <div class="cn-icon">${ch.icon}</div>
+      <div class="cn-info">
+        <div class="cn-num">CHAPTER ${ch.num}${ch.isBoss?' · BOSS BATTLE':''}</div>
+        <div class="cn-title">${ch.title}</div>
+        <div class="cn-desc">${ch.enemy.title}</div>
+      </div>
+      <div class="cn-badge ${badgeClass}">${badgeText}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  BATTLE
+// ══════════════════════════════════════════════════════
+function startChapter(chapterId) {
+  const ch = CHAPTERS.find(c => c.id === chapterId);
+  if (!ch) return;
+  const chIdx = CHAPTERS.indexOf(ch);
+  if (chIdx > 0 && !G.chaptersComplete.includes(CHAPTERS[chIdx-1].id)) return;
+
+  const qs = QUESTION_BANK[ch.questions] || [];
+  if (!qs.length) { notify('⚠️ Questions coming soon!'); return; }
+
+  BATTLE = {
+    chapterId, questions: [...qs],
+    qIndex: 0,
+    playerHp: G.hp, enemyHp: ch.enemy.maxHp, enemyMaxHp: ch.enemy.maxHp,
+    score: 0, correct: 0, total: 0,
+    axiomStrikes: 0, streak: 0,
+    axiomCharged: false, answered: false,
+    potionUsed: false, hintsUsed: 0
+  };
+
+  // Set up battle UI
+  document.getElementById('hud-chapter-name').textContent = 'Chapter ' + ch.num + ': ' + ch.title;
+  document.getElementById('hud-gold').textContent = G.gold;
+  document.getElementById('hud-streak').textContent = 0;
+  document.getElementById('hud-score').textContent = 0;
+
+  document.getElementById('p-name').textContent = G.name.split(' ')[0] || 'Scholar';
+  document.getElementById('p-title').textContent = 'Seeker of Truth';
+  document.getElementById('p-level').textContent = 'Lv' + G.level;
+  document.getElementById('p-avatar-icon').textContent = getCharIcon();
+  updateHp();
+
+  document.getElementById('e-name').textContent = ch.enemy.name;
+  document.getElementById('e-title').textContent = ch.enemy.title;
+  document.getElementById('e-avatar-icon').textContent = ch.enemy.icon;
+  document.getElementById('vs-chapter-lbl').textContent = 'CHAPTER ' + ch.num;
+  updateEnemyHp();
+
+  clearLog();
+  addLog('⚔️ THE BATTLE BEGINS — Face: ' + ch.enemy.name.toUpperCase(), 'sys');
+
+  showScreen('screen-battle');
+  loadQuestion();
+}
+
+function getCharIcon() {
+  if (!G.activeChar) return '🧙';
+  const c = SCHOLAR_CHARS.find(s => s.id === G.activeChar);
+  return c ? c.icon : '🧙';
+}
+
+function loadQuestion() {
+  if (BATTLE.qIndex >= BATTLE.questions.length) { endChapter(true); return; }
+  const q = BATTLE.questions[BATTLE.qIndex];
+  BATTLE.answered = false;
+  BATTLE.axiomCharged = q.axiomAvailable && (G.activeChar === 'mlk' ? BATTLE.streak >= 1 : BATTLE.streak >= 2);
+
+  document.getElementById('hud-round-info').textContent = 'Question ' + (BATTLE.qIndex+1) + ' of ' + BATTLE.questions.length;
+
+  // Argument panel
+  document.getElementById('arg-speaker').textContent = q.speaker;
+  document.getElementById('arg-text').textContent = q.argument;
+  document.getElementById('arg-note').textContent = q.fallacy ? 'Watch for: ' + q.fallacy : '';
+  document.getElementById('arg-panel').style.display = 'block';
+
+  // Prompt
+  document.getElementById('prompt-txt').textContent = q.prompt;
+
+  // Options
+  const wrap = document.getElementById('options-wrap');
+  const letters = ['A','B','C','D'];
+  wrap.innerHTML = q.options.map((o,i) =>
+    `<div class="opt" id="opt-${i}" onclick="selectOption(${i})">
+      <div class="opt-letter">${letters[i]}</div>
+      <div class="opt-body">${o.text}</div>
+    </div>`
+  ).join('');
+
+  // Axiom btn
+  const axiomBtn = document.getElementById('axiom-btn');
+  if (q.axiomAvailable && BATTLE.axiomCharged) {
+    axiomBtn.className = 'ready';
+    axiomBtn.textContent = '✦ AXIOM STRIKE AVAILABLE ✦';
+  } else {
+    axiomBtn.className = '';
+    axiomBtn.style.display = 'none';
+  }
+
+  // Reset feedback
+  const fb = document.getElementById('fb-box');
+  fb.className = 'fb-box';
+  fb.style.display = 'none';
+
+  // Next btn
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('potion-count').textContent = G.potions;
+}
+
+function selectOption(idx) {
+  if (BATTLE.answered) return;
+  BATTLE.answered = true;
+  BATTLE.total++;
+  G.totalAnswered++;
+
+  const q = BATTLE.questions[BATTLE.qIndex];
+  const opt = q.options[idx];
+  const correct = opt.correct;
+
+  // Disable all options
+  document.querySelectorAll('.opt').forEach(o => o.classList.add('disabled'));
+  document.getElementById('opt-' + idx).classList.add(correct ? 'correct' : 'wrong');
+
+  if (correct) {
+    BATTLE.correct++;
+    G.totalCorrect++;
+    BATTLE.streak++;
+    BATTLE.score += 100 + (BATTLE.streak > 1 ? (BATTLE.streak-1)*10 : 0);
+    document.getElementById('hud-score').textContent = BATTLE.score;
+    document.getElementById('hud-streak').textContent = BATTLE.streak;
+
+    // Deal damage to enemy
+    let dmg = q.damage.correct;
+    const weapon = WEAPONS.find(w => w.id === G.weapon);
+    if (weapon) dmg = Math.round(dmg * (1 + (weapon.bonus.damage || 0)));
+    if (G.activeChar === 'aristotle' && q.type === 'fallacy_id') dmg = Math.round(dmg * 1.15);
+    dealEnemyDamage(dmg);
+
+    const goldEarned = q.goldReward + (BATTLE.streak > 2 ? Math.round(q.goldReward * 0.25) : 0);
+    G.gold += goldEarned;
+    G.totalGoldEarned += goldEarned;
+    document.getElementById('hud-gold').textContent = G.gold;
+    spawnParticle('+' + goldEarned + '🪙', 'var(--gold)');
+    addLog('✓ Correct! +' + goldEarned + ' gold' + (BATTLE.streak>1?' (×'+BATTLE.streak+' streak!)':''), 'good');
+  } else {
+    BATTLE.streak = 0;
+    document.getElementById('hud-streak').textContent = 0;
+
+    // Enemy attacks
+    const ch = CHAPTERS.find(c => c.id === BATTLE.chapterId);
+    let dmg = Math.round(ch.enemy.attack.min + Math.random() * (ch.enemy.attack.max - ch.enemy.attack.min));
+    const armor = ARMOR.find(a => a.id === G.armor);
+    if (armor) dmg = Math.round(dmg * (1 - (armor.bonus.defense || 0)));
+    if (G.activeChar === 'malala') dmg = Math.round(dmg * 0.75);
+    if (G.activeChar === 'harriet' && BATTLE.playerHp < G.maxHp * 0.3) dmg = Math.round(dmg * 0.8);
+    dealPlayerDamage(dmg);
+    addLog('✗ Incorrect. ' + ch.enemy.name + ' strikes for ' + dmg + ' damage!', 'bad');
+
+    // Show correct answer
+    const correctIdx = q.options.findIndex(o => o.correct);
+    if (correctIdx >= 0) document.getElementById('opt-' + correctIdx).classList.add('correct');
+  }
+
+  // Show feedback
+  showFeedback(opt.feedback, q.principle, correct);
+
+  // Update axiom state
+  if (q.axiomAvailable && BATTLE.streak >= 2) BATTLE.axiomCharged = true;
+  document.getElementById('next-btn').style.display = 'inline-block';
+
+  if (BATTLE.playerHp <= 0) { setTimeout(() => endChapter(false), 1200); return; }
+  if (BATTLE.enemyHp <= 0) { setTimeout(() => endChapter(true), 1200); }
+}
+
+function useAxiom() {
+  if (!BATTLE.axiomCharged) return;
+  const q = BATTLE.questions[BATTLE.qIndex];
+  if (!q || !q.axiomAvailable || BATTLE.answered) return;
+
+  BATTLE.answered = true;
+  BATTLE.axiomCharged = false;
+  BATTLE.axiomStrikes++;
+  G.axiomStrikes++;
+  document.getElementById('axiom-btn').style.display = 'none';
+
+  // Show axiom options
+  const wrap = document.getElementById('options-wrap');
+  const letters = ['A','B','C'];
+  wrap.innerHTML = `<div class="prompt-txt" style="color:var(--axiom);margin-bottom:8px">✦ AXIOM STRIKE — Strike at the foundation</div>` +
+    q.axiomOptions.map((o,i) =>
+      `<div class="opt" id="aopt-${i}" onclick="selectAxiomOption(${i})" style="border-color:var(--purple)">
+        <div class="opt-letter" style="color:var(--axiom2)">${letters[i]}</div>
+        <div class="opt-body">${o.text}</div>
+      </div>`
+    ).join('');
+
+  addLog('✦ AXIOM STRIKE ACTIVATED!', 'axiom');
+}
+
+function selectAxiomOption(idx) {
+  const q = BATTLE.questions[BATTLE.qIndex];
+  const opt = q.axiomOptions[idx];
+  document.querySelectorAll('[id^=aopt-]').forEach(o => o.classList.add('disabled'));
+  document.getElementById('aopt-' + idx).classList.add(opt.correct ? 'correct' : 'wrong');
+
+  if (opt.correct) {
+    let dmg = Math.round(q.damage.correct * 1.5);
+    const weapon = WEAPONS.find(w => w.id === G.weapon);
+    if (weapon?.bonus?.axiomBonus) dmg = Math.round(dmg * weapon.bonus.axiomBonus);
+    if (G.activeChar === 'socrates') dmg = Math.round(dmg * 1.1);
+    dealEnemyDamage(dmg);
+
+    const armor = ARMOR.find(a => a.id === G.armor);
+    if (armor?.bonus?.axiomHeal) {
+      BATTLE.playerHp = Math.min(G.maxHp, BATTLE.playerHp + armor.bonus.axiomHeal);
+      updateHp();
+    }
+
+    const goldEarned = Math.round(q.goldReward * 1.5);
+    G.gold += goldEarned;
+    G.totalGoldEarned += goldEarned;
+    document.getElementById('hud-gold').textContent = G.gold;
+    spawnParticle('✦ AXIOM!', 'var(--axiom)');
+    addLog('✦ AXIOM STRIKE SUCCESS! +' + goldEarned + '🪙', 'axiom');
+    showFeedback(opt.feedback, q.principle, true, true);
+  } else {
+    const correctIdx = q.axiomOptions.findIndex(o => o.correct);
+    if (correctIdx >= 0) document.getElementById('aopt-' + correctIdx).classList.add('correct');
+    addLog('✦ Axiom Strike missed — wrong foundation.', 'bad');
+    showFeedback(opt.feedback, q.principle, false);
+  }
+
+  document.getElementById('next-btn').style.display = 'inline-block';
+  BATTLE.total++;
+  if (opt.correct) { BATTLE.correct++; G.totalCorrect++; }
+  G.totalAnswered++;
+}
+
+function showFeedback(text, principle, correct, isAxiom = false) {
+  const fb = document.getElementById('fb-box');
+  const label = document.getElementById('fb-label');
+  const fbText = document.getElementById('fb-text');
+  const fbPrinciple = document.getElementById('fb-principle');
+
+  fb.className = 'fb-box show ' + (isAxiom ? 'axiom-fb' : correct ? 'correct-fb' : 'wrong-fb');
+  label.className = 'fb-label ' + (isAxiom ? 'axiom-fb' : correct ? 'correct-fb' : 'wrong-fb');
+  label.textContent = isAxiom ? '✦ AXIOM STRIKE' : correct ? 'CORRECT REASONING' : 'FLAWED REASONING';
+  fbText.textContent = text;
+
+  if (principle) {
+    fbPrinciple.style.display = 'block';
+    fbPrinciple.textContent = '🔑 First Principle: ' + principle;
+  } else {
+    fbPrinciple.style.display = 'none';
+  }
+}
+
+function nextQuestion() {
+  BATTLE.qIndex++;
+  document.getElementById('fb-box').className = 'fb-box';
+  loadQuestion();
+}
+
+function dealEnemyDamage(dmg) {
+  BATTLE.enemyHp = Math.max(0, BATTLE.enemyHp - dmg);
+  updateEnemyHp();
+  document.getElementById('e-avatar').classList.add('hit');
+  setTimeout(() => document.getElementById('e-avatar').classList.remove('hit'), 400);
+  spawnParticle('-' + dmg + ' ⚔️', 'var(--crimson2)');
+}
+
+function dealPlayerDamage(dmg) {
+  BATTLE.playerHp = Math.max(0, BATTLE.playerHp - dmg);
+  updateHp();
+  document.getElementById('p-avatar').classList.add('hit');
+  setTimeout(() => document.getElementById('p-avatar').classList.remove('hit'), 400);
+}
+
+function updateHp() {
+  const pct = Math.max(0, (BATTLE.playerHp / G.maxHp) * 100);
+  document.getElementById('p-hp-bar').style.width = pct + '%';
+  document.getElementById('p-hp-val').textContent = BATTLE.playerHp + '/' + G.maxHp;
+  document.getElementById('p-hp-bar').style.background = pct < 25 ? 'var(--crimson2)' : pct < 50 ? 'var(--amber)' : 'linear-gradient(90deg,var(--emerald),var(--emerald2))';
+}
+
+function updateEnemyHp() {
+  const pct = Math.max(0, (BATTLE.enemyHp / BATTLE.enemyMaxHp) * 100);
+  document.getElementById('e-hp-bar').style.width = pct + '%';
+  document.getElementById('e-hp-val').textContent = BATTLE.enemyHp + '/' + BATTLE.enemyMaxHp;
+}
+
+function usePotion() {
+  if (G.potions <= 0) { notify('No hints remaining!'); return; }
+  G.potions--;
+  document.getElementById('potion-count').textContent = G.potions;
+
+  if (!BATTLE.answered) {
+    // Eliminate one wrong answer
+    const q = BATTLE.questions[BATTLE.qIndex];
+    const wrongIdxs = q.options.map((o,i) => !o.correct ? i : -1).filter(i => i >= 0);
+    if (wrongIdxs.length > 0) {
+      const toRemove = wrongIdxs[Math.floor(Math.random() * wrongIdxs.length)];
+      const el = document.getElementById('opt-' + toRemove);
+      if (el) { el.classList.add('disabled'); el.style.opacity = '.2'; }
+      addLog('🧪 Hint used — one incorrect answer eliminated.', 'sys');
+    }
+  } else {
+    // Restore HP
+    BATTLE.playerHp = Math.min(G.maxHp, BATTLE.playerHp + 20);
+    updateHp();
+    notify('🧪 Restored 20 HP!');
+  }
+  saveG();
+}
+
+function endChapter(victory) {
+  const ch = CHAPTERS.find(c => c.id === BATTLE.chapterId);
+  const acc = BATTLE.total > 0 ? Math.round(BATTLE.correct / BATTLE.total * 100) : 0;
+
+  // Persist HP
+  G.hp = victory ? Math.min(G.maxHp, BATTLE.playerHp + 15) : Math.max(20, Math.floor(G.maxHp * 0.5));
+
+  if (victory) {
+    if (!G.chaptersComplete.includes(BATTLE.chapterId)) G.chaptersComplete.push(BATTLE.chapterId);
+    if (!G.chapterBestAcc[BATTLE.chapterId] || acc > G.chapterBestAcc[BATTLE.chapterId]) {
+      G.chapterBestAcc[BATTLE.chapterId] = acc;
+    }
+
+    // XP & level
+    G.xp += (50 + (ch.isBoss ? 50 : 0));
+    const newLevel = Math.floor(G.xp / 150) + 1;
+    if (newLevel > G.level) {
+      G.level = newLevel;
+      G.maxHp = 100 + (G.level - 1) * 10;
+      G.hp = G.maxHp;
+      notify('⬆️ Level Up! Now Level ' + G.level);
+    }
+
+    // Unlock characters
+    SCHOLAR_CHARS.forEach(c => {
+      if (G.chaptersComplete.length >= c.unlockChapter && !G.unlockedChars.includes(c.id)) {
+        G.unlockedChars.push(c.id);
+        notify('🧙 Scholar Unlocked: ' + c.name + '!');
+      }
+    });
+
+    pushCivitasProgress(acc);
+    saveG();
+
+    // Victory screen
+    document.getElementById('v-title').textContent = ch.enemy.name.toUpperCase() + ' DEFEATED';
+    document.getElementById('v-sub').textContent = 'CHAPTER ' + ch.num + ' COMPLETE';
+    document.getElementById('v-acc').textContent = acc + '%';
+    document.getElementById('v-qs').textContent = BATTLE.correct + '/' + BATTLE.total;
+    document.getElementById('v-gold').textContent = '+' + (G.totalGoldEarned) + ' total';
+    document.getElementById('v-axioms').textContent = BATTLE.axiomStrikes;
+    document.getElementById('v-lesson').textContent = ch.lesson;
+
+    if (G.chaptersComplete.length >= 8) {
+      setTimeout(() => showCompleteScreen(), 1500);
+    } else {
+      showScreen('screen-victory');
+    }
+  } else {
+    saveG();
+    document.getElementById('d-acc').textContent = acc + '%';
+    document.getElementById('d-qs').textContent = (BATTLE.qIndex + 1);
+    document.getElementById('d-hp').textContent = '0';
+    document.getElementById('d-lesson').textContent = ch.lesson;
+    showScreen('screen-defeat');
+  }
+}
+
+function afterVictory() {
+  const idx = CHAPTERS.findIndex(c => c.id === BATTLE.chapterId);
+  if (idx < CHAPTERS.length - 1) {
+    showScreen('screen-map');
+  } else {
+    showCompleteScreen();
+  }
+}
+
+function retryChapter() {
+  startChapter(BATTLE.chapterId);
+}
+
+function showCompleteScreen() {
+  const acc = G.totalAnswered > 0 ? Math.round(G.totalCorrect / G.totalAnswered * 100) : 0;
+  document.getElementById('complete-stats').innerHTML = [
+    {label:'OVERALL ACC', val:acc+'%', color:'var(--gold)'},
+    {label:'GOLD EARNED', val:G.totalGoldEarned+'🪙', color:'var(--gold)'},
+    {label:'AXIOM STRIKES', val:G.axiomStrikes, color:'var(--axiom2)'}
+  ].map(s => `<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center">
+    <div style="font-family:var(--cinzel);font-size:18px;color:${s.color}">${s.val}</div>
+    <div style="font-family:var(--dm);font-size:8px;color:var(--ivory3);letter-spacing:1px;margin-top:2px">${s.label}</div>
+  </div>`).join('');
+  pushCivitasProgress(acc);
+  showScreen('screen-complete');
+}
+
+// ══════════════════════════════════════════════════════
+//  SHOP
+// ══════════════════════════════════════════════════════
+function openShop() {
+  document.getElementById('shop-gold').textContent = G.gold;
+  const body = document.getElementById('shop-body');
+  body.innerHTML = '';
+
+  function shopSection(title, items, type) {
+    return `<div class="shop-section">
+      <div class="shop-section-title">${title}</div>
+      <div class="shop-grid">
+        ${items.map(item => {
+          const owned = type === 'weapon' ? G.ownedWeapons.includes(item.id) : type === 'armor' ? G.ownedArmor.includes(item.id) : false;
+          const equipped = G.weapon === item.id || G.armor === item.id;
+          const cantAfford = !owned && G.gold < item.price;
+          return `<div class="shop-item ${equipped?'equipped':''} ${owned&&!equipped?'owned':''} ${cantAfford?'cant-afford':''}" onclick="buyOrEquip('${type}','${item.id}')">
+            <div class="si-icon">${item.icon}</div>
+            <div class="si-name">${item.name}</div>
+            <div class="si-desc">${item.desc}</div>
+            ${owned ? `<div class="si-badge ${equipped?'equipped':'owned'}">${equipped?'EQUIPPED':'OWNED'}</div>` :
+              `<div class="si-price">🪙 ${item.price}</div>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML += shopSection('⚔️ WEAPONS', WEAPONS, 'weapon');
+  body.innerHTML += shopSection('🛡️ ARMOR', ARMOR, 'armor');
+
+  // Potions
+  body.innerHTML += `<div class="shop-section">
+    <div class="shop-section-title">🧪 CONSUMABLES</div>
+    <div class="shop-grid">
+      ${POTIONS.map(p => `<div class="shop-item ${G.gold < p.price ? 'cant-afford' : ''}" onclick="buyPotion('${p.id}')">
+        <div class="si-icon">${p.icon}</div>
+        <div class="si-name">${p.name}</div>
+        <div class="si-desc">${p.desc}</div>
+        <div class="si-price">🪙 ${p.price}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  document.getElementById('shop-overlay').classList.add('open');
+}
+
+function buyOrEquip(type, id) {
+  if (type === 'weapon') {
+    if (G.ownedWeapons.includes(id)) { G.weapon = id; }
+    else {
+      const item = WEAPONS.find(w => w.id === id);
+      if (!item || G.gold < item.price) return;
+      G.gold -= item.price;
+      G.ownedWeapons.push(id);
+      G.weapon = id;
+    }
+  } else {
+    if (G.ownedArmor.includes(id)) { G.armor = id; }
+    else {
+      const item = ARMOR.find(a => a.id === id);
+      if (!item || G.gold < item.price) return;
+      G.gold -= item.price;
+      G.ownedArmor.push(id);
+      G.armor = id;
+    }
+  }
+  saveG();
+  openShop();
+  document.getElementById('shop-gold').textContent = G.gold;
+  document.getElementById('hud-gold').textContent = G.gold;
+}
+
+function buyPotion(id) {
+  const p = POTIONS.find(pt => pt.id === id);
+  if (!p || G.gold < p.price) return;
+  G.gold -= p.price;
+  if (id === 'hint_potion') G.potions++;
+  else if (id === 'hp_potion') { BATTLE.playerHp = Math.min(G.maxHp, BATTLE.playerHp + 25); updateHp(); }
+  else if (id === 'axiom_crystal') { BATTLE.axiomCharged = true; loadQuestion(); }
+  saveG();
+  openShop();
+  notify('Purchased: ' + p.name);
+}
+
+function closeShop() { document.getElementById('shop-overlay').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════
+//  CHARACTERS
+// ══════════════════════════════════════════════════════
+function openChars() {
+  const body = document.getElementById('char-body');
+  body.innerHTML = '<div class="char-grid">' +
+    SCHOLAR_CHARS.map(c => {
+      const unlocked = G.unlockedChars.includes(c.id);
+      const active = G.activeChar === c.id;
+      return `<div class="char-card ${unlocked?'unlocked':'locked-card'}" onclick="${unlocked?`selectChar('${c.id}')`:''}" style="${active?'border-color:var(--gold)':''}">
+        <div class="char-icon">${c.icon}</div>
+        <div class="char-name">${c.name}</div>
+        <div class="char-desc">${c.desc}</div>
+        ${unlocked ? `<div class="char-unlock">${active?'✓ ACTIVE':'Click to equip'}</div>` : `<div class="char-unlock">Unlock at Chapter ${c.unlockChapter}</div>`}
+      </div>`;
+    }).join('') + '</div>';
+  document.getElementById('char-overlay').classList.add('open');
+}
+
+function selectChar(id) {
+  G.activeChar = G.activeChar === id ? null : id;
+  saveG();
+  openChars();
+  const c = SCHOLAR_CHARS.find(s => s.id === id);
+  notify('Scholar: ' + (G.activeChar ? c.name + ' equipped!' : 'unequipped'));
+}
+
+function closeChars() { document.getElementById('char-overlay').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════════════
+function addLog(msg, type = '') {
+  const log = document.getElementById('battle-log');
+  const el = document.createElement('div');
+  el.className = 'log-line ' + type;
+  el.textContent = msg;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  if (log.children.length > 8) log.removeChild(log.firstChild);
+}
+
+function clearLog() {
+  document.getElementById('battle-log').innerHTML = '';
+}
+
+function notify(msg) {
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+function spawnParticle(text, color) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.textContent = text;
+  p.style.color = color;
+  p.style.left = (30 + Math.random() * 40) + '%';
+  p.style.top = (30 + Math.random() * 30) + '%';
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 1600);
+}
+
+function confirmLeave() {
+  if (confirm('Leave the battle? Progress will be lost.')) showScreen('screen-map');
+}
+
+// ══════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Loading animation
+  const bar = document.getElementById('ld-bar');
+  let pct = 0;
+  const loadInterval = setInterval(() => {
+    pct = Math.min(100, pct + Math.random() * 15);
+    bar.style.width = pct + '%';
+    if (pct >= 100) {
+      clearInterval(loadInterval);
+      setTimeout(boot, 400);
+    }
+  }, 80);
+});
+
+function boot() {
+  // Try auto-login from Civitas
+  try {
+    const civName = localStorage.getItem('civitas_student_name');
+    const civPeriod = localStorage.getItem('civitas_student_period') || 'guest';
+    if (civName) {
+      loadG();
+      if (!G.name) {
+        G.name = civName;
+        G.period = civPeriod;
+        G.isGuest = civPeriod === 'guest';
+        saveG();
+      }
+      document.getElementById('title-player-name').textContent = 'SCHOLAR: ' + civName.toUpperCase();
+      document.getElementById('title-gold-disp').textContent = '🪙 ' + G.gold + ' Gold  ·  ' + G.chaptersComplete.length + '/8 Chapters';
+      showScreen('screen-title');
+      return;
+    }
+  } catch(e) {}
+
+  // No Civitas session — show title with prompt
+  loadG();
+  showScreen('screen-title');
+  if (!G.name) {
+    const name = prompt('Enter your name, Scholar:');
+    if (name && name.trim()) {
+      G.name = name.trim();
+      saveG();
+    } else {
+      G.name = 'Scholar';
+      G.isGuest = true;
+    }
+    updateTitleScreen();
+  }
+}
+
+// Anti-cheat
+(function(){
+  function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
+  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('keydown',e=>{
+    if(isInput(e.target))return;
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&['c','x','a','u','s'].includes(e.key.toLowerCase()))e.preventDefault();
+    if(e.key==='F12'||(ctrl&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault();
+  });
+  document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+})();
+</script>
+</body>
+</html>
