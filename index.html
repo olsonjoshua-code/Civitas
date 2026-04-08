@@ -4613,6 +4613,20 @@ function enterShell(){
   const tcShortcut=document.getElementById('cnav-teacher-shortcut');
   if(tcShortcut)tcShortcut.style.display=IS_TEACHER?'block':'none';
 
+  // Background sync from Supabase so MPE updates appear on refresh
+  if(!IS_TEACHER&&S.fullName){
+    loadProfileByName(S.fullName).then(fresh=>{
+      if(fresh){
+        applyProfile(fresh);
+        // Re-render trophies and course units if already viewing them
+        try{
+          if(document.getElementById('cv-trophies')?.classList.contains('active')) renderCourseTrophies();
+          if(document.getElementById('cv-units')?.classList.contains('active')) renderCourseUnits();
+        }catch(e){}
+      }
+    }).catch(()=>{});
+  }
+
   // Auto-return to last active course if coming back from a game
   try{
     const lastCourse=localStorage.getItem('civitas_last_course');
