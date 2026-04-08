@@ -6145,12 +6145,25 @@ function compositeLabel(pct){
 
 // Build a student data object from a civitas_profiles row + optional FRQ/test rows
 function buildStudentData(p, frqRows, testRows){
+  // Determine which course to evaluate for this student
+  const _filterCourse = document.getElementById('teacher-course-filter')?.value||'all';
+  let _cid = 'ap_gov';
+  try{
+    const enrolled = JSON.parse(p.courses||'[]');
+    if(_filterCourse !== 'all' && enrolled.find(x=>x.id===_filterCourse)){
+      _cid = _filterCourse;
+    } else if(enrolled.length){
+      _cid = enrolled[0].id || 'ap_gov';
+    }
+  }catch(e){}
+  const _isAP = _cid.startsWith('ap_');
+
   let unitProgress={};
   try{unitProgress=JSON.parse(p.unit_progress||'{}');}catch(e){}
   let vocabBest={};
   try{vocabBest=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
 
-  const units = COURSE_UNITS['ap_gov']||[];
+  const units = COURSE_UNITS[_cid]||COURSE_UNITS['ap_gov']||[];
   const coreUnits = units.filter(u=>!u.isBigIdea&&!u.isCampaign&&u.num?.startsWith('Unit'));
   const bigIdeas  = units.filter(u=>u.isBigIdea);
   const campaigns = units.filter(u=>u.isCampaign);
@@ -6163,8 +6176,10 @@ function buildStudentData(p, frqRows, testRows){
   const unitWeight = coreScores.length + bigScores.length*0.5;
   const unitAvg = unitWeight>0 ? Math.round((coreSum+bigSum)/unitWeight) : 0;
 
-  // RPG campaign score (single unit — apg_rpg)
-  const rpgUnit = campaigns.find(u=>u.id==='apg_rpg');
+  // RPG campaign score — keyed by course
+  const rpgIds = {'ap_gov':'apg_rpg','hs_ush':'ush_rpg','ap_sem':'apsem_rpg'};
+  const rpgId = rpgIds[_cid] || campaigns[0]?.id;
+  const rpgUnit = campaigns.find(u=>u.id===rpgId)||campaigns[0];
   const rpgProgress = rpgUnit ? unitProgress[rpgUnit.id] : null;
   const rpgAvg = rpgProgress?.completedAt ? (rpgProgress.bestAccuracy||0) : 0;
   const rpgAttempted = !!(rpgProgress?.completedAt);
@@ -6206,6 +6221,7 @@ function buildStudentData(p, frqRows, testRows){
     fullName: p.full_name||'',
     period: p.period||'',
     gold: p.gold||0,
+    isAP: _isAP, courseId: _cid,
     unitAvg, frqAvg, vocabAvg, rpgAvg, rpgAttempted, testAvg,
     composite, apScore, label,
     unitProgress, vocabBest,
@@ -6326,7 +6342,7 @@ async function renderTeacherView(){
       const withTests=students.filter(s=>s.testAvg!==null).length;
       statsEl.innerHTML=[
         {label:'Students',val:students.length,color:'var(--civitas2)'},
-        {label:'Class AP Avg',val:(()=>{const ap=scoreToAP(avgComp);return ap?'Avg '+ap:'—';})(),color:compositeLabel(avgComp).color},
+        {label:(()=>{const f=document.getElementById('teacher-course-filter')?.value||'all';return f.startsWith('ap_')?'Class AP Avg':'Class Avg';})(),val:(()=>{const f=document.getElementById('teacher-course-filter')?.value||'all';if(f.startsWith('ap_')){const ap=scoreToAP(avgComp);return ap?'Avg '+ap:'—';}return avgComp>0?avgComp+'%':'—';})(),color:compositeLabel(avgComp).color},
         {label:'Unit Avg',val:avgUnits+'%',color:'var(--blue2)'},
         {label:'FRQ Submitted',val:withFRQ,color:'var(--purple2)'},
         {label:'Test Scores In',val:withTests,color:'var(--amber)'},
@@ -6380,7 +6396,7 @@ function renderTeacherRoster(period){
       <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">#</th>
       <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">STUDENT</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">PER</th>
-      <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">AP SCORE</th>
+      <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px" id="th-score-col">SCORE</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">UNITS</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">FRQ</th>
       <th style="text-align:center;padding:6px 8px;color:var(--text3);font-weight:400;font-size:9px;letter-spacing:1px">VOCAB</th>
@@ -6398,8 +6414,10 @@ function renderTeacherRoster(period){
         <td style="padding:7px 8px;color:var(--cream);font-family:var(--playfair)">${s.char} ${s.name}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--text3)">${s.period||'—'}</td>
         <td style="padding:7px 8px;text-align:center">
-          <span style="font-family:var(--bebas);font-size:22px;color:${l.color}">${s.apScore!==null?s.apScore:'—'}</span>
-          ${s.apScore?`<div style="font-family:var(--dm);font-size:7px;color:${l.color};letter-spacing:.5px">${l.tier.split(' ')[0]}</div>`:''}
+          ${s.isAP
+            ? `<span style="font-family:var(--bebas);font-size:22px;color:${l.color}">${s.apScore!==null?s.apScore:'—'}</span>${s.apScore?`<div style="font-family:var(--dm);font-size:7px;color:${l.color};letter-spacing:.5px">${l.tier.split(' ')[0]}</div>`:''}`
+            : `<span style="font-family:var(--bebas);font-size:18px;color:${l.color}">${s.composite>0?s.composite+'%':'—'}</span>${s.composite>0?`<div style="font-family:var(--dm);font-size:7px;color:${l.color};letter-spacing:.5px">${l.tier.split(' ')[0]}</div>`:''}`
+          }
         </td>
         <td style="padding:7px 8px;text-align:center;color:var(--blue2)">${s.unitAvg?s.unitAvg+'%':'—'}</td>
         <td style="padding:7px 8px;text-align:center;color:var(--purple2)">${s.frqAvg>0?s.frqAvg+'%':'—'}</td>
