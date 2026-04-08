@@ -836,6 +836,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
           <button onclick="printCourseCert()" style="font-family:var(--bebas);font-size:11px;letter-spacing:1.5px;background:var(--bg3);border:1px solid var(--gc2);color:var(--gc);padding:6px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(245,200,66,.08)'" onmouseout="this.style.background='var(--bg3)'">🏛️ PRINT COURSE CERT</button>
         </div>
         <div class="trophy-grid" id="cv-trophy-grid"></div>
+        <div id="cv-campaign-trophy" class="trophy-grid" style="margin-top:0"></div>
         <div style="background:var(--bg2);border:1px solid var(--border2);padding:20px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
             <div class="sh">Vocab Medals</div>
@@ -1216,6 +1217,10 @@ const COURSE_UNITS = {
      desc:'The capstone game. All five AP Seminar Big Ideas across 60 conceptually rich questions and four cross-theme synthesis prompts -- connecting everything to the world beyond the course.',
      topics:['Individual & Society','Humans & Environment','Science & Ethics','Power & Inequality'],
      isBigIdea:true, url:CIVITAS_BASE+'games/ap-seminar/big-questions.html'},
+    {id:'apsem_rpg', num:'Campaign', title:'The Crucible RPG', icon:'⚗️', color:'#c8a020',
+     desc:'Battle through 8 chapters of logical combat. Face the Demagogue, the Straw Builder, the False Prophet, and five more Sophists — earning weapons, armor, and scholar companions along the way.',
+     topics:['Logical Fallacies','Evidence Evaluation','Rebuttal','Line of Reasoning','SPAR','The Examined Life'],
+     hasFRQ:false, isCampaign:true, url:CIVITAS_BASE+'games/ap-seminar/rpg.html'},
   ],
 };
 
@@ -4952,12 +4957,12 @@ function enterCourse(courseId){
       #course-hub #cv-units-intro{border-color:#1e3d26!important}
     `;
   } else if(courseId==='ap_sem'){
-    hub.style.background='linear-gradient(180deg,#1a1600 0%,#120f00 100%)';
+    hub.style.background='linear-gradient(180deg,#4a3812 0%,#332808 100%)';
     styleEl.textContent+=`
       #course-hub .sh{color:#c8a020!important}
-      #course-hub .unit-card-grid{background:#1a1500!important;border-color:#2e2200!important}
+      #course-hub .unit-card-grid{background:#3a2c0a!important;border-color:#5a4418!important}
       #course-hub .unit-card-grid:hover{border-color:#c8a020!important}
-      #course-hub #cv-units-intro{border-color:#2e2200!important}
+      #course-hub #cv-units-intro{border-color:#5a4418!important}
     `;
   } else {
     hub.style.background='';
@@ -5301,11 +5306,45 @@ function renderCourseUnits(){
   // ── TIER 2: Capstone Experiences ──
   if(capstoneFull.length){
     html+=sectionHeader('Capstone Experiences','Comprehensive practice spanning all units');
-    if(_activeCourseId==='ap_sem'&&bigIdeas.length){
-      html+=`<div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:8px">
-        ${capstoneFull.map(u=>unitCard(u,'wide')).join('')}
-        ${bigIdeas.map(u=>unitCard(u,'wide')).join('')}
-      </div>`;
+    if(_activeCourseId==='ap_sem'){
+      // ── Crucible Hero Card ──
+      const crucible=capstoneFull.find(u=>u.isCampaign);
+      const otherCap=capstoneFull.filter(u=>!u.isCampaign);
+      if(crucible){
+        const cDone=!!(unitProg[crucible.id]&&unitProg[crucible.id].completedAt);
+        const cAcc=unitProg[crucible.id]?.bestAccuracy??null;
+        const cTrophy=cAcc===null?null:cAcc===100?'⚗️':cAcc>=90?'🏆':cAcc>=75?'⭐':cAcc>=60?'🥉':'✅';
+        const cLabel=cAcc===null?'':cAcc===100?'Master Debater':cAcc>=90?'Gold':cAcc>=75?'Silver':cAcc>=60?'Bronze':'In Progress';
+        html+=`<div onclick="openUnitPreview('ap_sem','${crucible.id}')" style="display:grid;grid-template-columns:110px 1fr;border:0.5px solid rgba(200,160,32,.45);border-top:4px solid #c8a020;border-radius:6px;overflow:hidden;margin-bottom:12px;cursor:pointer;position:relative;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 0 0 1px #c8a020'" onmouseout="this.style.boxShadow='none'">
+          <div style="position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 28px 28px 0;border-color:transparent #c8a020 transparent transparent;opacity:.55"></div>
+          <div style="background:rgba(200,160,32,.07);border-right:0.5px solid rgba(200,160,32,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px 10px">
+            <div style="font-size:38px;line-height:1">${crucible.icon}</div>
+            <div style="font-family:var(--bebas);font-size:8px;letter-spacing:2px;color:#c8a020;border:0.5px solid rgba(200,160,32,.5);padding:3px 7px">CAMPAIGN</div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">8 chapters</div>
+            ${cTrophy?`<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:#c8a020;margin-top:2px">${cTrophy} ${cLabel}</div>`:''}
+          </div>
+          <div style="padding:18px 22px;display:flex;flex-direction:column;justify-content:space-between;min-height:140px">
+            <div>
+              <div style="font-family:var(--playfair);font-size:20px;color:var(--cream);margin-bottom:6px;line-height:1.2">${crucible.title}</div>
+              <div style="font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:12px;font-style:italic">${crucible.desc}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">
+                ${(crucible.topics||[]).map(t=>`<span style="font-size:9px;color:#c8a020;background:rgba(200,160,32,.1);border:0.5px solid rgba(200,160,32,.3);padding:3px 8px;border-radius:3px">${t}</span>`).join('')}
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:var(--bebas);font-size:10px;letter-spacing:1.5px;color:#1a1208;background:#c8a020;padding:8px 18px;border-radius:3px">${cDone?'↺ PLAY AGAIN':'▶ ENTER THE CRUCIBLE'}</div>
+              <div style="font-family:var(--dm);font-size:10px;color:var(--text3)">The Capstone Campaign · AP Seminar</div>
+            </div>
+          </div>
+        </div>`;
+      }
+      // ── AP Exam + Big Questions side by side ──
+      const below=[...otherCap,...bigIdeas];
+      if(below.length){
+        html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(below.length,2)},1fr);gap:10px;margin-bottom:8px">
+          ${below.map(u=>unitCard(u,'wide')).join('')}
+        </div>`;
+      }
     } else {
       html+=`<div style="display:grid;grid-template-columns:repeat(${Math.min(capstoneFull.length,3)},1fr);gap:10px;margin-bottom:8px">
         ${capstoneFull.map(u=>unitCard(u,'wide')).join('')}
@@ -5385,6 +5424,37 @@ function renderCourseTrophies(){
       </div>
     </div>`;
   }).join('');
+  // ── Campaign Trophy (The Crucible RPG) ──
+  const campaignUnits=units.filter(u=>u.isCampaign);
+  const campaignEl=document.getElementById('cv-campaign-trophy');
+  if(campaignEl){
+    if(campaignUnits.length===0){campaignEl.innerHTML='';}
+    else{
+      const prog2=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+      campaignEl.innerHTML=campaignUnits.map(u=>{
+        const ud=prog2[u.id];
+        const chDone=ud?ud.chaptersComplete||[]:[];
+        const total=8;
+        const done=chDone.length;
+        const finished=ud&&ud.completedAt;
+        const tc=finished?'var(--gold)':done>0?u.color:'var(--border)';
+        const trophy=finished?'⚗️':done>=6?'🏆':done>=3?'⭐':done>0?'✅':'';
+        const label=finished?'Master Debater':done>=6?'Gold':done>=3?'Silver':done>0?'In Progress':'Not Started';
+        return`<div class="trophy-card" style="border-top:3px solid ${tc};grid-column:1/-1">
+          <div class="trophy-era" style="font-size:36px;background:linear-gradient(135deg,rgba(200,160,32,.08),var(--bg3))">
+            ${u.icon}
+            <div class="trophy-medallion" style="background:${tc};color:#1a1208;font-size:16px">${trophy||'⬜'}</div>
+          </div>
+          <div class="trophy-body">
+            <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">CAMPAIGN</div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-bottom:4px">${u.title}</div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:6px">${done}/${total} chapters complete</div>
+            <div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${tc}">${label}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
   renderCourseLeaderboardInTrophies();
 }
 
