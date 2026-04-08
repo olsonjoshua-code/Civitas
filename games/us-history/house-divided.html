@@ -472,25 +472,19 @@ body.hud-active #root{padding-top:68px;}
 }
 </style>
 <script>
-// Instant redirect if no shell session
+// Instant redirect if no shell session — checks both Civitas and legacy AC shell
 (function(){
   try{
+    // Check Civitas shell first
+    var civ=localStorage.getItem('civitas_state');
+    if(civ){var cp=JSON.parse(civ);if(cp&&cp.name&&cp.name!=='Guest')return;}
+    // Fall back to legacy AC shell state
     var s=localStorage.getItem('ac_shell_state');
-    if(!s){
-      console.log('AC DEBUG: no ac_shell_state found in localStorage');
-      window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');return;
-    }
-    var p=JSON.parse(s);
-    console.log('AC DEBUG: session found, name='+p.name+' setupDone='+p.setupDone+' isGuest='+p.isGuest);
-    if(!p||!p.name||p.name==='Guest'){
-      console.log('AC DEBUG: redirecting — no valid name');
-      window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');return;
-    }
-    console.log('AC DEBUG: session OK, proceeding to load game');
-  }catch(e){
-    console.log('AC DEBUG: error parsing session: '+e.message);
-    window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');
-  }
+    if(s){var p=JSON.parse(s);if(p&&p.name&&p.name!=='Guest')return;}
+    // No valid session — redirect back
+    var returnURL=localStorage.getItem('civitas_shell_url')||localStorage.getItem('ac_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.replace(returnURL);
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/Civitas/');}
 })();
 </script>
 </head>

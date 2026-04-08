@@ -472,15 +472,19 @@ body.hud-active #root{padding-top:68px;}
 .utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
 </style>
 <script>
-// Instant redirect if no shell session
+// Instant redirect if no shell session — checks both Civitas and legacy AC shell
 (function(){
   try{
+    // Check Civitas shell first
+    var civ=localStorage.getItem('civitas_state');
+    if(civ){var cp=JSON.parse(civ);if(cp&&cp.name&&cp.name!=='Guest')return;}
+    // Fall back to legacy AC shell state
     var s=localStorage.getItem('ac_shell_state');
-    if(!s){window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');return;}
-    var p=JSON.parse(s);
-    // Just need a real name — setupDone may not be set with Google auth
-    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');return;}
-  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/Civitas/games/us-history/');}
+    if(s){var p=JSON.parse(s);if(p&&p.name&&p.name!=='Guest')return;}
+    // No valid session — redirect back
+    var returnURL=localStorage.getItem('civitas_shell_url')||localStorage.getItem('ac_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.replace(returnURL);
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/Civitas/');}
 })();
 </script>
 </head>
@@ -1950,7 +1954,7 @@ async function restoreProgressFromCivitas(fullName) {
       }
     } catch(e) {}
   } catch(e) { console.log('restoreProgressFromCivitas failed', e); }
-
+}
 
 function loadSavedUnit() {
   try {
