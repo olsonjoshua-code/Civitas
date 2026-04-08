@@ -2116,9 +2116,38 @@ async function boot(){
       returningFromGame = true;
       localStorage.removeItem('ac_returning_from_game');
     }
+    // Also handle return from Civitas-launched unit games
+    if(localStorage.getItem('civitas_returning')){
+      returningFromGame = true;
+      localStorage.removeItem('civitas_returning');
+    }
   }catch(e){}
 
   loadS();
+
+  // ── Check for Civitas session first ──────────────────────────────────
+  // If student came from the Civitas shell, civitas_state has their identity.
+  // Populate S from it and skip the setup/login screen entirely.
+  if(!S.setupDone || !S.name){
+    try{
+      const civRaw = localStorage.getItem('civitas_state');
+      if(civRaw){
+        const civ = JSON.parse(civRaw);
+        if(civ && civ.name && civ.name !== 'Guest'){
+          S.name        = civ.name;
+          S.fullName    = civ.fullName || civ.name;
+          S.period      = civ.period || '';
+          S.avatar      = civ.avatar || 'scholar_f';
+          S.setupDone   = true;
+          S.isGuest     = false;
+          S.fromCivitas = true;
+          // Carry over gold so HUD shows correct balance
+          if(civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
+          saveS();
+        }
+      }
+    }catch(e){}
+  }
 
   if(S.setupDone && !S.isGuest && S.name){
     // Always go straight to shell — no confirmation needed on return
@@ -2909,8 +2938,14 @@ function launchRPG(){
   const u=UNIT_DATA.find(x=>x.isCampaign);
   if(!u)return;
   try{localStorage.setItem('ac_shell_state',JSON.stringify(S));}catch(e){}
-  localStorage.setItem('ac_shell_url','https://olsonjoshua-code.github.io/Civitas/games/us-history/');
+  // Set both key sets so unit games can find their way back regardless of version
+  const USH_URL='https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+  localStorage.setItem('ac_shell_url', USH_URL);
   localStorage.setItem('ac_returning_from_game','1');
+  if(S.fromCivitas){
+    localStorage.setItem('civitas_shell_url', USH_URL);
+    localStorage.setItem('civitas_returning','1');
+  }
   try{sessionStorage.removeItem('ac_shell_active');}catch(e){}
   window.location.href=u.url;
 }
@@ -2918,8 +2953,14 @@ function launchRPG(){
 // Shared helper for all unit game launches — always sets the return flag
 function launchUnit(url){
   try{localStorage.setItem('ac_shell_state',JSON.stringify(S));}catch(e){}
-  localStorage.setItem('ac_shell_url','https://olsonjoshua-code.github.io/Civitas/games/us-history/');
+  // Set both key sets so unit games can find their way back regardless of version
+  const USH_URL='https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+  localStorage.setItem('ac_shell_url', USH_URL);
   localStorage.setItem('ac_returning_from_game','1');
+  if(S.fromCivitas){
+    localStorage.setItem('civitas_shell_url', USH_URL);
+    localStorage.setItem('civitas_returning','1');
+  }
   try{sessionStorage.removeItem('ac_shell_active');}catch(e){}
   const u=UNIT_DATA.find(x=>x.url===url);
   acLogEvent('unit_launched','unit7a',null,{
