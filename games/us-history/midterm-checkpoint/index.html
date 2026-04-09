@@ -145,15 +145,16 @@ input{-webkit-user-select:text!important;user-select:text!important;}
 .utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
 </style>
 <script>
-// Instant redirect if no shell session
+// Instant redirect if no shell session — checks both Civitas and legacy AC shell
 (function(){
   try{
+    var civ=localStorage.getItem('civitas_state');
+    if(civ){var cp=JSON.parse(civ);if(cp&&cp.name&&cp.name!=='Guest')return;}
     var s=localStorage.getItem('ac_shell_state');
-    if(!s){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
-    var p=JSON.parse(s);
-    // Just need a real name — setupDone may not be set with Google auth
-    if(!p||!p.name||p.name==='Guest'){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');return;}
-  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/American-Chronicles-Shell/');}
+    if(s){var p=JSON.parse(s);if(p&&p.name&&p.name!=='Guest')return;}
+    var returnURL=localStorage.getItem('civitas_shell_url')||localStorage.getItem('ac_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.replace(returnURL);
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/Civitas/');}
 })();
 </script>
 </head>
@@ -506,8 +507,12 @@ function closeUnitTrophy() {
   document.getElementById('unit-trophy-overlay').classList.remove('show');
 }
 function returnToShell() {
-  var stored = localStorage.getItem('ac_shell_return');
-  window.location.href = stored || SHELL_URL;
+  if (G && G.fromCivitas) {
+    try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+    try { localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
+  }
+  var stored = localStorage.getItem('civitas_shell_url') || localStorage.getItem('ac_shell_url') || localStorage.getItem('ac_shell_return');
+  window.location.href = stored || 'https://olsonjoshua-code.github.io/Civitas/';
 }
 
 function showLoginGate() {
@@ -1305,6 +1310,8 @@ async function pushACResult() {
   var acc = G.checkpointBestAccuracy || 0;
   var score = G.checkpointBestScore || 0;
   var trophy = acc >= 90 ? 'gold' : acc >= 80 ? 'silver' : acc >= 70 ? 'bronze' : acc >= 60 ? 'completed' : 'tryagain';
+
+  // ── Write to ac_results (leaderboard) ──
   try {
     var prev = null;
     try {
@@ -1322,6 +1329,44 @@ async function pushACResult() {
       body: JSON.stringify({name: G.name, period: G.period || '', unit_id: SHELL_UNIT_ID, best_score: bestScore, best_accuracy: bestAcc, trophy: bestTrophy, attempts: attempts, cards: 0, updated_at: new Date().toISOString()})
     });
   } catch(e) {}
+
+  // ── Write to civitas_profiles (cross-device restore) ──
+  try {
+    var fullName = G.fullName || G.name;
+    var profResp = await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=*', {headers: AC_HEADERS});
+    var profRows = await profResp.json();
+    var existing = profRows && profRows[0];
+    var unitProgress = {};
+    try { unitProgress = JSON.parse(existing && existing.unit_progress || '{}'); } catch(e) {}
+    var prevUnit = unitProgress['ush_eoc_midterm'] || {};
+    unitProgress['ush_eoc_midterm'] = {
+      bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
+      completedAt: prevUnit.completedAt || new Date().toISOString()
+    };
+    var courseProgress = {};
+    try { courseProgress = JSON.parse(existing && existing.course_progress || '{}'); } catch(e) {}
+    if (!courseProgress['hs_ush']) courseProgress['hs_ush'] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    var ush = courseProgress['hs_ush'];
+    if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
+    if (ush.unitsCompleted.indexOf('ush_eoc_midterm') === -1) ush.unitsCompleted.push('ush_eoc_midterm');
+    var existingCourses = [];
+    try { existingCourses = JSON.parse(existing && existing.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(function(c){return c.id==='hs_ush';})) {
+      existingCourses.push({id:'hs_ush', period: String(G.period||''), enrolledAt: new Date().toISOString()});
+    }
+    await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        full_name: fullName, display_name: G.name,
+        period: String(G.period || ''), avatar: G.avatar || 'scholar_f',
+        courses: JSON.stringify(existingCourses),
+        unit_progress: JSON.stringify(unitProgress),
+        course_progress: JSON.stringify(courseProgress),
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) { console.log('civitas_profiles push failed', e); }
 }
 
 (function() {
@@ -1340,24 +1385,37 @@ window.addEventListener('DOMContentLoaded', function() {
   try {
     var saved = loadGame();
     if (saved) G = saved;
-    // Check for shell session — skip login gate if already logged in
-    var shellRaw = localStorage.getItem('ac_shell_state');
+    // Check for Civitas session first, then legacy AC shell state
     var hasSession = false;
-    if (shellRaw) {
-      try {
-        var shell = JSON.parse(shellRaw);
-        if (shell && shell.name && shell.name !== 'Guest') {
-          G = Object.assign({}, G || {}, { name: shell.name, period: shell.period || '', fromShell: true });
+    try {
+      var civRaw = localStorage.getItem('civitas_state');
+      if (civRaw) {
+        var civ = JSON.parse(civRaw);
+        if (civ && civ.name && civ.name !== 'Guest') {
+          G = Object.assign({}, G || {}, { name: civ.name, fullName: civ.fullName||civ.name, period: civ.period || '', fromShell: true, fromCivitas: true });
           normalizeG();
           hasSession = true;
         }
-      } catch(se) {}
+      }
+    } catch(ce) {}
+    if (!hasSession) {
+      var shellRaw = localStorage.getItem('ac_shell_state');
+      if (shellRaw) {
+        try {
+          var shell = JSON.parse(shellRaw);
+          if (shell && shell.name && shell.name !== 'Guest') {
+            G = Object.assign({}, G || {}, { name: shell.name, period: shell.period || '', fromShell: true });
+            normalizeG();
+            hasSession = true;
+          }
+        } catch(se) {}
+      }
     }
     if (hasSession) {
       afterLogin();
     } else {
-      // No shell session — redirect to shell to login with Google
-      window.location.href = 'https://olsonjoshua-code.github.io/American-Chronicles-Shell/';
+      var returnURL = localStorage.getItem('civitas_shell_url') || localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+      window.location.href = returnURL;
     }
   } catch(e) {
     // Show error visibly if JS fails
