@@ -3914,11 +3914,11 @@ async function submitRecover(){
         const updated=p.updated_at?new Date(p.updated_at).toLocaleDateString():'unknown date';
         let courseList='';
         try{const c=JSON.parse(p.courses||'[]');courseList=c.map(x=>x.id).join(', ');}catch(e){}
-        return`<div onclick="recoverConfirm('${encodeURIComponent(p.full_name)}')"
+        return`<div onclick="recoverConfirm('${encodeURIComponent((p.full_name||'').trim())}')"
           style="background:var(--bg2);border:1px solid var(--border2);padding:12px 16px;margin-bottom:8px;cursor:pointer;
           text-align:left;transition:border-color .2s"
           onmouseover="this.style.borderColor='var(--civitas)'" onmouseout="this.style.borderColor='var(--border2)'">
-          <div style="font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600">${p.display_name||p.full_name}</div>
+          <div style="font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600">${(p.display_name||p.full_name||'').trim()}</div>
           <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-top:3px">Last active: ${updated} · Courses: ${courseList||'none'}</div>
           <div style="font-family:var(--bebas);font-size:10px;color:var(--civitas2);margin-top:4px;letter-spacing:1px">▶ RESTORE THIS PROFILE</div>
         </div>`;
@@ -3984,11 +3984,13 @@ async function showAllProfiles(){
         const updated=p.updated_at?new Date(p.updated_at).toLocaleDateString():'unknown';
         let courseList='';
         try{const c=JSON.parse(p.courses||'[]');courseList=c.map(x=>x.id).join(', ');}catch(e){}
-        return`<div onclick="recoverConfirm('${encodeURIComponent(p.full_name)}')"
+        const displayName=(p.display_name||p.full_name||'').trim();
+        const safeName=encodeURIComponent((p.full_name||'').trim());
+        return`<div onclick="recoverConfirm('${safeName}')"
           style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"
           onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='transparent'">
           <div>
-            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">${p.display_name||p.full_name}</div>
+            <div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">${displayName}</div>
             <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${courseList||'no courses'} · ${updated}</div>
           </div>
           <div style="font-family:var(--bebas);font-size:9px;color:var(--civitas2);letter-spacing:1px">RESTORE</div>
@@ -4002,14 +4004,21 @@ async function showAllProfiles(){
 }
 
 async function recoverConfirm(encodedName){
-  const fullName=decodeURIComponent(encodedName);
+  const fullName=decodeURIComponent(encodedName).trim();
   const status=document.getElementById('recover-status');
   status.textContent='Restoring profile...';
   status.style.color='var(--civitas2)';
   document.getElementById('recover-results').innerHTML='';
-  const profile=await loadProfileByName(fullName);
+  // Try exact match first, then fall back to trimmed ilike in case of stored leading/trailing spaces
+  let profile=await loadProfileByName(fullName);
+  if(!profile){
+    try{
+      const rows=await sfetch('/rest/v1/civitas_profiles?full_name=ilike.'+encodeURIComponent(fullName)+'&select=*&limit=1');
+      if(Array.isArray(rows)&&rows[0]) profile=rows[0];
+    }catch(e){}
+  }
   if(profile) recoverFromProfile(profile);
-  else{status.textContent='Could not load profile. Try again.';status.style.color='var(--red2)';}
+  else{status.textContent='Could not load profile for "'+fullName+'". Try searching by name instead.';status.style.color='var(--red2)';}
 }
 
 function recoverFromProfile(profile){
