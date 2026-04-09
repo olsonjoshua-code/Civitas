@@ -4194,14 +4194,12 @@ function applyProfile(p){
   try{S.vocabBestScore=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
   try{S.flashcardsStudied=JSON.parse(p.flashcards_studied||'{}');}catch(e){}
   // Restore unit_progress to localStorage so the leaderboard and progress bars work
+  // Supabase always wins — this ensures MPE grants and restores are never blocked by stale localStorage
   try{if(p.unit_progress&&p.unit_progress!=='{}'){
     const existing=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
     const fromDB=JSON.parse(p.unit_progress);
-    // Merge — keep whichever has more recent completedAt per unit
-    Object.keys(fromDB).forEach(k=>{
-      if(!existing[k]||!existing[k].completedAt||(fromDB[k].completedAt>existing[k].completedAt))
-        existing[k]=fromDB[k];
-    });
+    // Merge — Supabase always wins per unit (teacher MPE edits must override local cache)
+    Object.keys(fromDB).forEach(k=>{ existing[k]=fromDB[k]; });
     localStorage.setItem('civitas_unit_progress',JSON.stringify(existing));
   }}catch(e){}
   // Restore per-round progress keys for each unit game
