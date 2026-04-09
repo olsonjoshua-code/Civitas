@@ -453,6 +453,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
     <button class="btn full amber" onclick="submitRecover()" id="recover-btn" style="width:100%;margin-bottom:8px"><span>🔍 Search for Profile</span></button>
     <div id="recover-results" style="margin:12px 0"></div>
     <button class="btn full" onclick="showSetupScreen()" style="font-size:11px;color:var(--text3);margin-top:8px"><span>← Create a new profile instead</span></button>
+    <!-- Teacher section: code input always shown, Browse All only revealed after correct code -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="recover-teacher-pwd" type="password" maxlength="16" placeholder="Teacher code"
+          style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:var(--bg2);border:1px solid var(--border2);color:var(--text3);padding:8px 10px;flex:1;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')checkTeacherAndBrowse()">
+        <button class="btn xs" onclick="checkTeacherAndBrowse()" style="flex-shrink:0;border-color:var(--border2);color:var(--text3)"><span>↵</span></button>
+      </div>
+      <div id="recover-teacher-err" style="font-family:var(--dm);font-size:10px;color:var(--red2);min-height:14px;margin-top:4px"></div>
+    </div>
   </div>
 </div>
 
@@ -3845,6 +3855,11 @@ function showRecoverScreen(){
   document.getElementById('recover-input').value='';
   document.getElementById('recover-status').textContent='';
   document.getElementById('recover-results').innerHTML='';
+  // Always clear teacher code field so it never persists between sessions
+  const tpwd=document.getElementById('recover-teacher-pwd');
+  if(tpwd)tpwd.value='';
+  const terr=document.getElementById('recover-teacher-err');
+  if(terr)terr.textContent='';
   setTimeout(()=>document.getElementById('recover-input').focus(),100);
 }
 
@@ -3871,19 +3886,27 @@ async function submitRecover(){
   },12000);
 
   try{
+    // Normalise input — trim whitespace and collapse internal spaces
+    const nameTrimmed = name.replace(/\s+/g,' ').trim();
+    const firstName = nameTrimmed.split(' ')[0];
+
     // Try exact match first
-    const exact=await loadProfileByName(name);
+    const exact=await loadProfileByName(nameTrimmed);
     if(exact){
       clearTimeout(searchTimeout);
       recoverFromProfile(exact);
       return;
     }
-    // Try partial match (first name, different capitalization)
-    const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
-    const partial2=await sfetch('/rest/v1/civitas_profiles?full_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    // Try partial match on full typed name, then first name only as fallback
+    const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.%25'+encodeURIComponent(nameTrimmed)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    const partial2=await sfetch('/rest/v1/civitas_profiles?full_name=ilike.%25'+encodeURIComponent(nameTrimmed)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    // Also search by first name alone in case last name was misspelled
+    const partial3 = nameTrimmed !== firstName
+      ? await sfetch('/rest/v1/civitas_profiles?full_name=ilike.'+encodeURIComponent(firstName)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8')
+      : [];
     clearTimeout(searchTimeout);
     const seen=new Set();
-    const combined=[...(Array.isArray(partial)?partial:[]),...(Array.isArray(partial2)?partial2:[])].filter(p=>{if(seen.has(p.full_name))return false;seen.add(p.full_name);return true;});
+    const combined=[...(Array.isArray(partial)?partial:[]),...(Array.isArray(partial2)?partial2:[]),...(Array.isArray(partial3)?partial3:[])].filter(p=>{if(seen.has(p.full_name))return false;seen.add(p.full_name);return true;});
     if(combined.length>0){
       status.textContent='Found '+combined.length+' matching profile'+(combined.length>1?'s':'')+'. Is this you?';
       status.style.color='var(--civitas2)';
@@ -3901,20 +3924,11 @@ async function submitRecover(){
         </div>`;
       }).join('');
     } else {
-      status.textContent='No profile found for "'+name+'". Try a shorter name, or just a first name.';
+      status.textContent='No profile found for "'+name+'". Try a shorter name, or just your first name.';
       status.style.color='var(--red2)';
-      results.innerHTML='<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">'+
-        '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:6px">Teacher: browse all profiles to find a student manually.</div>'+
-        '<div style="display:flex;gap:6px;align-items:center">'+
-        '<input id="recover-teacher-pwd" type="password" maxlength="16" placeholder="Teacher code" '+
-        'style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:8px 10px;flex:1;outline:none" '+
-        'onkeydown="if(event.key===\'Enter\')checkTeacherAndBrowse()">'+
-        '<button class="btn" onclick="checkTeacherAndBrowse()" style="font-size:10px;padding:8px 12px"><span>Browse All</span></button>'+
-        '</div>'+
-        '<div id="recover-teacher-err" style="font-family:var(--dm);font-size:10px;color:var(--red2);min-height:14px;margin-top:4px"></div>'+
-        '</div>';
+      results.innerHTML='';
     }
-  }catch(e){
+    }catch(e){
     clearTimeout(searchTimeout);
     status.textContent='Connection error — check your internet and try again.';
     status.style.color='var(--red2)';
@@ -3926,7 +3940,7 @@ async function checkTeacherAndBrowse(){
   const pwd=document.getElementById('recover-teacher-pwd');
   const err=document.getElementById('recover-teacher-err');
   if(!pwd)return;
-  if(pwd.value===TEACHER_PWD){
+  if(pwd.value.toLowerCase()===TEACHER_PWD.toLowerCase()){
     err.textContent='';
     showAllProfiles();
   } else {
