@@ -3957,10 +3957,24 @@ async function showAllProfiles(){
   status.style.color='var(--text2)';
   results.innerHTML='';
   try{
-    const all=await sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,gold,courses,updated_at&order=updated_at.desc&limit=200');
-    if(!Array.isArray(all)||all.length===0){
-      status.textContent='No profiles found in the database.';
+    // Bypass sfetch timeout for Browse All — use a direct fetch with full error visibility
+    let all=[];
+    try{
+      const r=await fetch(SUPA_URL+'/rest/v1/civitas_profiles?select=display_name,full_name,gold,courses,updated_at&order=updated_at.desc&limit=300',{
+        headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+      });
+      if(!r.ok) throw new Error('Supabase returned '+r.status+': '+await r.text());
+      all=await r.json();
+    }catch(fetchErr){
+      status.textContent='Failed to load profiles: '+fetchErr.message;
       status.style.color='var(--red2)';
+      results.innerHTML='<button class="btn sm amber" onclick="showAllProfiles()" style="margin-top:8px"><span>↺ Try Again</span></button>';
+      return;
+    }
+    if(!Array.isArray(all)||all.length===0){
+      status.textContent='No profiles found in the database. Check your internet connection.';
+      status.style.color='var(--red2)';
+      results.innerHTML='<button class="btn sm amber" onclick="showAllProfiles()" style="margin-top:8px"><span>↺ Try Again</span></button>';
       return;
     }
     status.textContent=all.length+' profiles found — scroll to find yours:';
