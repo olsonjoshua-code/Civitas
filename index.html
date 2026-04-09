@@ -941,12 +941,19 @@ const SUPA_H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization
 const _supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 
 async function sfetch(path,opts={}){
+  const _sfetchTimeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('sfetch timeout')),8000));
   try{
-    const{data:{session}}=await _supa.auth.getSession();
-    const auth=session?'Bearer '+session.access_token:'Bearer '+SUPA_KEY;
-    const headers={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':auth,...(opts.headers||{})};
-    const r=await fetch(SUPA_URL+path,{...opts,headers});
-    return await r.json();
+    const result=await Promise.race([
+      (async()=>{
+        let auth='Bearer '+SUPA_KEY;
+        try{const{data:{session}}=await _supa.auth.getSession();if(session)auth='Bearer '+session.access_token;}catch(e){}
+        const headers={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':auth,...(opts.headers||{})};
+        const r=await fetch(SUPA_URL+path,{...opts,headers});
+        return await r.json();
+      })(),
+      _sfetchTimeout
+    ]);
+    return result;
   }catch(e){return[];}
 }
 
@@ -2957,6 +2964,15 @@ function saveS(){
   if(!saveS._t) saveS._t=setTimeout(()=>{saveS._t=null;saveProfileByName();},2000);
 }
 
+// Force an immediate Supabase save when the page unloads (tab close, browser close, restart)
+window.addEventListener('beforeunload', () => {
+  if(S && S.name && !S.isGuest && !IS_TEACHER) {
+    // Cancel any pending debounced save and fire immediately
+    if(saveS._t){ clearTimeout(saveS._t); saveS._t=null; }
+    saveProfileByName();
+  }
+});
+
 function loadS(){
   try{
     const r=localStorage.getItem(SHELL_KEY);
@@ -3845,16 +3861,27 @@ async function submitRecover(){
   status.style.color='var(--text2)';
   results.innerHTML='';
 
+  // Safety net: no matter what, re-enable the button after 12 seconds
+  const searchTimeout=setTimeout(()=>{
+    btn.disabled=false;
+    if(status.textContent==='Searching...'){
+      status.textContent='Search timed out — check your internet connection and try again.';
+      status.style.color='var(--red2)';
+    }
+  },12000);
+
   try{
     // Try exact match first
     const exact=await loadProfileByName(name);
     if(exact){
+      clearTimeout(searchTimeout);
       recoverFromProfile(exact);
       return;
     }
     // Try partial match (first name, different capitalization)
     const partial=await sfetch('/rest/v1/civitas_profiles?display_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
     const partial2=await sfetch('/rest/v1/civitas_profiles?full_name=ilike.%25'+encodeURIComponent(name)+'%25&select=display_name,full_name,gold,courses,updated_at&limit=8');
+    clearTimeout(searchTimeout);
     const seen=new Set();
     const combined=[...(Array.isArray(partial)?partial:[]),...(Array.isArray(partial2)?partial2:[])].filter(p=>{if(seen.has(p.full_name))return false;seen.add(p.full_name);return true;});
     if(combined.length>0){
@@ -3888,6 +3915,7 @@ async function submitRecover(){
         '</div>';
     }
   }catch(e){
+    clearTimeout(searchTimeout);
     status.textContent='Connection error — check your internet and try again.';
     status.style.color='var(--red2)';
   }
@@ -4142,7 +4170,21 @@ function applyProfile(p){
   // Restore per-round progress keys for each unit game
   // These are stored in Supabase as unit_rounds_<UNIT_ID> columns
   try {
-    const unitIds = ['apsem_u1','apsem_u2','apsem_u3','apsem_u4','apsem_u5','apsem_u6','apsem_exam','apsem_bi_bq','apg_u1','apg_u2','apg_u3','apg_u4','apg_u5','apg_u6','apg_bi_con','apg_bi_lor','apg_bi_mk','apg_bi_mpa','apg_bi_pmcd'];
+    const unitIds = [
+      // AP Seminar
+      'apsem_u1','apsem_u2','apsem_u3','apsem_u4','apsem_u5','apsem_u6',
+      'apsem_exam','apsem_bi_bq','apsem_rpg',
+      // AP Gov
+      'apg_u1','apg_u2','apg_u3','apg_u4','apg_u5','apg_u6',
+      'apg_bi_con','apg_bi_lor','apg_bi_mk','apg_bi_mpa','apg_bi_pmcd','apg_exam_practice','apg_rpg',
+      // AP Comparative
+      'apcmp_u1','apcmp_u2','apcmp_u3','apcmp_u4','apcmp_u5','apcmp_u6','apcmp_u7',
+      'apcmp_bi_pd','apcmp_bi_ci','apcmp_bi_de','apcmp_exam','apcmp_rpg',
+      // US History
+      'ush_u1','ush_u2a','ush_u2b','ush_u3a','ush_u3b','ush_u4a','ush_u4b',
+      'ush_u5a','ush_u5b','ush_u6','ush_u7a','ush_u7b','ush_u8',
+      'ush_theme_power','ush_theme_freedom','ush_theme_economy','ush_theme_conflict','ush_theme_identity','ush_eoc'
+    ];
     unitIds.forEach(uid => {
       const col = 'unit_rounds_' + uid;
       if (p[col] && p[col] !== '{}' && p[col] !== 'null') {
