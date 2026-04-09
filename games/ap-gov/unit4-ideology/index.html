@@ -581,6 +581,120 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
 // ── CONFIGURATION ──────────────────────────────────
 const UNIT_ID = 'apg_u4';
+
+// ── SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────────
+// Chromebooks clear localStorage on logout. This ensures progress always loads
+// from Supabase, making it the single source of truth.
+const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+let _dbRounds = {};          // round data loaded from Supabase on boot
+let _dbUnitProgress = {};    // unit_progress loaded from Supabase on boot
+let _dbFullName = '';        // authoritative full_name from Supabase
+let _dbLoaded = false;
+
+async function _loadProfileFromDB() {
+  try {
+    const fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const r = await Promise.race([
+      fetch(_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn.trim()) + '&select=*&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (!r.ok) return;
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!p) return;
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data for this unit
+    const roundCol = 'unit_rounds_' + UNIT_ID;
+    if (p[roundCol]) {
+      try { _dbRounds = JSON.parse(p[roundCol] || '{}'); } catch(e) { _dbRounds = {}; }
+      // Write back to localStorage so existing functions work
+      Object.keys(_dbRounds).forEach(rk => {
+        const lsKey = 'civitas_' + UNIT_ID + '_' + rk;
+        try {
+          const existing = localStorage.getItem(lsKey);
+          const dbVal = _dbRounds[rk];
+          if (!existing || (dbVal.completedAt && JSON.parse(existing).completedAt < dbVal.completedAt)) {
+            localStorage.setItem(lsKey, JSON.stringify(dbVal));
+          }
+        } catch(e) {}
+      });
+    }
+    // Restore partial progress
+    const partialCol = 'unit_partial_' + UNIT_ID;
+    if (p[partialCol] && p[partialCol] !== '{}') {
+      try {
+        const lsKey = 'civitas_' + UNIT_ID + '_partial';
+        const existing = localStorage.getItem(lsKey);
+        const dbPartial = JSON.parse(p[partialCol]);
+        if (!existing || (dbPartial.ts && JSON.parse(existing).ts < dbPartial.ts)) {
+          localStorage.setItem(lsKey, JSON.stringify(dbPartial));
+        }
+      } catch(e) {}
+    }
+    // Restore unit_progress
+    if (p.unit_progress && p.unit_progress !== '{}') {
+      try {
+        _dbUnitProgress = JSON.parse(p.unit_progress);
+        const existing = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+        // Supabase wins on every key
+        Object.keys(_dbUnitProgress).forEach(k => { existing[k] = _dbUnitProgress[k]; });
+        localStorage.setItem('civitas_unit_progress', JSON.stringify(existing));
+      } catch(e) {}
+    }
+    // Restore gold
+    if (p.gold) {
+      try {
+        const localGold = parseInt(localStorage.getItem('civitas_gold') || '0');
+        if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
+      } catch(e) {}
+    }
+    _dbLoaded = true;
+  } catch(e) { /* silently fail — game still works from localStorage */ }
+}
+
+async function _pushRoundsToSupabase() {
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const rounds = {};
+    // Collect all round data
+    if (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK.rounds) {
+      QUESTION_BANK.rounds.forEach((_, i) => {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      });
+    } else {
+      // fallback: scan for up to 6 rounds
+      for (let i = 0; i < 6; i++) {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      }
+    }
+    let unitProg = {};
+    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    const partial = localStorage.getItem('civitas_' + UNIT_ID + '_partial');
+    const payload = {
+      full_name: fn.trim(),
+      unit_progress: JSON.stringify(unitProg),
+      ['unit_rounds_' + UNIT_ID]: JSON.stringify(rounds),
+      updated_at: new Date().toISOString()
+    };
+    if (partial && partial !== '{}') payload['unit_partial_' + UNIT_ID] = partial;
+    // Also sync gold
+    try { payload.gold = parseInt(localStorage.getItem('civitas_gold') || '0'); } catch(e) {}
+    await fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+// ── END SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────
+
 const UNIT_TITLE = 'American Political Ideologies & Beliefs';
 const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
 const FLASHCARD_URL = CIVITAS_URL + 'games/flashcards/?deck=apgov_unit4';
@@ -777,8 +891,9 @@ window.addEventListener('load', () => {
       fill.style.width = '100%';
       setTimeout(() => {
         document.getElementById('loading').style.opacity = '0';
-        setTimeout(() => {
+        setTimeout(async () => {
           document.getElementById('loading').style.display = 'none';
+          await _loadProfileFromDB();
           showHub();
         }, 500);
       }, 300);
@@ -809,6 +924,8 @@ function saveRoundProgress(roundIdx, pct, correct, total) {
       completedAt: new Date().toISOString()
     };
     localStorage.setItem(key, JSON.stringify(updated));
+    // Push to Supabase immediately — don't rely on localStorage surviving
+    _pushRoundsToSupabase();
     return updated;
   } catch(e) { return null; }
 }
@@ -1888,9 +2005,10 @@ function saveProgress(pct) {
       progress[UNIT_ID] = { bestAccuracy: pct, completedAt: new Date().toISOString() };
       localStorage.setItem('civitas_unit_progress', JSON.stringify(progress));
     }
-    // Sync to Supabase profile so leaderboard updates
+    // Push to Supabase immediately on unit complete
     syncProgressToCloud(progress, pct);
     saveProgressToSupabase();
+    _pushRoundsToSupabase();
   } catch(e) {}
 }
 
@@ -1910,7 +2028,8 @@ function savePartialProgress() {
   } catch(e) {}
   // Debounced Supabase push — waits 1.5s after last answer
   clearTimeout(_saveDebounce);
-  _saveDebounce = setTimeout(() => saveProgressToSupabase(), 1500);
+  // Push immediately — no debounce on Chromebooks
+  _pushRoundsToSupabase();
 }
 
 function appendFRQRoundCard() {
@@ -2246,8 +2365,9 @@ function awardGoldToShell(amount, source) {
   try {
     const current = parseInt(localStorage.getItem('civitas_gold') || '0');
     localStorage.setItem('civitas_gold', current + amount);
-    // Signal to shell on return
     localStorage.setItem('civitas_gold_pending', JSON.stringify({ amount, source }));
+    // Also push gold to Supabase immediately
+    _pushRoundsToSupabase();
   } catch(e) {}
 }
 
