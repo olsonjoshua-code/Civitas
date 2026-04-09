@@ -475,13 +475,52 @@
       const s=ss?JSON.parse(ss):{};
       s.unitsCompleted=s.unitsCompleted||[];
       if(!s.unitsCompleted.includes('eoc_practice'))s.unitsCompleted.push('eoc_practice');
-      // Save best EOC score
       if(!s.eocBest||pct>s.eocBest)s.eocBest=pct;
       if(!s.eocBestScale||scale>s.eocBestScale)s.eocBestScale=scale;
       localStorage.setItem(SHELL_KEY,JSON.stringify(s));
       if(window.opener)window.opener.postMessage({type:'unitComplete',unitId:'eoc_practice'},'*');
       if(window.parent!==window)window.parent.postMessage({type:'unitComplete',unitId:'eoc_practice'},'*');
     }catch(e){}
+
+    // ── Write to civitas_profiles (cross-device restore) ─────────────────
+    (async()=>{
+      try{
+        const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
+        const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+        const HDRS={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+        // Get student name from civitas_state or shell state
+        let sName='', sFullName='', sPeriod='';
+        try{const civ=localStorage.getItem('civitas_state');if(civ){const c=JSON.parse(civ);sName=c.name||'';sFullName=c.fullName||c.name||'';sPeriod=c.period||'';}}catch(e){}
+        if(!sName){try{const raw=localStorage.getItem(SHELL_KEY);if(raw){const s=JSON.parse(raw);sName=s.name||'';sFullName=s.fullName||s.name||'';sPeriod=s.period||'';}}catch(e){}}
+        if(!sName||sName==='Student')return;
+        const fullName=sFullName||sName;
+        // Fetch existing profile
+        const pr=await fetch(SUPA_URL+'/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=*',{headers:HDRS});
+        const rows=await pr.json();
+        const existing=rows&&rows[0];
+        // Merge unit_progress
+        let unitProgress={};
+        try{unitProgress=JSON.parse(existing&&existing.unit_progress||'{}');}catch(e){}
+        const prevUnit=unitProgress['ush_eoc']||{};
+        unitProgress['ush_eoc']={bestAccuracy:Math.max(pct,prevUnit.bestAccuracy||0),completedAt:prevUnit.completedAt||new Date().toISOString()};
+        // Merge course_progress
+        let courseProgress={};
+        try{courseProgress=JSON.parse(existing&&existing.course_progress||'{}');}catch(e){}
+        if(!courseProgress['hs_ush'])courseProgress['hs_ush']={unitsCompleted:[],badgesEarned:[],vocabPassed:{},frqSubmissions:{}};
+        const ush=courseProgress['hs_ush'];
+        if(!Array.isArray(ush.unitsCompleted))ush.unitsCompleted=[];
+        if(!ush.unitsCompleted.includes('ush_eoc'))ush.unitsCompleted.push('ush_eoc');
+        // Ensure courses array
+        let existingCourses=[];
+        try{existingCourses=JSON.parse(existing&&existing.courses||'[]');}catch(e){}
+        if(!existingCourses.find(c=>c.id==='hs_ush'))existingCourses.push({id:'hs_ush',period:String(sPeriod||''),enrolledAt:new Date().toISOString()});
+        await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name',{
+          method:'POST',
+          headers:Object.assign({},HDRS,{'Prefer':'resolution=merge-duplicates'}),
+          body:JSON.stringify({full_name:fullName,display_name:sName,period:String(sPeriod||''),courses:JSON.stringify(existingCourses),unit_progress:JSON.stringify(unitProgress),course_progress:JSON.stringify(courseProgress),updated_at:new Date().toISOString()})
+        });
+      }catch(e){console.log('EOC civitas push failed',e);}
+    })();
   }
 
   // ── Print certificate ────────────────────────────────────────────────────
@@ -491,7 +530,11 @@
     const [level,levelDesc]=getLevel(scale);
     const tier=calcEOCTier(pct);
     let studentName='Student';
-    try{const raw=localStorage.getItem(SHELL_KEY);if(raw){const s=JSON.parse(raw);studentName=s.name||'Student';}}catch(e){}
+    try{
+      const civ=localStorage.getItem('civitas_state');
+      if(civ){const c=JSON.parse(civ);if(c&&c.name&&c.name!=='Guest'){studentName=c.name;}}
+      else{const raw=localStorage.getItem(SHELL_KEY);if(raw){const s=JSON.parse(raw);studentName=s.name||'Student';}}
+    }catch(e){}
     const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     const w=window.open('','_blank','width=800,height=680');
     if(!w){alert('Allow popups to print your certificate.');return;}
@@ -566,7 +609,12 @@
     document.getElementById("start-screen").style.display="flex";
   }
 
-  function returnToShell(){try{const u=localStorage.getItem('ac_shell_url');if(u){window.location.href=u;return;}}catch(e){}window.location.href='../index.html';}
+  function returnToShell(){
+    try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','us_history');}catch(e){}
+    try{const cu=localStorage.getItem('civitas_shell_url');if(cu){window.location.href=cu;return;}}catch(e){}
+    try{const u=localStorage.getItem('ac_shell_url');if(u){window.location.href=u;return;}}catch(e){}
+    window.location.href='https://olsonjoshua-code.github.io/Civitas/';
+  }
   function openZoom(src){document.getElementById("zoom-img").src=src;document.getElementById("zoom-overlay").classList.add("open");}
   function closeZoom(){document.getElementById("zoom-overlay").classList.remove("open");}
 
