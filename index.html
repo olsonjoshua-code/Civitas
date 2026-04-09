@@ -712,10 +712,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
           <div>
-            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">STUDENT FULL NAME</div>
-            <input id="mpe-student-name" type="text" placeholder="e.g. Ryan Wilgeroth"
-              style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none"
-              onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border2)'">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px">STUDENT</div>
+              <button onclick="populateMPEDropdown()" title="Refresh student list"
+                style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:2px 7px;cursor:pointer;transition:all .15s"
+                onmouseenter="this.style.borderColor='var(--amber)';this.style.color='var(--amber)'" onmouseleave="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↺ REFRESH</button>
+            </div>
+            <div style="position:relative">
+              <input id="mpe-search" type="text" placeholder="Type to filter students…"
+                style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none;padding-right:28px"
+                onfocus="this.style.borderColor='var(--amber)';document.getElementById('mpe-dropdown').style.display='block';filterMPEDropdown()"
+                oninput="filterMPEDropdown()"
+                onblur="setTimeout(()=>document.getElementById('mpe-dropdown').style.display='none',180)"
+                autocomplete="off">
+              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none">▾</span>
+              <div id="mpe-dropdown"
+                style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg2);border:1px solid var(--amber);border-top:none;max-height:180px;overflow-y:auto">
+              </div>
+            </div>
+            <!-- hidden field that holds the actual full_name sent to Supabase -->
+            <input type="hidden" id="mpe-student-name">
           </div>
           <div>
             <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">COURSE</div>
@@ -6340,6 +6356,7 @@ async function renderTeacherView(){
       .map(p=>buildStudentData(p,frqRows||[],testRows||[]));
 
     _teacherData=students;
+    populateMPEDropdown(); // keep MPE student list in sync
 
     // Stats bar
     const statsEl=document.getElementById('teacher-stats-bar');
@@ -7125,6 +7142,66 @@ const MPE_UNITS = {
   }
 };
 
+// ── MPE STUDENT DROPDOWN ─────────────────────────────────────────────────────
+let _mpeStudentList = []; // [{label, fullName}]
+
+function populateMPEDropdown() {
+  // Pull from already-loaded _teacherData if available, otherwise fetch
+  if (_teacherData && _teacherData.length) {
+    _mpeStudentList = _teacherData
+      .map(s => ({ label: s.displayName || s.name || s.fullName, fullName: s.fullName || s.name }))
+      .filter(s => s.fullName)
+      .sort((a, b) => a.label.localeCompare(b.label));
+    filterMPEDropdown();
+    notify('Student list refreshed (' + _mpeStudentList.length + ' students)');
+  } else {
+    // Fallback: fetch directly if teacher view hasn't loaded yet
+    sfetch('/rest/v1/civitas_profiles?select=display_name,full_name&order=display_name.asc&limit=300').then(rows => {
+      _mpeStudentList = (rows || [])
+        .map(r => ({ label: r.display_name || r.full_name, fullName: r.full_name }))
+        .filter(s => s.fullName)
+        .sort((a, b) => a.label.localeCompare(b.label));
+      filterMPEDropdown();
+      notify('Student list loaded (' + _mpeStudentList.length + ' students)');
+    }).catch(() => notify('Could not load students — try Refresh'));
+  }
+}
+
+function filterMPEDropdown() {
+  const q = (document.getElementById('mpe-search')?.value || '').toLowerCase();
+  const dd = document.getElementById('mpe-dropdown');
+  if (!dd) return;
+  if (!_mpeStudentList.length) {
+    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No students loaded — click ↺ Refresh</div>';
+    dd.style.display = 'block';
+    return;
+  }
+  const filtered = q
+    ? _mpeStudentList.filter(s => s.label.toLowerCase().includes(q) || s.fullName.toLowerCase().includes(q))
+    : _mpeStudentList;
+  if (!filtered.length) {
+    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No matches</div>';
+  } else {
+    dd.innerHTML = filtered.map(s =>
+      `<div onmousedown="selectMPEStudent('${s.fullName.replace(/'/g,"\\'")}','${s.label.replace(/'/g,"\\'")}') "
+        style="font-family:var(--dm);font-size:11px;color:var(--cream);padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s"
+        onmouseenter="this.style.background='rgba(112,96,208,.12)'" onmouseleave="this.style.background='transparent'">
+        ${s.label} <span style="font-size:9px;color:var(--text3);margin-left:4px">${s.fullName !== s.label ? '· ' + s.fullName : ''}</span>
+      </div>`
+    ).join('');
+  }
+  dd.style.display = 'block';
+}
+
+function selectMPEStudent(fullName, label) {
+  document.getElementById('mpe-student-name').value = fullName;
+  document.getElementById('mpe-search').value = label;
+  document.getElementById('mpe-search').style.borderColor = 'var(--green2)';
+  document.getElementById('mpe-dropdown').style.display = 'none';
+  document.getElementById('mpe-status').innerHTML =
+    '<span style="color:var(--green2);font-family:var(--dm);font-size:10px">✓ ' + label + ' selected</span>';
+}
+
 function renderMPEUnits() {
   const course = document.getElementById('mpe-course').value;
   const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
@@ -7248,7 +7325,7 @@ async function commitManualProgress() {
 }
 
 // Initialize MPE on page load
-document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); });
+document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); populateMPEDropdown(); });
 
 // ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────
 function clearImportJSON() {
