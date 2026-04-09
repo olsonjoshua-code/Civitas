@@ -943,32 +943,22 @@ function appendFRQRoundCard(){
   const totalRounds=QUESTION_BANK.rounds.length;
   const card=document.createElement('div');
   card.id='frq-round-card';
-  card.style.cssText=`background:var(--bg2);border:1px solid ${frqDone?'var(--purple)':allDone?'var(--border2)':'var(--border)'};border-left:4px solid ${frqDone?'var(--purple)':allDone?'var(--border2)':'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${allDone?'cursor:pointer':'opacity:.45;cursor:not-allowed'}`;
-  if(allDone){
-    card.onmouseover=()=>{card.style.borderColor='var(--purple)';card.style.borderLeftColor='var(--purple)';};
-    card.onmouseout=()=>{card.style.borderColor=frqDone?'var(--purple)':'var(--border2)';card.style.borderLeftColor=frqDone?'var(--purple)':'var(--border2)';};
-    card.onclick=()=>{
-      document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));
-      document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));
-      const frqPanel=document.getElementById('tab-frq');
-      if(frqPanel){frqPanel.classList.add('active');renderFRQTab();}
-    };
-  }
-  card.innerHTML=`
-    <div style="font-size:28px;flex-shrink:0">✍️</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${totalRounds+1} OF ${totalRounds+1} · FINAL STEP</div>
-      <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">FRQ Practice</div>
-      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">AI-graded free response — all 4 types, graded against the official AP rubric.</div>
-    </div>
-    <div style="flex-shrink:0;text-align:right">
-      ${frqDone
-        ?`<div style="font-family:var(--bebas);font-size:11px;color:var(--purple2);letter-spacing:1px">✓ SUBMITTED</div>`
-        :allDone
-          ?`<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple);padding:6px 16px">▶ Go to FRQ</div>`
-          :`<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete all rounds first</div>`
-      }
-    </div>`;
+  const isLocked=!allDone;
+  card.className='activity-card'+(isLocked?' locked':'');
+  if(!isLocked){card.onclick=()=>{document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));const fp=document.getElementById('tab-frq');if(fp){fp.classList.add('active');renderFRQTab();}};}
+  else{card.onclick=()=>notify('Complete all rounds first!');}
+  card.innerHTML=
+    '<div class="activity-card-strip" style="background:'+(frqDone?'var(--purple)':isLocked?'var(--border2)':'var(--purple)')+'"></div>'+
+    '<div class="activity-card-body">'+
+      '<div class="activity-card-icon">✍️</div>'+
+      '<div class="activity-card-label">ROUND '+(totalRounds+1)+' · FINAL STEP</div>'+
+      '<div class="activity-card-title">FRQ Practice</div>'+
+      '<div class="activity-card-desc">AI-graded free response — all 4 types, graded against the official AP rubric.</div>'+
+      '<div class="activity-card-action" style="color:'+(frqDone?'var(--purple2)':isLocked?'var(--text3)':'var(--purple2)')+'">'+
+        (isLocked?'🔒 Complete all rounds first':frqDone?'✓ Submitted — retake anytime':'▶ Go to FRQ Practice')+
+      '</div>'+
+      (frqDone?'<div class="activity-card-badge" style="border-color:var(--purple2);color:var(--purple2)">✓ DONE</div>':'')+
+    '</div>';
   el.appendChild(card);
 }
 
