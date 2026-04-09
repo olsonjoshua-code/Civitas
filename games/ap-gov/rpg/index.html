@@ -3062,6 +3062,8 @@ function save(){
       localStorage.setItem('civitas_gold_pending',JSON.stringify({amount:(G.gold-prevGold),source:'RPG'}));
     }
   }catch(e){}
+  // Push full state to Supabase immediately — Chromebook wipe protection
+  _pushRPGStateToSupabase();
 }
 function loadSave(){
   try{
@@ -5388,7 +5390,7 @@ function renderTimeline(){
 function notify(msg,type){const n=document.createElement('div');n.className='notif '+(type||'');n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),3200);}
 const CIVITAS_URL = localStorage.getItem('civitas_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
 
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded',async ()=>{
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   // Start title music on first user interaction
   document.addEventListener('click',function startTitle(){
@@ -5411,14 +5413,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       window._loginSaveKey=sk;
       window._isGuest=(civPeriod==='guest');
       window._isTeacher=false;
-      // Try derived save key first
+      // Try localStorage first (fast path)
       const ex=localStorage.getItem(sk);
       if(ex){const d=JSON.parse(ex);if(d&&d.name){
         const base1=defaultState();
         Object.keys(d).forEach(k=>{if(d[k]!==null&&d[k]!==undefined)base1[k]=d[k];});
-        G=base1;G.period=civPeriod;launchGame();return;
+        G=base1;G.period=civPeriod;
+        // Still push to Supabase to keep it fresh
+        setTimeout(()=>_pushRPGStateToSupabase(),1000);
+        launchGame();return;
       }}
-      // Try last used key (in case they played before under a different key)
+      // Try last used key
       const lastKey=localStorage.getItem('apgov_last_key');
       if(lastKey&&lastKey!==sk){
         const exLast=localStorage.getItem(lastKey);
@@ -5428,10 +5433,22 @@ document.addEventListener('DOMContentLoaded',()=>{
           G=base2;G.period=civPeriod;
           localStorage.setItem(sk,JSON.stringify(G));
           localStorage.setItem('apgov_last_key',sk);
+          setTimeout(()=>_pushRPGStateToSupabase(),1000);
           launchGame();return;
         }}
       }
-      // First time — build a proper state using defaultState()
+      // localStorage empty (Chromebook wipe) — try Supabase
+      const fullName = localStorage.getItem('civitas_full_name') || (window._loginFirst+' '+window._loginLast);
+      const dbState = await _pullRPGStateFromSupabase(fullName);
+      if(dbState&&dbState.name){
+        const base3=defaultState();
+        Object.keys(dbState).forEach(k=>{if(dbState[k]!==null&&dbState[k]!==undefined)base3[k]=dbState[k];});
+        G=base3;G.period=civPeriod;
+        localStorage.setItem(sk,JSON.stringify(G));
+        localStorage.setItem('apgov_last_key',sk);
+        launchGame();return;
+      }
+      // Truly new player — go to avatar creator
       G=defaultState();
       G.name=window._loginFirst+' '+window._loginLast;
       G.firstName=window._loginFirst;
@@ -5530,6 +5547,51 @@ function hideContinue(){
 // Separate from RPG's own Supabase — reports go to main Civitas DB
 const CIVITAS_SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const CIVITAS_SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+
+// ── RPG SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────
+const _CIV_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const _CIV_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+
+async function _pushRPGStateToSupabase() {
+  if (!G || !G.name) return;
+  try {
+    const fn = (localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || G.name || '').trim();
+    if (!fn || fn === 'Mr. Olson' || fn === 'MR. OLSON') return;
+    const payload = {
+      full_name: fn,
+      rpg_state_apg: JSON.stringify(G),
+      updated_at: new Date().toISOString()
+    };
+    if (G.gold) payload.gold = G.gold;
+    await fetch(_CIV_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _CIV_KEY, 'Authorization': 'Bearer ' + _CIV_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+async function _pullRPGStateFromSupabase(fullName) {
+  try {
+    const fn = (fullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '').trim();
+    if (!fn || fn === 'Mr. Olson') return null;
+    const r = await Promise.race([
+      fetch(_CIV_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=rpg_state_apg,gold&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': _CIV_KEY, 'Authorization': 'Bearer ' + _CIV_KEY }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (!r.ok) return null;
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!p || !p.rpg_state_apg) return null;
+    const state = JSON.parse(p.rpg_state_apg);
+    if (p.gold && (!state.gold || p.gold > state.gold)) state.gold = p.gold;
+    return state;
+  } catch(e) { return null; }
+}
+// ── END RPG SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────
+
 
 async function submitRPGQuestionReport(){
   var q=BT&&BT.currentQ;
