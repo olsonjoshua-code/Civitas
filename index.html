@@ -4249,6 +4249,24 @@ function applyProfile(p){
       }
     });
   } catch(e) {}
+  // Restore FRQ submission scores so trophy checks work immediately after recovery
+  try {
+    if (p.frq_progress && p.frq_progress !== '{}' && p.frq_progress !== 'null') {
+      const dbFrq = JSON.parse(p.frq_progress);
+      const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+      if (!ss.courseProgress) ss.courseProgress = {};
+      if (!ss.courseProgress.ap_gov) ss.courseProgress.ap_gov = {};
+      if (!ss.courseProgress.ap_gov.frqSubmissions) ss.courseProgress.ap_gov.frqSubmissions = {};
+      const existing = ss.courseProgress.ap_gov.frqSubmissions;
+      Object.keys(dbFrq).forEach(fid => {
+        if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+          existing[fid] = dbFrq[fid];
+        }
+      });
+      ss.courseProgress.ap_gov.frqSubmissions = existing;
+      localStorage.setItem('civitas_state', JSON.stringify(ss));
+    }
+  } catch(e) {}
   S.setupDone=true;S.isGuest=false;
   // Sync US History progress now that S.courses is populated
   syncUSHistoryProgress();
@@ -7378,6 +7396,30 @@ async function commitManualProgress() {
       });
       payload.vocab_passed = JSON.stringify(vocabPassed);
       payload.vocab_best_score = JSON.stringify(vocabBestScore);
+    }
+
+    // For any core units marked complete, write a dummy FRQ submission so the
+    // trophy fires automatically when the student next loads the unit game.
+    // This merges with any real FRQ submissions already in Supabase.
+    if (selectedUnits.length) {
+      let existingFRQ = {};
+      try { existingFRQ = JSON.parse(profile.frq_progress || '{}'); } catch(e) {}
+      const now2 = new Date().toISOString();
+      selectedUnits.forEach(u => {
+        // Only write dummy if no real submission exists for this unit yet
+        const unitFRQKey = u.id + '_mpe_granted';
+        if (!existingFRQ[unitFRQKey]) {
+          existingFRQ[unitFRQKey] = {
+            bestScore: 1,
+            maxScore: 1,
+            attempts: 1,
+            mpeGranted: true,
+            grantedAt: now2,
+            history: [{ score: 1, ts: Date.now() }]
+          };
+        }
+      });
+      payload.frq_progress = JSON.stringify(existingFRQ);
     }
 
     const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
