@@ -652,6 +652,24 @@ async function _loadProfileFromDB() {
         if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
       } catch(e) {}
     }
+    // Restore FRQ submission scores from Supabase
+    if (p.frq_progress && p.frq_progress !== '{}') {
+      try {
+        const dbFrq = JSON.parse(p.frq_progress);
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        if (!ss.courseProgress) ss.courseProgress = {};
+        if (!ss.courseProgress.ap_gov) ss.courseProgress.ap_gov = {};
+        const existing = ss.courseProgress.ap_gov.frqSubmissions || {};
+        // Merge: Supabase wins on bestScore
+        Object.keys(dbFrq).forEach(fid => {
+          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+            existing[fid] = dbFrq[fid];
+          }
+        });
+        ss.courseProgress.ap_gov.frqSubmissions = existing;
+        localStorage.setItem('civitas_state', JSON.stringify(ss));
+      } catch(e) {}
+    }
     _dbLoaded = true;
   } catch(e) { /* silently fail — game still works from localStorage */ }
 }
@@ -942,8 +960,13 @@ function allRoundsComplete() {
 
 function hasAnyFRQSubmitted() {
   try {
+    // Check for real FRQ submission
     const frqs = getUnitFRQs();
-    return frqs.some(function(frq) { return getFRQBestScore(frq.id) !== null; });
+    if (frqs.some(function(frq) { return getFRQBestScore(frq.id) !== null; })) return true;
+    // Check for teacher MPE grant (written by teacher dashboard)
+    const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const frqProg = (ss.courseProgress && ss.courseProgress.ap_gov && ss.courseProgress.ap_gov.frqSubmissions) || {};
+    return !!frqProg[UNIT_ID + '_mpe_granted'];
   } catch(e) { return false; }
 }
 
@@ -2309,23 +2332,40 @@ function saveGameToFile() {
 
 async function saveProgressToSupabase() {
   try {
-    const sn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
+    const sn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name');
     if (!sn || sn === 'Mr. Olson') return;
+    // Collect rounds from in-memory cache first, fall back to localStorage
     const rounds = {};
     QUESTION_BANK.rounds.forEach((_, i) => {
       try {
-        const k = 'civitas_' + UNIT_ID + '_r' + i;
-        const d = localStorage.getItem(k);
-        if (d) rounds['r' + i] = JSON.parse(d);
+        const memKey = 'r' + i;
+        if (_dbRounds && _dbRounds[memKey]) {
+          rounds[memKey] = _dbRounds[memKey];
+        } else {
+          const k = 'civitas_' + UNIT_ID + '_r' + i;
+          const d = localStorage.getItem(k);
+          if (d) rounds[memKey] = JSON.parse(d);
+        }
       } catch(e) {}
     });
-    let unitProg = {};
-    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    // Collect unit progress from in-memory cache first
+    let unitProg = _dbUnitProgress || {};
+    try {
+      const lsProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+      Object.keys(lsProg).forEach(k => { if (!unitProg[k]) unitProg[k] = lsProg[k]; });
+    } catch(e) {}
+    // Collect FRQ submission scores
+    let frqProgress = {};
+    try {
+      const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+      frqProgress = (ss.courseProgress && ss.courseProgress.ap_gov && ss.courseProgress.ap_gov.frqSubmissions) || {};
+    } catch(e) {}
     const payload = {
       full_name: sn,
       unit_progress: JSON.stringify(unitProg),
       ['unit_rounds_apg_u5']: JSON.stringify(rounds),
       ['unit_partial_apg_u5']: (()=>{try{return localStorage.getItem('civitas_apg_u5_partial')||'{}'}catch(e){return'{}'}})(),
+      frq_progress: JSON.stringify(frqProgress),
       updated_at: new Date().toISOString()
     };
     await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
@@ -2941,6 +2981,8 @@ async function submitUnitFRQ(frqId){
     btnEl.textContent='Submit for AI Grading';
   }
   btnEl.disabled=false;
+  // Re-check unit completion after FRQ submit — triggers trophy if now complete
+  try { if (typeof allRoundsComplete === 'function' && allRoundsComplete()) { renderUnitTrophyBanner(); updateProgress(); } } catch(e) {}
 }
 
 (function(){
