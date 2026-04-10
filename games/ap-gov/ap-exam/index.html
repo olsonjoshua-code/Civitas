@@ -453,6 +453,23 @@ async function _loadProfileFromDB() {
         if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
       } catch(e) {}
     }
+    // Restore FRQ submission scores from Supabase
+    if (p.frq_progress && p.frq_progress !== '{}') {
+      try {
+        const dbFrq = JSON.parse(p.frq_progress);
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        if (!ss.courseProgress) ss.courseProgress = {};
+        if (!ss.courseProgress.ap_gov) ss.courseProgress.ap_gov = {};
+        const existing = ss.courseProgress.ap_gov.frqSubmissions || {};
+        Object.keys(dbFrq).forEach(fid => {
+          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+            existing[fid] = dbFrq[fid];
+          }
+        });
+        ss.courseProgress.ap_gov.frqSubmissions = existing;
+        localStorage.setItem('civitas_state', JSON.stringify(ss));
+      } catch(e) {}
+    }
     _dbLoaded = true;
   } catch(e) { /* silently fail — game still works from localStorage */ }
 }
