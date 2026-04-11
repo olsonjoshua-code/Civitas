@@ -2217,24 +2217,29 @@ function switchHubTab(tabId, btnEl) {
 
 const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
 const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html';
+const USH_SHELL_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
 
 function launchFlashcardsFromTab() {
   const deckId = 'unit1';
-  try { localStorage.setItem('ac_shell_url', UNIT_GAME_URL); } catch(e) {}
-  try { localStorage.setItem('ac_shell_state', JSON.stringify(Object.assign(
-    JSON.parse(localStorage.getItem('ac_shell_state') || '{}'),
-    { _returning_from: 'flashcards' }
-  ))); } catch(e) {}
+  try { localStorage.setItem(SHELL_KEY, JSON.stringify(
+    JSON.parse(localStorage.getItem(SHELL_KEY) || '{}')
+  )); } catch(e) {}
+  try { localStorage.setItem('ac_shell_url', USH_SHELL_URL); } catch(e) {}
+  try { localStorage.setItem('ac_unit_game_return', UNIT_GAME_URL); } catch(e) {}
+  try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
+  try { sessionStorage.removeItem('ac_shell_active'); } catch(e) {}
   window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=study&from=hub';
 }
 
 function launchVocabQuizFromTab() {
   const deckId = 'unit1';
-  try { localStorage.setItem('ac_shell_url', UNIT_GAME_URL); } catch(e) {}
-  try { localStorage.setItem('ac_shell_state', JSON.stringify(Object.assign(
-    JSON.parse(localStorage.getItem('ac_shell_state') || '{}'),
-    { _returning_from: 'vocabquiz' }
-  ))); } catch(e) {}
+  try { localStorage.setItem(SHELL_KEY, JSON.stringify(
+    JSON.parse(localStorage.getItem(SHELL_KEY) || '{}')
+  )); } catch(e) {}
+  try { localStorage.setItem('ac_shell_url', USH_SHELL_URL); } catch(e) {}
+  try { localStorage.setItem('ac_unit_game_return', UNIT_GAME_URL); } catch(e) {}
+  try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
+  try { sessionStorage.removeItem('ac_shell_active'); } catch(e) {}
   window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=hub';
 }
 
@@ -3897,7 +3902,20 @@ window.addEventListener('message', e => {
 // ── Check for vocab result written to localStorage on return ───────────
 function checkVocabReturn() {
   try {
-    // The flashcard page writes ac_vocab_result to localStorage
+    // If we set ac_unit_game_return, the shell loaded instead of the unit game
+    // after flashcards — redirect back to the unit game
+    const unitReturn = localStorage.getItem('ac_unit_game_return');
+    if (unitReturn && unitReturn.includes('house-divided')) {
+      localStorage.removeItem('ac_unit_game_return');
+      // Don't redirect if we're already on the unit game
+      if (!window.location.href.includes('house-divided')) {
+        window.location.href = unitReturn;
+        return;
+      }
+    }
+    localStorage.removeItem('ac_unit_game_return');
+
+    // Check for vocab result written to localStorage on return
     const raw = localStorage.getItem('ac_vocab_result');
     if (!raw) return;
     localStorage.removeItem('ac_vocab_result');
