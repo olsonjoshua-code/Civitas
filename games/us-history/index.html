@@ -1281,10 +1281,12 @@ const TIER_LABEL={historian:'Historian',gold:'Gold',silver:'Silver',bronze:'Bron
 function getShellComposite(unitId){
   const mcqRow=_trophyData.find(r=>r.unit_id===unitId);
   const mcqScore=mcqRow?mcqRow.best_accuracy||0:0;
-  const vocabScore=(S.vocabBestScore&&S.vocabBestScore[unitId])||0;
+  // Vocab is stored under deck ID, not unit ID — look up via DECK_MAP
+  const deckId=DECK_MAP[unitId]||unitId;
+  const vocabScore=(S.vocabBestScore&&(S.vocabBestScore[deckId]||S.vocabBestScore[unitId]))||0;
   const frqR=S.frqResults&&S.frqResults[unitId];
   // New format stores .composite; old format stores .score
-  const frqScore=frqR?(frqR.composite!==undefined?frqR.composite:frqR.score)||0:0;
+  const frqScore=frqR?(frqR.composite!==undefined?frqR.composite:(frqR.score||0)):0;
   const composite=Math.round(mcqScore*0.50+vocabScore*0.25+frqScore*0.25);
   return{mcqScore,vocabScore,frqScore,composite,
     mcqAttempted:!!mcqRow,
@@ -2947,10 +2949,10 @@ function showView(v){
 // ── TIMELINE ──────────────────────────────────────────
 function unitStatus(id){
   if(!S.unitsCompleted.includes(id)) return 'avail';
-  // Only show as fully done if vocab and FRQ are also attempted
-  const vocabDone=S.vocabPassed&&S.vocabPassed[id];
-  const frqDone=S.frqResults&&S.frqResults[id];
-  // Units without FRQ questions don't require FRQ
+  // Vocab is stored under deck ID — check both
+  const deckId=DECK_MAP[id]||id;
+  const vocabDone=S.vocabPassed&&(S.vocabPassed[deckId]||S.vocabPassed[id]);
+  const frqDone=S.frqResults&&S.frqResults[id]&&(S.frqResults[id].composite>0||S.frqResults[id].score>0);
   const hasFRQ=!!(FRQ_BANK&&FRQ_BANK[id]&&FRQ_BANK[id].length);
   if(hasFRQ) return (vocabDone&&frqDone)?'done':'inprogress';
   return vocabDone?'done':'inprogress';
