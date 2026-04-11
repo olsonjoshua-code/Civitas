@@ -2216,17 +2216,26 @@ function switchHubTab(tabId, btnEl) {
 }
 
 const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
+const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html';
 
 function launchFlashcardsFromTab() {
   const deckId = 'unit1';
-  try { localStorage.setItem('ac_shell_url', 'https://olsonjoshua-code.github.io/Civitas/games/us-history/'); } catch(e) {}
-  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=study&from=unit';
+  try { localStorage.setItem('ac_shell_url', UNIT_GAME_URL); } catch(e) {}
+  try { localStorage.setItem('ac_shell_state', JSON.stringify(Object.assign(
+    JSON.parse(localStorage.getItem('ac_shell_state') || '{}'),
+    { _returning_from: 'flashcards' }
+  ))); } catch(e) {}
+  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=study&from=hub';
 }
 
 function launchVocabQuizFromTab() {
   const deckId = 'unit1';
-  try { localStorage.setItem('ac_shell_url', 'https://olsonjoshua-code.github.io/Civitas/games/us-history/'); } catch(e) {}
-  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=unit';
+  try { localStorage.setItem('ac_shell_url', UNIT_GAME_URL); } catch(e) {}
+  try { localStorage.setItem('ac_shell_state', JSON.stringify(Object.assign(
+    JSON.parse(localStorage.getItem('ac_shell_state') || '{}'),
+    { _returning_from: 'vocabquiz' }
+  ))); } catch(e) {}
+  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=hub';
 }
 
 function updateFlashcardStatus() {
@@ -2536,6 +2545,17 @@ function showUnitHub() {
   renderUnitHub();
   renderHubTrophySection();
   renderPlayTabSummary();
+  // Refresh vocab badge
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const passed = state.vocabPassed && state.vocabPassed['unit1'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1'];
+    const badge = document.getElementById('badge-vocab');
+    if (badge && passed) {
+      badge.textContent = best ? best + '%' : '✓';
+      badge.style.display = 'block';
+    }
+  } catch(e) {}
   // Restore FRQ badge if student has a prior result
   try {
     const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
@@ -3855,12 +3875,51 @@ function openCardCollection() {
   document.getElementById('cardcoll-overlay').classList.add('show');
 }
 
+// ── Listen for vocab reward messages from flashcard page ──────────────
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'vocabReward' && e.data.deckId) {
+    const { deckId, score, passed } = e.data;
+    if (deckId !== 'unit1') return;
+    try {
+      const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+      if (!state.vocabPassed) state.vocabPassed = {};
+      if (!state.vocabBestScore) state.vocabBestScore = {};
+      if (passed) state.vocabPassed['unit1'] = true;
+      if (score !== undefined) state.vocabBestScore['unit1'] = Math.max(score, state.vocabBestScore['unit1'] || 0);
+      localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    } catch(e) {}
+    updateVocabQuizStatus();
+    renderHubTrophySection();
+    renderPlayTabSummary();
+  }
+});
+
+// ── Check for vocab result written to localStorage on return ───────────
+function checkVocabReturn() {
+  try {
+    // The flashcard page writes ac_vocab_result to localStorage
+    const raw = localStorage.getItem('ac_vocab_result');
+    if (!raw) return;
+    localStorage.removeItem('ac_vocab_result');
+    const d = JSON.parse(raw);
+    if (!d || d.deckId !== 'unit1') return;
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (!state.vocabPassed) state.vocabPassed = {};
+    if (!state.vocabBestScore) state.vocabBestScore = {};
+    if (d.passed) state.vocabPassed['unit1'] = true;
+    if (d.score !== undefined) state.vocabBestScore['unit1'] = Math.max(d.score, state.vocabBestScore['unit1'] || 0);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    notify(d.passed ? `✅ Vocab Check passed: ${d.score}%` : `Vocab Check: ${d.score}%`);
+  } catch(e) {}
+}
+
 // ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
 
 window.addEventListener('DOMContentLoaded', () => {
   buildPeriodSelector();
+  checkVocabReturn();
 
   // Try loading from shell session first
   const hasSession = loadP();
