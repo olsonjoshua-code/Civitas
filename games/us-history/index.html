@@ -3447,12 +3447,13 @@ function renderFRQResult(result, answer){
 
 async function saveFRQToSupabase(unitId,score,tier){
   try{
-    await sfetch('/rest/v1/ac_results',{
+    await sfetch('/rest/v1/ac_results?on_conflict=name,period,unit_id',{
       method:'POST',
       headers:{'Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify({
         name:S.name,
         unit_id:unitId+'_frq',
+        course:'us_history',
         best_accuracy:score,
         best_score:score,
         cards:tier||'none',
@@ -3591,6 +3592,7 @@ window.addEventListener('message',async e=>{
           body:JSON.stringify({
             name:S.name,
             period:S.period||'',
+            course:'us_history',
             unit_id:vocabUnitId,
             best_score:Math.max(vocabScore,prev?prev.best_score||0:0),
             best_accuracy:Math.max(score,prev?prev.best_accuracy||0:0),
