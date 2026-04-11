@@ -822,14 +822,13 @@ body.hud-active #root{padding-top:68px;}
 
     <!-- Action buttons -->
     <div class="complete-btn-group">
-      <!-- Retry same lesson -->
-      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
+      <!-- Next lesson — shown when there's a next unlocked lesson -->
+      <button class="btn full" id="btn-next-lesson" onclick="goToNextLesson()" style="display:none;border-color:var(--gold);color:var(--gold);font-size:15px;padding:16px;letter-spacing:3px;border-width:2px"><span>Next Lesson →</span></button>
+      <!-- Retry same lesson -->\n      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
       <!-- Replay entire unit from Lesson 9 (always visible) -->
       <button class="btn full" id="btn-replay-all" onclick="replayFromBeginning()" style="border-color:var(--gold2);color:var(--gold2);display:none;"><span>⟳ Replay Unit From Beginning</span></button>
       <!-- Return to unit hub -->
       <button class="btn full green" onclick="returnToUnitHub()"><span>← Return to Unit Hub</span></button>
-      <!-- Return to shell -->
-      <button class="btn full teal" onclick="returnToShell()"><span>🏛 Return to U.S. History</span></button>
       <!-- Print certificate (shown when unit complete) -->
       <button class="btn full" id="btn-print-cert" onclick="printCertificate()" style="display:none;border-color:var(--text3);color:var(--text3);"><span>🖨️ Print Certificate</span></button>
     </div>
@@ -2421,16 +2420,18 @@ async function submitFRQUnit() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 600,
-        system: `You are a high school U.S. History teacher grading a short open-answer response. Grade strictly but fairly on a 0–100 scale.
+        system: `You are a supportive high school U.S. History teacher grading a short open-answer response. You are grading for KNOWLEDGE and UNDERSTANDING only — completely ignore spelling, grammar, punctuation, and sentence structure. A student who clearly knows the content but spells poorly should score just as high as one who writes perfectly.
 
-Scoring rubric:
-- 90–100 (Gold): Directly answers the question, uses specific evidence (names, dates, events, terms), explains significance clearly
-- 75–89 (Silver): Answers the question, mentions some specific evidence, partial explanation
-- 60–74 (Bronze): Addresses the question generally, limited or vague evidence
-- Below 60: Off-topic, too vague, or significantly incorrect
+Scoring rubric (knowledge only):
+- 90–100 (Gold): Clearly understands the topic, references specific people/events/terms/dates, explains why it matters
+- 75–89 (Silver): Shows solid understanding, mentions some specific evidence, partially explains significance  
+- 60–74 (Bronze): Shows basic understanding of the topic, limited specific evidence but clearly knows something
+- Below 60: Response shows little understanding of the topic or is completely off-topic
+
+Be generous — if the student clearly understands the concept, give them the benefit of the doubt. A short but accurate answer is better than a long but vague one.
 
 Respond ONLY with valid JSON, no other text:
-{"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2-3 sentences: what they did well and one specific thing to improve>"}`,
+{"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2 sentences max: acknowledge what they know, suggest ONE specific thing to add next time — never mention spelling or grammar>"}`,
         messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
       })
     });
@@ -2468,7 +2469,8 @@ function showFRQResult(result, answer, question) {
       <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
       <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--bg3);border:1px solid var(--border)">${answer}</div>
     </div>
-    <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--teal2);color:var(--teal2)"><span>← Back to Questions</span></button>`;
+    <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--teal2);color:var(--teal2)"><span>← Back to Questions</span></button>
+    <div id="frq-next-btn-wrap"></div>`;
 
   // Save — keep best score per question
   const frqState = getFRQState();
@@ -2479,6 +2481,15 @@ function showFRQResult(result, answer, question) {
     frqState.questions[_frqCurrentIdx] = { q: question, score, tier, answer, date: Date.now() };
   }
   saveFRQState(frqState);
+
+  // Show next question button if there's one unlocked
+  const nextIdx = frqState.questions.length; // after save, this is the next index
+  const wrap = document.getElementById('frq-next-btn-wrap');
+  if (wrap && nextIdx < FRQ_QUESTIONS_U1.length) {
+    wrap.innerHTML = `<button class="btn full" onclick="startFRQ(${nextIdx})" style="border-color:var(--amber);color:var(--amber);margin-top:6px;font-size:14px;padding:14px;letter-spacing:3px"><span>Next Question →</span></button>`;
+  } else if (wrap) {
+    wrap.innerHTML = `<div style="font-family:var(--dm);font-size:9px;color:var(--green2);text-align:center;margin-top:8px;padding:8px;border:1px solid var(--green2)">✓ All questions complete!</div>`;
+  }
 }
 
 function saveFRQResultToSupabase(score, tier) {
@@ -3106,6 +3117,11 @@ function finishLesson() {
   }
 
   // ── Button visibility ──────────────────────────────────
+  const currentIdx = LESSONS.findIndex(l => l.id === activeLesson.id);
+  const nextLesson = LESSONS[currentIdx + 1];
+  const nextBtn = document.getElementById('btn-next-lesson');
+  if (nextBtn) nextBtn.style.display = (nextLesson && !allDone) ? 'block' : 'none';
+
   // "Replay from Beginning" — show when all lessons done or on the last lesson
   const isLastLesson = activeLesson.id === LESSONS[LESSONS.length - 1].id;
   const replayBtn = document.getElementById('btn-replay-all');
@@ -3172,6 +3188,14 @@ function retryLesson() {
   // Replay same lesson — same briefing → questions
   document.getElementById('lesson-complete').classList.remove('show');
   openBriefing(activeLesson.id);
+}
+
+function goToNextLesson() {
+  const currentIdx = LESSONS.findIndex(l => l.id === activeLesson.id);
+  const nextLesson = LESSONS[currentIdx + 1];
+  if (!nextLesson) { returnToUnitHub(); return; }
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(nextLesson.id);
 }
 
 function returnToUnitHub() {
@@ -3881,6 +3905,28 @@ window.addEventListener('message', e => {
     renderHubTrophySection();
     renderPlayTabSummary();
   }
+});
+
+// ── Watch localStorage for vocab results written by flashcard new tab ──
+window.addEventListener('storage', e => {
+  if (e.key === SHELL_KEY && e.newValue) {
+    try {
+      const newState = JSON.parse(e.newValue);
+      const oldState = JSON.parse(e.oldValue || '{}');
+      const dk = 'unit1_civil_war_reconstruction';
+      const newVocab = newState.vocabBestScore && newState.vocabBestScore[dk];
+      const oldVocab = oldState.vocabBestScore && oldState.vocabBestScore[dk];
+      if (newVocab && newVocab !== oldVocab) {
+        notify(`✅ Vocab score recorded: ${newVocab}%`);
+        updateVocabQuizStatus();
+        renderHubTrophySection();
+        renderPlayTabSummary();
+        const badge = document.getElementById('badge-vocab');
+        if (badge) { badge.textContent = newVocab + '%'; badge.style.display = 'block'; }
+      }
+    } catch(e) {}
+  }
+  if (e.key === 'ac_vocab_result') checkVocabReturn();
 });
 
 // ── Check for vocab result written to localStorage on return ───────────
