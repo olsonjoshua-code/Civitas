@@ -1269,6 +1269,19 @@ const TIER_COLOR={historian:'var(--historian)',gold:'var(--gold)',silver:'var(--
 const TIER_EMOJI={historian:'🏛️',gold:'🥇',silver:'🥈',bronze:'🥉',completed:'✅',tryagain:'🔄',empty:'⬜'};
 const TIER_LABEL={historian:'Historian',gold:'Gold',silver:'Silver',bronze:'Bronze',completed:'Completed',tryagain:'Try Again',empty:'Not Played'};
 
+// ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
+function getShellComposite(unitId){
+  const mcqRow=_trophyData.find(r=>r.unit_id===unitId);
+  const mcqScore=mcqRow?mcqRow.best_accuracy||0:0;
+  const vocabScore=(S.vocabBestScore&&S.vocabBestScore[unitId])||0;
+  const frqScore=(S.frqResults&&S.frqResults[unitId]&&S.frqResults[unitId].score)||0;
+  const composite=Math.round(mcqScore*0.50+vocabScore*0.25+frqScore*0.25);
+  return{mcqScore,vocabScore,frqScore,composite,
+    mcqAttempted:!!mcqRow,
+    vocabAttempted:vocabScore>0,
+    frqAttempted:frqScore>0};
+}
+
 // ── SVG PORTRAIT ENGINE ───────────────────────────────
 // Returns complete SVG for a circular medallion portrait
 function svgMedallion(bg,ring,face,size=44){
@@ -3982,11 +3995,19 @@ async function renderTrophyRoom(){
 
   const unitCards=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint).map((u,idx)=>{
     const r=rmap[u.id];
-    const tier=r?calcTier(r.best_accuracy):'empty';
+    const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted}=getShellComposite(u.id);
+    const tier=mcqAttempted?calcTier(composite):'empty';
     const tc=TIER_COLOR[tier],te=TIER_EMOJI[tier],tl=TIER_LABEL[tier];
     const grey=tier==='empty';
     const eraArt=eraTrophyScene(u.id,u.eraColor,tier);
     const medalColor=grey?'var(--border)':tc;
+
+    const subScores=mcqAttempted?`
+      <div style="display:flex;gap:4px;margin:5px 0;flex-wrap:wrap;justify-content:center">
+        <span style="font-family:var(--dm);font-size:7px;padding:2px 5px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'}</span>
+        <span style="font-family:var(--dm);font-size:7px;padding:2px 5px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOC ${vocabAttempted?vocabScore+'%':'—'}</span>
+        <span style="font-family:var(--dm);font-size:7px;padding:2px 5px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">FRQ ${frqAttempted?frqScore+'%':'—'}</span>
+      </div>`:'';
 
     return `<div class="trophy-card tier-${tier}" style="animation:floatIn .3s ease ${idx*.04}s both">
       <div class="trophy-era">
@@ -4004,7 +4025,7 @@ async function renderTrophyRoom(){
         <div class="trophy-unit-lbl">${u.num}</div>
         <div class="trophy-unit-title">${u.title}</div>
         <div class="trophy-tier-name" style="color:${tc}">${tl}</div>
-        ${r?`<div class="trophy-stats">Score: <strong>${r.best_score?.toLocaleString()||0}</strong> &nbsp; Acc: <strong style="color:${tc}">${r.best_accuracy}%</strong><br>Attempts: <strong>${r.attempts||1}</strong> · Cards: <strong>${r.cards||0}</strong></div>
+        ${mcqAttempted?`${subScores}<div class="trophy-stats">Composite: <strong style="color:${tc}">${composite}%</strong><br>Attempts: <strong>${r?.attempts||1}</strong> · Cards: <strong>${r?.cards||0}</strong></div>
         <button class="cert-btn" onclick="printCert('${u.id}')">🎓 Print Certificate</button>`
         :`<div style="font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;margin-top:4px">Play this unit to earn a trophy</div>`}
       </div>
@@ -4236,23 +4257,30 @@ function drawLbTable(sts,period){
 
 // ── CERTIFICATE PRINTER ───────────────────────────────
 function printCert(uid){
-  const u=UNIT_DATA.find(x=>x.id===uid),r=_trophyData.find(x=>x.unit_id===uid);
-  if(!u||!r){notify('Play this unit first!');return;}
-  const tier=calcTier(r.best_accuracy),tc=TIER_COLOR[tier].replace('var(--gold)','#ffd700').replace('var(--silver)','#c8c8d8').replace('var(--bronze)','#cd7f32').replace('var(--green2)','#38a050').replace('var(--red2)','#e04040').replace('var(--historian)','#e8d0ff').replace('var(--text3)','#584840');
+  const u=UNIT_DATA.find(x=>x.id===uid);
+  if(!u){notify('Unit not found!');return;}
+  const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted}=getShellComposite(uid);
+  if(!mcqAttempted){notify('Play this unit first!');return;}
+  const tier=calcTier(composite);
+  const tc=TIER_COLOR[tier].replace('var(--gold)','#ffd700').replace('var(--silver)','#c8c8d8').replace('var(--bronze)','#cd7f32').replace('var(--green2)','#38a050').replace('var(--red2)','#e04040').replace('var(--historian)','#e8d0ff').replace('var(--text3)','#584840');
   const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  const w=window.open('','_blank','width=920,height=680');
+  const r=_trophyData.find(x=>x.unit_id===uid);
+  const w=window.open('','_blank','width=920,height=740');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
   <style>@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=Inter:wght@400;600&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-  .cert{width:840px;min-height:580px;background:#faf7f0;border:3px solid ${tc};padding:42px 52px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${tc},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
+  .cert{width:840px;background:#faf7f0;border:3px solid ${tc};padding:42px 52px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${tc},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
   .unit-icon{font-size:52px;margin:6px 0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.2))}
   .main-title{font-family:'Cinzel Decorative',serif;font-size:24px;font-weight:700;color:#1a1208;letter-spacing:.1em;margin:7px 0;line-height:1.2}
   .divider{height:2px;background:linear-gradient(90deg,transparent,${tc},transparent);margin:13px auto;width:80%}
   .student-name{font-family:'Cinzel Decorative',serif;font-size:32px;font-weight:700;color:#1a1208;margin:9px 0;letter-spacing:.05em}
-  .tier-badge{font-family:'Cinzel Decorative',serif;font-size:18px;color:${tc};letter-spacing:.1em;margin:9px 0}
-  .stats{display:flex;justify-content:center;gap:30px;margin:14px 0;padding:11px 18px;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.1)}
-  .stat-val{font-size:20px;font-weight:700;color:#8a4820;font-family:'Cinzel Decorative',serif}
-  .stat-lbl{font-size:8px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px;font-family:'Inter',sans-serif}
+  .tier-badge{font-family:'Cinzel Decorative',serif;font-size:18px;color:${tc};letter-spacing:.1em;margin:6px 0}
+  .composite{font-family:'Cinzel Decorative',serif;font-size:44px;color:${tc};line-height:1;margin:4px 0}
+  .components{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;text-align:center}
+  .comp-box{border:1px solid #ddd;padding:10px 8px;background:#fff}
+  .comp-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#888;margin-bottom:4px}
+  .comp-score{font-family:'Cinzel Decorative',serif;font-size:22px}
+  .comp-weight{font-size:9px;color:#aaa;margin-top:2px;font-family:'Inter',sans-serif}
   .sigs{display:flex;justify-content:space-around;margin-top:18px;padding-top:12px;border-top:1px solid rgba(0,0,0,.2)}
   .sig-line{width:155px;height:1px;background:#8a6a2a;margin:0 auto 4px}
   .sig-name{font-family:'Cinzel',serif;font-size:11px;color:#1a1208;font-weight:700}
@@ -4266,29 +4294,42 @@ function printCert(uid){
     <div class="divider"></div>
     <div style="font-size:12px;letter-spacing:.15em;color:#5a4520;margin:7px 0">This certifies that</div>
     <div class="student-name">${S.name}</div>
-    <div style="font-size:12px;color:#5a4520;margin:7px 0;line-height:1.7;font-style:italic">has successfully completed<br><strong style="font-style:normal;color:#1a1208">${u.num} — ${u.title}</strong><br><span style="font-size:10px">${u.years}</span></div>
-    <div style="font-size:34px;margin:9px 0">${TIER_EMOJI[tier]}</div>
-    <div class="tier-badge">${TIER_LABEL[tier].toUpperCase()} TROPHY</div>
-    <div class="stats">
-      <div><div class="stat-val">${(r.best_score||0).toLocaleString()}</div><div class="stat-lbl">BEST SCORE</div></div>
-      <div><div class="stat-val">${r.best_accuracy}%</div><div class="stat-lbl">ACCURACY</div></div>
-      <div><div class="stat-val">${r.attempts||1}</div><div class="stat-lbl">ATTEMPTS</div></div>
-      <div><div class="stat-val">${r.cards||0}</div><div class="stat-lbl">CARDS</div></div>
+    <div style="font-size:12px;color:#5a4520;margin:7px 0;line-height:1.7;font-style:italic">has completed<br><strong style="font-style:normal;color:#1a1208">${u.num} — ${u.title}</strong><br><span style="font-size:10px">${u.years}</span></div>
+    <div style="font-size:34px;margin:6px 0">${TIER_EMOJI[tier]}</div>
+    <div class="composite">${composite}%</div>
+    <div class="tier-badge">${TIER_LABEL[tier].toUpperCase()} TROPHY · COMPOSITE SCORE</div>
+    <div class="components">
+      <div class="comp-box">
+        <div class="comp-label">UNIT GAME (MCQ)</div>
+        <div class="comp-score" style="color:${mcqAttempted?'#b87800':'#aaa'}">${mcqAttempted?mcqScore+'%':'—'}</div>
+        <div class="comp-weight">Weight: 50%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">VOCAB CHECK</div>
+        <div class="comp-score" style="color:${vocabAttempted?'#6040a0':'#aaa'}">${vocabAttempted?vocabScore+'%':'—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">OPEN ANSWER</div>
+        <div class="comp-score" style="color:${frqAttempted?'#1a7a6a':'#aaa'}">${frqAttempted?frqScore+'%':'—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
     </div>
+    <div style="font-size:9px;color:#aaa;margin-bottom:8px;font-family:'Inter',sans-serif">MCQ 50% · Vocab 25% · Open Answer 25% · Incomplete sections scored as 0%</div>
     <div class="divider"></div>
     <div class="sigs">
       <div><div class="sig-line"></div><div class="sig-name">${S.name}</div><div class="sig-title">STUDENT${S.period?' · PERIOD '+S.period:''}</div></div>
       <div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">U.S. HISTORY TEACHER</div></div>
-      <div><div class="sig-line"></div><div class="sig-name">${date}</div><div class="sig-title">DATE COMPLETED</div></div>
+      <div><div class="sig-line"></div><div class="sig-name">${date}</div><div class="sig-title">DATE ISSUED</div></div>
     </div>
   </div>
   <div class="np" style="text-align:center;margin-top:14px">
     <button class="pbtn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <button class="pbtn" onclick="window.close()" style="margin-left:9px;background:#5a4520;color:#faf7f0">✕ Close</button>
   </div>
-
 </body></html>`);w.document.close();
 }
+
 
 // ── EOC PRACTICE CERTIFICATE (reads from shell localStorage) ─────────────
 function printEOCShellCert(){
