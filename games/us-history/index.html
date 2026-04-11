@@ -2314,7 +2314,7 @@ async function boot(){
 
   if(S.setupDone && !S.isGuest && S.name){
     // Always go straight to shell — no confirmation needed on return
-    enterShell();
+    enterShell(returningFromGame);
   } else {
     document.getElementById('title-screen').style.display='flex';
   }
@@ -2613,13 +2613,25 @@ async function logSessionEnd(exitTo=''){
 // Close session when navigating away
 window.addEventListener('beforeunload',()=>{ if(_sessionStart)logSessionEnd('unload'); });
 
-function enterShell(){
+function enterShell(returningFromGame){
   if(typeof _hubSessionStart !== 'undefined') _hubSessionStart = Date.now();
   setTimeout(()=>{
     if(S.name&&!S.isGuest) acLogEvent('hub_session_start','shell',null,{period:S.period},null);
   }, 1000);
   try{sessionStorage.setItem('ac_shell_active','1');}catch(e){}
-  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
+  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();});
+  if(!S.isGuest&&S.name){
+    // If returning from a unit game, force a fresh Supabase sync then rebuild medals
+    if(returningFromGame){
+      syncFromSupabase().then(()=>{
+        buildUnitMedalGrid();buildFRQTrophyGrid();renderVocabMedals();renderTimeline();
+      });
+    } else {
+      const seen=_obSeen();
+      if(!seen){syncFromSupabase();setTimeout(()=>openOnboarding(),600);}
+      else{syncFromSupabase();}
+    }
+  } else if(!S.isGuest&&S.name){syncFromSupabase();}
   // Start tracking this session
   setTimeout(()=>logSessionStart(), 1000);
 }
