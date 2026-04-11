@@ -2116,11 +2116,12 @@ function getCompositeScore() {
     ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
     : 0;
 
-  // Vocab — from shell localStorage
+  // Vocab — from shell localStorage (keyed by deck ID, not unit ID)
+  const VOCAB_DECK_ID = 'unit1_civil_war_reconstruction';
   let vocabScore = 0;
   try {
     const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    vocabScore = (shell.vocabBestScore && shell.vocabBestScore['unit1']) || 0;
+    vocabScore = (shell.vocabBestScore && shell.vocabBestScore[VOCAB_DECK_ID]) || 0;
   } catch(e) {}
 
   // FRQ — composite of all answered questions from shell localStorage
@@ -2220,11 +2221,11 @@ const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-histo
 const USH_SHELL_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
 
 function launchFlashcardsFromTab() {
-  window.open(FC_URL + '?deck=unit1&mode=study&from=hub', '_blank');
+  window.open(FC_URL + '?deck=unit1_civil_war_reconstruction&mode=study&from=hub', '_blank');
 }
 
 function launchVocabQuizFromTab() {
-  window.open(FC_URL + '?deck=unit1&mode=quiz&from=hub', '_blank');
+  window.open(FC_URL + '?deck=unit1_civil_war_reconstruction&mode=quiz&from=hub', '_blank');
 }
 
 function updateFlashcardStatus() {
@@ -2243,8 +2244,8 @@ function updateVocabQuizStatus() {
   if (!el) return;
   try {
     const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
-    const passed = state.vocabPassed && state.vocabPassed['unit1'];
-    const best = state.vocabBestScore && state.vocabBestScore['unit1'];
+    const passed = state.vocabPassed && state.vocabPassed['unit1_civil_war_reconstruction'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1_civil_war_reconstruction'];
     if (passed) {
       el.innerHTML = '<span style="color:var(--green2)">✓ Passed' + (best !== undefined ? ' — Best: ' + best + '%' : '') + '</span>';
     } else {
@@ -2537,8 +2538,8 @@ function showUnitHub() {
   // Refresh vocab badge
   try {
     const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    const passed = state.vocabPassed && state.vocabPassed['unit1'];
-    const best = state.vocabBestScore && state.vocabBestScore['unit1'];
+    const passed = state.vocabPassed && state.vocabPassed['unit1_civil_war_reconstruction'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1_civil_war_reconstruction'];
     const badge = document.getElementById('badge-vocab');
     if (badge && passed) {
       badge.textContent = best ? best + '%' : '✓';
@@ -3868,13 +3869,12 @@ function openCardCollection() {
 window.addEventListener('message', e => {
   if (e.data && e.data.type === 'vocabReward' && e.data.deckId) {
     const { deckId, score, passed } = e.data;
-    if (deckId !== 'unit1') return;
     try {
       const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       if (!state.vocabPassed) state.vocabPassed = {};
       if (!state.vocabBestScore) state.vocabBestScore = {};
-      if (passed) state.vocabPassed['unit1'] = true;
-      if (score !== undefined) state.vocabBestScore['unit1'] = Math.max(score, state.vocabBestScore['unit1'] || 0);
+      if (passed) state.vocabPassed[deckId] = true;
+      if (score !== undefined) state.vocabBestScore[deckId] = Math.max(score, state.vocabBestScore[deckId] || 0);
       localStorage.setItem(SHELL_KEY, JSON.stringify(state));
     } catch(e) {}
     updateVocabQuizStatus();
