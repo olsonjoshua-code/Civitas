@@ -2136,7 +2136,8 @@ function getCompositeScore() {
   return { mcqScore, vocabScore, frqScore, composite,
     mcqAttempted: lessonScores.length > 0,
     vocabAttempted: vocabScore > 0,
-    frqAttempted: frqScore > 0
+    frqAttempted: frqScore > 0,
+    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqScore > 0
   };
 }
 
@@ -2165,8 +2166,8 @@ function renderPlayTabSummary() {
   const scores = Object.values(P.lessonBestScores || {});
   if (!scores.length) { el.innerHTML = ''; return; }
 
-  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
-  const tier = calcTier(composite);
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
   const tierColors = { historian:'#e8d0ff', gold:'#ffd700', silver:'#c8c8d8', bronze:'#cd7f32', completed:'#38a050', tryagain:'#c02020' };
   const color = tierColors[tier.label.toLowerCase().replace(' ','')] || tierColors.completed;
 
@@ -2612,8 +2613,8 @@ function renderHubTrophySection() {
   if (!scores.length) { el.style.display = 'none'; return; }
   el.style.display = 'block';
 
-  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
-  const tier = calcTier(composite);
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
 
   function subBar(score, attempted, color) {
     const w = attempted ? score : 0;
@@ -3178,8 +3179,8 @@ function replayFromBeginning() {
 }
 
 function printCertificate() {
-  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
-  const tier = calcTier(composite);
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
   const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
 
   const lessonRows = LESSONS.map(l => {
