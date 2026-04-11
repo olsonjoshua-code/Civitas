@@ -433,6 +433,37 @@ body::before{content:'';position:fixed;inset:0;
 .rpg-progress-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .rpg-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1);}
 .rpg-unlock-hint{font-family:var(--mono,monospace);font-size:8px;color:var(--gold2);margin-top:5px;}
+/* ── FRQ Modal ── */
+#frq-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:16px}
+#frq-modal.open{display:flex}
+#frq-box{background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--amber);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;border-radius:2px}
+.frq-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.frq-eyebrow{font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
+.frq-title{font-family:var(--bebas);font-size:22px;color:var(--cream);letter-spacing:1px}
+.frq-close{background:none;border:1px solid var(--border);color:var(--text3);font-size:14px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.frq-close:hover{border-color:var(--amber2);color:var(--cream)}
+.frq-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.frq-step-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.frq-q-list{display:flex;flex-direction:column;gap:6px}
+.frq-q-opt{background:var(--bg3);border:1px solid var(--border);padding:10px 12px;cursor:pointer;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.45;transition:all .15s;text-align:left}
+.frq-q-opt:hover{border-color:var(--amber2);color:var(--cream);background:rgba(232,160,32,.06)}
+.frq-q-opt.selected{border-color:var(--amber);color:var(--cream);background:rgba(232,160,32,.1)}
+.frq-selected-q{background:rgba(232,160,32,.08);border:1px solid var(--amber2);border-left:3px solid var(--amber);padding:10px 12px;font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.5;font-style:italic}
+#frq-textarea{width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;outline:none}
+#frq-textarea:focus{border-color:var(--amber2)}
+#frq-textarea::placeholder{color:var(--text3)}
+.frq-word-count{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:right;margin-top:3px}
+.frq-hint{font-family:var(--dm);font-size:9px;color:var(--text3);line-height:1.6;padding:8px 10px;background:var(--bg3);border:1px solid var(--border)}
+.frq-result-box{padding:14px;border:1px solid var(--border2);background:var(--bg3)}
+.frq-score-big{font-family:var(--bebas);font-size:48px;line-height:1;margin-bottom:4px}
+.frq-trophy-badge{font-family:var(--bebas);font-size:13px;letter-spacing:2px;padding:3px 10px;display:inline-block;margin-bottom:10px}
+.frq-trophy-badge.gold{color:var(--gold);border:1px solid var(--gold);background:rgba(255,215,0,.08)}
+.frq-trophy-badge.silver{color:#c8c8d8;border:1px solid #c8c8d8;background:rgba(200,200,216,.08)}
+.frq-trophy-badge.bronze{color:#cd7f32;border:1px solid #cd7f32;background:rgba(205,127,50,.08)}
+.frq-trophy-badge.none{color:var(--text3);border:1px solid var(--border);background:transparent}
+.frq-feedback{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px}
+.frq-status-row{display:flex;align-items:center;gap:6px;font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px}
+.frq-status-row .vocab-check{background:var(--amber2)}
 </style>
 </head>
 <body>
@@ -693,6 +724,16 @@ body::before{content:'';position:fixed;inset:0;
         </div>
       </div>
       <div class="vocab-medal-grid" id="vocab-medal-grid"></div>
+
+      <!-- FRQ OPEN ANSWER TROPHIES -->
+      <div class="trophy-room-hero" style="margin-top:8px;border-top:1px solid var(--border2);padding-top:16px">
+        <div class="tr-icon" style="font-size:32px">✍️</div>
+        <div>
+          <div class="tr-title" style="font-size:18px">Open Answer Trophies</div>
+          <div class="tr-sub">Earned by completing the AI-graded Open Answer Challenge for each unit. Bronze ≥60%, Silver ≥75%, Gold ≥90%.</div>
+        </div>
+      </div>
+      <div class="vocab-medal-grid" id="frq-trophy-grid"></div>
       <div class="lb-wrap">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <div class="sh" style="margin-bottom:0">Class Leaderboard</div>
@@ -904,6 +945,22 @@ body::before{content:'';position:fixed;inset:0;
   </div>
 </div>
 <div id="pv-backdrop" onclick="closePreview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:399"></div>
+
+<!-- FRQ Open Answer Modal -->
+<div id="frq-modal">
+  <div id="frq-box">
+    <div class="frq-header">
+      <div class="frq-header-text">
+        <div class="frq-eyebrow">✍️ Open Answer Challenge</div>
+        <div class="frq-title" id="frq-unit-title">Unit Title</div>
+      </div>
+      <button class="frq-close" onclick="closeFRQ()">✕</button>
+    </div>
+    <div class="frq-body" id="frq-body">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
 
 <!-- HELP BUTTON -->
 <button id="help-btn" onclick="openOnboarding()" title="How to use this course hub">❓ HELP</button>
@@ -1707,6 +1764,91 @@ function eraTrophyScene(unitId, c, tier){
   return scenes[unitId]||scenes.unit1;
 }
 
+// ── FRQ GUIDING QUESTIONS (district-aligned) ───────────
+const FRQ_BANK={
+  'unit1':[
+    'What were the causes and consequences of the Civil War?',
+    'What people and groups influenced Reconstruction?',
+    'What issues divided Republicans during Reconstruction?',
+    'What freedoms were granted to African Americans under the 13th, 14th, and 15th Amendments?',
+    'How were the economic, social, and political rights of newly freed African Americans impacted by Jim Crow and the Nadir of race relations?'
+  ],
+  'unit2a':[
+    'How were Native Americans impacted by westward expansion?',
+    'What were the economic challenges to U.S. farmers and their responses in the mid to late 1800s?',
+    'How did the U.S. change as a result of the shift from an agrarian to an industrial society?'
+  ],
+  'unit2b':[
+    'What conditions led to social change and political reform in the late 19th and early 20th centuries?',
+    'How did nongovernmental organizations and progressives work to shape public policy and restore economic competition?',
+    'What federal level changes were brought about by the progressives?'
+  ],
+  'unit3a':[
+    'What were the causes, course, and consequences of the Second Industrial Revolution?',
+    'How did new entrepreneurs and business practices impact America\'s economy and society?',
+    'How did industrialization influence labor conditions and contribute to the start of the labor movement?',
+    'What are the differences between the prevailing economic and philosophical ideologies of the Gilded Age?'
+  ],
+  'unit3b':[
+    'What were the similarities and differences between the experiences of immigrants in the East and the West?',
+    'What were the impacts of political machines in the late 19th and early 20th centuries?',
+    'How did industrialization transform the country politically, economically, and socially?'
+  ],
+  'unit4a':[
+    'What were the motives and factors driving American imperialism and acquisition of territories?',
+    'What were the causes and key events of the Spanish-American War?',
+    'What were the challenges that America faced globally after the Spanish-American War?',
+    'In what ways did America protect its own economic and political interests abroad?'
+  ],
+  'unit4b':[
+    'What were the causes, course, and consequences of U.S. involvement in WWI?',
+    'How did new war technologies change strategies used in WWI?',
+    'How did the experiences of war compare for minority groups and immigrants during WWI?',
+    'How did the plans for postwar peace differ and create further conflict?'
+  ],
+  'unit5a':[
+    'What were the economic outcomes of demobilization after WWI?',
+    'What were the causes of and the public reaction to the Red Scare?',
+    'How did the new mass culture clash with traditionalist views during the 1920s?',
+    'What were the successes and challenges of minority freedom movements in the 1920s?',
+    'How were the views of Booker T. Washington, W.E.B. DuBois, and Marcus Garvey similar and different?'
+  ],
+  'unit5b':[
+    'How did the economic boom during the Roaring Twenties lead to the Great Depression?',
+    'What were the long-term and immediate causes of the Great Depression?',
+    'To what extent did the New Deal provide relief, recovery, and reform for the nation?'
+  ],
+  'unit6':[
+    'What were the causes of WWII?',
+    'Prior to Pearl Harbor, in what ways did the U.S. attempt to stay neutral in WWII?',
+    'What was the impact of the Holocaust on Jews and other groups?',
+    'How did WWII shape domestic policy, including the impact on women and minority groups?',
+    'What were the ramifications of the development and use of atomic weapons?'
+  ],
+  'unit7a':[
+    'What were the causes of the Cold War and how did the U.S. initially respond?',
+    'What were the causes, course, and consequences of the Korean War?',
+    'How did the Red Scare impact American lives and domestic policy?',
+    'How did Cold War events influence the decisions of Truman and Eisenhower?'
+  ],
+  'unit7b':[
+    'What were the causes of post-WWII prosperity and how did they affect American society?',
+    'In what ways did post-WWII prosperity differ among ethnic groups and social classes?',
+    'What were Kennedy and Johnson\'s key domestic and foreign policies?',
+    'Did the Great Society promote social and economic stability? Explain your reasoning.',
+    'Why were the decisions of the Warren Court important?'
+  ],
+  'unit8':[
+    'To what extent did key figures and organizations shape the Civil Rights and Black Power movements?',
+    'What are the benefits and challenges of the nonviolent and violent approaches used during the Civil Rights Movement?',
+    'How did Supreme Court decisions shape integration, individual rights, and affirmative action?',
+    'What were the causes, course, and consequences of the Vietnam War?',
+    'What impact did the Vietnam War have in shifting public opinion against the federal government?',
+    'How did Nixon\'s policy of Détente represent a departure from previous Cold War diplomacy?',
+    'What impact did the Watergate scandal have on public trust in government?'
+  ]
+};
+
 // ── UNIT & ERA DATA ────────────────────────────────────
 const UNIT_DATA=[
   {id:'unit1', num:'Unit 1', title:'A House Divided', briefingUrl:'https://olsonjoshua-code.github.io/Civitas/games/us-history/briefings/unit1_briefing.html', years:'1861–1877', icon:'⚔️', eraColor:'#8b4513', url:'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html', desc:'The Union torn apart and stitched back together. Reconstruction promised freedom and equality for formerly enslaved Americans — but powerful forces worked to undo those promises almost immediately.',topics:['Civil War','13th–15th Amendments','Freedmen\'s Bureau','Radical Reconstruction','Sharecropping','Compromise of 1877'],themes:['conflict','freedom','power','identity'],changed:'Slavery abolished; freedpeople gain citizenship and voting rights.',continued:'White supremacist resistance; economic dependence of freedpeople.',emerged:'How do you rebuild a nation while confronting deep injustice — and what happens when you stop trying?'},
@@ -2051,7 +2193,7 @@ const BADGES=[
 // ── STATE ─────────────────────────────────────────────
 let S={name:'',avatar:'scholar_f',period:'',isGuest:false,isTeacher:false,
   unitsCompleted:[],badgesEarned:[],unlocked:CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id),setupDone:false,
-  gold:0,xp:0,vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{}};
+  gold:0,xp:0,vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{},frqResults:{}};
 function saveGameToFile() {
   try {
     const fname = (S && S.name) ? S.name : 'student';
@@ -2083,7 +2225,7 @@ function saveS(){
   if(!saveS._t) saveS._t=setTimeout(()=>{saveS._t=null;saveProfileToDB();if(S.name&&!S.isGuest)saveProfileByName();},2000);
 }
 function loadS(){try{const r=localStorage.getItem(SHELL_KEY);if(r){const d=JSON.parse(r);S={...S,...d};if(!S.unlocked||!S.unlocked.length)S.unlocked=CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id);// Never auto-restore teacher mode - requires fresh login each session
-S.isTeacher=false;if(!S.gold)S.gold=0;if(!S.xp)S.xp=0;if(!S.vocabPassed)S.vocabPassed={};if(!S.vocabBestScore)S.vocabBestScore={};if(!S.vocabFirstPass)S.vocabFirstPass={};if(!S.flashcardsStudied)S.flashcardsStudied={};
+S.isTeacher=false;if(!S.gold)S.gold=0;if(!S.xp)S.xp=0;if(!S.vocabPassed)S.vocabPassed={};if(!S.vocabBestScore)S.vocabBestScore={};if(!S.vocabFirstPass)S.vocabFirstPass={};if(!S.flashcardsStudied)S.flashcardsStudied={};if(!S.frqResults)S.frqResults={};
 // ── New wallet + archive fields (safe defaults for old saves) ──
 if(!S.goldEarned)S.goldEarned=S.gold||0;
 if(!S.goldSpent)S.goldSpent=0;
@@ -2200,7 +2342,7 @@ function showSetupScreen(){
     unitsCompleted:[],badgesEarned:[],
     unlocked:CHARS.filter(c=>c.unlockMethod==='free').map(c=>c.id),
     setupDone:false,gold:0,xp:0,goldEarned:0,goldSpent:0,goldBestRun:0,goldLedger:[],
-    vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{},
+    vocabPassed:{},vocabBestScore:{},vocabFirstPass:{},flashcardsStudied:{},frqResults:{},
     unitBadges:{},unitCards:{}};
   // Also wipe localStorage so the old student's data can't be reloaded
   try{localStorage.removeItem(SHELL_KEY);}catch(e){}
@@ -2456,7 +2598,7 @@ function enterShell(){
     if(S.name&&!S.isGuest) acLogEvent('hub_session_start','shell',null,{period:S.period},null);
   }, 1000);
   try{sessionStorage.setItem('ac_shell_active','1');}catch(e){}
-  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
+  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();buildFRQTrophyGrid();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
   // Start tracking this session
   setTimeout(()=>logSessionStart(), 1000);
 }
@@ -2623,16 +2765,26 @@ async function syncFromSupabase(){
   if(!Array.isArray(rows))return;
   _trophyData=rows;
   let changed=false;
+  if(!S.frqResults)S.frqResults={};
   rows.forEach(r=>{
     // Only add real unit games to unitsCompleted — not vocab or test rows
-    if(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')&&!S.unitsCompleted.includes(r.unit_id)&&r.best_accuracy>=60){
+    if(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')&&!r.unit_id.endsWith('_frq')&&!S.unitsCompleted.includes(r.unit_id)&&r.best_accuracy>=60){
       S.unitsCompleted.push(r.unit_id);changed=true;
+    }
+    // Restore FRQ results from Supabase
+    if(r.unit_id.endsWith('_frq')){
+      const uid=r.unit_id.replace('_frq','');
+      const score=r.best_accuracy||0;
+      const tier=getFRQTier(score);
+      if(!S.frqResults[uid]||score>S.frqResults[uid].score){
+        S.frqResults[uid]={score,tier};changed=true;
+      }
     }
   });
   // Always refresh HUD after sync so EOC rating reflects loaded data
   updateHUD();
   awardBadges();checkUnlocks();
-  if(changed){saveS();updateHUD();renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();
+  if(changed){saveS();updateHUD();renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();buildFRQTrophyGrid();
   // Refresh new views if they are currently open
   const activeView=document.querySelector('.view.active');
   if(activeView&&activeView.id==='view-archive')renderArchive();
@@ -3111,8 +3263,6 @@ function buildStudyBlock(u){
   const passed=S.vocabPassed&&S.vocabPassed[deckId];
   const studied=S.flashcardsStudied&&S.flashcardsStudied[deckId];
   const bestScore=S.vocabBestScore&&S.vocabBestScore[deckId];
-  const studyUrl=`${FC_BASE}?deck=${encodeURIComponent(deckId)}&mode=study&from=hub`;
-  const quizUrl=`${FC_BASE}?deck=${encodeURIComponent(deckId)}&mode=quiz&from=hub`;
   const briefingUrl=u.briefingUrl||null;
 
   const vocabLabel=passed
@@ -3132,6 +3282,208 @@ function buildStudyBlock(u){
     <button class="btn full ${passed?'green':'blue'} sm" onclick="launchFlashcards('${deckId}','quiz')"><span>${passed?'↺ Retake Vocab Check':'⚡ Take Vocab Check'}</span></button>
     <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px;line-height:1.6">Complete the Vocab Check to earn <span style="color:var(--gold)">🪙 Gold</span>. Rewards require 60%+ to qualify.</div>
   </div>`;
+}
+
+// ── FRQ OPEN ANSWER SYSTEM ─────────────────────────────
+let _frqCurrentUnit=null;
+let _frqSelectedQ=null;
+
+function getFRQTier(score){
+  if(score>=90)return'gold';
+  if(score>=75)return'silver';
+  if(score>=60)return'bronze';
+  return null;
+}
+
+function openFRQ(unitId){
+  const u=UNIT_DATA.find(x=>x.id===unitId);
+  const qs=FRQ_BANK[unitId];
+  if(!u||!qs||!qs.length)return;
+  _frqCurrentUnit=unitId;
+  _frqSelectedQ=null;
+  document.getElementById('frq-unit-title').textContent=u.num+' · '+u.title;
+  renderFRQStep1();
+  document.getElementById('frq-modal').classList.add('open');
+}
+
+function closeFRQ(){
+  document.getElementById('frq-modal').classList.remove('open');
+  _frqCurrentUnit=null;
+  _frqSelectedQ=null;
+}
+
+function renderFRQStep1(){
+  const qs=FRQ_BANK[_frqCurrentUnit]||[];
+  const body=document.getElementById('frq-body');
+  body.innerHTML=`
+    <div>
+      <div class="frq-step-label">Step 1 of 2 — Choose a question</div>
+      <div class="frq-q-list" id="frq-q-list">
+        ${qs.map((q,i)=>`<button class="frq-q-opt" onclick="selectFRQQuestion(${i})">${q}</button>`).join('')}
+      </div>
+    </div>
+    <div id="frq-step2" style="display:none">
+      <div class="frq-step-label">Step 2 of 2 — Write your answer</div>
+      <div class="frq-selected-q" id="frq-selected-q-display"></div>
+      <div style="margin-top:10px">
+        <textarea id="frq-textarea" placeholder="Write your answer here. Aim for 3–5 sentences that directly address the question with specific evidence from class."></textarea>
+        <div class="frq-word-count" id="frq-word-count">0 words</div>
+      </div>
+      <div class="frq-hint">💡 Strong answers name specific people, events, dates, or terms and explain <em>why</em> they matter — not just what happened.</div>
+      <button class="btn full" id="frq-submit-btn" onclick="submitFRQ()" style="border-color:var(--amber);color:var(--amber);margin-top:4px"><span>Submit for AI Grading →</span></button>
+    </div>`;
+}
+
+function selectFRQQuestion(idx){
+  const qs=FRQ_BANK[_frqCurrentUnit]||[];
+  _frqSelectedQ=qs[idx];
+  document.querySelectorAll('.frq-q-opt').forEach((el,i)=>{
+    el.classList.toggle('selected',i===idx);
+  });
+  document.getElementById('frq-selected-q-display').textContent=_frqSelectedQ;
+  const step2=document.getElementById('frq-step2');
+  step2.style.display='block';
+  const ta=document.getElementById('frq-textarea');
+  ta.oninput=()=>{
+    const words=ta.value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('frq-word-count').textContent=words+' word'+(words!==1?'s':'');
+  };
+  // Scroll to step 2
+  setTimeout(()=>step2.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+async function submitFRQ(){
+  const ta=document.getElementById('frq-textarea');
+  const answer=(ta?ta.value.trim():'');
+  if(!answer||answer.split(/\s+/).filter(Boolean).length<10){
+    notify('⚠️ Please write at least a few sentences before submitting.');return;
+  }
+  const btn=document.getElementById('frq-submit-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span>⏳ Grading your answer…</span>';
+
+  const u=UNIT_DATA.find(x=>x.id===_frqCurrentUnit);
+  const unitContext=`Unit: ${u.num} – ${u.title} (${u.years})\nTopics: ${(u.topics||[]).join(', ')}`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        system:`You are a high school U.S. History teacher grading a short open-answer response. Grade strictly but fairly on a 0–100 scale.
+
+Scoring rubric:
+- 90–100 (Gold): Directly answers the question, uses specific evidence (names, dates, events, terms), explains significance, shows clear understanding
+- 75–89 (Silver): Answers the question, mentions some evidence, partial explanation
+- 60–74 (Bronze): Addresses the question generally, limited or vague evidence
+- Below 60: Off-topic, too vague, or significantly incorrect
+
+Respond ONLY with valid JSON, no other text:
+{"score": <number 0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2-3 sentences: what they did well and one specific thing to improve>"}`,
+        messages:[{role:'user',content:`${unitContext}\n\nQuestion: ${_frqSelectedQ}\n\nStudent Answer: ${answer}`}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content.map(c=>c.text||'').join('');
+    let result;
+    try{result=JSON.parse(raw.replace(/```json|```/g,'').trim());}
+    catch(e){result={score:70,tier:'bronze',feedback:'Your response showed understanding of the topic. Try to include more specific evidence in your next attempt.'};}
+    renderFRQResult(result,answer);
+  }catch(e){
+    btn.disabled=false;
+    btn.innerHTML='<span>Submit for AI Grading →</span>';
+    notify('⚠️ Grading failed — check your connection and try again.');
+  }
+}
+
+function renderFRQResult(result, answer){
+  const score=Math.max(0,Math.min(100,Math.round(result.score||0)));
+  const tier=getFRQTier(score);
+  const tierColors={'gold':'var(--gold)','silver':'#c8c8d8','bronze':'#cd7f32'};
+  const tierLabels={'gold':'🥇 Gold Trophy','silver':'🥈 Silver Trophy','bronze':'🥉 Bronze Trophy'};
+  const color=tier?tierColors[tier]:'var(--text3)';
+  const label=tier?tierLabels[tier]:'No Trophy — Keep Trying';
+  const body=document.getElementById('frq-body');
+  body.innerHTML=`
+    <div class="frq-result-box">
+      <div class="frq-score-big" style="color:${color}">${score}<span style="font-size:20px;color:var(--text3)">%</span></div>
+      <div class="frq-trophy-badge ${tier||'none'}">${label}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:6px;letter-spacing:1px">AI FEEDBACK</div>
+      <div class="frq-feedback">${result.feedback||''}</div>
+    </div>
+    <div>
+      <div class="frq-step-label">Your answer</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--bg3);border:1px solid var(--border)">${answer}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn full sm" onclick="openFRQ('${_frqCurrentUnit}')" style="border-color:var(--amber2);color:var(--amber)"><span>↺ Try Again</span></button>
+      <button class="btn full sm" onclick="closeFRQ()" style="border-color:var(--border2);color:var(--text3)"><span>✕ Close</span></button>
+    </div>`;
+
+  // Save result locally
+  if(!S.frqResults)S.frqResults={};
+  const prev=S.frqResults[_frqCurrentUnit];
+  if(!prev||score>prev.score){
+    S.frqResults[_frqCurrentUnit]={score,tier,question:_frqSelectedQ,date:Date.now()};
+    saveS();
+    // Save to Supabase (score + tier only, no feedback)
+    saveFRQToSupabase(_frqCurrentUnit,score,tier);
+    // Award gold for first bronze+ result or improvement
+    if(tier){
+      const goldMap={'bronze':15,'silver':25,'gold':40};
+      const newGold=goldMap[tier]||0;
+      const prevGold=prev&&prev.tier?goldMap[prev.tier]||0:0;
+      const bonus=Math.max(0,newGold-prevGold);
+      if(bonus>0){S.gold=(S.gold||0)+bonus;awardGold(bonus,'Open Answer',_frqCurrentUnit,true);}
+    }
+    // Refresh preview panel study block if open
+    const openCard=document.querySelector('.unit-card.selected');
+    if(openCard){const uid=openCard.getAttribute('data-uid');if(uid)openPreview(uid);}
+    buildFRQTrophyGrid();
+  }
+}
+
+async function saveFRQToSupabase(unitId,score,tier){
+  try{
+    await sfetch('/rest/v1/ac_results',{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({
+        name:S.name,
+        unit_id:unitId+'_frq',
+        best_accuracy:score,
+        best_score:score,
+        cards:tier||'none',
+        period:S.period||'',
+        updated_at:new Date().toISOString()
+      })
+    });
+  }catch(e){console.warn('FRQ Supabase save failed',e);}
+}
+
+function buildFRQTrophyGrid(){
+  const grid=document.getElementById('frq-trophy-grid');
+  if(!grid)return;
+  const tierColors={'gold':'rgba(255,215,0,.5)','silver':'rgba(200,200,216,.4)','bronze':'rgba(205,127,50,.45)'};
+  const tierScoreColors={'gold':'var(--gold)','silver':'#c8c8d8','bronze':'#cd7f32'};
+  grid.innerHTML=UNIT_DATA.filter(u=>FRQ_BANK[u.id]&&FRQ_BANK[u.id].length).map(u=>{
+    const r=S.frqResults&&S.frqResults[u.id];
+    const tier=r?getFRQTier(r.score):null;
+    const borderColor=tier?tierColors[tier]:'var(--border)';
+    const scoreColor=tier?tierScoreColors[tier]:'var(--text3)';
+    const earned=!!tier;
+    return`<div class="vocab-medal-card ${earned?'earned':''} ${tier?'tier-'+tier:''}" style="border-color:${borderColor}">
+      <div style="font-size:22px;flex-shrink:0">${earned?{gold:'🥇',silver:'🥈',bronze:'🥉'}[tier]:'📝'}</div>
+      <div class="vocab-medal-info">
+        <div class="vocab-medal-unit">${u.num}</div>
+        <div class="vocab-medal-title">${u.title}</div>
+        <div class="vocab-medal-score" style="color:${scoreColor}">${r?r.score+'%':'—'}</div>
+        <div class="vocab-medal-lbl" style="color:${scoreColor}">${tier?tier.charAt(0).toUpperCase()+tier.slice(1):'Not Attempted'}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function markStudied(deckId){
@@ -3181,7 +3533,7 @@ function _pollVocabResult(deckId){
       if(d.gold){S.gold=(S.gold||0)+d.gold;awardGold(d.gold,'Vocab Check',deckId,true);}
       saveS();
       updateHUDGold();
-      renderVocabMedals();
+      renderVocabMedals();buildFRQTrophyGrid();
       notify(`✅ Vocab Check recorded: ${d.score}%${d.passed?' — Passed!':''}`);
     }catch(e){}
   },2000);
@@ -3221,7 +3573,7 @@ window.addEventListener('message',async e=>{
     if(x){S.xp=(S.xp||0)+x;notify(`⭐ +${x} XP earned!`);}
     saveS();
     updateHUDGold();
-    renderVocabMedals();
+    renderVocabMedals();buildFRQTrophyGrid();
     // Push vocab result to ac_results so it appears on the leaderboard
     if(!S.isGuest&&S.name&&score!==undefined){
       const vocabUnitId='vocab_'+deckId;
@@ -3694,7 +4046,7 @@ async function renderTrophyRoom(){
 
   grid.innerHTML = unitCards.join('') + eocCard;
 
-  renderVocabMedals();
+  renderVocabMedals();buildFRQTrophyGrid();
   await renderLeaderboard();
 }
 
