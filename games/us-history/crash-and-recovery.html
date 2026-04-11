@@ -2231,9 +2231,7 @@ function loadP() {
           fromShell:   true,
           fromCivitas: true
         });
-        if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
-          restoreProgressFromCivitas(civ.fullName || civ.name);
-        }
+        restoreProgressFromCivitas(civ.fullName || civ.name);
         return true;
       }
     }
@@ -2254,9 +2252,7 @@ function loadP() {
           globalRank:  shell.rank || 'Curious Citizen',
           fromShell:   true
         });
-        if (!P.lessonsCompleted || !P.lessonsCompleted.length) {
-          restoreProgressFromCivitas(shell.fullName || shell.name);
-        }
+        restoreProgressFromCivitas(shell.fullName || shell.name);
         return true;
       }
     }
@@ -2276,17 +2272,17 @@ async function restoreProgressFromCivitas(fullName) {
   if (!fullName || fullName === 'Guest') return;
   try {
     const resp = await fetch(
-      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress',
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress,frq_progress',
       {headers: AC_HEADERS}
     );
     const rows = await resp.json();
     if (!rows || !rows[0]) return;
     const profile = rows[0];
 
-    // Restore lesson progress from course_progress.us_history
+    // Restore lesson progress from course_progress
     try {
       const cp = JSON.parse(profile.course_progress || '{}');
-      const ush = cp.us_history || {};
+      const ush = cp[CIV_COURSE] || cp.us_history || {};
 
       // Restore lesson best scores
       if (ush.lessonBestScores && Object.keys(ush.lessonBestScores).length) {
@@ -2314,6 +2310,26 @@ async function restoreProgressFromCivitas(fullName) {
         try { renderLessonMap(); } catch(e) {}
       }
     } catch(e) {}
+
+    // Restore FRQ submission scores from Supabase
+    try {
+      if (profile.frq_progress && profile.frq_progress !== '{}') {
+        const dbFrq = JSON.parse(profile.frq_progress);
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        if (!ss.courseProgress) ss.courseProgress = {};
+        if (!ss.courseProgress[CIV_COURSE]) ss.courseProgress[CIV_COURSE] = { frqSubmissions:{} };
+        if (!ss.courseProgress[CIV_COURSE].frqSubmissions) ss.courseProgress[CIV_COURSE].frqSubmissions = {};
+        const existing = ss.courseProgress[CIV_COURSE].frqSubmissions;
+        Object.keys(dbFrq).forEach(fid => {
+          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+            existing[fid] = dbFrq[fid];
+          }
+        });
+        ss.courseProgress[CIV_COURSE].frqSubmissions = existing;
+        localStorage.setItem('civitas_state', JSON.stringify(ss));
+      }
+    } catch(e) {}
+
   } catch(e) { console.log('restoreProgressFromCivitas failed', e); }
 }
 
@@ -3792,6 +3808,7 @@ function pushLessonProgress(acc) {
             courses:         JSON.stringify(existingCourses),
             unit_progress:   JSON.stringify(unitProgress),
             course_progress: JSON.stringify(courseProgress),
+            frq_progress:    JSON.stringify((()=>{try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');return (ss.courseProgress&&ss.courseProgress[CIV_COURSE]&&ss.courseProgress[CIV_COURSE].frqSubmissions)||{};}catch(e){return {};}})()),
             updated_at:      new Date().toISOString()
           })
         }
