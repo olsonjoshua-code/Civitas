@@ -1282,7 +1282,9 @@ function getShellComposite(unitId){
   const mcqRow=_trophyData.find(r=>r.unit_id===unitId);
   const mcqScore=mcqRow?mcqRow.best_accuracy||0:0;
   const vocabScore=(S.vocabBestScore&&S.vocabBestScore[unitId])||0;
-  const frqScore=(S.frqResults&&S.frqResults[unitId]&&S.frqResults[unitId].score)||0;
+  const frqR=S.frqResults&&S.frqResults[unitId];
+  // New format stores .composite; old format stores .score
+  const frqScore=frqR?(frqR.composite!==undefined?frqR.composite:frqR.score)||0:0;
   const composite=Math.round(mcqScore*0.50+vocabScore*0.25+frqScore*0.25);
   return{mcqScore,vocabScore,frqScore,composite,
     mcqAttempted:!!mcqRow,
@@ -2802,6 +2804,7 @@ async function resetProfile(){
 // ── SUPABASE SYNC ─────────────────────────────────────
 async function syncFromSupabase(){
   const rows=await sfetch(`/rest/v1/ac_results?name=eq.${encodeURIComponent(S.name)}&select=unit_id,best_accuracy,best_score,cards`);
+  console.log('syncFromSupabase: name='+S.name+' rows='+JSON.stringify(rows));
   if(!Array.isArray(rows))return;
   _trophyData=rows;
   let changed=false;
@@ -2816,8 +2819,12 @@ async function syncFromSupabase(){
       const uid=r.unit_id.replace('_frq','');
       const score=r.best_accuracy||0;
       const tier=getFRQTier(score);
-      if(!S.frqResults[uid]||score>S.frqResults[uid].score){
-        S.frqResults[uid]={score,tier};changed=true;
+      const existing=S.frqResults[uid];
+      const existingScore=existing?(existing.composite!==undefined?existing.composite:existing.score)||0:0;
+      if(score>existingScore){
+        // Preserve questions array if present, just update composite
+        S.frqResults[uid]=Object.assign({},existing||{},{composite:score,score,tier});
+        changed=true;
       }
     }
   });
@@ -2922,7 +2929,14 @@ function showView(v){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const nb=document.getElementById('nav-'+v);if(nb)nb.classList.add('active');
   closePreview();
-  if(v==='trophies')renderTrophyRoom();
+  if(v==='trophies'){
+    // Always do a fresh sync when opening trophies so medals are current
+    if(!S.isGuest&&S.name){
+      syncFromSupabase().then(()=>renderTrophyRoom());
+    } else {
+      renderTrophyRoom();
+    }
+  }
   if(v==='characters')renderCharRoom();
   if(v==='teacher')renderTeacherView();
   if(v==='profile'){refreshProfile();renderBadges();loadProfileTeacherPanel();}
