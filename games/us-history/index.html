@@ -3549,11 +3549,12 @@ function buildUnitMedalGrid(){
   const grid=document.getElementById('unit-medal-grid');
   if(!grid)return;
   grid.innerHTML=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint&&u.url).map((u,idx)=>{
-    const {composite,mcqAttempted}=getShellComposite(u.id);
-    const m=mcqAttempted?_medalTier(composite):null;
+    const {mcqScore,mcqAttempted}=getShellComposite(u.id);
+    // Medal shows MCQ score only, not composite
+    const m=mcqAttempted?_medalTier(mcqScore):null;
     const tierClass=m?'earned tier-'+m.tier:'empty';
     return`<div class="vocab-medal-card ${tierClass}" style="animation:floatIn .3s ease ${idx*.03}s both">
-      ${m?_medalSVG(m,composite):_emptyMedalSVG()}
+      ${m?_medalSVG(m,mcqScore):_emptyMedalSVG()}
       <div class="vocab-medal-info">
         <div class="vocab-medal-unit">${u.num}</div>
         <div class="vocab-medal-title" style="${m?'':'color:var(--text3)'}">${u.title}</div>
