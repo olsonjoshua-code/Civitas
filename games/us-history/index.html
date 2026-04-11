@@ -318,12 +318,10 @@ body::before{content:'';position:fixed;inset:0;
 #preview-panel.open{display:flex;animation:slideIn .3s ease}
 .pv-close{position:absolute;top:12px;right:12px;z-index:10;font-family:var(--dm);font-size:9px;padding:5px 11px;background:var(--bg3);border:1px solid var(--border2);color:var(--text3);cursor:pointer;transition:all .15s}
 .pv-close:hover{border-color:var(--amber);color:var(--amber)}
-.pv-hero{width:100%;height:150px;position:relative;overflow:hidden;flex-shrink:0;border-bottom:1px solid var(--border2)}
-.pv-hero-grad{position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,10,8,.25) 0%,transparent 55%,rgba(13,10,8,.55) 100%)}
-.pv-caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(13,10,8,.97),transparent);padding:26px 16px 13px}
-.pv-num{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;margin-bottom:2px}
+.pv-header{padding:18px 16px 14px;border-bottom:1px solid var(--border2);background:var(--bg2)}
+.pv-num{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;margin-bottom:3px}
 .pv-title{font-family:var(--playfair);font-size:20px;color:var(--cream);font-weight:700;line-height:1.2}
-.pv-years{font-family:var(--crimson);font-size:12px;color:var(--amber);font-style:italic;margin-top:1px}
+.pv-years{font-family:var(--crimson);font-size:12px;color:var(--amber);font-style:italic;margin-top:2px}
 .pv-body{padding:14px 16px 24px;flex:1;display:flex;flex-direction:column;gap:13px}
 .pv-lbl{font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:6px;display:block}
 .pv-desc{font-family:var(--crimson);font-size:14px;line-height:1.65;color:var(--text)}
@@ -935,8 +933,12 @@ body::before{content:'';position:fixed;inset:0;
 <!-- PREVIEW PANEL -->
 <div id="preview-panel">
   <button class="pv-close" onclick="closePreview()">✕ Close</button>
-  <div class="pv-body" style="padding-top:14px;">
-    <div><div class="pv-caption" style="padding:0 0 10px"><div class="pv-num" id="pv-num"></div><div class="pv-title" id="pv-title"></div><div class="pv-years" id="pv-years"></div></div></div>
+  <div class="pv-header">
+    <div class="pv-num" id="pv-num"></div>
+    <div class="pv-title" id="pv-title"></div>
+    <div class="pv-years" id="pv-years"></div>
+  </div>
+  <div class="pv-body">
     <div><div class="pv-desc" id="pv-desc"></div></div>
     <div><span class="pv-lbl">MAIN TOPICS</span><div id="pv-topics" style="display:flex;flex-wrap:wrap;gap:4px"></div></div>
     <div><span class="pv-lbl">THEMES</span><div id="pv-themes"></div></div>
@@ -3222,8 +3224,7 @@ function openPreview(uid){
   const isTheme=uid.startsWith('theme_');const isCheckpoint=!!(UNIT_DATA.find(x=>x.id===uid)?.isCheckpoint);
   document.getElementById('pv-num').textContent=u.num;document.getElementById('pv-title').textContent=u.title;document.getElementById('pv-years').textContent=u.years;
   document.getElementById('pv-desc').textContent=u.desc;document.getElementById('pv-changed').textContent=u.changed;document.getElementById('pv-continued').textContent=u.continued;document.getElementById('pv-emerged').textContent=u.emerged;
-  document.getElementById('pv-hero').style.background=`linear-gradient(135deg,${u.eraColor}55,#0d0a08)`;
-  // hero art removed
+  // hero removed
   document.getElementById('pv-topics').innerHTML=u.topics.map(t=>`<span class="topic-tag">${t}</span>`).join('');
   // Hide themes row and map for theme units — they don't apply
   const themesRow=document.getElementById('pv-themes').closest('div');
