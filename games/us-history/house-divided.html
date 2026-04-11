@@ -2206,32 +2206,18 @@ function switchHubTab(tabId, btnEl) {
   if (tabId === 'rounds') renderHubTrophySection();
 }
 
+const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
+
 function launchFlashcardsFromTab() {
-  // Re-use existing flashcard launch if available, otherwise navigate
-  if (typeof launchFlashcards === 'function') { launchFlashcards(); return; }
-  const deckId = getDeckIdForUnit();
-  if (deckId) {
-    const base = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
-    window.open(base + 'flashcards/?deck=' + encodeURIComponent(deckId) + '&mode=study&from=unit', '_blank');
-  }
+  const deckId = 'unit1';
+  try { localStorage.setItem('ac_shell_url', 'https://olsonjoshua-code.github.io/Civitas/games/us-history/'); } catch(e) {}
+  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=study&from=unit';
 }
 
 function launchVocabQuizFromTab() {
-  if (typeof launchVocabQuiz === 'function') { launchVocabQuiz(); return; }
-  const deckId = getDeckIdForUnit();
-  if (deckId) {
-    const base = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
-    window.open(base + 'flashcards/?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=unit', '_blank');
-  }
-}
-
-function getDeckIdForUnit() {
-  // Try to get deck id from existing game state
-  try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
-    if (state && state.name) return 'unit1'; // Unit 1 deck id
-  } catch(e) {}
-  return 'unit1';
+  const deckId = 'unit1';
+  try { localStorage.setItem('ac_shell_url', 'https://olsonjoshua-code.github.io/Civitas/games/us-history/'); } catch(e) {}
+  window.location.href = FC_URL + '?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=unit';
 }
 
 function updateFlashcardStatus() {
@@ -3107,34 +3093,42 @@ function returnToUnitHub() {
 
 // ── UNIT TROPHY REVEAL ────────────────────────────────────
 function showUnitTrophy(overallAcc) {
-  const tier = calcTier(overallAcc);
   const name = P.name || 'Historian';
-  const passed = overallAcc >= 60;
 
-  // Messages per tier
+  // Use composite score, not just MCQ accuracy
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const displayTier = allAttempted ? calcTier(composite) : { label:'In Progress', color:'var(--amber)', icon:'⏳' };
+  const passed = allAttempted ? composite >= 60 : true; // always show results if MCQ done
+
   const messages = {
-    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
-    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
-    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
-    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
-    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
-    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
+    historian: `An extraordinary performance, ${name}. A perfect composite score — you've mastered every component of this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level composite score reflects real mastery of this unit.`,
+    silver:    `Well done, ${name}. A solid silver result — complete all three components to push higher.`,
+    bronze:    `Good work, ${name}. A bronze composite medal is yours. Keep working through all three components.`,
+    completed: `You completed the unit, ${name}. Finish all three components to earn a higher medal.`,
+    tryagain:  `Good effort, ${name}. Keep working through the remaining components to improve your composite score.`,
+    'in progress': `Great start, ${name}! Your MCQ score is locked in — now complete the Vocab Check and Open Answer to finalize your composite score.`
   };
 
-  const tierKey = tier.label.toLowerCase().replace(' ', '');
-  const msg = messages[tierKey] || messages.tryagain;
+  const tierKey = displayTier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages['in progress'];
 
   document.getElementById('utr-name').textContent = name;
-  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
-  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
-  document.getElementById('utr-trophy-name').style.color = tier.color;
+  document.getElementById('utr-icon').textContent = displayTier.icon;
+  document.getElementById('utr-trophy-name').textContent = allAttempted ? displayTier.label + ' Medal' : 'MCQ Complete';
+  document.getElementById('utr-trophy-name').style.color = displayTier.color;
   document.getElementById('utr-msg').textContent = msg;
-  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
+
+  // Show composite breakdown
+  const accEl = document.getElementById('utr-acc');
+  accEl.innerHTML = allAttempted
+    ? `Composite Score: <strong style="color:${displayTier.color}">${composite}%</strong>`
+    : `MCQ: <strong style="color:var(--gold)">${mcqScore}%</strong> &nbsp;·&nbsp; Vocab: <strong style="color:${vocabAttempted?'#a080e8':'var(--text3)'}">${vocabAttempted?vocabScore+'%':'pending'}</strong> &nbsp;·&nbsp; Open Answer: <strong style="color:${frqAttempted?'var(--teal2)':'var(--text3)'}">${frqAttempted?frqScore+'%':'pending'}</strong>`;
 
   const btn = document.getElementById('utr-btn');
-  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
-  btn.style.borderColor = tier.color;
-  btn.style.color = tier.color;
+  btn.textContent = 'View My Results ▶';
+  btn.style.borderColor = displayTier.color;
+  btn.style.color = displayTier.color;
 
   document.getElementById('unit-trophy-overlay').classList.add('show');
 }
@@ -3158,9 +3152,9 @@ function returnToShell() {
   if (fromCivitas) {
     try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
     try { localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
-  } else {
-    try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
   }
+  // Always set ac_returning_from_game so American Chronicles shell resyncs on next load
+  try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
   notify('Returning to Civitas…');
   const shellURL = localStorage.getItem('civitas_shell_url')
     || localStorage.getItem('ac_shell_url')
