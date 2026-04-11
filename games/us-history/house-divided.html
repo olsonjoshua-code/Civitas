@@ -541,7 +541,7 @@ body.hud-active #root{padding-top:68px;}
       <div class="hud-stat">🪙 GOLD<span id="hud-score" style="color:#f5c842;">0</span></div>
       <div class="hud-stat">STREAK<span id="hud-streak">0</span></div>
     </div>
-    <button class="hud-back-btn" id="hud-back-unit" onclick="returnToUnitHub()">← Unit Hub</button>
+    <button class="hud-back-btn" id="hud-back-unit" onclick="returnToUnitHub()">← A House Divided</button>
     <button class="hud-back-btn" id="hud-back-shell" onclick="returnToShell()">🏛 Hub</button>
   </div>
 </div>
@@ -559,7 +559,7 @@ body.hud-active #root{padding-top:68px;}
   <!-- Shell return (shown when arriving from American Chronicles) -->
   <div id="shell-return-btn" style="display:none;margin-bottom:12px;">
     <button class="btn full" onclick="returnToShell()" style="border-color:var(--teal2);color:var(--teal2);">
-      <span>← Return to American Chronicles Hub</span>
+      <span>← Back to American Chronicles</span>
     </button>
   </div>
 
@@ -583,14 +583,14 @@ body.hud-active #root{padding-top:68px;}
   <div class="hub-panel active" id="hubtab-play">
     <div class="activity-grid" style="margin-top:16px;">
 
-      <div class="activity-card" onclick="launchFirstLesson()" style="border-top:3px solid var(--gold)">
+      <div class="activity-card" onclick="switchHubTab('rounds',null)" style="border-top:3px solid var(--gold)">
         <div class="activity-card-strip" style="background:var(--gold)"></div>
         <div class="activity-card-body">
           <div class="activity-card-icon">⚔️</div>
           <div class="activity-card-label">MCQ CHALLENGE · GRADED</div>
           <div class="activity-card-title">Unit Game</div>
           <div class="activity-card-desc">Play through all rounds covering the Civil War and Reconstruction. Answer MCQs to earn gold and a unit trophy.</div>
-          <div class="activity-card-action" style="color:var(--gold)">→ Launch Game</div>
+          <div class="activity-card-action" style="color:var(--gold)">→ View Rounds</div>
         </div>
         <div class="activity-card-badge" id="badge-game" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
       </div>
@@ -631,8 +631,11 @@ body.hud-active #root{padding-top:68px;}
       </div>
 
     </div>
+  </div>
 
-    <div class="section-head" style="font-size:14px;margin-top:8px;">Game Rounds</div>
+  <!-- GAME ROUNDS TAB (hidden, opened by Unit Game card) -->
+  <div class="hub-panel" id="hubtab-rounds">
+    <button onclick="switchHubTab('play',null)" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-top:12px;margin-bottom:4px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
     <div id="hub-chapters"></div>
     <div class="deco-divider"><span class="deco-divider-icon">⚔️</span></div>
     <div class="section-head" style="font-size:14px;">Badges</div>
@@ -649,6 +652,7 @@ body.hud-active #root{padding-top:68px;}
   <!-- FLASHCARDS TAB -->
   <div class="hub-panel" id="hubtab-flashcards">
     <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
       <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px;">Study all Unit 1 key terms — from causes of the Civil War through the end of Reconstruction — using the Civitas spaced repetition flashcard engine.</div>
       <button onclick="launchFlashcardsFromTab()" class="btn full" style="border-color:var(--amber);color:var(--amber);font-size:15px;padding:16px;letter-spacing:3px;">
         <span>🃏 Launch Flashcards</span>
@@ -660,6 +664,7 @@ body.hud-active #root{padding-top:68px;}
   <!-- VOCAB QUIZ TAB -->
   <div class="hub-panel" id="hubtab-vocabquiz">
     <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
       <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:8px;">Graded vocabulary quiz covering all Unit 1 terms. Score 60%+ to pass and earn a Vocab Medal.</div>
       <div id="vocabquiz-status" style="margin-bottom:14px;font-family:var(--dm);font-size:9px;color:var(--text3);"></div>
       <button onclick="launchVocabQuizFromTab()" class="btn full" style="border-color:#8060c8;color:#a080e8;font-size:15px;padding:16px;letter-spacing:3px;">
@@ -670,7 +675,10 @@ body.hud-active #root{padding-top:68px;}
 
   <!-- OPEN ANSWER TAB -->
   <div class="hub-panel" id="hubtab-openanswer">
-    <div id="frq-panel-content" style="padding-top:4px;"></div>
+    <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+      <div id="frq-panel-content"></div>
+    </div>
   </div>
 
 </div><!-- /unit-hub-screen -->
@@ -2096,6 +2104,38 @@ function calcTier(acc) {
   return              {label:'Try Again',    color:'#c02020', icon:'🔄'};
 }
 
+// ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
+function getCompositeScore() {
+  // MCQ — best accuracy across all lessons (average of completed lessons)
+  const lessonScores = Object.values(P.lessonBestScores || {});
+  const mcqScore = lessonScores.length
+    ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
+    : 0;
+
+  // Vocab — from shell localStorage
+  let vocabScore = 0;
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    vocabScore = (shell.vocabBestScore && shell.vocabBestScore['unit1']) || 0;
+  } catch(e) {}
+
+  // FRQ — from shell localStorage
+  let frqScore = 0;
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    frqScore = (shell.frqResults && shell.frqResults['unit1'] && shell.frqResults['unit1'].score) || 0;
+  } catch(e) {}
+
+  // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
+  const composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
+
+  return { mcqScore, vocabScore, frqScore, composite,
+    mcqAttempted: lessonScores.length > 0,
+    vocabAttempted: vocabScore > 0,
+    frqAttempted: frqScore > 0
+  };
+}
+
 function notify(msg, col) {
   const n = document.createElement('div');
   n.className = 'notif' + (col ? ' ' + col : '');
@@ -2115,11 +2155,6 @@ function showScreen(id) {
 }
 
 // ── Hub Tab System ─────────────────────────────────────
-function launchFirstLesson() {
-  // Scroll down to the Game Rounds so student can see and pick their round
-  const el = document.getElementById('hub-chapters');
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 function switchHubTab(tabId, btnEl) {
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
@@ -2127,6 +2162,12 @@ function switchHubTab(tabId, btnEl) {
   const panel = document.getElementById('hubtab-' + tabId);
   if (panel) panel.classList.add('active');
   if (btnEl) btnEl.classList.add('active');
+  // Only show the shell return button on the Play tab
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = (tabId === 'play' && P && P.fromShell) ? 'block' : 'none';
+  // Scroll to top of hub screen on tab switch
+  const hubScreen = document.getElementById('unit-hub-screen');
+  if (hubScreen) hubScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (tabId === 'openanswer') renderFRQPanel();
   if (tabId === 'flashcards') updateFlashcardStatus();
   if (tabId === 'vocabquiz') updateVocabQuizStatus();
@@ -2333,6 +2374,7 @@ function showFRQResult(result, answer) {
     if (!prev || score > prev.score) {
       state.frqResults['unit1'] = { score, tier, question: _frqSelectedQ, date: Date.now() };
       localStorage.setItem('ac_shell_state', JSON.stringify(state));
+      renderHubTrophySection();
     }
   } catch(e) {}
 
@@ -2383,6 +2425,13 @@ function showUnitHub() {
   document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
   showBottomNav();
   setActiveNav(0);
+  // Always reset to Play tab when returning to hub
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach(b => b.classList.remove('active'));
+  const playPanel = document.getElementById('hubtab-play');
+  const playBtn = document.getElementById('hubtab-btn-play');
+  if (playPanel) playPanel.classList.add('active');
+  if (playBtn) playBtn.classList.add('active');
   renderUnitHub();
   // Restore FRQ badge if student has a prior result
   try {
@@ -2524,36 +2573,50 @@ function renderHubTrophySection() {
   const el = document.getElementById('hub-trophy-section');
   if (!el) return;
 
-  // Only show if at least one lesson completed
   const scores = Object.values(P.lessonBestScores || {});
   if (!scores.length) { el.style.display = 'none'; return; }
   el.style.display = 'block';
 
-  const best = P.lessonBestScores;
-  const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
+  const tier = calcTier(composite);
 
-  // Unit overall trophy = best single-lesson accuracy
-  const bestAcc = Math.max(...scores.map(s => s.accuracy));
-  const unitTier = calcTier(bestAcc);
+  function subBar(score, attempted, color) {
+    const w = attempted ? score : 0;
+    return `<div style="height:4px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden">
+      <div style="height:100%;width:${w}%;background:${color};border-radius:2px;transition:width .6s ease"></div>
+    </div>`;
+  }
 
-  // EOC rating from the EOC lesson specifically, or overall avg
-  const eocScore = best['eoc'] ? best['eoc'].accuracy :
-    Math.round(scores.reduce((a, s) => a + s.accuracy, 0) / scores.length);
-  const eoc = eocLevel(eocScore);
+  function subRow(label, score, attempted, weight, color) {
+    const display = attempted ? score + '%' : '—';
+    const note = attempted ? '' : '<span style="font-size:8px;color:var(--text3);margin-left:4px">(not attempted)</span>';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">${label} <span style="color:var(--border2)">· ${weight}%</span></span>
+        <span style="font-family:var(--bebas);font-size:16px;color:${attempted ? color : 'var(--text3)'}">${display}${note}</span>
+      </div>
+      ${subBar(score, attempted, color)}
+    </div>`;
+  }
 
   el.innerHTML = `
-    <div class="sh" style="margin-top:20px;">Unit Performance</div>
-    <div class="trophy-display">
-      <div class="trophy-icon">${unitTier.icon}</div>
-      <div class="trophy-info">
-        <div class="trophy-tier-name" style="color:${unitTier.color}">${unitTier.label}</div>
-        <div class="trophy-stat-row">
-          <div class="trophy-stat">Best accuracy: <strong>${bestAcc}%</strong></div>
-          <div class="trophy-stat">Lessons done: <strong>${P.lessonsCompleted.length}/${LESSONS.length}</strong></div>
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid ${tier.color};padding:16px 18px;margin-top:16px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:36px">${tier.icon}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">UNIT TROPHY</div>
+          <div style="font-family:var(--bebas);font-size:24px;color:${tier.color};letter-spacing:2px">${tier.label}</div>
+          <div style="font-family:var(--bebas);font-size:32px;color:${tier.color};line-height:1">${composite}%</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px">Composite Score</div>
         </div>
-        <div class="eoc-rating-badge" style="color:${eoc.color};border-color:${eoc.color};">
-          EOC ${eoc.label}
-        </div>
+      </div>
+      <div>
+        ${subRow('UNIT GAME (MCQ)', mcqScore, mcqAttempted, 50, 'var(--gold)')}
+        ${subRow('VOCAB CHECK', vocabScore, vocabAttempted, 25, '#a080e8')}
+        ${subRow('OPEN ANSWER', frqScore, frqAttempted, 25, 'var(--teal2)')}
+      </div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6">
+        Weighted: MCQ 50% · Vocab 25% · Open Answer 25% · Unfinished sections count as 0%
       </div>
     </div>`;
 }
@@ -3080,21 +3143,18 @@ function replayFromBeginning() {
 }
 
 function printCertificate() {
-  const scores = P.lessonBestScores;
-  const allScores = Object.values(scores);
-  const avgAcc = allScores.length
-    ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
-    : 0;
-  const tier = calcTier(avgAcc);
-  const eoc = eocLevel(avgAcc);
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
+  const tier = calcTier(composite);
   const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
   const lessonRows = LESSONS.map(l => {
-    const s = scores[l.id];
+    const s = P.lessonBestScores[l.id];
     return s
       ? `<tr><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">${s.accuracy}%</td><td style="text-align:center">${s.correct}/${s.total}</td></tr>`
       : `<tr style="opacity:.4"><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>`;
   }).join('');
-  const w = window.open('','_blank','width=780,height=680');
+
+  const w = window.open('','_blank','width=780,height=780');
   if(!w){notify('Allow popups to print certificate.');return;}
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
   <style>
@@ -3106,6 +3166,12 @@ function printCertificate() {
     .divider{height:2px;background:linear-gradient(90deg,transparent,#c83020,transparent);margin:14px auto;width:80%}
     .name{font-family:'Cinzel Decorative',serif;font-size:28px;color:#1a0a08;margin:8px 0}
     .tier{font-family:'Cinzel',serif;font-size:18px;color:#c83020;letter-spacing:.1em;margin:8px 0}
+    .composite{font-family:'Cinzel Decorative',serif;font-size:42px;color:#c83020;margin:4px 0;line-height:1}
+    .components{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;text-align:center}
+    .comp-box{border:1px solid #ddd;padding:10px 8px;background:#fff}
+    .comp-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#888;margin-bottom:4px}
+    .comp-score{font-family:'Cinzel Decorative',serif;font-size:22px}
+    .comp-weight{font-size:9px;color:#aaa;margin-top:2px}
     table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
     th{border-bottom:2px solid #c83020;padding:6px;text-align:left;font-family:'Cinzel',serif;letter-spacing:.05em}
     td{padding:5px 6px;border-bottom:1px solid #e0d8c8}
@@ -3120,12 +3186,33 @@ function printCertificate() {
     <div class="divider"></div>
     <div style="font-size:12px;color:#666;letter-spacing:.1em">THIS CERTIFIES THAT</div>
     <div class="name">${P.name || 'Historian'}</div>
-    <div style="font-size:13px;color:#444;margin:6px 0">has successfully completed</div>
+    <div style="font-size:13px;color:#444;margin:6px 0">has completed</div>
     <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">House Divided — Unit 1: Civil War and Reconstruction</div>
     ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
     <div class="divider"></div>
-    <div class="tier">${tier.label} · ${avgAcc}% Accuracy</div>
-    <div style="font-size:12px;color:#555;margin:4px 0">EOC Practice Rating: ${eoc.label}</div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.15em;color:#888;margin-bottom:4px">COMPOSITE UNIT SCORE</div>
+    <div class="composite">${composite}%</div>
+    <div class="tier">${tier.icon} ${tier.label} Trophy</div>
+    <div class="components">
+      <div class="comp-box">
+        <div class="comp-label">UNIT GAME (MCQ)</div>
+        <div class="comp-score" style="color:${mcqAttempted ? '#b87800' : '#aaa'}">${mcqAttempted ? mcqScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 50%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">VOCAB CHECK</div>
+        <div class="comp-score" style="color:${vocabAttempted ? '#6040a0' : '#aaa'}">${vocabAttempted ? vocabScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">OPEN ANSWER</div>
+        <div class="comp-score" style="color:${frqAttempted ? '#1a7a6a' : '#aaa'}">${frqAttempted ? frqScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:8px">MCQ 50% · Vocab 25% · Open Answer 25% · Incomplete sections scored as 0%</div>
+    <div class="divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;color:#888;margin-bottom:6px">MCQ ROUND BREAKDOWN</div>
     <table>
       <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
       <tbody>${lessonRows}</tbody>
