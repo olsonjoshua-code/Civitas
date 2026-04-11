@@ -134,6 +134,42 @@ body.hud-active #root{padding-top:68px;}
   padding:12px 16px;margin-bottom:16px;
   font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;}
 .eq-banner strong{color:var(--gold);font-style:normal;}
+/* ── Hub Tabs ── */
+.hub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border2);margin-bottom:0;overflow-x:auto;scrollbar-width:none}
+.hub-tabs::-webkit-scrollbar{display:none}
+.hub-tab{font-family:var(--bebas);font-size:11px;letter-spacing:1.5px;padding:10px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.hub-tab:hover{color:var(--cream)}
+.hub-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.hub-panel{display:none;padding:16px 0 80px}
+.hub-panel.active{display:block}
+/* Activity cards */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:16px 18px}
+.activity-card-icon{font-size:26px;margin-bottom:8px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px}
+.activity-card-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:5px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:12px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;background:rgba(0,0,0,.6)}
+/* FRQ inside unit game */
+.frq-q-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.frq-q-opt{background:var(--bg3);border:1px solid var(--border);padding:10px 12px;cursor:pointer;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.45;transition:all .15s;text-align:left;width:100%}
+.frq-q-opt:hover{border-color:var(--amber2);color:var(--cream);background:rgba(232,160,32,.06)}
+.frq-q-opt.selected{border-color:var(--gold);color:var(--cream);background:rgba(232,160,32,.1)}
+.frq-selected-q{background:rgba(232,160,32,.08);border:1px solid var(--amber2);border-left:3px solid var(--gold);padding:10px 12px;font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.5;font-style:italic;margin-bottom:10px}
+#frq-textarea{width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;outline:none}
+#frq-textarea:focus{border-color:var(--amber2)}
+#frq-textarea::placeholder{color:var(--text3)}
+.frq-word-count{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:right;margin-top:3px;margin-bottom:10px}
+.frq-hint-box{font-family:var(--dm);font-size:9px;color:var(--text3);line-height:1.6;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);margin-bottom:12px}
+.frq-result-box{padding:16px;border:1px solid var(--border2);background:var(--bg3);margin-bottom:14px}
+.frq-score-big{font-family:var(--bebas);font-size:52px;line-height:1;margin-bottom:4px}
+.frq-trophy-badge{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:3px 10px;display:inline-block;margin-bottom:10px;border:1px solid}
+.frq-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.65;margin-top:8px}
+@media(max-width:500px){.activity-grid{grid-template-columns:1fr}}
 
 .deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
 .deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;
@@ -535,25 +571,105 @@ body.hud-active #root{padding-top:68px;}
     <strong>Essential Question:</strong> How did the unresolved question of slavery tear the nation apart, and what did Union victory and Reconstruction achieve — and fail to achieve — in redefining freedom and citizenship for all Americans?
   </div>
 
-  <!-- Lesson / chapter cards — rendered by JS -->
-  <div id="hub-chapters"></div>
+  <!-- Tab bar -->
+  <div class="hub-tabs" style="margin-top:14px;">
+    <button class="hub-tab active" id="hubtab-btn-play" onclick="switchHubTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" id="hubtab-btn-flashcards" onclick="switchHubTab('flashcards',this)">🃏 Flashcards</button>
+    <button class="hub-tab" id="hubtab-btn-vocabquiz" onclick="switchHubTab('vocabquiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" id="hubtab-btn-openanswer" onclick="switchHubTab('openanswer',this)">✍️ Open Answer</button>
+  </div>
 
-  <!-- Divider -->
-  <div class="deco-divider"><span class="deco-divider-icon">⚔️</span></div>
+  <!-- PLAY TAB -->
+  <div class="hub-panel active" id="hubtab-play">
+    <div class="activity-grid" style="margin-top:16px;">
 
-  <!-- Badges row — rendered by JS -->
-  <div class="section-head" style="font-size:14px;">Badges</div>
-  <div class="badges-row" id="hub-badges"></div>
+      <div class="activity-card" onclick="launchFirstLesson()" style="border-top:3px solid var(--gold)">
+        <div class="activity-card-strip" style="background:var(--gold)"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">⚔️</div>
+          <div class="activity-card-label">MCQ CHALLENGE · GRADED</div>
+          <div class="activity-card-title">Unit Game</div>
+          <div class="activity-card-desc">Play through all rounds covering the Civil War and Reconstruction. Answer MCQs to earn gold and a unit trophy.</div>
+          <div class="activity-card-action" style="color:var(--gold)">→ Launch Game</div>
+        </div>
+        <div class="activity-card-badge" id="badge-game" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
+      </div>
 
-  <!-- Trophy / EOC block — rendered by JS -->
-  <div id="hub-trophy-section" style="display:none;"></div>
+      <div class="activity-card" onclick="switchHubTab('flashcards',document.getElementById('hubtab-btn-flashcards'))" style="border-top:3px solid var(--amber)">
+        <div class="activity-card-strip" style="background:var(--amber)"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">🃏</div>
+          <div class="activity-card-label">VOCABULARY · SPACED REPETITION</div>
+          <div class="activity-card-title">Flashcard Deck</div>
+          <div class="activity-card-desc">Study all key terms from the Civil War through Reconstruction with the Civitas flashcard engine.</div>
+          <div class="activity-card-action" style="color:var(--amber)">→ Study Flashcards</div>
+        </div>
+      </div>
 
-  <!-- Print certificate — shown when unit complete -->
-  <div id="hub-cert-row" style="display:none;margin-top:4px;">
-    <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
-      <span>🖨️ Print Certificate</span>
-    </button>
-    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+      <div class="activity-card" onclick="switchHubTab('vocabquiz',document.getElementById('hubtab-btn-vocabquiz'))" style="border-top:3px solid #8060c8">
+        <div class="activity-card-strip" style="background:#8060c8"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">✅</div>
+          <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
+          <div class="activity-card-title">Vocab Check</div>
+          <div class="activity-card-desc">Graded vocabulary quiz. Pass with 60%+ to earn a Vocab Medal and gold reward.</div>
+          <div class="activity-card-action" style="color:#a080e8">→ Take Quiz</div>
+        </div>
+        <div class="activity-card-badge" id="badge-vocab" style="display:none;border-color:#a080e8;color:#a080e8"></div>
+      </div>
+
+      <div class="activity-card" onclick="switchHubTab('openanswer',document.getElementById('hubtab-btn-openanswer'))" style="border-top:3px solid var(--teal)">
+        <div class="activity-card-strip" style="background:var(--teal)"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">✍️</div>
+          <div class="activity-card-label">OPEN ANSWER · AI GRADED</div>
+          <div class="activity-card-title">Open Answer Challenge</div>
+          <div class="activity-card-desc">Answer a district guiding question in your own words. Graded by AI — earn Bronze, Silver, or Gold trophy.</div>
+          <div class="activity-card-action" style="color:var(--teal2)">→ Start Challenge</div>
+        </div>
+        <div class="activity-card-badge" id="badge-frq" style="display:none;border-color:var(--teal2);color:var(--teal2)"></div>
+      </div>
+
+    </div>
+
+    <div id="hub-chapters" style="display:none;"></div>
+    <div class="deco-divider"><span class="deco-divider-icon">⚔️</span></div>
+    <div class="section-head" style="font-size:14px;">Badges</div>
+    <div class="badges-row" id="hub-badges"></div>
+    <div id="hub-trophy-section" style="display:none;"></div>
+    <div id="hub-cert-row" style="display:none;margin-top:4px;">
+      <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
+        <span>🖨️ Print Certificate</span>
+      </button>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS TAB -->
+  <div class="hub-panel" id="hubtab-flashcards">
+    <div style="padding-top:4px;">
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px;">Study all Unit 1 key terms — from causes of the Civil War through the end of Reconstruction — using the Civitas spaced repetition flashcard engine.</div>
+      <button onclick="launchFlashcardsFromTab()" class="btn full" style="border-color:var(--amber);color:var(--amber);font-size:15px;padding:16px;letter-spacing:3px;">
+        <span>🃏 Launch Flashcards</span>
+      </button>
+      <div id="flashcard-status" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:10px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- VOCAB QUIZ TAB -->
+  <div class="hub-panel" id="hubtab-vocabquiz">
+    <div style="padding-top:4px;">
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:8px;">Graded vocabulary quiz covering all Unit 1 terms. Score 60%+ to pass and earn a Vocab Medal.</div>
+      <div id="vocabquiz-status" style="margin-bottom:14px;font-family:var(--dm);font-size:9px;color:var(--text3);"></div>
+      <button onclick="launchVocabQuizFromTab()" class="btn full" style="border-color:#8060c8;color:#a080e8;font-size:15px;padding:16px;letter-spacing:3px;">
+        <span>✅ Take Vocab Quiz</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- OPEN ANSWER TAB -->
+  <div class="hub-panel" id="hubtab-openanswer">
+    <div id="frq-panel-content" style="padding-top:4px;"></div>
   </div>
 
 </div><!-- /unit-hub-screen -->
@@ -1997,6 +2113,269 @@ function showScreen(id) {
   if (el) el.classList.add('active');
 }
 
+// ── Hub Tab System ─────────────────────────────────────
+function launchFirstLesson() {
+  // Find the first unlocked but incomplete lesson, or first lesson if all complete
+  const lesson = LESSONS.find((l, idx) => isLessonUnlocked(idx) && !P.lessonsCompleted.includes(l.id))
+    || LESSONS.find((l, idx) => isLessonUnlocked(idx))
+    || LESSONS[0];
+  if (lesson) openBriefing(lesson.id);
+}
+
+function switchHubTab(tabId, btnEl) {
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('hubtab-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+  if (tabId === 'openanswer') renderFRQPanel();
+  if (tabId === 'flashcards') updateFlashcardStatus();
+  if (tabId === 'vocabquiz') updateVocabQuizStatus();
+}
+
+function launchFlashcardsFromTab() {
+  // Re-use existing flashcard launch if available, otherwise navigate
+  if (typeof launchFlashcards === 'function') { launchFlashcards(); return; }
+  const deckId = getDeckIdForUnit();
+  if (deckId) {
+    const base = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+    window.open(base + 'flashcards/?deck=' + encodeURIComponent(deckId) + '&mode=study&from=unit', '_blank');
+  }
+}
+
+function launchVocabQuizFromTab() {
+  if (typeof launchVocabQuiz === 'function') { launchVocabQuiz(); return; }
+  const deckId = getDeckIdForUnit();
+  if (deckId) {
+    const base = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+    window.open(base + 'flashcards/?deck=' + encodeURIComponent(deckId) + '&mode=quiz&from=unit', '_blank');
+  }
+}
+
+function getDeckIdForUnit() {
+  // Try to get deck id from existing game state
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    if (state && state.name) return 'unit1'; // Unit 1 deck id
+  } catch(e) {}
+  return 'unit1';
+}
+
+function updateFlashcardStatus() {
+  const el = document.getElementById('flashcard-status');
+  if (!el) return;
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const studied = state.flashcardsStudied && state.flashcardsStudied['unit1'];
+    el.textContent = studied ? '✓ You have studied this deck before.' : 'Not yet studied.';
+    el.style.color = studied ? 'var(--teal2)' : 'var(--text3)';
+  } catch(e) {}
+}
+
+function updateVocabQuizStatus() {
+  const el = document.getElementById('vocabquiz-status');
+  if (!el) return;
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const passed = state.vocabPassed && state.vocabPassed['unit1'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1'];
+    if (passed) {
+      el.innerHTML = '<span style="color:var(--green2)">✓ Passed' + (best !== undefined ? ' — Best: ' + best + '%' : '') + '</span>';
+    } else {
+      el.textContent = 'Not yet passed.';
+    }
+  } catch(e) {}
+}
+
+// ── FRQ Open Answer (inside unit game) ─────────────────
+const FRQ_QUESTIONS_U1 = [
+  'What were the causes and consequences of the Civil War?',
+  'What people and groups influenced Reconstruction?',
+  'What issues divided Republicans during Reconstruction?',
+  'What freedoms were granted to African Americans under the 13th, 14th, and 15th Amendments?',
+  'How were the economic, social, and political rights of newly freed African Americans impacted by Jim Crow and the Nadir of race relations?'
+];
+
+let _frqSelectedQ = null;
+
+function renderFRQPanel() {
+  const container = document.getElementById('frq-panel-content');
+  if (!container) return;
+
+  // Check for existing result
+  let existing = null;
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    existing = state.frqResults && state.frqResults['unit1'];
+  } catch(e) {}
+
+  const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+
+  let priorResultHtml = '';
+  if (existing) {
+    const c = tierColors[existing.tier] || 'var(--text3)';
+    const emoji = { gold: '🥇', silver: '🥈', bronze: '🥉' }[existing.tier] || '📝';
+    priorResultHtml = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${c};padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:24px">${emoji}</div>
+      <div>
+        <div style="font-family:var(--bebas);font-size:14px;color:${c};letter-spacing:1px">Best: ${existing.score}% — ${existing.tier ? existing.tier.charAt(0).toUpperCase()+existing.tier.slice(1) : 'Attempted'}</div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">You can retake to improve your score</div>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = `
+    ${priorResultHtml}
+    <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;">STEP 1 — CHOOSE A QUESTION</div>
+    <div class="frq-q-list" id="frq-q-list">
+      ${FRQ_QUESTIONS_U1.map((q,i) => `<button class="frq-q-opt" onclick="selectFRQQ(${i},this)">${q}</button>`).join('')}
+    </div>
+    <div id="frq-answer-section" style="display:none;">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;margin-top:14px;">STEP 2 — WRITE YOUR ANSWER</div>
+      <div class="frq-selected-q" id="frq-selected-display"></div>
+      <textarea id="frq-textarea" placeholder="Write your answer here. Aim for 3–5 sentences using specific people, events, dates, and terms from class."></textarea>
+      <div class="frq-word-count" id="frq-word-count">0 words</div>
+      <div class="frq-hint-box">💡 Strong answers name specific evidence and explain <em>why</em> it matters — not just what happened. Bronze ≥60% · Silver ≥75% · Gold ≥90%</div>
+      <button class="btn full" id="frq-submit-btn" onclick="submitFRQUnit()" style="border-color:var(--amber);color:var(--amber);font-size:14px;padding:14px;letter-spacing:3px;">
+        <span>Submit for AI Grading →</span>
+      </button>
+    </div>
+    <div id="frq-result-section" style="display:none;"></div>`;
+  _frqSelectedQ = null;
+}
+
+function selectFRQQ(idx, btnEl) {
+  _frqSelectedQ = FRQ_QUESTIONS_U1[idx];
+  document.querySelectorAll('.frq-q-opt').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  document.getElementById('frq-selected-display').textContent = _frqSelectedQ;
+  const section = document.getElementById('frq-answer-section');
+  section.style.display = 'block';
+  const ta = document.getElementById('frq-textarea');
+  ta.oninput = () => {
+    const w = ta.value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '');
+  };
+  setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+async function submitFRQUnit() {
+  const ta = document.getElementById('frq-textarea');
+  const answer = ta ? ta.value.trim() : '';
+  if (!answer || answer.split(/\s+/).filter(Boolean).length < 10) {
+    alert('Please write at least a few sentences before submitting.'); return;
+  }
+  const btn = document.getElementById('frq-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span>⏳ Grading your answer…</span>';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: `You are a high school U.S. History teacher grading a short open-answer response. Grade strictly but fairly on a 0–100 scale.
+
+Scoring rubric:
+- 90–100 (Gold): Directly answers the question, uses specific evidence (names, dates, events, terms), explains significance clearly
+- 75–89 (Silver): Answers the question, mentions some specific evidence, partial explanation
+- 60–74 (Bronze): Addresses the question generally, limited or vague evidence
+- Below 60: Off-topic, too vague, or significantly incorrect
+
+Respond ONLY with valid JSON, no other text:
+{"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2-3 sentences: what they did well and one specific thing to improve>"}`,
+        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${_frqSelectedQ}\n\nStudent Answer: ${answer}` }]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    let result;
+    try { result = JSON.parse(raw.replace(/```json|```/g, '').trim()); }
+    catch(e) { result = { score: 65, tier: 'bronze', feedback: 'Your response showed understanding of the topic. Try to include more specific evidence in your next attempt.' }; }
+    showFRQResult(result, answer);
+  } catch(e) {
+    btn.disabled = false; btn.innerHTML = '<span>Submit for AI Grading →</span>';
+    alert('Grading failed — check your connection and try again.');
+  }
+}
+
+function showFRQResult(result, answer) {
+  const score = Math.max(0, Math.min(100, Math.round(result.score || 0)));
+  const tier = score >= 90 ? 'gold' : score >= 75 ? 'silver' : score >= 60 ? 'bronze' : null;
+  const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+  const tierLabels = { gold: '🥇 Gold Trophy', silver: '🥈 Silver Trophy', bronze: '🥉 Bronze Trophy' };
+  const color = tier ? tierColors[tier] : 'var(--text3)';
+  const label = tier ? tierLabels[tier] : 'No Trophy — Keep Trying';
+
+  document.getElementById('frq-answer-section').style.display = 'none';
+  const resultSection = document.getElementById('frq-result-section');
+  resultSection.style.display = 'block';
+  resultSection.innerHTML = `
+    <div class="frq-result-box">
+      <div class="frq-score-big" style="color:${color}">${score}<span style="font-size:20px;color:var(--text3)">%</span></div>
+      <div class="frq-trophy-badge" style="color:${color};border-color:${color};background:rgba(0,0,0,.3)">${label}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:5px;letter-spacing:1px;margin-top:4px">AI FEEDBACK</div>
+      <div class="frq-feedback">${result.feedback || ''}</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--bg3);border:1px solid var(--border)">${answer}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--amber2);color:var(--amber)"><span>↺ Try Again</span></button>
+    </div>`;
+
+  // Save to shell localStorage
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    if (!state.frqResults) state.frqResults = {};
+    const prev = state.frqResults['unit1'];
+    if (!prev || score > prev.score) {
+      state.frqResults['unit1'] = { score, tier, question: _frqSelectedQ, date: Date.now() };
+      localStorage.setItem('ac_shell_state', JSON.stringify(state));
+    }
+  } catch(e) {}
+
+  // Save to Supabase via shell's sfetch if available (page has its own Supabase setup)
+  saveFRQResultToSupabase(score, tier);
+  updateFRQBadge(score, tier);
+}
+
+function saveFRQResultToSupabase(score, tier) {
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const name = state.name;
+    const period = state.period || '';
+    if (!name || name === 'Guest') return;
+    const supaUrl = typeof SUPA_URL !== 'undefined' ? SUPA_URL : null;
+    const supaH = typeof SUPA_H !== 'undefined' ? SUPA_H : null;
+    if (!supaUrl || !supaH) return;
+    fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
+      method: 'POST',
+      headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        name, period,
+        unit_id: 'unit1_frq',
+        best_accuracy: score,
+        best_score: score,
+        cards: tier || 'none',
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
+
+function updateFRQBadge(score, tier) {
+  const badge = document.getElementById('badge-frq');
+  if (!badge) return;
+  const labels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
+  if (tier && labels[tier]) {
+    badge.textContent = labels[tier];
+    badge.style.display = 'block';
+  }
+}
+
 function showUnitHub() {
   showScreen('unit-hub-screen');
   document.getElementById('game-hud').style.display = 'block';
@@ -2006,6 +2385,12 @@ function showUnitHub() {
   showBottomNav();
   setActiveNav(0);
   renderUnitHub();
+  // Restore FRQ badge if student has a prior result
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const frq = state.frqResults && state.frqResults['unit1'];
+    if (frq && frq.tier) updateFRQBadge(frq.score, frq.tier);
+  } catch(e) {}
 }
 
 function showQuestionScreen() {
