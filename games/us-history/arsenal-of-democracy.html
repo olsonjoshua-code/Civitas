@@ -470,6 +470,379 @@ body.hud-active #root{padding-top:68px;}
 .utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
 .utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
 .utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+/* ── Hub Tabs ── */
+.hub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border2);margin-bottom:0;overflow-x:auto;scrollbar-width:none}
+.hub-tabs::-webkit-scrollbar{display:none}
+.hub-tab{font-family:var(--bebas);font-size:11px;letter-spacing:1.5px;padding:10px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.hub-tab:hover{color:var(--cream)}
+.hub-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.hub-panel{display:none;padding:16px 0 80px}
+.hub-panel.active{display:block}
+/* Activity cards */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:16px 18px}
+.activity-card-icon{font-size:26px;margin-bottom:8px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px}
+.activity-card-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:5px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:12px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;background:rgba(0,0,0,.6)}
+/* FRQ inside unit game */
+.frq-q-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.frq-q-opt{background:var(--bg3);border:1px solid var(--border);padding:10px 12px;cursor:pointer;font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.45;transition:all .15s;text-align:left;width:100%}
+.frq-q-opt:hover{border-color:var(--amber2);color:var(--cream);background:rgba(232,160,32,.06)}
+.frq-q-opt.selected{border-color:var(--gold);color:var(--cream);background:rgba(232,160,32,.1)}
+.frq-selected-q{background:rgba(232,160,32,.08);border:1px solid var(--amber2);border-left:3px solid var(--gold);padding:10px 12px;font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.5;font-style:italic;margin-bottom:10px}
+#frq-textarea{width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;outline:none;-webkit-user-select:text;user-select:text}
+#frq-textarea:focus{border-color:var(--amber2)}
+#frq-textarea::placeholder{color:var(--text3)}
+.frq-word-count{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:right;margin-top:3px;margin-bottom:10px}
+.frq-hint-box{font-family:var(--dm);font-size:9px;color:var(--text3);line-height:1.6;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);margin-bottom:12px}
+.frq-result-box{padding:16px;border:1px solid var(--border2);background:var(--bg3);margin-bottom:14px}
+.frq-score-big{font-family:var(--bebas);font-size:52px;line-height:1;margin-bottom:4px}
+.frq-trophy-badge{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:3px 10px;display:inline-block;margin-bottom:10px;border:1px solid}
+.frq-feedback{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.65;margin-top:8px}
+@media(max-width:500px){.activity-grid{grid-template-columns:1fr}}
+
+.deco-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.deco-divider::before,.deco-divider::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);}
+.deco-divider-icon{font-size:14px;color:var(--text3);}
+
+/* Chapter cards */
+.unit-card{background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:10px;overflow:hidden;transition:border-color .2s;cursor:pointer;}
+.unit-card.available:hover{border-color:var(--gold2);}
+.unit-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.unit-card.completed{border-color:var(--green);}
+.unit-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.unit-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.unit-icon{font-size:28px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-number{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.unit-name{font-family:var(--playfair);font-size:15px;color:var(--cream);margin:2px 0;}
+.unit-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;}
+.unit-status{font-family:var(--dm);font-size:8px;padding:4px 10px;border:1px solid;}
+.unit-status.available{color:var(--gold);border-color:var(--gold2);background:rgba(200,48,32,.08);}
+.unit-status.locked{color:var(--text3);border-color:var(--border);}
+.unit-status.completed{color:var(--green2);border-color:var(--green);background:rgba(56,160,80,.08);}
+.unit-progress-bar{height:2px;background:rgba(255,255,255,.04);}
+.unit-progress-fill{height:100%;background:var(--gold2);transition:width .5s;}
+.unit-card-meta{padding:0 16px 8px;font-family:var(--dm);font-size:9px;color:var(--text3);}
+.unit-card-unlock{padding:0 16px 8px;font-family:var(--dm);font-size:8px;color:var(--text3);font-style:italic;}
+
+
+
+/* ════════════════════════════════
+   LAYER 3: BRIEFING MODAL
+════════════════════════════════ */
+#briefing-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);
+  z-index:500;overflow-y:auto;padding:20px 16px 60px;}
+#briefing-modal.show{display:block;animation:fadeIn .3s ease;}
+.briefing-inner{max-width:760px;margin:0 auto;}
+.briefing-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;margin-bottom:20px;padding-top:10px;}
+.briefing-eyebrow{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:4px;}
+.briefing-title{font-family:var(--playfair);font-size:clamp(20px,4vw,28px);
+  color:var(--cream);font-style:italic;line-height:1.2;}
+.briefing-close-btn{font-family:var(--dm);font-size:10px;background:var(--bg2);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 12px;cursor:pointer;
+  transition:all .2s;flex-shrink:0;margin-top:4px;}
+.briefing-close-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+.briefing-scene{width:100%;margin-bottom:16px;border:1px solid var(--border2);overflow:hidden;}
+.briefing-location-row{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(200,48,32,.06);border-bottom:1px solid var(--border);}
+.briefing-location{font-family:var(--bebas);font-size:10px;color:var(--gold2);letter-spacing:2px;}
+.briefing-date{font-family:var(--crimson);font-size:12px;color:var(--text3);font-style:italic;}
+
+.briefing-text{font-family:var(--crimson);font-size:16px;line-height:1.75;color:var(--text);
+  padding:18px;background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:14px;position:relative;}
+.briefing-text::before{content:'\201C';font-family:var(--playfair);font-size:70px;
+  color:rgba(200,48,32,.06);position:absolute;top:-8px;left:10px;line-height:1;pointer-events:none;}
+
+.briefing-quote{font-family:var(--playfair);font-size:14px;color:var(--gold);
+  font-style:italic;border-left:3px solid var(--gold2);padding:10px 14px;
+  background:rgba(200,48,32,.04);margin-bottom:16px;line-height:1.6;}
+
+.briefing-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.briefing-tag{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:3px 8px;border-radius:2px;}
+
+.briefing-proceed-row{display:flex;flex-direction:column;gap:8px;}
+
+/* ════════════════════════════════
+   LAYER 3: QUESTION SCREEN
+════════════════════════════════ */
+#question-screen{padding-top:0;}
+.q-progress-bar-wrap{height:3px;background:rgba(255,255,255,.05);margin-bottom:20px;border-radius:2px;}
+.q-progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  transition:width .4s;border-radius:2px;}
+
+.q-context-pill{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(200,48,32,.06);border:1px solid var(--border2);
+  padding:5px 10px;margin-bottom:16px;}
+.q-context-lesson{font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;}
+.q-context-sep{width:1px;height:10px;background:var(--border2);}
+.q-context-topic{font-family:var(--crimson);font-size:11px;color:var(--text2);font-style:italic;}
+
+/* THE QUESTION — primary visual weight */
+.q-block{background:var(--bg2);border:1px solid var(--border2);
+  border-left:3px solid var(--gold);padding:24px 22px;margin-bottom:18px;}
+.q-number{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.q-text{font-family:var(--playfair);font-size:clamp(16px,2.4vw,20px);
+  color:var(--cream);line-height:1.6;}
+
+/* Answer choices */
+.choices-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.choice-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);padding:16px 20px;cursor:pointer;text-align:left;
+  transition:all .2s;position:relative;overflow:hidden;}
+.choice-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--gold);transform:scaleY(0);transition:transform .2s;pointer-events:none;}
+.choice-btn:hover:not(.answered){border-color:var(--gold2);background:rgba(200,48,32,.04);}
+.choice-btn:hover:not(.answered)::before{transform:scaleY(1);}
+.choice-btn.correct{border-color:var(--green2)!important;background:rgba(40,80,32,.08)!important;animation:pop .3s;}
+.choice-btn.correct::before{background:var(--green2)!important;transform:scaleY(1)!important;}
+.choice-btn.incorrect{border-color:var(--red2)!important;background:rgba(128,16,16,.06)!important;opacity:.6;}
+.choice-btn.incorrect::before{background:var(--red2)!important;transform:scaleY(1)!important;}
+.choice-btn.answered{cursor:default;}
+.choice-letter{font-family:var(--bebas);font-size:14px;color:var(--gold2);
+  margin-right:12px;display:inline-block;width:20px;}
+.choice-text{font-family:var(--crimson);font-size:17px;line-height:1.5;}
+
+/* Feedback */
+.feedback-panel{display:none;border-left:3px solid var(--gold);
+  padding:16px 16px 16px 20px;margin-bottom:14px;animation:slideUp .3s;
+  background:var(--bg2);border:1px solid var(--border);}
+.feedback-panel.show{display:block;}
+.feedback-panel.correct{border-left-color:var(--green2)!important;border-color:rgba(56,160,80,.2);}
+.feedback-panel.incorrect{border-left-color:var(--red2)!important;border-color:rgba(192,32,32,.2);}
+.feedback-verdict{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:8px;}
+.feedback-verdict.correct{color:var(--green2);}
+.feedback-verdict.incorrect{color:var(--red2);}
+.feedback-text{font-family:var(--crimson);font-size:15px;line-height:1.65;
+  color:var(--text);margin-bottom:8px;}
+.feedback-standard{font-family:var(--dm);font-size:9px;color:var(--text3);
+  border-top:1px solid var(--border);padding-top:8px;margin-top:8px;}
+
+/* Momentum tracker */
+.momentum-display{display:flex;align-items:center;gap:12px;background:var(--bg2);
+  border:1px solid var(--border);padding:10px 14px;margin-bottom:14px;}
+.momentum-label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;flex-shrink:0;}
+.momentum-track{flex:1;height:6px;background:rgba(255,255,255,.05);
+  border-radius:3px;overflow:hidden;}
+.momentum-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold3));
+  border-radius:3px;transition:width .5s;}
+.momentum-val{font-family:var(--playfair);font-size:13px;color:var(--gold);
+  font-style:italic;flex-shrink:0;min-width:60px;text-align:right;}
+
+/* ════════════════════════════════
+   LESSON COMPLETE OVERLAY
+════════════════════════════════ */
+/* ── Unit Trophy Reveal Overlay ── */
+#unit-trophy-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(4,3,2,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+#unit-trophy-overlay.show{display:flex;animation:fadeIn .5s ease;}
+.utr-eyebrow{font-family:var(--bebas);font-size:11px;letter-spacing:4px;color:var(--text3);margin-bottom:10px;}
+.utr-name{font-family:var(--playfair);font-size:22px;color:var(--cream);font-style:italic;margin-bottom:18px;}
+.utr-icon{font-size:72px;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(200,160,32,.5));}
+.utr-trophy-name{font-family:var(--bebas);font-size:32px;letter-spacing:4px;margin-bottom:6px;}
+.utr-msg{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:380px;line-height:1.6;margin-bottom:24px;}
+.utr-acc{font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:2px;margin-bottom:24px;}
+.utr-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;border:1.5px solid;color:inherit;padding:14px 32px;cursor:pointer;transition:all .2s;}
+#lesson-complete{display:none;position:fixed;inset:0;background:#080608;
+  z-index:600;overflow-y:auto;text-align:center;}
+#lesson-complete.show{display:block;animation:fadeIn .4s;}
+.complete-inner{max-width:480px;margin:0 auto;padding:30px 16px 100px;}
+.complete-badge{width:100px;height:100px;margin:0 auto 16px;border:2px solid var(--gold);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:48px;animation:glowPulse 2s infinite;background:var(--bg2);}
+.complete-unit-lbl{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:4px;margin-bottom:6px;}
+.complete-lesson-title{font-family:var(--playfair);font-size:24px;color:var(--cream);
+  font-style:italic;margin-bottom:4px;}
+.complete-tier{font-family:var(--bebas);font-size:14px;letter-spacing:2px;margin-bottom:20px;}
+.complete-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;}
+.complete-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.complete-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.complete-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);
+  letter-spacing:1px;margin-top:2px;}
+.complete-btn-group{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;}
+
+/* ════════════════════════════════
+   LOGIN GATE
+════════════════════════════════ */
+#login-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);
+  z-index:900;align-items:center;justify-content:center;padding:20px;}
+#login-gate.show{display:flex;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);max-width:380px;width:100%;padding:28px 24px;}
+.login-logo{font-family:var(--bebas);font-size:clamp(28px,6vw,40px);color:var(--gold);
+  letter-spacing:4px;margin-bottom:4px;text-align:center;}
+.login-sub{font-family:var(--playfair);font-size:13px;color:var(--text2);
+  font-style:italic;text-align:center;margin-bottom:20px;}
+.login-field{margin-bottom:10px;}
+.login-field label{font-family:var(--bebas);font-size:10px;color:var(--text3);
+  letter-spacing:2px;display:block;margin-bottom:5px;}
+.login-input{font-family:var(--playfair);font-size:15px;font-style:italic;
+  background:var(--bg3);border:1.5px solid var(--border2);color:var(--cream);
+  padding:10px 14px;width:100%;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--gold);}
+.login-input::placeholder{color:var(--text3);}
+.login-notice{font-family:var(--dm);font-size:9px;color:var(--text3);
+  text-align:center;margin-top:8px;line-height:1.5;}
+
+/* ════════════════════════════════
+   WELCOME BACK MODAL
+════════════════════════════════ */
+#welcome-back-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+  z-index:950;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+#welcome-back-overlay.show{display:flex;}
+.wb-box{background:var(--bg2);border:1px solid var(--border2);max-width:420px;width:100%;
+  padding:28px 24px;text-align:center;animation:slideUp .3s ease both;}
+.wb-avatar{width:70px;height:70px;margin:0 auto 14px;border-radius:50%;overflow:hidden;}
+.wb-greeting{font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:4px;margin-bottom:6px;}
+.wb-name{font-family:var(--playfair);font-size:24px;color:var(--cream);font-style:italic;margin-bottom:4px;}
+.wb-sub{font-family:var(--dm);font-size:10px;color:var(--gold2);margin-bottom:4px;}
+.wb-progress{font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:20px;}
+
+
+/* ── Standard tag on question block ── */
+.q-standard-tag{font-family:var(--dm);font-size:9px;letter-spacing:2px;
+  color:var(--gold);border:1px solid var(--gold2);
+  background:rgba(0,0,0,.25);
+  display:inline-block;padding:3px 9px;margin-bottom:8px;
+  text-transform:uppercase;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold2);}
+
+/* ════════════════════════════════
+   BOTTOM NAV (carried from v1)
+════════════════════════════════ */
+#bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:640px;background:rgba(8,6,8,.97);
+  border-top:1px solid var(--border2);border-left:1px solid var(--border2);border-right:1px solid var(--border2);
+  display:none;z-index:300;backdrop-filter:blur(12px);}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:8px 4px;background:none;border:none;color:var(--text3);cursor:pointer;
+  font-family:var(--dm);font-size:8px;letter-spacing:.5px;transition:color .15s;}
+.bn-btn:hover,.bn-btn.active{color:var(--gold);}
+.bn-icon{font-size:18px;display:block;}
+
+/* ════════════════════════════════
+   OVERLAYS (carried from v1)
+════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);
+  z-index:400;overflow-y:auto;padding:20px 16px 80px;}
+.overlay.show{display:block;animation:fadeIn .2s;}
+.overlay-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;position:sticky;top:0;background:rgba(8,6,8,.97);
+  padding:10px 0;border-bottom:1px solid var(--border2);z-index:10;}
+.overlay-title{font-family:var(--bebas);font-size:22px;color:var(--gold);letter-spacing:2px;}
+.overlay-close{font-family:var(--dm);font-size:10px;background:var(--bg3);
+  border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;transition:all .2s;}
+.overlay-close:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Leaderboard */
+.lb-wrap{background:var(--bg2);border:1px solid var(--border2);padding:20px;}
+.lb-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.lb-tab{font-family:var(--bebas);font-size:10px;letter-spacing:1px;padding:5px 12px;
+  cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all .15s;}
+.lb-tab.active{border-color:var(--gold);color:var(--bg);background:var(--gold);}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--text3);
+  padding:7px 8px;border-bottom:1px solid var(--border2);text-align:left;}
+.lb-table td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.025);
+  font-family:var(--dm);font-size:11px;color:var(--text2);vertical-align:middle;}
+.lb-table tr.lb-you td{background:rgba(200,48,32,.05);color:var(--text);}
+.lb-name{font-family:var(--playfair);font-size:13px;color:var(--cream);font-style:italic;}
+.lb-score{font-family:var(--bebas);font-size:16px;color:var(--gold);}
+
+/* Profile overlay */
+.profile-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.profile-stat{background:var(--bg2);border:1px solid var(--border);padding:12px;text-align:center;}
+.profile-stat-val{font-family:var(--bebas);font-size:24px;color:var(--gold);}
+.profile-stat-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.badges-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.badge-pill{background:var(--bg2);border:1px solid var(--border);padding:6px 10px;
+  display:flex;align-items:center;gap:6px;font-family:var(--dm);font-size:9px;color:var(--text2);}
+.badge-pill.earned{border-color:var(--gold2);color:var(--gold);background:rgba(200,48,32,.06);}
+.badge-icon{font-size:16px;filter:grayscale(1);}
+.badge-pill.earned .badge-icon{filter:none;}
+
+/* Historical figure cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.hist-card{background:var(--bg2);border:1px solid var(--gold2);padding:14px;position:relative;overflow:hidden;}
+.hist-card::before{content:'';position:absolute;inset:4px;border:1px solid rgba(200,48,32,.12);pointer-events:none;}
+.hist-card-icon{font-size:36px;text-align:center;margin-bottom:8px;}
+.hist-card-name{font-family:var(--bebas);font-size:13px;color:var(--gold);letter-spacing:1px;margin-bottom:2px;}
+.hist-card-role{font-family:var(--dm);font-size:9px;color:#2aaa98;margin-bottom:6px;}
+.hist-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.5;}
+.hist-card-unlock{font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:6px;}
+.locked-card{opacity:.35;}
+
+/* ════════════════════════════════
+   TROPHY / EOC DISPLAY
+════════════════════════════════ */
+.trophy-display{background:var(--bg2);border:1px solid var(--border2);
+  padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.trophy-icon{font-size:36px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(200,48,32,.4));}
+.trophy-info{flex:1;}
+.trophy-tier-name{font-family:var(--bebas);font-size:18px;letter-spacing:2px;margin-bottom:2px;}
+.trophy-stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+.trophy-stat{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.trophy-stat strong{color:var(--text2);}
+.eoc-rating-badge{font-family:var(--bebas);font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;display:inline-block;margin-top:5px;}
+
+/* ════════════════════════════════
+   BADGE & CARD REWARD CHIPS
+════════════════════════════════ */
+.reward-section{background:var(--bg2);border:1px solid var(--border2);
+  padding:12px 14px;margin-bottom:14px;}
+.reward-section-lbl{font-family:var(--bebas);font-size:9px;color:var(--text3);
+  letter-spacing:3px;margin-bottom:8px;}
+.reward-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.reward-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--border2);background:var(--bg3);}
+.reward-chip.earned{border-color:var(--gold2);background:rgba(200,48,32,.06);
+  animation:pop .4s ease;}
+.reward-chip-icon{font-size:16px;}
+.reward-chip-lbl{font-family:var(--dm);font-size:9px;color:var(--text3);}
+.reward-chip.earned .reward-chip-lbl{color:var(--gold);}
+.reward-chip.locked-chip{opacity:.35;}
+
+/* Lesson card rewards preview */
+.lesson-card-rewards{padding:0 16px 10px;display:flex;gap:5px;flex-wrap:wrap;}
+.lesson-reward-pip{font-family:var(--dm);font-size:8px;color:var(--text3);
+  border:1px solid var(--border2);padding:2px 6px;display:inline-flex;align-items:center;gap:3px;}
+.lesson-reward-pip.earned{border-color:var(--gold2);color:var(--gold);}
+
+/* Next-lesson unlock indicator on cards */
+.lesson-card.next-up{border-color:var(--gold2);animation:glowPulse 3s infinite;}
+.lesson-card-unlock-note{font-family:var(--dm);font-size:8px;color:var(--text3);
+  padding:0 16px 8px;font-style:italic;}
+
+/* ════════════════════════════════
+   CERTIFICATE / PRINT
+════════════════════════════════ */
+#print-area{display:none;}
+@media print{
+  body>*:not(#print-area){display:none!important;}
+  #print-area{display:block!important;padding:40px;}
+  .cert-body{font-family:Georgia,serif;}
+}
+
 </style>
 <script>
 // Instant redirect if no shell session — checks both Civitas and legacy AC shell
@@ -523,7 +896,7 @@ body.hud-active #root{padding-top:68px;}
   <!-- Shell return (shown when arriving from American Chronicles) -->
   <div id="shell-return-btn" style="display:none;margin-bottom:12px;">
     <button class="btn full" onclick="returnToShell()" style="border-color:var(--teal2);color:var(--teal2);">
-      <span>← Return to American Chronicles Hub</span>
+      <span>← Back to American Chronicles</span>
     </button>
   </div>
 
@@ -533,27 +906,119 @@ body.hud-active #root{padding-top:68px;}
   <!-- Essential question -->
   <div class="eq-banner">
     <strong>Essential Question:</strong> How did World War II transform the United States at home and abroad, and what kind of world did the Allied victory create?
+
+  <!-- Tab bar -->
+  <div class="hub-tabs" style="margin-top:14px;">
+    <button class="hub-tab active" id="hubtab-btn-play" onclick="switchHubTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" id="hubtab-btn-briefing" onclick="switchHubTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" id="hubtab-btn-flashcards" onclick="switchHubTab('flashcards',this)">🃏 Flashcards</button>
+    <button class="hub-tab" id="hubtab-btn-vocabquiz" onclick="switchHubTab('vocabquiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" id="hubtab-btn-openanswer" onclick="switchHubTab('openanswer',this)">✍️ Open Answer</button>
   </div>
 
-  <!-- Lesson / chapter cards — rendered by JS -->
-  <div id="hub-chapters"></div>
+  <!-- PLAY TAB -->
+  <div class="hub-panel active" id="hubtab-play">
+    <div id="play-tab-trophy-summary"></div>
+    <div class="activity-grid" style="margin-top:16px;">
 
-  <!-- Divider -->
-  <div class="deco-divider"><span class="deco-divider-icon">⭐</span></div>
+      <div class="activity-card" onclick="switchHubTab('rounds',null)" style="border-top:3px solid var(--gold)">
+        <div class="activity-card-strip" style="background:var(--gold)"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">⚔️</div>
+          <div class="activity-card-label">MCQ CHALLENGE · GRADED</div>
+          <div class="activity-card-title">Unit Game</div>
+          <div class="activity-card-desc">Play through all rounds covering the Civil War and Reconstruction. Answer MCQs to earn gold and a unit trophy.</div>
+          <div class="activity-card-action" style="color:var(--gold)">→ View Rounds</div>
+        </div>
+        <div class="activity-card-badge" id="badge-game" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
+      </div>
 
-  <!-- Badges row — rendered by JS -->
-  <div class="section-head" style="font-size:14px;">Badges</div>
-  <div class="badges-row" id="hub-badges"></div>
+      <div class="activity-card" onclick="switchHubTab('vocabquiz',document.getElementById('hubtab-btn-vocabquiz'))" style="border-top:3px solid #8060c8">
+        <div class="activity-card-strip" style="background:#8060c8"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">✅</div>
+          <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
+          <div class="activity-card-title">Vocab Check</div>
+          <div class="activity-card-desc">Graded vocabulary quiz. Pass with 60%+ to earn a Vocab Medal and gold reward.</div>
+          <div class="activity-card-action" style="color:#a080e8">→ Take Quiz</div>
+        </div>
+        <div class="activity-card-badge" id="badge-vocab" style="display:none;border-color:#a080e8;color:#a080e8"></div>
+      </div>
 
-  <!-- Trophy / EOC block — rendered by JS -->
-  <div id="hub-trophy-section" style="display:none;"></div>
+      <div class="activity-card" onclick="switchHubTab('openanswer',document.getElementById('hubtab-btn-openanswer'))" style="border-top:3px solid var(--teal)">
+        <div class="activity-card-strip" style="background:var(--teal)"></div>
+        <div class="activity-card-body">
+          <div class="activity-card-icon">✍️</div>
+          <div class="activity-card-label">OPEN ANSWER · AI GRADED</div>
+          <div class="activity-card-title">Open Answer Challenge</div>
+          <div class="activity-card-desc">Answer a district guiding question in your own words. Graded by AI — earn Bronze, Silver, or Gold trophy.</div>
+          <div class="activity-card-action" style="color:var(--teal2)">→ Start Challenge</div>
+        </div>
+        <div class="activity-card-badge" id="badge-frq" style="display:none;border-color:var(--teal2);color:var(--teal2)"></div>
+      </div>
 
-  <!-- Print certificate — shown when unit complete -->
-  <div id="hub-cert-row" style="display:none;margin-top:4px;">
-    <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
-      <span>🖨️ Print Certificate</span>
-    </button>
-    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+    </div>
+  </div>
+
+  <!-- GAME ROUNDS TAB (hidden, opened by Unit Game card) -->
+  <div class="hub-panel" id="hubtab-rounds">
+    <button onclick="switchHubTab('play',null)" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-top:12px;margin-bottom:4px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+    <div id="hub-chapters"></div>
+    <div class="deco-divider"><span class="deco-divider-icon">⭐</span></div>
+    <div class="section-head" style="font-size:14px;">Badges</div>
+    <div class="badges-row" id="hub-badges"></div>
+    <div id="hub-trophy-section" style="display:none;"></div>
+    <div id="hub-cert-row" style="display:none;margin-top:4px;">
+      <button class="btn full" onclick="printCertificate()" style="border-color:var(--gold2);color:var(--gold2);">
+        <span>🖨️ Print Certificate</span>
+      </button>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">Updates automatically with your latest score</div>
+    </div>
+  </div>
+
+  <!-- BRIEFING TAB -->
+  <div class="hub-panel" id="hubtab-briefing">
+    <div style="padding-top:4px;">
+      <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px;">Review all key concepts, people, and events for Unit 1 before or after playing the game.</div>
+      <a href="https://olsonjoshua-code.github.io/Civitas/games/us-history/briefings/unit5a_briefing.html" target="_blank" style="text-decoration:none;display:block">
+        <button class="btn full" style="border-color:var(--amber);color:var(--amber);font-size:15px;padding:16px;letter-spacing:3px;">
+          <span>📋 Open Briefing</span>
+        </button>
+      </a>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS TAB -->
+  <div class="hub-panel" id="hubtab-flashcards">
+    <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px;">Study all Unit 1 key terms — from causes of the Civil War through the end of Reconstruction — using the Civitas spaced repetition flashcard engine.</div>
+      <button onclick="launchFlashcardsFromTab()" class="btn full" style="border-color:var(--amber);color:var(--amber);font-size:15px;padding:16px;letter-spacing:3px;">
+        <span>🃏 Launch Flashcards</span>
+      </button>
+      <div id="flashcard-status" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:10px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- VOCAB QUIZ TAB -->
+  <div class="hub-panel" id="hubtab-vocabquiz">
+    <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+      <div style="font-family:var(--crimson);font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:8px;">Graded vocabulary quiz covering all Unit 1 terms. Score 60%+ to pass and earn a Vocab Medal.</div>
+      <div id="vocabquiz-status" style="margin-bottom:14px;font-family:var(--dm);font-size:9px;color:var(--text3);"></div>
+      <button onclick="launchVocabQuizFromTab()" class="btn full" style="border-color:#8060c8;color:#a080e8;font-size:15px;padding:16px;letter-spacing:3px;">
+        <span>✅ Take Vocab Quiz</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- OPEN ANSWER TAB -->
+  <div class="hub-panel" id="hubtab-openanswer">
+    <div style="padding-top:4px;">
+            <button onclick="switchHubTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(26,144,128,.1)'" onmouseout="this.style.background='transparent'">← Back to A House Divided</button>
+      <div id="frq-panel-content"></div>
+    </div>
   </div>
 
 </div><!-- /unit-hub-screen -->
@@ -693,17 +1158,16 @@ body.hud-active #root{padding-top:68px;}
 
     <!-- Action buttons -->
     <div class="complete-btn-group">
-      <!-- Retry same lesson -->
-      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
-      <!-- Replay entire unit from Lesson 33 (always visible) -->
+      <!-- Next lesson — shown when there's a next unlocked lesson -->
+      <button class="btn full" id="btn-next-lesson" onclick="goToNextLesson()" style="display:none;border-color:var(--gold);color:var(--gold);font-size:15px;padding:16px;letter-spacing:3px;border-width:2px"><span>Next Lesson →</span></button>
+      <!-- Retry same lesson -->\n      <button class="btn full" onclick="retryLesson()"><span>↺ Retry This Lesson</span></button>
+      <!-- Replay entire unit from Lesson 9 (always visible) -->
       <button class="btn full" id="btn-replay-all" onclick="replayFromBeginning()" style="border-color:var(--gold2);color:var(--gold2);display:none;"><span>⟳ Replay Unit From Beginning</span></button>
       <!-- Return to unit hub -->
       <button class="btn full green" onclick="returnToUnitHub()"><span>← Return to Unit Hub</span></button>
-      <!-- Return to shell -->
-      <button class="btn full teal" onclick="returnToShell()"><span>🏛 Return to U.S. History</span></button>
       <!-- Print certificate (shown when unit complete) -->
       <button class="btn full" id="btn-print-cert" onclick="printCertificate()" style="display:none;border-color:var(--text3);color:var(--text3);"><span>🖨️ Print Certificate</span></button>
-    </div>
+      </div>
 
   </div>
 </div>
@@ -1776,6 +2240,425 @@ function showScreen(id) {
   if (el) el.classList.add('active');
 }
 
+// ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
+function getCompositeScore() {
+  // MCQ — average of all completed lessons
+  const lessonScores = Object.values(P.lessonBestScores || {});
+  const mcqScore = lessonScores.length
+    ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
+    : 0;
+
+  // Vocab — from shell localStorage (keyed by deck ID, not unit ID)
+  const VOCAB_DECK_ID = 'unit5a_wwii';
+  let vocabScore = 0;
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    vocabScore = (shell.vocabBestScore && shell.vocabBestScore[VOCAB_DECK_ID]) || 0;
+  } catch(e) {}
+
+  // FRQ — composite of all answered questions from shell localStorage
+  let frqScore = 0;
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const frqR = shell.frqResults && shell.frqResults['unit5a'];
+    if (frqR) {
+      // New format: composite stored directly
+      if (frqR.composite !== undefined) {
+        frqScore = frqR.composite;
+      // Old single-score format
+      } else if (frqR.score !== undefined) {
+        frqScore = frqR.score;
+      }
+    }
+  } catch(e) {}
+
+  // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
+  const composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
+
+  return { mcqScore, vocabScore, frqScore, composite,
+    mcqAttempted: lessonScores.length > 0,
+    vocabAttempted: vocabScore > 0,
+    frqAttempted: frqScore > 0,
+    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqScore > 0
+  };
+}
+
+function notify(msg, col) {
+  const n = document.createElement('div');
+  n.className = 'notif' + (col ? ' ' + col : '');
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3500);
+}
+
+// ════════════════════════════════════════════
+// SCREEN ROUTING (Layer 2 and Layer 3)
+// ════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+// ── Play Tab Score Summary ─────────────────────────────
+function renderPlayTabSummary() {
+  const el = document.getElementById('play-tab-trophy-summary');
+  if (!el) return;
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.innerHTML = ''; return; }
+
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
+  const tierColors = { historian:'#e8d0ff', gold:'#ffd700', silver:'#c8c8d8', bronze:'#cd7f32', completed:'#38a050', tryagain:'#c02020' };
+  const color = tierColors[tier.label.toLowerCase().replace(' ','')] || tierColors.completed;
+
+  el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${color};padding:12px 14px;margin-top:14px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="font-size:28px">${tier.icon}</div>
+      <div>
+        <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px">CURRENT UNIT SCORE</div>
+        <div style="font-family:var(--bebas);font-size:26px;color:${color};line-height:1">${composite}% <span style="font-size:14px">${tier.label}</span></div>
+      </div>
+      <button onclick="switchHubTab('rounds',null)" style="margin-left:auto;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer" onmouseover="this.style.borderColor='var(--amber2)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">View Detail →</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">50%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOCAB ${vocabAttempted?vocabScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+    </div>
+  </div>`;
+}
+
+function switchHubTab(tabId, btnEl) {
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('hubtab-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+  // Only show the shell return button on the Play tab
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = (tabId === 'play' && P && P.fromShell) ? 'block' : 'none';
+  // Scroll to top of hub screen on tab switch
+  const hubScreen = document.getElementById('unit-hub-screen');
+  if (hubScreen) hubScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (tabId === 'openanswer') renderFRQPanel();
+  if (tabId === 'flashcards') updateFlashcardStatus();
+  if (tabId === 'vocabquiz') updateVocabQuizStatus();
+  if (tabId === 'rounds') renderHubTrophySection();
+}
+
+const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
+const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html';
+const USH_SHELL_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+
+function launchFlashcardsFromTab() {
+  window.open(FC_URL + '?deck=unit5a_wwii&mode=study&from=hub', '_blank');
+}
+
+function launchVocabQuizFromTab() {
+  window.open(FC_URL + '?deck=unit5a_wwii&mode=quiz&from=hub', '_blank');
+}
+
+function updateFlashcardStatus() {
+  const el = document.getElementById('flashcard-status');
+  if (!el) return;
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const studied = state.flashcardsStudied && state.flashcardsStudied['unit1'];
+    el.textContent = studied ? '✓ You have studied this deck before.' : 'Not yet studied.';
+    el.style.color = studied ? 'var(--teal2)' : 'var(--text3)';
+  } catch(e) {}
+}
+
+function updateVocabQuizStatus() {
+  const el = document.getElementById('vocabquiz-status');
+  if (!el) return;
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const passed = state.vocabPassed && state.vocabPassed['unit1_civil_war_reconstruction'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1_civil_war_reconstruction'];
+    if (passed) {
+      el.innerHTML = '<span style="color:var(--green2)">✓ Passed' + (best !== undefined ? ' — Best: ' + best + '%' : '') + '</span>';
+    } else {
+      el.textContent = 'Not yet passed.';
+    }
+  } catch(e) {}
+}
+
+// ── FRQ Open Answer (inside unit game) ─────────────────
+const FRQ_QUESTIONS_U1 = [
+  'What were the causes of WWII?',
+  'Prior to Pearl Harbor, in what ways did the U.S. attempt to stay neutral in WWII?',
+  'What was the impact of the Holocaust on Jews and other groups?',
+  'How did WWII shape domestic policy, including the impact on women and minority groups?',
+  'What were the ramifications of the development and use of atomic weapons?'
+];
+
+// ── FRQ System — Sequential, Per-Question Scoring ─────────────────────
+// Storage: ac_shell_state.frqResults.unit1 = {
+//   questions: [ {q, score, tier, answer, date}, ... ],  // one per answered question
+//   composite: <avg score>,
+//   compositeT ier: <tier>
+// }
+
+let _frqCurrentIdx = null; // which question is active
+
+function getFRQState() {
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const r = state.frqResults && state.frqResults['unit5a'];
+    if (!r) return { questions: [] };
+    // Migrate old single-score format
+    if (r.score !== undefined && !r.questions) {
+      return { questions: [{ q: r.question || '', score: r.score, tier: r.tier, date: r.date }] };
+    }
+    return r;
+  } catch(e) { return { questions: [] }; }
+}
+
+function saveFRQState(frqState) {
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (!state.frqResults) state.frqResults = {};
+    // Compute composite = average of all question scores
+    const qs = frqState.questions || [];
+    const composite = qs.length ? Math.round(qs.reduce((a, q) => a + q.score, 0) / qs.length) : 0;
+    const tier = composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null;
+    frqState.composite = composite;
+    frqState.compositeTier = tier;
+    frqState.score = composite; // backwards compat
+    state.frqResults['unit5a'] = frqState;
+    localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    renderHubTrophySection();
+    renderPlayTabSummary();
+    // Save composite to Supabase
+    if (composite > 0) saveFRQResultToSupabase(composite, tier);
+    updateFRQBadge(composite, tier);
+  } catch(e) {}
+}
+
+function renderFRQPanel() {
+  const container = document.getElementById('frq-panel-content');
+  if (!container) return;
+  _frqCurrentIdx = null;
+
+  const frqState = getFRQState();
+  const answered = frqState.questions || [];
+  const total = FRQ_QUESTIONS_U1.length;
+  const nextIdx = answered.length; // next unlocked question index
+  const allDone = nextIdx >= total;
+
+  // Header summary
+  let summaryHtml = '';
+  if (answered.length > 0) {
+    const composite = frqState.composite || 0;
+    const tier = frqState.compositeTier;
+    const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+    const c = tier ? tierColors[tier] : 'var(--amber)';
+    summaryHtml = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${c};padding:10px 14px;margin-bottom:14px">
+      <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">OPEN ANSWER PROGRESS — ${answered.length}/${total} COMPLETE</div>
+      <div style="font-family:var(--bebas);font-size:22px;color:${c}">${composite}% Composite${tier ? ' · ' + tier.charAt(0).toUpperCase()+tier.slice(1) : ''}</div>
+    </div>`;
+  }
+
+  // Question list — each with status
+  const qRows = FRQ_QUESTIONS_U1.map((q, i) => {
+    const ans = answered[i];
+    const isAnswered = !!ans;
+    const isUnlocked = i <= nextIdx;
+    const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+    const c = ans && ans.tier ? tierColors[ans.tier] : 'var(--text3)';
+
+    if (isAnswered) {
+      return `<div style="background:var(--bg3);border:1px solid var(--border);padding:10px 12px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+          <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.45;flex:1">${q}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:var(--bebas);font-size:18px;color:${c}">${ans.score}%</div>
+            <div style="font-family:var(--dm);font-size:7px;color:${c};letter-spacing:1px">${ans.tier ? ans.tier.toUpperCase() : 'SCORED'}</div>
+          </div>
+        </div>
+        <button onclick="retryFRQ(${i})" style="margin-top:6px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 8px;cursor:pointer" onmouseover="this.style.borderColor='var(--amber2)';this.style.color='var(--amber)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↺ Retry to improve</button>
+      </div>`;
+    } else if (isUnlocked) {
+      return `<div style="background:var(--bg2);border:1px solid var(--amber2);padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="startFRQ(${i})" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--amber2)'">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">QUESTION ${i+1} — UNLOCKED ▶</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.45">${q}</div>
+      </div>`;
+    } else {
+      return `<div style="background:var(--bg3);border:1px solid var(--border);padding:10px 12px;margin-bottom:6px;opacity:.45">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">QUESTION ${i+1} — 🔒 LOCKED</div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text3);line-height:1.45">${q}</div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:4px">Complete Question ${i} to unlock</div>
+      </div>`;
+    }
+  }).join('');
+
+  container.innerHTML = `
+    ${summaryHtml}
+    <div id="frq-question-list">${qRows}</div>
+    <div id="frq-answer-section" style="display:none;margin-top:14px">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
+      <div class="frq-selected-q" id="frq-selected-display"></div>
+      <textarea id="frq-textarea" placeholder="Write your answer here. Aim for 3–5 sentences using specific people, events, dates, and terms from class."></textarea>
+      <div class="frq-word-count" id="frq-word-count">0 words · <span style="color:var(--text3);font-size:7px;letter-spacing:1px">⚠ PASTE DISABLED — TYPE YOUR OWN RESPONSE</span></div>
+      <div class="frq-hint-box">💡 Strong answers name specific evidence and explain <em>why</em> it matters. Bronze ≥60% · Silver ≥75% · Gold ≥90%</div>
+      <button class="btn full" id="frq-submit-btn" onclick="submitFRQUnit()" style="border-color:var(--amber);color:var(--amber);font-size:14px;padding:14px;letter-spacing:3px;">
+        <span>Submit for AI Grading →</span>
+      </button>
+      <button onclick="cancelFRQ()" style="margin-top:6px;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;width:100%">Cancel</button>
+    </div>
+    <div id="frq-result-section" style="display:none;margin-top:14px;"></div>`;
+}
+
+function startFRQ(idx) {
+  _frqCurrentIdx = idx;
+  document.getElementById('frq-question-list').style.display = 'none';
+  document.getElementById('frq-answer-section').style.display = 'block';
+  document.getElementById('frq-result-section').style.display = 'none';
+  document.getElementById('frq-selected-display').textContent = FRQ_QUESTIONS_U1[idx];
+  const ta = document.getElementById('frq-textarea');
+  ta.value = '';
+  ta.oninput = () => {
+    const w = ta.value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '') + ' · ';
+  };
+  setTimeout(() => document.getElementById('frq-answer-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function retryFRQ(idx) {
+  startFRQ(idx);
+}
+
+function cancelFRQ() {
+  _frqCurrentIdx = null;
+  renderFRQPanel();
+}
+
+async function submitFRQUnit() {
+  const ta = document.getElementById('frq-textarea');
+  const answer = ta ? ta.value.trim() : '';
+  if (!answer || answer.split(/\s+/).filter(Boolean).length < 10) {
+    alert('Please write at least a few sentences before submitting.'); return;
+  }
+  const btn = document.getElementById('frq-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span>⏳ Grading your answer…</span>';
+  const question = FRQ_QUESTIONS_U1[_frqCurrentIdx];
+
+  try {
+    const resp = await fetch('https://aged-tooth-21e7.jonesolson79.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: `You are a supportive high school U.S. History teacher grading a short open-answer response. You are grading for KNOWLEDGE and UNDERSTANDING only — completely ignore spelling, grammar, punctuation, and sentence structure. A student who clearly knows the content but spells poorly should score just as high as one who writes perfectly.
+
+Scoring rubric (knowledge only):
+- 90–100 (Gold): Clearly understands the topic, references specific people/events/terms/dates, explains why it matters
+- 75–89 (Silver): Shows solid understanding, mentions some specific evidence, partially explains significance  
+- 60–74 (Bronze): Shows basic understanding of the topic, limited specific evidence but clearly knows something
+- Below 60: Response shows little understanding of the topic or is completely off-topic
+
+Be generous — if the student clearly understands the concept, give them the benefit of the doubt. A short but accurate answer is better than a long but vague one.
+
+Respond ONLY with valid JSON, no other text:
+{"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2 sentences max: acknowledge what they know, suggest ONE specific thing to add next time — never mention spelling or grammar>"}`,
+        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    let result;
+    try { result = JSON.parse(raw.replace(/```json|```/g, '').trim()); }
+    catch(e) { result = { score: 65, tier: 'bronze', feedback: 'Your response showed understanding of the topic. Try to include more specific evidence in your next attempt.' }; }
+    showFRQResult(result, answer, question);
+  } catch(e) {
+    btn.disabled = false; btn.innerHTML = '<span>Submit for AI Grading →</span>';
+    alert('Grading failed — check your connection and try again.');
+  }
+}
+
+function showFRQResult(result, answer, question) {
+  const score = Math.max(0, Math.min(100, Math.round(result.score || 0)));
+  const tier = score >= 90 ? 'gold' : score >= 75 ? 'silver' : score >= 60 ? 'bronze' : null;
+  const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+  const tierLabels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
+  const color = tier ? tierColors[tier] : 'var(--text3)';
+  const label = tier ? tierLabels[tier] : 'Below Bronze';
+
+  document.getElementById('frq-answer-section').style.display = 'none';
+  const resultSection = document.getElementById('frq-result-section');
+  resultSection.style.display = 'block';
+  resultSection.innerHTML = `
+    <div class="frq-result-box">
+      <div class="frq-score-big" style="color:${color}">${score}<span style="font-size:20px;color:var(--text3)">%</span></div>
+      <div class="frq-trophy-badge" style="color:${color};border-color:${color};background:rgba(0,0,0,.3)">${label}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:5px;letter-spacing:1px;margin-top:4px">AI FEEDBACK</div>
+      <div class="frq-feedback">${result.feedback || ''}</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
+      <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--bg3);border:1px solid var(--border)">${answer}</div>
+    </div>
+    <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--teal2);color:var(--teal2)"><span>← Back to Questions</span></button>
+    <div id="frq-next-btn-wrap"></div>`;
+
+  // Save — keep best score per question
+  const frqState = getFRQState();
+  if (!frqState.questions) frqState.questions = [];
+  const existing = frqState.questions[_frqCurrentIdx];
+  // Only update if better or new
+  if (!existing || score > existing.score) {
+    frqState.questions[_frqCurrentIdx] = { q: question, score, tier, answer, date: Date.now() };
+  }
+  saveFRQState(frqState);
+
+  // Show next question button if there's one unlocked
+  const nextIdx = frqState.questions.length; // after save, this is the next index
+  const wrap = document.getElementById('frq-next-btn-wrap');
+  if (wrap && nextIdx < FRQ_QUESTIONS_U1.length) {
+    wrap.innerHTML = `<button class="btn full" onclick="startFRQ(${nextIdx})" style="border-color:var(--amber);color:var(--amber);margin-top:6px;font-size:14px;padding:14px;letter-spacing:3px"><span>Next Question →</span></button>`;
+  } else if (wrap) {
+    wrap.innerHTML = `<div style="font-family:var(--dm);font-size:9px;color:var(--green2);text-align:center;margin-top:8px;padding:8px;border:1px solid var(--green2)">✓ All questions complete!</div>`;
+  }
+}
+
+function saveFRQResultToSupabase(score, tier) {
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const name = state.name;
+    const period = state.period || '';
+    if (!name || name === 'Guest') return;
+    const supaUrl = typeof AC_SUPA_URL !== 'undefined' ? AC_SUPA_URL : null;
+    const supaH = typeof AC_HEADERS !== 'undefined' ? AC_HEADERS : null;
+    if (!supaUrl || !supaH) return;
+    fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
+      method: 'POST',
+      headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        name, period,
+        unit_id: 'unit5a_frq',
+        best_accuracy: score,
+        best_score: score,
+        cards: tier || 'none',
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
+
+function updateFRQBadge(score, tier) {
+  const badge = document.getElementById('badge-frq');
+  if (!badge) return;
+  if (score > 0) {
+    const labels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
+    badge.textContent = tier && labels[tier] ? labels[tier] : score + '%';
+    badge.style.display = 'block';
+  }
+}
+
 function showUnitHub() {
   showScreen('unit-hub-screen');
   document.getElementById('game-hud').style.display = 'block';
@@ -1784,8 +2667,1358 @@ function showUnitHub() {
   document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
   showBottomNav();
   setActiveNav(0);
+  // Always reset to Play tab when returning to hub
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach(b => b.classList.remove('active'));
+  const playPanel = document.getElementById('hubtab-play');
+  const playBtn = document.getElementById('hubtab-btn-play');
+  if (playPanel) playPanel.classList.add('active');
+  if (playBtn) playBtn.classList.add('active');
   renderUnitHub();
+  renderHubTrophySection();
+  renderPlayTabSummary();
+  // Refresh vocab badge
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const passed = state.vocabPassed && state.vocabPassed['unit1_civil_war_reconstruction'];
+    const best = state.vocabBestScore && state.vocabBestScore['unit1_civil_war_reconstruction'];
+    const badge = document.getElementById('badge-vocab');
+    if (badge && passed) {
+      badge.textContent = best ? best + '%' : '✓';
+      badge.style.display = 'block';
+    }
+  } catch(e) {}
+  // Restore FRQ badge if student has a prior result
+  try {
+    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const frq = state.frqResults && state.frqResults['unit5a'];
+    if (frq && frq.tier) updateFRQBadge(frq.score, frq.tier);
+  } catch(e) {}
 }
+
+function showQuestionScreen() {
+  showScreen('question-screen');
+  document.getElementById('game-hud').style.display = 'block';
+  document.body.classList.add('hud-active');
+  document.getElementById('hud-back-unit').style.display = 'inline-block';
+  document.getElementById('hud-back-shell').style.display = P && P.fromShell ? 'inline-block' : 'none';
+}
+
+// ════════════════════════════════════════════
+// UNIT HUB RENDERING
+// ════════════════════════════════════════════
+
+function isLessonUnlocked(idx) {
+  if (idx === 0) return true;
+  return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
+}
+
+function renderUnitHub() {
+  updateHUD();
+
+  // ── Player banner ──────────────────────────
+  const done  = P.lessonsCompleted.length;
+  const total = LESSONS.length;
+  const pct   = Math.round(done / total * 100);
+  const bannerEl = document.getElementById('hub-player-banner');
+  if (bannerEl) {
+    bannerEl.innerHTML = `
+      <div class="hub-banner">
+        <div class="hub-banner-top">
+          <div class="hub-banner-label">UNIT 1 — CIVIL WAR AND RECONSTRUCTION</div>
+          <div class="hub-banner-count">${done}/${total} LESSONS</div>
+        </div>
+        <div class="hub-progress-bar">
+          <div class="hub-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // Shell return button — show if arrived from shell
+  const shellBtn = document.getElementById('shell-return-btn');
+  if (shellBtn) shellBtn.style.display = P.fromShell ? 'block' : 'none';
+
+  // ── Chapter cards ──────────────────────────
+  const chEl = document.getElementById('hub-chapters');
+  if (!chEl) return;
+
+  chEl.innerHTML = LESSONS.map((lesson, idx) => {
+    const completed = P.lessonsCompleted.includes(lesson.id);
+    const unlocked  = isLessonUnlocked(idx);
+    const isNextUp  = unlocked && !completed && idx > 0;
+    const best      = P.lessonBestScores[lesson.id];
+
+    const statusLabel = completed ? '✓ COMPLETE' : unlocked ? '▶ PLAY' : '🔒 LOCKED';
+    const statusClass = completed ? 'completed'  : unlocked ? 'available' : 'locked';
+
+    let cardClass = 'unit-card ' + statusClass;
+    if (isNextUp) cardClass += ' next-up';
+
+    const metaRow = best
+      ? `<div class="unit-card-meta">Best: ${best.accuracy}% · ${best.correct}/${best.total} correct</div>`
+      : '';
+
+    const unlockNote = !unlocked
+      ? `<div class="unit-card-unlock">Complete ${LESSONS[idx-1].label} to unlock</div>`
+      : '';
+
+    return `<div class="${cardClass}" onclick="${unlocked ? `openBriefing('${lesson.id}')` : ''}">
+      <div class="unit-card-header">
+        <div class="unit-icon">${unlocked ? lesson.icon : '🔒'}</div>
+        <div class="unit-info">
+          <div class="unit-number">${lesson.label}</div>
+          <div class="unit-name">${lesson.title}</div>
+          <div class="unit-desc">${lesson.sub}</div>
+        </div>
+        <div class="unit-status ${statusClass}">${statusLabel}</div>
+      </div>
+      ${metaRow}
+      ${unlockNote}
+      <div class="unit-progress-bar">
+        <div class="unit-progress-fill" style="width:${completed ? 100 : 0}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Replay from beginning — show when all done
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDone) {
+    chEl.innerHTML += `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border2);">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:8px;text-align:center;">
+          UNIT COMPLETE — Want to improve your score?
+        </div>
+        <button class="btn full" onclick="replayFromBeginning()" style="border-color:var(--teal2);color:var(--teal2);">
+          <span>↺ Replay Unit from Lesson 9</span>
+        </button>
+      </div>`;
+  }
+
+  // ── Badges row ─────────────────────────────
+  const badgesEl = document.getElementById('hub-badges');
+  if (badgesEl) {
+    badgesEl.innerHTML = UNIT_BADGES.map(b => {
+      const earned = b.lessonId
+        ? P.lessonsCompleted.includes(b.lessonId)
+        : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      return `<div class="badge-pill ${earned ? 'earned' : ''}">
+        <span class="badge-icon">${b.icon}</span>${b.label}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Certificate row ─────────────────────────
+  const certRow = document.getElementById('hub-cert-row');
+  if (certRow) certRow.style.display = allDone ? 'block' : 'none';
+
+  // ── Trophy block ────────────────────────────
+  renderHubTrophySection();
+}
+
+// ── EOC Rating helpers (matches shell logic) ─────────────
+function eocLevel(acc) {
+  if (acc >= 90) return {level:5, label:'Level 5 — Historian Ready', color:'#38a050'};
+  if (acc >= 80) return {level:4, label:'Level 4 — Strong',          color:'#2aaa98'};
+  if (acc >= 70) return {level:3, label:'Level 3 — Developing',      color:'#c07818'};
+  if (acc >= 60) return {level:2, label:'Level 2 — Needs Review',    color:'#a01818'};
+  return              {level:1, label:'Level 1 — Try Again',         color:'#c02020'};
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
+
+  function subBar(score, attempted, color) {
+    const w = attempted ? score : 0;
+    return `<div style="height:4px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden">
+      <div style="height:100%;width:${w}%;background:${color};border-radius:2px;transition:width .6s ease"></div>
+    </div>`;
+  }
+
+  function subRow(label, score, attempted, weight, color) {
+    const display = attempted ? score + '%' : '—';
+    const note = attempted ? '' : '<span style="font-size:8px;color:var(--text3);margin-left:4px">(not attempted)</span>';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">${label} <span style="color:var(--border2)">· ${weight}%</span></span>
+        <span style="font-family:var(--bebas);font-size:16px;color:${attempted ? color : 'var(--text3)'}">${display}${note}</span>
+      </div>
+      ${subBar(score, attempted, color)}
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid ${tier.color};padding:16px 18px;margin-top:16px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:36px">${tier.icon}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">UNIT TROPHY</div>
+          <div style="font-family:var(--bebas);font-size:24px;color:${tier.color};letter-spacing:2px">${tier.label}</div>
+          <div style="font-family:var(--bebas);font-size:32px;color:${tier.color};line-height:1">${composite}%</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px">Composite Score</div>
+        </div>
+      </div>
+      <div>
+        ${subRow('UNIT GAME (MCQ)', mcqScore, mcqAttempted, 50, 'var(--gold)')}
+        ${subRow('VOCAB CHECK', vocabScore, vocabAttempted, 25, '#a080e8')}
+        ${subRow('OPEN ANSWER', frqScore, frqAttempted, 25, 'var(--teal2)')}
+      </div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6">
+        Weighted: MCQ 50% · Vocab 25% · Open Answer 25% · Unfinished sections count as 0%
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════════
+
+function updateHUD() {
+  if (!P) return;
+  document.getElementById('hud-player-name').textContent = P.name;
+  // RULE: Always show global rank from shell — never a unit-specific rank
+  document.getElementById('hud-player-rank').textContent = P.globalRank || 'Curious Citizen';
+  document.getElementById('hud-avatar-wrap').innerHTML = getAvatarSVG(P.avatar || 'scholar_f', 44);
+  // Gold balance — reads from shared shell wallet
+  document.getElementById('hud-score').textContent = getShellGold().toLocaleString();
+  document.getElementById('hud-streak').textContent = streak;
+
+  const xpPct = Math.min(100, Math.round(((P.totalAnswered || 0) / 60) * 100));
+  document.getElementById('hud-xp-fill').style.width = xpPct + '%';
+}
+
+// ════════════════════════════════════════════
+// BRIEFING FLOW
+// ════════════════════════════════════════════
+
+function openBriefing(lessonId) {
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  if (!lesson) return;
+  activeLesson = lesson;
+
+  const b = lesson.briefing;
+
+  document.getElementById('briefing-eyebrow').textContent = lesson.label + ' · MISSION BRIEFING';
+  document.getElementById('briefing-title').textContent = lesson.title;
+  document.getElementById('briefing-location').textContent = b.location || '';
+  document.getElementById('briefing-date').textContent = b.date || '';
+  document.getElementById('briefing-text').textContent = b.text || '';
+
+  // Role line
+  const roleEl = document.getElementById('briefing-role');
+  if (roleEl) {
+    if (b.role) { roleEl.textContent = 'Your role: ' + b.role; roleEl.style.display = 'block'; }
+    else roleEl.style.display = 'none';
+  }
+
+  // Quote
+  const qEl = document.getElementById('briefing-quote');
+  if (b.quote) {
+    qEl.textContent = b.quote;
+    qEl.style.display = 'block';
+  } else {
+    qEl.style.display = 'none';
+  }
+
+  // Tags
+  document.getElementById('briefing-meta').innerHTML =
+    (b.tags || []).map(t => `<span class="briefing-tag">${t}</span>`).join('');
+
+  // Scene placeholder (could load SVG from SCENES object later)
+  const sceneEl = document.getElementById('briefing-scene');
+  sceneEl.innerHTML = `<div style="width:100%;height:60px;background:var(--bg3);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:3px;">[SCENE ART LOADS FROM JSON]</div>`;
+
+  document.getElementById('briefing-modal').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+function closeBriefing() {
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+}
+
+function proceedToQuestions() {
+  if (!activeLesson) return;
+  document.getElementById('briefing-modal').classList.remove('show');
+  startLesson(activeLesson);
+}
+
+// ════════════════════════════════════════════
+// QUESTION ENGINE
+// ════════════════════════════════════════════
+
+function startLesson(lesson) {
+  activeLesson = lesson;
+  activeQueue = pickSubset(lesson.bank, lesson.displayCount);
+  activeQIdx = 0;
+  sessionCorrect = 0;
+  sessionTotal = 0;
+  sessionScore = 0;
+  sessionGoldEarned = 0;
+  momentum = 0;
+  streak = 0;
+  answeredCurrent = false;
+
+  showQuestionScreen();
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (activeQIdx >= activeQueue.length) {
+    finishLesson();
+    return;
+  }
+
+  const q = activeQueue[activeQIdx];
+  const total = activeQueue.length;
+  answeredCurrent = false;
+
+  // Progress bar
+  document.getElementById('q-progress-fill').style.width =
+    Math.round(activeQIdx / total * 100) + '%';
+
+  // Context pill
+  document.getElementById('q-context-lesson').textContent = activeLesson.label;
+  document.getElementById('q-context-topic').textContent = activeLesson.title;
+
+  // Momentum
+  updateMomentumDisplay();
+
+  // Question number
+  document.getElementById('q-number').textContent =
+    `QUESTION ${activeQIdx + 1} OF ${total}`;
+
+  // Question text
+  document.getElementById('q-text').textContent = q.text;
+
+  // Standard tag — shown if question has a standard code
+  const stdTag = document.getElementById('q-standard-tag');
+  if (stdTag) {
+    if (q.standard) {
+      stdTag.textContent = q.standard;
+      stdTag.style.display = 'inline-block';
+    } else {
+      stdTag.style.display = 'none';
+    }
+  }
+
+  // Shuffle choices at runtime.
+  // correctAnswer is a plain string matching one of the choices — no index assumptions.
+  const shuffledChoices = shuffle(q.choices.slice());
+  const letters = ['A', 'B', 'C', 'D', 'E'];
+
+  document.getElementById('choices-list').innerHTML = shuffledChoices.map((choiceText, i) => {
+    const isCorrect = (choiceText === q.correctAnswer);
+    // Encode explanation and standard safely for inline onclick
+    const safeExpl  = encodeURIComponent(q.explanation || '');
+    const safeStd   = encodeURIComponent(q.standard || '');
+    return `<button class="choice-btn"
+      data-correct="${isCorrect}"
+      data-explanation="${safeExpl}"
+      data-standard="${safeStd}"
+      onclick="selectChoice(this)">
+      <span class="choice-letter">${letters[i]}.</span>
+      <span class="choice-text">${choiceText}</span>
+    </button>`;
+  }).join('');
+
+  // Hide feedback and next btn
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel';
+  document.getElementById('next-btn-wrap').style.display = 'none';
+
+  updateHUD();
+}
+
+function selectChoice(btn) {
+  if (answeredCurrent) return;
+  answeredCurrent = true;
+
+  // Read correctness from data attribute — set during render, not passed through onclick
+  const isCorrect  = btn.dataset.correct === 'true';
+  const explanation = decodeURIComponent(btn.dataset.explanation || '');
+  const standard   = decodeURIComponent(btn.dataset.standard || '');
+
+  // Mark all buttons answered; highlight chosen and correct
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.add('answered');
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  if (!isCorrect) btn.classList.add('incorrect');
+
+  sessionTotal++;
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  if (isCorrect) {
+    sessionCorrect++;
+    streak++;
+    const pts = 100 + (streak > 1 ? (streak - 1) * 25 : 0);
+    sessionScore += pts;
+    momentum = Math.min(100, momentum + 20);
+    awardGoldToShell(rules.perCorrect, 'Correct Answer — ' + activeLesson.label, true);
+    notify(streak > 2 ? `🔥 ${streak} streak! +${rules.perCorrect} 🪙` : `✓ Correct! +${rules.perCorrect} 🪙`);
+  } else {
+    streak = 0;
+    momentum = Math.max(0, momentum - 10);
+    notify('✗ Incorrect');
+  }
+
+  P.totalAnswered = (P.totalAnswered || 0) + 1;
+  if (isCorrect) P.totalCorrect = (P.totalCorrect || 0) + 1;
+  saveP();
+  savePartialToSupabase();
+
+  const fp = document.getElementById('feedback-panel');
+  fp.className = 'feedback-panel show ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').className =
+    'feedback-verdict ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('feedback-verdict').textContent = isCorrect ? '✓ Correct' : '✗ Incorrect';
+  document.getElementById('feedback-text').textContent = explanation;
+  document.getElementById('feedback-standard').textContent = standard ? `Standard: ${standard}` : '';
+
+  const nw = document.getElementById('next-btn-wrap');
+  nw.style.display = 'block';
+  const isLast = activeQIdx === activeQueue.length - 1;
+  document.getElementById('next-btn-label').textContent = isLast ? 'See Results →' : 'Next Question →';
+
+  updateMomentumDisplay();
+  updateHUD();
+}
+
+function nextQuestion() {
+  activeQIdx++;
+  renderQuestion();
+}
+
+function updateMomentumDisplay() {
+  document.getElementById('momentum-fill').style.width = momentum + '%';
+  const labels = ['Ready', 'Warming Up', 'On Track', 'Sharp!', 'On Fire 🔥'];
+  const idx = Math.floor(momentum / 25);
+  document.getElementById('momentum-val').textContent = labels[Math.min(idx, labels.length - 1)];
+}
+
+// ════════════════════════════════════════════
+// LESSON COMPLETE
+// ════════════════════════════════════════════
+
+function finishLesson() {
+  const acc = sessionTotal > 0 ? Math.round(sessionCorrect / sessionTotal * 100) : 0;
+  const tier = calcTier(acc);
+  const rules = activeLesson.goldRules || GOLD_RULES[activeLesson.type] || GOLD_RULES.lesson;
+
+  // ── Gold bonuses ─────────────────────────────────────
+  let bonusGold = 0, bonusLabel = '';
+  if (acc >= 60) {
+    awardGoldToShell(rules.completionBonus, 'Completion Bonus — ' + activeLesson.label, false);
+    bonusGold += rules.completionBonus; bonusLabel = 'Completion Bonus';
+  }
+  if ((activeLesson.type === 'lesson' || activeLesson.type === 'extension') && acc === 100 && rules.perfectBonus) {
+    awardGoldToShell(rules.perfectBonus, 'Perfect Run — ' + activeLesson.label, false);
+    bonusGold += rules.perfectBonus; bonusLabel = 'Perfect Run!';
+  } else if (activeLesson.type === 'capstone' && acc === 100 && rules.masteryBonus) {
+    awardGoldToShell(rules.masteryBonus, 'Mastery — ' + activeLesson.label, false);
+    bonusGold += rules.masteryBonus; bonusLabel = 'Mastery Achieved!';
+  } else if (activeLesson.type === 'eoc' && acc >= 90 && rules.highScoreBonus) {
+    awardGoldToShell(rules.highScoreBonus, 'High Score — ' + activeLesson.label, false);
+    bonusGold += rules.highScoreBonus; bonusLabel = 'High Score Bonus!';
+  }
+  if (sessionGoldEarned > 0) spawnGoldParticle('+' + sessionGoldEarned + ' 🪙 total');
+
+  // ── Save best score ───────────────────────────────────
+  const prev = P.lessonBestScores[activeLesson.id];
+  if (!prev || acc > prev.accuracy) {
+    P.lessonBestScores[activeLesson.id] = {
+      correct: sessionCorrect, total: sessionTotal, accuracy: acc, score: sessionScore
+    };
+  }
+  const passedThisRun = acc >= 60;
+  const alreadyCompleted = P.lessonsCompleted.includes(activeLesson.id);
+  if (passedThisRun && !alreadyCompleted) {
+    P.lessonsCompleted.push(activeLesson.id);
+    // Push badge and cards to shell archive
+    pushRewardsToShell(activeLesson);
+  }
+  saveP();
+
+  // ── Save after every lesson, not just full unit completion ───────────
+  // This means students can switch devices mid-unit and pick up where they left off
+  pushLessonProgress(acc);
+
+  // Full unit complete — push final result and show trophy
+  const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  if (allDoneCheck) {
+    const allScores = Object.values(P.lessonBestScores);
+    const overallAcc = allScores.length
+      ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
+      : acc;
+    pushACResult(overallAcc);
+  }
+
+  // ── Trophy badge ──────────────────────────────────────
+  document.getElementById('complete-badge').textContent = tier.icon;
+  document.getElementById('complete-unit-lbl').textContent = activeLesson.label;
+  document.getElementById('complete-lesson-title').textContent = activeLesson.title;
+  document.getElementById('complete-tier').textContent = tier.label + ' — ' + acc + '%';
+  document.getElementById('complete-tier').style.color = tier.color;
+
+  // ── Stats row ─────────────────────────────────────────
+  document.getElementById('complete-stats').innerHTML = [
+    { val: sessionCorrect + '/' + sessionTotal, lbl: 'CORRECT' },
+    { val: acc + '%',                            lbl: 'ACCURACY' },
+    { val: '🪙 ' + sessionGoldEarned.toLocaleString(), lbl: 'GOLD EARNED' },
+  ].map(s => `<div class="complete-stat">
+    <div class="complete-stat-val">${s.val}</div>
+    <div class="complete-stat-lbl">${s.lbl}</div>
+  </div>`).join('');
+
+  // ── EOC Rating (show on EOC lesson or unit completion) ──
+  const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+  const showEOC = activeLesson.type === 'eoc' || allDone;
+  const eocBlock = document.getElementById('complete-eoc-block');
+  if (showEOC) {
+    const eoc = eocLevel(acc);
+    document.getElementById('complete-eoc-rating').textContent = eoc.label;
+    document.getElementById('complete-eoc-rating').style.color = eoc.color;
+    document.getElementById('complete-eoc-label').textContent =
+      acc >= 60 ? 'This result has been saved to your American Chronicles profile.' :
+      'Score 60% or higher to record your EOC rating.';
+    eocBlock.style.display = 'block';
+  } else {
+    eocBlock.style.display = 'none';
+  }
+
+  // ── Gold reward block ─────────────────────────────────
+  const rewardsEl = document.getElementById('complete-rewards');
+  const rewardsIn = document.getElementById('complete-rewards-inner');
+  if (bonusGold > 0 && rewardsIn) {
+    rewardsIn.innerHTML = `
+      <div style="font-family:var(--bebas);font-size:18px;color:#f5c842;margin-bottom:4px;">
+        +${bonusGold} 🪙 ${bonusLabel}
+      </div>
+      <div style="font-family:var(--dm);font-size:9px;color:var(--text3);">
+        This run: +${sessionGoldEarned} 🪙 · Shell balance: ${getShellGold().toLocaleString()} 🪙
+      </div>`;
+    rewardsEl.style.display = 'block';
+  } else {
+    rewardsEl.style.display = 'none';
+  }
+
+  // ── Badges earned ──────────────────────────────────────
+  const rewards = activeLesson.rewards || {};
+  const badgeNames = rewards.badge ? [rewards.badge] : [];
+  const cardNames  = rewards.cards || [];
+  const newlyEarned = passedThisRun && !alreadyCompleted;
+
+  const badgesBlock = document.getElementById('complete-badges-block');
+  const badgesChips = document.getElementById('complete-badges-chips');
+  if (badgeNames.length) {
+    badgesChips.innerHTML = badgeNames.map(b =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🏅</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${b}</span>
+      </div>`
+    ).join('');
+    badgesBlock.style.display = 'block';
+  } else {
+    badgesBlock.style.display = 'none';
+  }
+
+  // ── Cards earned ───────────────────────────────────────
+  const cardsBlock = document.getElementById('complete-cards-block');
+  const cardsChips = document.getElementById('complete-cards-chips');
+  if (cardNames.length) {
+    cardsChips.innerHTML = cardNames.map(c =>
+      `<div class="reward-chip ${newlyEarned ? 'earned' : ''}">
+        <span class="reward-chip-icon">🃏</span>
+        <span class="reward-chip-lbl">${newlyEarned ? '✓ ' : ''}${c}</span>
+      </div>`
+    ).join('');
+    cardsBlock.style.display = 'block';
+  } else {
+    cardsBlock.style.display = 'none';
+  }
+
+  // ── Button visibility ──────────────────────────────────
+  const currentIdx = LESSONS.findIndex(l => l.id === activeLesson.id);
+  const nextLesson = LESSONS[currentIdx + 1];
+  const nextBtn = document.getElementById('btn-next-lesson');
+  if (nextBtn) nextBtn.style.display = (nextLesson && !allDone) ? 'block' : 'none';
+
+  // "Replay from Beginning" — show when all lessons done or on the last lesson
+  const isLastLesson = activeLesson.id === LESSONS[LESSONS.length - 1].id;
+  const replayBtn = document.getElementById('btn-replay-all');
+  if (replayBtn) replayBtn.style.display = (allDone || isLastLesson) ? 'block' : 'none';
+
+  // Print certificate — show when full unit complete
+  const certBtn = document.getElementById('btn-print-cert');
+  if (certBtn) certBtn.style.display = allDone ? 'block' : 'none';
+
+  document.getElementById('lesson-complete').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+// ── Push earned rewards to shell archive ─────────────────
+function pushRewardsToShell(lesson) {
+  const rewards = lesson.rewards || {};
+  const badge = rewards.badge;
+  const cards = rewards.cards || [];
+
+  try {
+    const raw = localStorage.getItem(SHELL_KEY);
+    const shell = raw ? JSON.parse(raw) : {};
+    if (!shell.unitBadges) shell.unitBadges = {};
+    if (!shell.unitCards)  shell.unitCards  = {};
+    if (!shell.unitBadges[UNIT_ID]) shell.unitBadges[UNIT_ID] = [];
+    if (!shell.unitCards[UNIT_ID])  shell.unitCards[UNIT_ID]  = [];
+
+    // Badge — store as slugified id
+    if (badge) {
+      const badgeId = badge.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitBadges[UNIT_ID].includes(badgeId)) {
+        shell.unitBadges[UNIT_ID].push(badgeId);
+      }
+    }
+    // Cards
+    cards.forEach(c => {
+      const cardId = c.toLowerCase().replace(/\s+/g, '_');
+      if (!shell.unitCards[UNIT_ID].includes(cardId)) {
+        shell.unitCards[UNIT_ID].push(cardId);
+      }
+    });
+
+    // Also mark unit as completed in shell if all lessons done
+    if (LESSONS.every(l => P.lessonsCompleted.includes(l.id))) {
+      if (!Array.isArray(shell.unitsCompleted)) shell.unitsCompleted = [];
+      if (!shell.unitsCompleted.includes(UNIT_ID)) shell.unitsCompleted.push(UNIT_ID);
+    }
+
+    localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+  } catch(e) { console.warn('pushRewardsToShell failed', e); }
+
+  // Also notify via postMessage for live shell sessions
+  try {
+    if (badge) window.parent.postMessage({type:'UNIT_BADGE_EARNED', unitId:UNIT_ID, badgeId: badge.toLowerCase().replace(/\s+/g,'_')}, '*');
+    cards.forEach(c => window.parent.postMessage({type:'UNIT_CARD_EARNED', unitId:UNIT_ID, cardId: c.toLowerCase().replace(/\s+/g,'_')}, '*'));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// BUTTON LOGIC (completion screen)
+// ════════════════════════════════════════════
+
+function retryLesson() {
+  // Replay same lesson — same briefing → questions
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(activeLesson.id);
+}
+
+function goToNextLesson() {
+  const currentIdx = LESSONS.findIndex(l => l.id === activeLesson.id);
+  const nextLesson = LESSONS[currentIdx + 1];
+  if (!nextLesson) { returnToUnitHub(); return; }
+  document.getElementById('lesson-complete').classList.remove('show');
+  openBriefing(nextLesson.id);
+}
+
+function returnToUnitHub() {
+  // Go to Layer 2 — Unit Hub — NO re-login
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  activeLesson = null;
+  showUnitHub();
+}
+
+// ── UNIT TROPHY REVEAL ────────────────────────────────────
+function showUnitTrophy(overallAcc) {
+  const name = P.name || 'Historian';
+
+  // Use composite score, not just MCQ accuracy
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const displayTier = allAttempted ? calcTier(composite) : { label:'In Progress', color:'var(--amber)', icon:'⏳' };
+  const passed = allAttempted ? composite >= 60 : true; // always show results if MCQ done
+
+  const messages = {
+    historian: `An extraordinary performance, ${name}. A perfect composite score — you've mastered every component of this unit.`,
+    gold:      `Outstanding work, ${name}. A gold-level composite score reflects real mastery of this unit.`,
+    silver:    `Well done, ${name}. A solid silver result — complete all three components to push higher.`,
+    bronze:    `Good work, ${name}. A bronze composite medal is yours. Keep working through all three components.`,
+    completed: `You completed the unit, ${name}. Finish all three components to earn a higher medal.`,
+    tryagain:  `Good effort, ${name}. Keep working through the remaining components to improve your composite score.`,
+    'in progress': `Great start, ${name}! Your MCQ score is locked in — now complete the Vocab Check and Open Answer to finalize your composite score.`
+  };
+
+  const tierKey = displayTier.label.toLowerCase().replace(' ', '');
+  const msg = messages[tierKey] || messages['in progress'];
+
+  document.getElementById('utr-name').textContent = name;
+  document.getElementById('utr-icon').textContent = displayTier.icon;
+  document.getElementById('utr-trophy-name').textContent = allAttempted ? displayTier.label + ' Medal' : 'MCQ Complete';
+  document.getElementById('utr-trophy-name').style.color = displayTier.color;
+  document.getElementById('utr-msg').textContent = msg;
+
+  // Show composite breakdown
+  const accEl = document.getElementById('utr-acc');
+  accEl.innerHTML = allAttempted
+    ? `Composite Score: <strong style="color:${displayTier.color}">${composite}%</strong>`
+    : `MCQ: <strong style="color:var(--gold)">${mcqScore}%</strong> &nbsp;·&nbsp; Vocab: <strong style="color:${vocabAttempted?'#a080e8':'var(--text3)'}">${vocabAttempted?vocabScore+'%':'pending'}</strong> &nbsp;·&nbsp; Open Answer: <strong style="color:${frqAttempted?'var(--teal2)':'var(--text3)'}">${frqAttempted?frqScore+'%':'pending'}</strong>`;
+
+  const btn = document.getElementById('utr-btn');
+  btn.textContent = 'View My Results ▶';
+  btn.style.borderColor = displayTier.color;
+  btn.style.color = displayTier.color;
+
+  document.getElementById('unit-trophy-overlay').classList.add('show');
+}
+
+function closeUnitTrophy() {
+  document.getElementById('unit-trophy-overlay').classList.remove('show');
+  // If they didn't pass, send them back to hub to retry
+  const acc = parseInt(document.getElementById('utr-acc').textContent.replace(/\D/g,''));
+  if (acc < 60) {
+    document.getElementById('lesson-complete').classList.remove('show');
+    showUnitHub();
+  }
+}
+
+function returnToShell() {
+  saveP();
+  if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
+  try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
+  // Set the correct returning flag depending on which shell launched us
+  const fromCivitas = P.fromCivitas || !!localStorage.getItem('civitas_shell_url');
+  if (fromCivitas) {
+    try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+    try { localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
+  }
+  // Always set ac_returning_from_game so American Chronicles shell resyncs on next load
+  try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
+  notify('Returning to Civitas…');
+  const shellURL = localStorage.getItem('civitas_shell_url')
+    || localStorage.getItem('ac_shell_url')
+    || 'https://olsonjoshua-code.github.io/Civitas/';
+  setTimeout(() => { window.location.href = shellURL; }, 600);
+}
+
+function replayFromBeginning() {
+  // Reset all lesson progress and start from Lesson 9
+  P.lessonsCompleted = [];
+  P.lessonBestScores = {};
+  saveP();
+  document.getElementById('lesson-complete').classList.remove('show');
+  // Start the first lesson's briefing
+  openBriefing(LESSONS[0].id);
+}
+
+function printCertificate() {
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
+  const lessonRows = LESSONS.map(l => {
+    const s = P.lessonBestScores[l.id];
+    return s
+      ? `<tr><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">${s.accuracy}%</td><td style="text-align:center">${s.correct}/${s.total}</td></tr>`
+      : `<tr style="opacity:.4"><td>${l.label}</td><td>${l.title}</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>`;
+  }).join('');
+
+  const w = window.open('','_blank','width=780,height=780');
+  if(!w){notify('Allow popups to print certificate.');return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;font-family:Georgia,serif}
+    .cert{width:700px;background:#faf7f0;border:3px double #c83020;padding:36px 44px;text-align:center}
+    .title{font-family:'Cinzel Decorative',serif;font-size:22px;color:#1a0a08;letter-spacing:.08em;margin:8px 0}
+    .divider{height:2px;background:linear-gradient(90deg,transparent,#c83020,transparent);margin:14px auto;width:80%}
+    .name{font-family:'Cinzel Decorative',serif;font-size:28px;color:#1a0a08;margin:8px 0}
+    .tier{font-family:'Cinzel',serif;font-size:18px;color:#c83020;letter-spacing:.1em;margin:8px 0}
+    .composite{font-family:'Cinzel Decorative',serif;font-size:42px;color:#c83020;margin:4px 0;line-height:1}
+    .components{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;text-align:center}
+    .comp-box{border:1px solid #ddd;padding:10px 8px;background:#fff}
+    .comp-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#888;margin-bottom:4px}
+    .comp-score{font-family:'Cinzel Decorative',serif;font-size:22px}
+    .comp-weight{font-size:9px;color:#aaa;margin-top:2px}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+    th{border-bottom:2px solid #c83020;padding:6px;text-align:left;font-family:'Cinzel',serif;letter-spacing:.05em}
+    td{padding:5px 6px;border-bottom:1px solid #e0d8c8}
+    .footer{font-size:10px;color:#888;margin-top:14px;border-top:1px solid #ddd;padding-top:10px}
+    .pbtn{margin-top:16px;padding:10px 24px;background:#c83020;border:none;color:#fff;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;letter-spacing:.06em}
+    @media print{.pbtn{display:none}}
+  </style></head><body>
+  <div class="cert">
+    <div style="font-size:10px;letter-spacing:.3em;color:#888;font-family:'Cinzel',serif">AMERICAN CHRONICLES · U.S. HISTORY</div>
+    <div style="font-size:40px;margin:10px 0">${tier.icon}</div>
+    <div class="title">Certificate of Completion</div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:#666;letter-spacing:.1em">THIS CERTIFIES THAT</div>
+    <div class="name">${P.name || 'Historian'}</div>
+    <div style="font-size:13px;color:#444;margin:6px 0">has completed</div>
+    <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">House Divided — Unit 1: Civil War and Reconstruction</div>
+    ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
+    <div class="divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.15em;color:#888;margin-bottom:4px">COMPOSITE UNIT SCORE</div>
+    <div class="composite">${composite}%</div>
+    <div class="tier">${tier.icon} ${tier.label} Trophy</div>
+    <div class="components">
+      <div class="comp-box">
+        <div class="comp-label">UNIT GAME (MCQ)</div>
+        <div class="comp-score" style="color:${mcqAttempted ? '#b87800' : '#aaa'}">${mcqAttempted ? mcqScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 50%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">VOCAB CHECK</div>
+        <div class="comp-score" style="color:${vocabAttempted ? '#6040a0' : '#aaa'}">${vocabAttempted ? vocabScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
+      <div class="comp-box">
+        <div class="comp-label">OPEN ANSWER</div>
+        <div class="comp-score" style="color:${frqAttempted ? '#1a7a6a' : '#aaa'}">${frqAttempted ? frqScore+'%' : '—'}</div>
+        <div class="comp-weight">Weight: 25%</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:8px">MCQ 50% · Vocab 25% · Open Answer 25% · Incomplete sections scored as 0%</div>
+    <div class="divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;color:#888;margin-bottom:6px">MCQ ROUND BREAKDOWN</div>
+    <table>
+      <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
+      <tbody>${lessonRows}</tbody>
+    </table>
+    <div class="footer">Issued ${date} · American Chronicles · Created by Joshua Olson · Brevard County, FL</div>
+  </div>
+  <button class="pbtn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+// ════════════════════════════════════════════
+// SUPABASE PUSH
+// ════════════════════════════════════════════
+
+// ── PARTIAL PROGRESS SAVE ─────────────────────────────────────────────
+let _acSaveDebounce = null;
+function savePartialToSupabase() {
+  clearTimeout(_acSaveDebounce);
+  _acSaveDebounce = setTimeout(async function() {
+    try {
+      if (!P || !P.name || P.name === 'Guest') return;
+      await fetch(AC_SUPA_URL + '/rest/v1/ac_partial_progress?on_conflict=name,period,unit_id', {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          name: P.name,
+          period: P.period || 'guest',
+          unit_id: UNIT_ID,
+          partial_progress: JSON.stringify({
+            totalAnswered: P.totalAnswered || 0,
+            totalCorrect: P.totalCorrect || 0,
+            score: P.score || 0,
+            gold: P.gold || 0,
+            ts: Date.now()
+          }),
+          updated_at: new Date().toISOString()
+        })
+      });
+    } catch(e) {}
+  }, 1500);
+}
+
+function saveGameToFile() {
+  try {
+    const fname = (P && P.name) ? P.name : 'student';
+    const save = {
+      version: 1, savedAt: new Date().toISOString(),
+      studentName: fname, unitId: UNIT_ID,
+      playerState: P, localSaveKey: SAVE_KEY
+    };
+    const blob = new Blob([JSON.stringify(save, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'civitas-save-' + fname.replace(/\s+/g,'-').toLowerCase() + '-' + UNIT_ID + '.json';
+    a.style.display = 'none'; document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    notify('\u{1F4BE} Progress saved to your device!', 'green');
+  } catch(e) { notify('Save failed.', 'red'); }
+}
+
+// ── PER-LESSON PROGRESS SAVE ─────────────────────────────────────────
+// Fires after every individual lesson completes.
+// Writes lessonsCompleted + lessonBestScores to civitas_profiles so
+// students can resume mid-unit on any device.
+let _lessonSaveDebounce = null;
+function pushLessonProgress(acc) {
+  clearTimeout(_lessonSaveDebounce);
+  _lessonSaveDebounce = setTimeout(async function() {
+    try {
+      if (!P || !P.name || P.name === 'Guest') return;
+      const fullName = P.fullName || P.name;
+
+      // Fetch existing profile to merge cleanly
+      const profResp = await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress',
+        {headers: AC_HEADERS}
+      );
+      const profRows = await profResp.json();
+      const existing = profRows && profRows[0];
+
+      // Merge course_progress
+      let courseProgress = {};
+      try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+      if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+      const ush = courseProgress[CIV_COURSE];
+
+      // Save all lesson best scores so far
+      ush.lessonBestScores = ush.lessonBestScores || {};
+      Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+
+      // Save which lessons are completed
+      if (!Array.isArray(ush.lessonsCompleted)) ush.lessonsCompleted = {};
+      if (!ush.lessonsCompleted[CIV_UNIT_ID]) ush.lessonsCompleted[CIV_UNIT_ID] = [];
+      P.lessonsCompleted.forEach(id => {
+        if (!ush.lessonsCompleted[CIV_UNIT_ID].includes(id)) ush.lessonsCompleted[CIV_UNIT_ID].push(id);
+      });
+
+      // Merge unit_progress — track in-progress units too, not just completed
+      let unitProgress = {};
+      try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+      const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+      const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+      unitProgress[CIV_UNIT_ID] = {
+        bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
+        lessonsCompleted: P.lessonsCompleted.length,
+        lessonsTotal: LESSONS.length,
+        inProgress: !allDone,
+        completedAt: allDone ? (prevUnit.completedAt || new Date().toISOString()) : null
+      };
+
+      // Build courses array so the teacher dashboard filter includes this student
+      let existingCourses = [];
+      try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+      if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+        existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+      }
+
+      await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
+        {
+          method: 'POST',
+          headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+          body: JSON.stringify({
+            full_name:       fullName,
+            display_name:    P.name,
+            period:          String(P.period || ''),
+            avatar:          P.avatar || 'scholar_f',
+            courses:         JSON.stringify(existingCourses),
+            unit_progress:   JSON.stringify(unitProgress),
+            course_progress: JSON.stringify(courseProgress),
+            updated_at:      new Date().toISOString()
+          })
+        }
+      );
+      console.log('Lesson progress saved:', activeLesson.id, '— lessons done:', P.lessonsCompleted);
+    } catch(e) { console.log('pushLessonProgress failed', e); }
+  }, 800);
+}
+
+async function pushACResult(acc) {
+  if (!P || !P.name || P.name === 'Guest') return;
+  const tier = calcTier(acc);
+  // Debug — show what's being saved so we can verify name/period match
+  notify(`💾 Saving: "${P.name}" | period: "${P.period||'(none)'}" | acc: ${acc}%`, 'teal');
+
+  // ── 1. Write to ac_results (leaderboard / trophy) ─────────────────
+  try {
+    const existing = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(P.name) +
+      '&period=eq.' + encodeURIComponent(P.period || '') +
+      '&unit_id=eq.' + UNIT_ID,
+      {headers: AC_HEADERS}
+    );
+    const rows = await existing.json();
+    const prev = rows && rows[0];
+    const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
+    const tierKey = tier.label.toLowerCase().replace(' ','');
+    const bestTier = prev ?
+      (tierOrder.indexOf(tierKey) > tierOrder.indexOf(prev.trophy) ? tierKey : prev.trophy) :
+      tierKey;
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer':'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          name: P.name,
+          period: P.period || '',
+          unit_id: UNIT_ID,
+          best_score: Math.max(sessionScore, prev ? prev.best_score || 0 : 0),
+          best_accuracy: Math.max(acc, prev ? prev.best_accuracy || 0 : 0),
+          trophy: bestTier,
+          cards: Math.max(P.cardsEarned ? P.cardsEarned.length : 0, prev ? prev.cards || 0 : 0),
+          attempts: (prev ? prev.attempts || 0 : 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+  } catch(e) { console.log('AC results push failed', e); }
+
+  // ── 2. Write to civitas_profiles (cross-device progress restore) ───
+  // Pulls the existing profile first so we merge rather than overwrite
+  try {
+    const fullName = P.fullName || P.name;
+
+    // Fetch existing civitas profile
+    const profResp = await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=*',
+      {headers: AC_HEADERS}
+    );
+    const profRows = await profResp.json();
+    const existing = profRows && profRows[0];
+
+    // Merge unit_progress — keep best accuracy per unit
+    let unitProgress = {};
+    try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+    const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+    unitProgress[CIV_UNIT_ID] = {
+      bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
+      completedAt: prevUnit.completedAt || new Date().toISOString()
+    };
+
+    // Merge course_progress — preserve frqSubmissions and other fields
+    let courseProgress = {};
+    try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+    if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    const ush = courseProgress[CIV_COURSE];
+    if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
+    if (!ush.unitsCompleted.includes(CIV_UNIT_ID)) ush.unitsCompleted.push(CIV_UNIT_ID);
+
+    // Merge lesson best scores into course_progress so they survive device switches
+    ush.lessonBestScores = ush.lessonBestScores || {};
+    Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+
+    // Merge gold — always keep the higher value
+    const shellRaw = localStorage.getItem('ac_shell_state');
+    const shellState = shellRaw ? JSON.parse(shellRaw) : {};
+    const currentGold = Math.max(shellState.gold || 0, existing?.gold || 0);
+
+    // Build courses array so teacher dashboard filter includes this student
+    let existingCourses = [];
+    try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+      existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+    }
+
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
+      {
+        method: 'POST',
+        headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+        body: JSON.stringify({
+          full_name:       fullName,
+          display_name:    P.name,
+          period:          String(P.period || ''),
+          avatar:          P.avatar || 'scholar_f',
+          gold:            currentGold,
+          courses:         JSON.stringify(existingCourses),
+          unit_progress:   JSON.stringify(unitProgress),
+          course_progress: JSON.stringify(courseProgress),
+          updated_at:      new Date().toISOString()
+        })
+      }
+    );
+    console.log('civitas_profiles updated for', fullName, '— unit_progress:', unitProgress);
+  } catch(e) { console.log('civitas_profiles push failed', e); }
+}
+
+// ════════════════════════════════════════════
+// LOGIN GATE
+// ════════════════════════════════════════════
+
+function buildPeriodSelector() {
+  const el = document.getElementById('period-selector');
+  el.innerHTML = [1,2,3,4,5,6,7].map(p =>
+    `<div onclick="selectPeriod(${p}, this)"
+      style="background:var(--bg3);border:1.5px solid var(--border2);color:var(--text3);
+      font-family:var(--bebas);font-size:18px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;"
+      id="period-opt-${p}">${p}</div>`
+  ).join('');
+}
+
+let selectedPeriod = null;
+function selectPeriod(p, el) {
+  selectedPeriod = p;
+  document.querySelectorAll('#period-selector div').forEach(d => {
+    d.style.borderColor = 'var(--border2)';
+    d.style.color = 'var(--text3)';
+    d.style.background = 'var(--bg3)';
+  });
+  el.style.borderColor = 'var(--gold)';
+  el.style.color = 'var(--gold)';
+  el.style.background = 'rgba(200,48,32,.08)';
+}
+
+function submitLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!selectedPeriod) { alert('Please select your class period.'); return; }
+
+  P = Object.assign({}, DEFAULT_P, loadSavedUnit() || {}, {
+    name,
+    period: selectedPeriod,
+    globalRank: 'Curious Citizen'
+  });
+  P.fromShell = false;
+  saveP();
+
+  document.getElementById('login-gate').classList.remove('show');
+  showUnitHub();
+}
+
+function showLoginGate() {
+  document.getElementById('login-gate').classList.add('show');
+}
+
+// ════════════════════════════════════════════
+// HISTORICAL CARDS & BADGES DATA
+// (carried from v1, adapted to new lesson structure)
+// ════════════════════════════════════════════
+
+const HIST_CARDS = {
+  lincoln:     {icon:'🏛️', name:'Abraham Lincoln',         role:'16th President · 1861–1865',
+    desc:'Led the Union through its greatest crisis. His political genius held a fragile coalition together, issued the Emancipation Proclamation, and redefined the war as a struggle for human freedom. Assassinated five days after Lee’s surrender.', unlockLesson:'lesson9'},
+  davis:       {icon:'🇨🇸', name:'Jefferson Davis',         role:'President of the Confederacy · 1861–1865',
+    desc:'Former U.S. Senator and Secretary of War who led the Confederate government. Struggled to hold together a confederation of states that resisted central authority even in wartime, ultimately failing to secure independence.', unlockLesson:'lesson9'},
+  douglass:    {icon:'✊', name:'Frederick Douglass',       role:'Abolitionist · Orator · Advisor to Lincoln',
+    desc:'Escaped slavery to become the most powerful Black voice in America. Pushed Lincoln toward emancipation, recruited Black soldiers, and fought for equal pay and full citizenship. His life was living proof that slavery’s premises were false.', unlockLesson:'lesson10'},
+  grant:       {icon:'⭐', name:'Ulysses S. Grant',          role:'Union General · 18th President',
+    desc:'The general whose relentless strategy finally broke the Confederacy. As president he supported Reconstruction and used federal power against the Ku Klux Klan — but corruption scandals marred his administration.', unlockLesson:'lesson10'},
+  lee:         {icon:'⚔️', name:'Robert E. Lee',             role:'Confederate General',
+    desc:'Commander of the Army of Northern Virginia and the Confederacy’s most celebrated general. Defeated larger Union forces repeatedly until Grant’s attrition strategy overcame him. Surrendered at Appomattox on April 9, 1865.', unlockLesson:'lesson10'},
+  tubman:      {icon:'🗺️', name:'Harriet Tubman',            role:'Underground Railroad · Union Spy',
+    desc:'Made thirteen missions to rescue approximately seventy enslaved people via the Underground Railroad. During the war she served as a spy and scout for the Union Army, leading the Combahee River Raid that freed 700 people.', unlockLesson:'lesson9'},
+  stevens:     {icon:'📜', name:'Thaddeus Stevens',         role:'Radical Republican · Congress',
+    desc:'The most powerful advocate for racial equality in Congress during Reconstruction. Pushed for the Fourteenth Amendment, land redistribution for freedpeople, and harsh terms for former Confederate states.', unlockLesson:'capstone'},
+};
+
+const UNIT_BADGES = [
+  {id:'dividing_nation',  icon:'⚔️', label:'A Dividing Nation',    desc:'Completed A Dividing Nation',        lessonId:'lesson9'},
+  {id:'civil_war',        icon:'💥', label:'The Civil War',          desc:'Completed The Civil War',            lessonId:'lesson10'},
+  {id:'reconstruction',   icon:'🏛️', label:'Reconstruction',       desc:'Completed the Capstone',             lessonId:'capstone'},
+  {id:'unit1_eoc',        icon:'📋', label:'Unit 1 Complete',        desc:'Completed EOC Review',               lessonId:'eoc'},
+  {id:'unit1_complete',   icon:'⭐', label:'House Divided',          desc:'Completed all lessons',              lessonId:null},
+];
+
+// ════════════════════════════════════════════
+// BOTTOM NAV & OVERLAY FUNCTIONS
+// ════════════════════════════════════════════
+
+function navToHub() {
+  // Close any open overlays and return to unit hub
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  document.getElementById('lesson-complete').classList.remove('show');
+  document.getElementById('briefing-modal').classList.remove('show');
+  setActiveNav(0);
+  returnToUnitHub();
+}
+
+function setActiveNav(idx) {
+  document.querySelectorAll('.bn-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+function showBottomNav() {
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+// ── LEADERBOARD ──────────────────────────────
+let _lbAllData = [];
+let _lbType = 'overall';
+let _lbPeriodFilter = 'all';
+let _lbDeleteUnlocked = false;
+
+function openLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.add('show');
+  setActiveNav(1);
+  loadLeaderboard();
+}
+function closeLeaderboard() {
+  document.getElementById('leaderboard-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+async function loadLeaderboard() {
+  if (!P) return;
+  document.getElementById('lb-sync-status').textContent = 'Loading…';
+  try {
+    const r = await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?unit_id=eq.' + UNIT_ID + '&order=best_score.desc&limit=200',
+      {headers: AC_HEADERS}
+    );
+    _lbAllData = await r.json() || [];
+    renderLeaderboard();
+  } catch(e) {
+    document.getElementById('lb-sync-status').textContent = 'Could not load scores.';
+    _lbAllData = [];
+    renderLeaderboard();
+  }
+}
+
+function setLbType(type, btn) {
+  _lbType = type;
+  _lbPeriodFilter = 'all';
+  document.querySelectorAll('#lb-type-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function setLbPeriod(p, btn) {
+  _lbPeriodFilter = p;
+  document.querySelectorAll('#lb-period-tabs .lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const medals = ['🥇','🥈','🥉'];
+  const periods = [...new Set(_lbAllData.map(s => s.period).filter(p => p && p !== '0'))].sort((a,b) => +a - +b);
+  if (_lbType === 'class') {
+    document.getElementById('lb-period-tabs').innerHTML = periods.map(p =>
+      `<button class="lb-tab ${_lbPeriodFilter===p?'active':''}" onclick="setLbPeriod('${p}',this)">Period ${p}</button>`
+    ).join('');
+  } else {
+    document.getElementById('lb-period-tabs').innerHTML = '';
+  }
+  let filtered = _lbAllData;
+  if (_lbType === 'class') {
+    filtered = filtered.filter(s => s.period && s.period !== '0');
+    if (_lbPeriodFilter !== 'all') filtered = filtered.filter(s => String(s.period) === String(_lbPeriodFilter));
+  }
+  document.getElementById('lb-sync-status').textContent = filtered.length + ' students — Unit 1: Civil War and Reconstruction';
+  if (!filtered.length) {
+    document.getElementById('lb-content').innerHTML =
+      '<div style="font-family:var(--crimson);color:var(--text3);font-style:italic;padding:16px;">No results yet.</div>';
+    return;
+  }
+  const showDelete = _lbDeleteUnlocked;
+  const headerCols = `<th>#</th><th>STUDENT</th><th>SCORE</th><th>ACCURACY</th><th>ATTEMPTS</th>${showDelete?'<th></th>':''}`;
+  const rows = filtered.slice(0, 50).map((s, i) => {
+    const isMe = P && s.name === P.name && String(s.period) === String(P.period);
+    const medal = i < 3 ? medals[i] : '#' + (i+1);
+    const mc = i===0?'var(--gold)':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text3)';
+    const delBtn = showDelete
+      ? `<td><button onclick="lbDeleteEntry('${s.name.replace(/'/g,"\\'")}','${s.period}')" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:2px 6px;cursor:pointer;">X</button></td>`
+      : '';
+    return `<tr class="${isMe?'lb-you':''}">
+      <td style="font-family:var(--dm);font-size:12px;color:${mc};">${medal}</td>
+      <td><div class="lb-name">${s.name||'--'}${isMe?' ◀':''}</div></td>
+      <td class="lb-score">${(s.best_score||0).toLocaleString()}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--gold);">${s.best_accuracy!=null?s.best_accuracy+'%':'--'}</td>
+      <td style="font-family:var(--dm);font-size:10px;color:var(--text3);">${s.attempts||1}</td>
+      ${delBtn}
+    </tr>`;
+  }).join('');
+  document.getElementById('lb-content').innerHTML =
+    `<table class="lb-table"><thead><tr>${headerCols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function unlockLBDelete() {
+  const code = prompt('Teacher delete code:');
+  if (code === 'olson219') {
+    _lbDeleteUnlocked = true;
+    document.getElementById('lb-teacher-unlock').textContent = '🔓';
+    renderLeaderboard();
+  }
+}
+
+async function lbDeleteEntry(name, period) {
+  if (!confirm(`Remove "${name}" from leaderboard?`)) return;
+  try {
+    await fetch(
+      AC_SUPA_URL + '/rest/v1/ac_results?name=eq.' + encodeURIComponent(name) +
+      '&period=eq.' + encodeURIComponent(period) + '&unit_id=eq.' + UNIT_ID,
+      {method:'DELETE', headers: AC_HEADERS}
+    );
+    notify('Removed');
+    loadLeaderboard();
+  } catch(e) { notify('Error removing entry'); }
+}
+
+// ── PROFILE ──────────────────────────────────
+function openProfile() {
+  if (!P) return;
+  setActiveNav(2);
+  // Avatar
+  document.getElementById('profile-avatar-large').innerHTML =
+    `<div style="width:80px;height:80px;margin:0 auto;">${getAvatarSVG(P.avatar||'scholar_f', 80)}</div>
+     <div style="font-family:var(--playfair);font-size:18px;color:var(--cream);font-style:italic;margin-top:8px;">${P.name}</div>
+     <div style="font-family:var(--dm);font-size:10px;color:var(--gold2);margin-top:3px;">${P.globalRank||'Curious Citizen'}${P.period?' · Period '+P.period:''}</div>`;
+
+  // Stats
+  const scores = Object.values(P.lessonBestScores || {});
+  const totalCorrect = scores.reduce((a, s) => a + (s.correct||0), 0);
+  const totalAnswered = scores.reduce((a, s) => a + (s.total||0), 0);
+  const avgAcc = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0;
+  const bestAcc = scores.length ? Math.max(...scores.map(s => s.accuracy)) : 0;
+  const tier = calcTier(bestAcc);
+  document.getElementById('profile-stat-grid').innerHTML = [
+    {val: P.lessonsCompleted.length + '/' + LESSONS.length, lbl: 'LESSONS DONE'},
+    {val: avgAcc + '%',       lbl: 'OVERALL ACCURACY'},
+    {val: tier.icon + ' ' + tier.label, lbl: 'TROPHY TIER'},
+    {val: getShellGold().toLocaleString() + ' 🪙', lbl: 'GOLD BALANCE'},
+  ].map(s =>
+    `<div class="profile-stat"><div class="profile-stat-val">${s.val}</div><div class="profile-stat-lbl">${s.lbl}</div></div>`
+  ).join('');
+
+  // Badges
+  document.getElementById('profile-badge-grid').innerHTML = UNIT_BADGES.map(b => {
+    const earned = b.lessonId
+      ? P.lessonsCompleted.includes(b.lessonId)
+      : LESSONS.every(l => P.lessonsCompleted.includes(l.id));
+    return `<div class="badge-pill ${earned?'earned':''}">
+      <span class="badge-icon">${b.icon}</span>${b.label}
+    </div>`;
+  }).join('');
+
+  // Cards
+  document.getElementById('profile-card-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock.'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profile-overlay').classList.add('show');
+}
+function closeProfile() {
+  document.getElementById('profile-overlay').classList.remove('show');
+  setActiveNav(0);
+}
+
+// ── CARD COLLECTION ──────────────────────────
+function openCardCollection() {
+  setActiveNav(3);
+  document.getElementById('cardcoll-grid').innerHTML = Object.entries(HIST_CARDS).map(([k, c]) => {
+    const earned = P && P.lessonsCompleted.includes(c.unlockLesson);
+    return `<div class="hist-card ${earned?'':'locked-card'}">
+      <div class="hist-card-icon">${c.icon}</div>
+      <div class="hist-card-name">${c.name}</div>
+      <div class="hist-card-role">${c.role}</div>
+      <div class="hist-card-desc">${earned ? c.desc : 'Complete ' + (LESSONS.find(l=>l.id===c.unlockLesson)?.label||'the lesson') + ' to unlock this card.'}</div>
+      ${!earned ? `<div class="hist-card-unlock">🔒 Locked</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('cardcoll-overlay').classList.add('show');
+}
+
+
 
 function showQuestionScreen() {
   showScreen('question-screen');
@@ -2232,8 +4465,7 @@ function finishLesson() {
       ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
       : acc;
     pushACResult(overallAcc);
-    setTimeout(() => showUnitTrophy(overallAcc), 1200);
-  }
+      }
 
   // ── Trophy badge ──────────────────────────────────────
   document.getElementById('complete-badge').textContent = tier.icon;
@@ -2397,32 +4629,7 @@ function returnToUnitHub() {
 }
 
 // ── UNIT TROPHY REVEAL ────────────────────────────────────
-function showUnitTrophy(overallAcc) {
-  const tier = calcTier(overallAcc);
-  const name = P.name || 'Historian';
-  const passed = overallAcc >= 60;
-  const messages = {
-    historian: `An extraordinary performance, ${name}. Every question answered correctly. You have mastered this unit.`,
-    gold:      `Outstanding work, ${name}. A gold-level result reflects real command of the material.`,
-    silver:    `Well done, ${name}. A solid silver performance — you know this unit.`,
-    bronze:    `Good work, ${name}. A bronze trophy is yours. Replay to sharpen your understanding and push higher.`,
-    completed: `You completed the unit, ${name}. Keep reviewing and try again to earn a trophy.`,
-    tryagain:  `Good effort, ${name}. You didn't quite reach trophy level this time — but every replay builds understanding. Give it another shot.`
-  };
-  const tierKey = tier.label.toLowerCase().replace(' ', '');
-  const msg = messages[tierKey] || messages.tryagain;
-  document.getElementById('utr-name').textContent = name;
-  document.getElementById('utr-icon').textContent = passed ? tier.icon : '📚';
-  document.getElementById('utr-trophy-name').textContent = passed ? tier.label + ' Trophy' : 'Keep Going';
-  document.getElementById('utr-trophy-name').style.color = tier.color;
-  document.getElementById('utr-msg').textContent = msg;
-  document.getElementById('utr-acc').textContent = 'Overall Accuracy: ' + overallAcc + '%';
-  const btn = document.getElementById('utr-btn');
-  btn.textContent = passed ? 'View My Results ▶' : 'Try Again ↺';
-  btn.style.borderColor = tier.color;
-  btn.style.color = tier.color;
-  document.getElementById('unit-trophy-overlay').classList.add('show');
-}
+
 function closeUnitTrophy() {
   document.getElementById('unit-trophy-overlay').classList.remove('show');
   const acc = parseInt(document.getElementById('utr-acc').textContent.replace(/[^0-9]/g,''));
@@ -3039,6 +5246,83 @@ function openCardCollection() {
 // INIT
 // ════════════════════════════════════════════
 
+// ── Listen for vocab reward messages from flashcard page ──────────────
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'vocabReward' && e.data.deckId) {
+    const { deckId, score, passed } = e.data;
+    try {
+      const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+      if (!state.vocabPassed) state.vocabPassed = {};
+      if (!state.vocabBestScore) state.vocabBestScore = {};
+      if (passed) state.vocabPassed[deckId] = true;
+      if (score !== undefined) state.vocabBestScore[deckId] = Math.max(score, state.vocabBestScore[deckId] || 0);
+      localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    } catch(e) {}
+    updateVocabQuizStatus();
+    renderHubTrophySection();
+    renderPlayTabSummary();
+  }
+});
+
+// ── Watch localStorage for vocab results written by flashcard new tab ──
+window.addEventListener('storage', e => {
+  if (e.key === SHELL_KEY && e.newValue) {
+    try {
+      const newState = JSON.parse(e.newValue);
+      const oldState = JSON.parse(e.oldValue || '{}');
+      const dk = 'unit1_civil_war_reconstruction';
+      const newVocab = newState.vocabBestScore && newState.vocabBestScore[dk];
+      const oldVocab = oldState.vocabBestScore && oldState.vocabBestScore[dk];
+      if (newVocab && newVocab !== oldVocab) {
+        notify(`✅ Vocab score recorded: ${newVocab}%`);
+        updateVocabQuizStatus();
+        renderHubTrophySection();
+        renderPlayTabSummary();
+        const badge = document.getElementById('badge-vocab');
+        if (badge) { badge.textContent = newVocab + '%'; badge.style.display = 'block'; }
+      }
+    } catch(e) {}
+  }
+  if (e.key === 'ac_vocab_result') checkVocabReturn();
+});
+
+// ── Check for vocab result written to localStorage on return ───────────
+function checkVocabReturn() {
+  try {
+    // If we set ac_unit_game_return, the shell loaded instead of the unit game
+    // after flashcards — redirect back to the unit game
+    const unitReturn = localStorage.getItem('ac_unit_game_return');
+    if (unitReturn && unitReturn.includes('house-divided')) {
+      localStorage.removeItem('ac_unit_game_return');
+      // Don't redirect if we're already on the unit game
+      if (!window.location.href.includes('house-divided')) {
+        window.location.href = unitReturn;
+        return;
+      }
+    }
+    localStorage.removeItem('ac_unit_game_return');
+
+    // Check for vocab result written to localStorage on return
+    const raw = localStorage.getItem('ac_vocab_result');
+    if (!raw) return;
+    localStorage.removeItem('ac_vocab_result');
+    const d = JSON.parse(raw);
+    if (!d || d.deckId !== 'unit1') return;
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (!state.vocabPassed) state.vocabPassed = {};
+    if (!state.vocabBestScore) state.vocabBestScore = {};
+    if (d.passed) state.vocabPassed['unit1'] = true;
+    if (d.score !== undefined) state.vocabBestScore['unit1'] = Math.max(d.score, state.vocabBestScore['unit1'] || 0);
+    localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    notify(d.passed ? `✅ Vocab Check passed: ${d.score}%` : `Vocab Check: ${d.score}%`);
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+
+
 window.addEventListener('DOMContentLoaded', () => {
   buildPeriodSelector();
 
@@ -3111,9 +5395,40 @@ function switchPlayer() {
 // ── Anti-copy
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
-  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  function isFRQ(el){return el&&el.id==='frq-textarea';}
+
+  document.addEventListener('contextmenu',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no right-click on FRQ
+    if(!isInput(e.target))e.preventDefault();
+  });
   document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('cut',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('paste',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no paste into FRQ
+    if(!isInput(e.target))e.preventDefault();
+  });
+  document.addEventListener('keydown',e=>{
+    if(isFRQ(e.target)){
+      const ctrl=e.ctrlKey||e.metaKey;
+      // Block paste (Ctrl+V), select-all (Ctrl+A), cut (Ctrl+X) in FRQ
+      if(ctrl&&['v','V','a','A','x','X'].includes(e.key)){e.preventDefault();return;}
+    }
+    if(isInput(e.target))return;
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&['c','x','a','u','s','C','X','A','U','S'].includes(e.key))e.preventDefault();
+    if(e.key==='F12'||(ctrl&&e.shiftKey&&['i','I','j','J'].includes(e.key)))e.preventDefault();
+  });
+  document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('dragstart',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no drag-drop into FRQ
+    e.preventDefault();
+  });
+  // Block drop (dragging text in from outside)
+  document.addEventListener('drop',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}
+  });
 })();
+
 
 </script>
 </body>
