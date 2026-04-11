@@ -2912,7 +2912,16 @@ function showView(v){
 }
 
 // ── TIMELINE ──────────────────────────────────────────
-function unitStatus(id){return S.unitsCompleted.includes(id)?'done':'avail';}
+function unitStatus(id){
+  if(!S.unitsCompleted.includes(id)) return 'avail';
+  // Only show as fully done if vocab and FRQ are also attempted
+  const vocabDone=S.vocabPassed&&S.vocabPassed[id];
+  const frqDone=S.frqResults&&S.frqResults[id];
+  // Units without FRQ questions don't require FRQ
+  const hasFRQ=!!(FRQ_BANK&&FRQ_BANK[id]&&FRQ_BANK[id].length);
+  if(hasFRQ) return (vocabDone&&frqDone)?'done':'inprogress';
+  return vocabDone?'done':'inprogress';
+}
 function refreshMidtermCard(){
   const el=document.getElementById('midterm-card');
   const st=document.getElementById('midterm-card-status');
@@ -3576,7 +3585,16 @@ function buildLaunchArea(u,st){
   const area=document.getElementById('pv-launch');
   const studyBlock=buildStudyBlock(u);
   if(st==='done'){
-    area.innerHTML=`<div style="text-align:center;padding:8px 0"><div style="font-size:26px;margin-bottom:3px">✅</div><div style="font-family:var(--bebas);font-size:12px;color:var(--green2);letter-spacing:2px">Completed</div></div>${u.url?`<button class="btn full green" onclick="launchUnit('${u.url}')" style="margin-top:5px"><span>↺ Replay ${u.num}</span></button>`:''}<button class="btn full" onclick="showView('trophies');closePreview();" style="border-color:var(--gold);color:var(--gold);margin-top:5px"><span>🏆 View Trophy</span></button>${studyBlock}`;
+    area.innerHTML=`<div style="text-align:center;padding:8px 0"><div style="font-size:26px;margin-bottom:3px">✅</div><div style="font-family:var(--bebas);font-size:12px;color:var(--green2);letter-spacing:2px">All Complete</div></div>${u.url?`<button class="btn full green" onclick="launchUnit('${u.url}')" style="margin-top:5px"><span>↺ Replay ${u.num}</span></button>`:''}<button class="btn full" onclick="showView('trophies');closePreview();" style="border-color:var(--gold);color:var(--gold);margin-top:5px"><span>🏆 View Trophy</span></button>${studyBlock}`;
+  }
+  else if(st==='inprogress'){
+    // MCQ done but vocab/FRQ still needed
+    const vocabDone=S.vocabPassed&&S.vocabPassed[u.id];
+    const frqDone=S.frqResults&&S.frqResults[u.id];
+    const remaining=[];
+    if(!vocabDone)remaining.push('Vocab Check');
+    if(!frqDone&&FRQ_BANK&&FRQ_BANK[u.id])remaining.push('Open Answer');
+    area.innerHTML=`<div style="background:var(--bg3);border:1px solid var(--amber2);border-left:3px solid var(--amber);padding:10px 12px;margin-bottom:6px"><div style="font-family:var(--bebas);font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:3px">IN PROGRESS</div><div style="font-family:var(--dm);font-size:9px;color:var(--text2);line-height:1.6">Still needed: <strong>${remaining.join(', ')}</strong></div></div>${u.url?`<button class="btn full" onclick="launchUnit('${u.url}')" style="border-width:2px;box-shadow:0 0 28px rgba(232,160,32,.22)"><span>↺ Continue ${u.num}</span></button>`:''}<button class="btn full" onclick="showView('trophies');closePreview();" style="border-color:var(--gold);color:var(--gold);margin-top:5px"><span>🏆 View Trophy</span></button>${studyBlock}`;
   }
   else if(u.url){
     const label='▶ Launch '+u.num;
