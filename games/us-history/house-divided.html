@@ -582,6 +582,7 @@ body.hud-active #root{padding-top:68px;}
 
   <!-- PLAY TAB -->
   <div class="hub-panel active" id="hubtab-play">
+    <div id="play-tab-trophy-summary"></div>
     <div class="activity-grid" style="margin-top:16px;">
 
       <div class="activity-card" onclick="switchHubTab('rounds',null)" style="border-top:3px solid var(--gold)">
@@ -2157,7 +2158,34 @@ function showScreen(id) {
   if (el) el.classList.add('active');
 }
 
-// ── Hub Tab System ─────────────────────────────────────
+// ── Play Tab Score Summary ─────────────────────────────
+function renderPlayTabSummary() {
+  const el = document.getElementById('play-tab-trophy-summary');
+  if (!el) return;
+  const scores = Object.values(P.lessonBestScores || {});
+  if (!scores.length) { el.innerHTML = ''; return; }
+
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
+  const tier = calcTier(composite);
+  const tierColors = { historian:'#e8d0ff', gold:'#ffd700', silver:'#c8c8d8', bronze:'#cd7f32', completed:'#38a050', tryagain:'#c02020' };
+  const color = tierColors[tier.label.toLowerCase().replace(' ','')] || tierColors.completed;
+
+  el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${color};padding:12px 14px;margin-top:14px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="font-size:28px">${tier.icon}</div>
+      <div>
+        <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px">CURRENT UNIT SCORE</div>
+        <div style="font-family:var(--bebas);font-size:26px;color:${color};line-height:1">${composite}% <span style="font-size:14px">${tier.label}</span></div>
+      </div>
+      <button onclick="switchHubTab('rounds',null)" style="margin-left:auto;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer" onmouseover="this.style.borderColor='var(--amber2)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">View Detail →</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">50%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOCAB ${vocabAttempted?vocabScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+    </div>
+  </div>`;
+}
 
 function switchHubTab(tabId, btnEl) {
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
@@ -2174,6 +2202,7 @@ function switchHubTab(tabId, btnEl) {
   if (tabId === 'openanswer') renderFRQPanel();
   if (tabId === 'flashcards') updateFlashcardStatus();
   if (tabId === 'vocabquiz') updateVocabQuizStatus();
+  if (tabId === 'rounds') renderHubTrophySection();
 }
 
 function launchFlashcardsFromTab() {
@@ -2378,6 +2407,7 @@ function showFRQResult(result, answer) {
       state.frqResults['unit1'] = { score, tier, question: _frqSelectedQ, date: Date.now() };
       localStorage.setItem('ac_shell_state', JSON.stringify(state));
       renderHubTrophySection();
+      renderPlayTabSummary();
     }
   } catch(e) {}
 
@@ -2436,6 +2466,8 @@ function showUnitHub() {
   if (playPanel) playPanel.classList.add('active');
   if (playBtn) playBtn.classList.add('active');
   renderUnitHub();
+  renderHubTrophySection();
+  renderPlayTabSummary();
   // Restore FRQ badge if student has a prior result
   try {
     const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
