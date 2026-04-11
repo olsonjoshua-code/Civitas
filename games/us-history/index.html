@@ -701,7 +701,7 @@ body::before{content:'';position:fixed;inset:0;
       <div class="campaign-section" id="campaign-rpg-section" style="margin-bottom:22px">
         <div id="rpg-card-mount"></div>
       </div>
-      <div class="trophy-room-hero"><div class="tr-icon">🏆</div><div><div class="tr-title">Trophy Room</div><div class="tr-sub">Your best performance in each era. Earned by accuracy — certificates print your full history.</div></div></div>
+      <div class="trophy-room-hero"><div class="tr-icon">🏆</div><div style="flex:1"><div class="tr-title">Trophy Room</div><div class="tr-sub">Your best performance in each era. Earned by accuracy — certificates print your full history.</div></div><button onclick="syncFromSupabase().then(()=>{buildUnitMedalGrid();buildFRQTrophyGrid();renderTrophyRoom();})" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--teal2)';this.style.color='var(--teal2)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↻ Refresh</button></div>
       <div class="tier-legend">
         <div class="tl-item"><div class="tl-dot" style="border-color:var(--historian);background:rgba(232,208,255,.15)"></div>Historian — 100%</div>
         <div class="tl-item"><div class="tl-dot" style="border-color:var(--gold);background:rgba(255,215,0,.15)"></div>Gold — 90–99%</div>
@@ -1273,9 +1273,9 @@ let _lbSts=[];
 
 // ── TIER SYSTEM ───────────────────────────────────────
 function calcTier(acc){if(acc===100)return'historian';if(acc>=90)return'gold';if(acc>=80)return'silver';if(acc>=70)return'bronze';if(acc>=60)return'completed';return'tryagain';}
-const TIER_COLOR={historian:'var(--historian)',gold:'var(--gold)',silver:'var(--silver)',bronze:'var(--bronze)',completed:'var(--green2)',tryagain:'var(--red2)',empty:'var(--text3)'};
-const TIER_EMOJI={historian:'🏛️',gold:'🥇',silver:'🥈',bronze:'🥉',completed:'✅',tryagain:'🔄',empty:'⬜'};
-const TIER_LABEL={historian:'Historian',gold:'Gold',silver:'Silver',bronze:'Bronze',completed:'Completed',tryagain:'Try Again',empty:'Not Played'};
+const TIER_COLOR={historian:'var(--historian)',gold:'var(--gold)',silver:'var(--silver)',bronze:'var(--bronze)',completed:'var(--green2)',tryagain:'var(--red2)',empty:'var(--text3)',inprogress:'var(--amber)'};
+const TIER_EMOJI={historian:'🏛️',gold:'🥇',silver:'🥈',bronze:'🥉',completed:'✅',tryagain:'🔄',empty:'⬜',inprogress:'⏳'};
+const TIER_LABEL={historian:'Historian',gold:'Gold',silver:'Silver',bronze:'Bronze',completed:'Completed',tryagain:'Try Again',empty:'Not Played',inprogress:'In Progress'};
 
 // ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
 function getShellComposite(unitId){
@@ -1287,7 +1287,8 @@ function getShellComposite(unitId){
   return{mcqScore,vocabScore,frqScore,composite,
     mcqAttempted:!!mcqRow,
     vocabAttempted:vocabScore>0,
-    frqAttempted:frqScore>0};
+    frqAttempted:frqScore>0,
+    allAttempted:!!mcqRow&&vocabScore>0&&frqScore>0};
 }
 
 // ── SVG PORTRAIT ENGINE ───────────────────────────────
@@ -2623,9 +2624,15 @@ function enterShell(returningFromGame){
   if(!S.isGuest&&S.name){
     // If returning from a unit game, force a fresh Supabase sync then rebuild medals
     if(returningFromGame){
-      syncFromSupabase().then(()=>{
-        buildUnitMedalGrid();buildFRQTrophyGrid();renderVocabMedals();renderTimeline();
-      });
+      // Delay sync slightly to give Supabase time to finish writing the unit result
+      setTimeout(()=>{
+        syncFromSupabase().then(()=>{
+          buildUnitMedalGrid();buildFRQTrophyGrid();renderVocabMedals();renderTimeline();
+          // If trophies view is open, refresh it too
+          const activeView=document.querySelector('.view.active');
+          if(activeView&&activeView.id==='view-trophies') renderTrophyRoom();
+        });
+      }, 2000);
     } else {
       const seen=_obSeen();
       if(!seen){syncFromSupabase();setTimeout(()=>openOnboarding(),600);}
@@ -4044,8 +4051,8 @@ async function renderTrophyRoom(){
 
   const unitCards=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint).map((u,idx)=>{
     const r=rmap[u.id];
-    const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted}=getShellComposite(u.id);
-    const tier=mcqAttempted?calcTier(composite):'empty';
+    const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(u.id);
+    const tier=allAttempted?calcTier(composite):mcqAttempted?'inprogress':'empty';
     const tc=TIER_COLOR[tier],te=TIER_EMOJI[tier],tl=TIER_LABEL[tier];
     const grey=tier==='empty';
     const eraArt=eraTrophyScene(u.id,u.eraColor,tier);
@@ -4308,9 +4315,9 @@ function drawLbTable(sts,period){
 function printCert(uid){
   const u=UNIT_DATA.find(x=>x.id===uid);
   if(!u){notify('Unit not found!');return;}
-  const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted}=getShellComposite(uid);
+  const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(uid);
   if(!mcqAttempted){notify('Play this unit first!');return;}
-  const tier=calcTier(composite);
+  const tier=allAttempted?calcTier(composite):'inprogress';
   const tc=TIER_COLOR[tier].replace('var(--gold)','#ffd700').replace('var(--silver)','#c8c8d8').replace('var(--bronze)','#cd7f32').replace('var(--green2)','#38a050').replace('var(--red2)','#e04040').replace('var(--historian)','#e8d0ff').replace('var(--text3)','#584840');
   const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const r=_trophyData.find(x=>x.unit_id===uid);
