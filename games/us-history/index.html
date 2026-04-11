@@ -715,6 +715,26 @@ body::before{content:'';position:fixed;inset:0;
       </div>
       <div class="trophy-grid" id="trophy-grid"></div>
 
+      <!-- UNIT GAME MEDALS -->
+      <div class="trophy-room-hero" style="margin-top:8px;border-top:1px solid var(--border2);padding-top:16px">
+        <div class="tr-icon" style="font-size:32px">⚔️</div>
+        <div>
+          <div class="tr-title" style="font-size:18px">Unit Game Medals</div>
+          <div class="tr-sub">Earned by completing the MCQ unit game. Composite score: MCQ 50% · Vocab 25% · Open Answer 25%.</div>
+        </div>
+      </div>
+      <div class="vocab-medal-grid" id="unit-medal-grid"></div>
+
+      <!-- OPEN ANSWER MEDALS -->
+      <div class="trophy-room-hero" style="margin-top:8px;border-top:1px solid var(--border2);padding-top:16px">
+        <div class="tr-icon" style="font-size:32px">✍️</div>
+        <div>
+          <div class="tr-title" style="font-size:18px">Open Answer Medals</div>
+          <div class="tr-sub">Earned by completing the AI-graded Open Answer Challenge. Bronze ≥60%, Silver ≥75%, Gold ≥90%.</div>
+        </div>
+      </div>
+      <div class="vocab-medal-grid" id="frq-trophy-grid"></div>
+
       <!-- VOCAB MEDALS -->
       <div class="trophy-room-hero" style="margin-top:8px;border-top:1px solid var(--border2);padding-top:16px">
         <div class="tr-icon" style="font-size:32px">📝</div>
@@ -724,16 +744,6 @@ body::before{content:'';position:fixed;inset:0;
         </div>
       </div>
       <div class="vocab-medal-grid" id="vocab-medal-grid"></div>
-
-      <!-- FRQ OPEN ANSWER TROPHIES -->
-      <div class="trophy-room-hero" style="margin-top:8px;border-top:1px solid var(--border2);padding-top:16px">
-        <div class="tr-icon" style="font-size:32px">✍️</div>
-        <div>
-          <div class="tr-title" style="font-size:18px">Open Answer Trophies</div>
-          <div class="tr-sub">Earned by completing the AI-graded Open Answer Challenge for each unit. Bronze ≥60%, Silver ≥75%, Gold ≥90%.</div>
-        </div>
-      </div>
-      <div class="vocab-medal-grid" id="frq-trophy-grid"></div>
       <div class="lb-wrap">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <div class="sh" style="margin-bottom:0">Class Leaderboard</div>
@@ -925,12 +935,8 @@ body::before{content:'';position:fixed;inset:0;
 <!-- PREVIEW PANEL -->
 <div id="preview-panel">
   <button class="pv-close" onclick="closePreview()">✕ Close</button>
-  <div class="pv-hero" id="pv-hero">
-    <div id="pv-hero-art"></div>
-    <div class="pv-hero-grad"></div>
-    <div class="pv-caption"><div class="pv-num" id="pv-num"></div><div class="pv-title" id="pv-title"></div><div class="pv-years" id="pv-years"></div></div>
-  </div>
-  <div class="pv-body">
+  <div class="pv-body" style="padding-top:14px;">
+    <div><div class="pv-caption" style="padding:0 0 10px"><div class="pv-num" id="pv-num"></div><div class="pv-title" id="pv-title"></div><div class="pv-years" id="pv-years"></div></div></div>
     <div><div class="pv-desc" id="pv-desc"></div></div>
     <div><span class="pv-lbl">MAIN TOPICS</span><div id="pv-topics" style="display:flex;flex-wrap:wrap;gap:4px"></div></div>
     <div><span class="pv-lbl">THEMES</span><div id="pv-themes"></div></div>
@@ -2611,7 +2617,7 @@ function enterShell(){
     if(S.name&&!S.isGuest) acLogEvent('hub_session_start','shell',null,{period:S.period},null);
   }, 1000);
   try{sessionStorage.setItem('ac_shell_active','1');}catch(e){}
-  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();buildFRQTrophyGrid();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
+  document.getElementById('title-screen').style.display='none';document.getElementById('setup-screen').style.display='none';document.getElementById('shell').style.display='block';document.getElementById('hud').style.display='block';updateHUD();if(IS_TEACHER){document.getElementById('nav-teacher').style.display='inline-block';showView('teacher');}else showView('timeline');requestAnimationFrame(()=>{renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();});if(!IS_TEACHER&&!S.isGuest){const seen=_obSeen();if(!seen){if(!S.isGuest&&S.name)syncFromSupabase();setTimeout(()=>openOnboarding(),600);}else{if(!S.isGuest&&S.name)syncFromSupabase();}}else{if(!S.isGuest&&S.name)syncFromSupabase();}
   // Start tracking this session
   setTimeout(()=>logSessionStart(), 1000);
 }
@@ -2797,7 +2803,7 @@ async function syncFromSupabase(){
   // Always refresh HUD after sync so EOC rating reflects loaded data
   updateHUD();
   awardBadges();checkUnlocks();
-  if(changed){saveS();updateHUD();renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();buildFRQTrophyGrid();
+  if(changed){saveS();updateHUD();renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();buildFRQTrophyGrid();buildUnitMedalGrid();
   // Refresh new views if they are currently open
   const activeView=document.querySelector('.view.active');
   if(activeView&&activeView.id==='view-archive')renderArchive();
@@ -3217,7 +3223,7 @@ function openPreview(uid){
   document.getElementById('pv-num').textContent=u.num;document.getElementById('pv-title').textContent=u.title;document.getElementById('pv-years').textContent=u.years;
   document.getElementById('pv-desc').textContent=u.desc;document.getElementById('pv-changed').textContent=u.changed;document.getElementById('pv-continued').textContent=u.continued;document.getElementById('pv-emerged').textContent=u.emerged;
   document.getElementById('pv-hero').style.background=`linear-gradient(135deg,${u.eraColor}55,#0d0a08)`;
-  document.getElementById('pv-hero-art').innerHTML=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:.1">${u.icon}</div>`;
+  // hero art removed
   document.getElementById('pv-topics').innerHTML=u.topics.map(t=>`<span class="topic-tag">${t}</span>`).join('');
   // Hide themes row and map for theme units — they don't apply
   const themesRow=document.getElementById('pv-themes').closest('div');
@@ -3261,41 +3267,7 @@ const FC_BASE='https://olsonjoshua-code.github.io/Civitas/games/us-history/flash
 
 function getDeckId(unitId){return DECK_MAP[unitId]||null;}
 
-function buildStudyBlock(u){
-  const deckId=getDeckId(u.id);
-  // If no deck but has a briefing, still show the briefing button
-  if(!deckId){
-    if(u.briefingUrl){
-      return`<div class="study-action-block">
-    <div class="study-action-label">📚 Study Tools</div>
-    <a href="${u.briefingUrl}" target="_blank" style="text-decoration:none;display:block"><button class="btn full amber-dim sm"><span>📋 Open Briefing</span></button></a>
-  </div>`;
-    }
-    return'';
-  }
-  const passed=S.vocabPassed&&S.vocabPassed[deckId];
-  const studied=S.flashcardsStudied&&S.flashcardsStudied[deckId];
-  const bestScore=S.vocabBestScore&&S.vocabBestScore[deckId];
-  const briefingUrl=u.briefingUrl||null;
-
-  const vocabLabel=passed
-    ?`<span class="vocab-check">✓</span><span style="color:var(--green2)">Vocab Passed</span>${bestScore!==undefined?`<span class="gold-earned" style="margin-left:auto">Best: ${bestScore}%</span>`:''}`
-    :`<span style="color:var(--text3)">Vocab Check: Not yet passed</span>`;
-
-  const studyLabel=studied
-    ?`<span class="vocab-check" style="background:var(--teal2)">✓</span><span style="color:var(--teal2)">Flashcards Studied</span>`
-    :`<span style="color:var(--text3)">Flashcards: Not yet studied</span>`;
-
-  return`<div class="study-action-block">
-    <div class="study-action-label">📚 Study Tools</div>
-    <div class="vocab-status-row">${vocabLabel}</div>
-    <div class="vocab-status-row">${studyLabel}</div>
-    ${briefingUrl?`<a href="${briefingUrl}" target="_blank" style="text-decoration:none;display:block"><button class="btn full amber-dim sm"><span>📋 Open Briefing</span></button></a>`:''}
-    <button class="btn full teal sm" onclick="launchFlashcards('${deckId}','study')"><span>🃏 Study Flashcards</span></button>
-    <button class="btn full ${passed?'green':'blue'} sm" onclick="launchFlashcards('${deckId}','quiz')"><span>${passed?'↺ Retake Vocab Check':'⚡ Take Vocab Check'}</span></button>
-    <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px;line-height:1.6">Complete the Vocab Check to earn <span style="color:var(--gold)">🪙 Gold</span>. Rewards require 60%+ to qualify.</div>
-  </div>`;
-}
+function buildStudyBlock(u){ return ''; }
 
 // ── FRQ OPEN ANSWER SYSTEM ─────────────────────────────
 let _frqCurrentUnit=null;
@@ -3454,7 +3426,7 @@ function renderFRQResult(result, answer){
     // Refresh preview panel study block if open
     const openCard=document.querySelector('.unit-card.selected');
     if(openCard){const uid=openCard.getAttribute('data-uid');if(uid)openPreview(uid);}
-    buildFRQTrophyGrid();
+    buildFRQTrophyGrid();buildUnitMedalGrid();
   }
 }
 
@@ -3477,24 +3449,70 @@ async function saveFRQToSupabase(unitId,score,tier){
   }catch(e){console.warn('FRQ Supabase save failed',e);}
 }
 
+// ── Shared medal SVG helpers (identical style to Vocab medals) ───────────
+function _medalTier(score){
+  if(score===100)return{tier:'perfect',color:'#ffd700',ringA:'#fff7a0',ringB:'#c8a000',label:'Perfect',ribbon:'#c8a000'};
+  if(score>=90) return{tier:'gold',   color:'#ffd700',ringA:'#fff0a0',ringB:'#b8900a',label:'Gold',   ribbon:'#b8900a'};
+  if(score>=80) return{tier:'silver', color:'#d8d8e8',ringA:'#f0f0f8',ringB:'#909098',label:'Silver', ribbon:'#707080'};
+  if(score>=70) return{tier:'bronze', color:'#cd7f32',ringA:'#e8a060',ringB:'#8b4010',label:'Bronze', ribbon:'#8b4010'};
+  if(score>=60) return{tier:'passed', color:'#38a050',ringA:'#70d080',ringB:'#1a6030',label:'Passed', ribbon:'#1a6030'};
+  return null;
+}
+function _medalSVG(m, score){
+  const star=m.tier==='perfect'?`<text x="32" y="37" text-anchor="middle" font-size="13" fill="${m.ringA}" opacity=".9">★</text>`:'';
+  return `<svg viewBox="0 0 64 72" width="40" height="45" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <rect x="22" y="0" width="9" height="22" rx="2" fill="${m.ribbon}" opacity=".9" transform="rotate(-12,26,11)"/>
+    <rect x="33" y="0" width="9" height="22" rx="2" fill="${m.ribbon}" opacity=".75" transform="rotate(12,38,11)"/>
+    <circle cx="32" cy="42" r="24" fill="${m.ringB}"/>
+    <circle cx="32" cy="42" r="20" fill="${m.color}"/>
+    <circle cx="32" cy="42" r="16" fill="${m.ringB}" opacity=".35"/>
+    <text x="32" y="46" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="14" fill="#fff" opacity=".95">${score}%</text>
+    ${star}
+  </svg>`;
+}
+function _emptyMedalSVG(){
+  return `<svg viewBox="0 0 64 72" width="40" height="45" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <rect x="22" y="0" width="9" height="22" rx="2" fill="#5c4030" opacity=".5" transform="rotate(-12,26,11)"/>
+    <rect x="33" y="0" width="9" height="22" rx="2" fill="#5c4030" opacity=".4" transform="rotate(12,38,11)"/>
+    <circle cx="32" cy="42" r="24" fill="#3a2a1a"/>
+    <circle cx="32" cy="42" r="20" fill="#2c1f14"/>
+    <circle cx="32" cy="42" r="16" fill="none" stroke="#5c4030" stroke-width="1.5"/>
+    <text x="32" y="47" text-anchor="middle" font-size="18" fill="#5c4030" opacity=".6">?</text>
+  </svg>`;
+}
+
 function buildFRQTrophyGrid(){
   const grid=document.getElementById('frq-trophy-grid');
   if(!grid)return;
-  const tierColors={'gold':'rgba(255,215,0,.5)','silver':'rgba(200,200,216,.4)','bronze':'rgba(205,127,50,.45)'};
-  const tierScoreColors={'gold':'var(--gold)','silver':'#c8c8d8','bronze':'#cd7f32'};
-  grid.innerHTML=UNIT_DATA.filter(u=>FRQ_BANK[u.id]&&FRQ_BANK[u.id].length).map(u=>{
+  grid.innerHTML=UNIT_DATA.filter(u=>FRQ_BANK[u.id]&&FRQ_BANK[u.id].length).map((u,idx)=>{
     const r=S.frqResults&&S.frqResults[u.id];
-    const tier=r?getFRQTier(r.score):null;
-    const borderColor=tier?tierColors[tier]:'var(--border)';
-    const scoreColor=tier?tierScoreColors[tier]:'var(--text3)';
-    const earned=!!tier;
-    return`<div class="vocab-medal-card ${earned?'earned':''} ${tier?'tier-'+tier:''}" style="border-color:${borderColor}">
-      <div style="font-size:22px;flex-shrink:0">${earned?{gold:'🥇',silver:'🥈',bronze:'🥉'}[tier]:'📝'}</div>
+    const score=r?r.score:null;
+    const m=score!==null?_medalTier(score):null;
+    const tierClass=m?'earned tier-'+m.tier:'empty';
+    return`<div class="vocab-medal-card ${tierClass}" style="animation:floatIn .3s ease ${idx*.03}s both">
+      ${m?_medalSVG(m,score):_emptyMedalSVG()}
       <div class="vocab-medal-info">
         <div class="vocab-medal-unit">${u.num}</div>
-        <div class="vocab-medal-title">${u.title}</div>
-        <div class="vocab-medal-score" style="color:${scoreColor}">${r?r.score+'%':'—'}</div>
-        <div class="vocab-medal-lbl" style="color:${scoreColor}">${tier?tier.charAt(0).toUpperCase()+tier.slice(1):'Not Attempted'}</div>
+        <div class="vocab-medal-title" style="${m?'':'color:var(--text3)'}">${u.title}</div>
+        <div class="vocab-medal-lbl" style="${m?'color:'+m.color+';letter-spacing:1px':'color:var(--text3)'}">${m?m.label:'Not Attempted'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildUnitMedalGrid(){
+  const grid=document.getElementById('unit-medal-grid');
+  if(!grid)return;
+  grid.innerHTML=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint&&u.url).map((u,idx)=>{
+    const {composite,mcqAttempted}=getShellComposite(u.id);
+    const m=mcqAttempted?_medalTier(composite):null;
+    const tierClass=m?'earned tier-'+m.tier:'empty';
+    return`<div class="vocab-medal-card ${tierClass}" style="animation:floatIn .3s ease ${idx*.03}s both">
+      ${m?_medalSVG(m,composite):_emptyMedalSVG()}
+      <div class="vocab-medal-info">
+        <div class="vocab-medal-unit">${u.num}</div>
+        <div class="vocab-medal-title" style="${m?'':'color:var(--text3)'}">${u.title}</div>
+        <div class="vocab-medal-lbl" style="${m?'color:'+m.color+';letter-spacing:1px':'color:var(--text3)'}">${m?m.label:'Not Played'}</div>
       </div>
     </div>`;
   }).join('');
@@ -3547,7 +3565,7 @@ function _pollVocabResult(deckId){
       if(d.gold){S.gold=(S.gold||0)+d.gold;awardGold(d.gold,'Vocab Check',deckId,true);}
       saveS();
       updateHUDGold();
-      renderVocabMedals();buildFRQTrophyGrid();
+      renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();
       notify(`✅ Vocab Check recorded: ${d.score}%${d.passed?' — Passed!':''}`);
     }catch(e){}
   },2000);
@@ -3587,7 +3605,7 @@ window.addEventListener('message',async e=>{
     if(x){S.xp=(S.xp||0)+x;notify(`⭐ +${x} XP earned!`);}
     saveS();
     updateHUDGold();
-    renderVocabMedals();buildFRQTrophyGrid();
+    renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();
     // Push vocab result to ac_results so it appears on the leaderboard
     if(!S.isGuest&&S.name&&score!==undefined){
       const vocabUnitId='vocab_'+deckId;
@@ -4069,7 +4087,7 @@ async function renderTrophyRoom(){
 
   grid.innerHTML = unitCards.join('') + eocCard;
 
-  renderVocabMedals();buildFRQTrophyGrid();
+  renderVocabMedals();buildFRQTrophyGrid();buildUnitMedalGrid();
   await renderLeaderboard();
 }
 
