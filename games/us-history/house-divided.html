@@ -2123,11 +2123,20 @@ function getCompositeScore() {
     vocabScore = (shell.vocabBestScore && shell.vocabBestScore['unit1']) || 0;
   } catch(e) {}
 
-  // FRQ — from shell localStorage
+  // FRQ — composite of all answered questions from shell localStorage
   let frqScore = 0;
   try {
     const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    frqScore = (shell.frqResults && shell.frqResults['unit1'] && shell.frqResults['unit1'].score) || 0;
+    const frqR = shell.frqResults && shell.frqResults['unit1'];
+    if (frqR) {
+      // New format: composite stored directly
+      if (frqR.composite !== undefined) {
+        frqScore = frqR.composite;
+      // Old single-score format
+      } else if (frqR.score !== undefined) {
+        frqScore = frqR.score;
+      }
+    }
   } catch(e) {}
 
   // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
@@ -2255,67 +2264,145 @@ const FRQ_QUESTIONS_U1 = [
   'How were the economic, social, and political rights of newly freed African Americans impacted by Jim Crow and the Nadir of race relations?'
 ];
 
-let _frqSelectedQ = null;
+// ── FRQ System — Sequential, Per-Question Scoring ─────────────────────
+// Storage: ac_shell_state.frqResults.unit1 = {
+//   questions: [ {q, score, tier, answer, date}, ... ],  // one per answered question
+//   composite: <avg score>,
+//   compositeT ier: <tier>
+// }
+
+let _frqCurrentIdx = null; // which question is active
+
+function getFRQState() {
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const r = state.frqResults && state.frqResults['unit1'];
+    if (!r) return { questions: [] };
+    // Migrate old single-score format
+    if (r.score !== undefined && !r.questions) {
+      return { questions: [{ q: r.question || '', score: r.score, tier: r.tier, date: r.date }] };
+    }
+    return r;
+  } catch(e) { return { questions: [] }; }
+}
+
+function saveFRQState(frqState) {
+  try {
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (!state.frqResults) state.frqResults = {};
+    // Compute composite = average of all question scores
+    const qs = frqState.questions || [];
+    const composite = qs.length ? Math.round(qs.reduce((a, q) => a + q.score, 0) / qs.length) : 0;
+    const tier = composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null;
+    frqState.composite = composite;
+    frqState.compositeTier = tier;
+    frqState.score = composite; // backwards compat
+    state.frqResults['unit1'] = frqState;
+    localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    renderHubTrophySection();
+    renderPlayTabSummary();
+    // Save composite to Supabase
+    if (composite > 0) saveFRQResultToSupabase(composite, tier);
+    updateFRQBadge(composite, tier);
+  } catch(e) {}
+}
 
 function renderFRQPanel() {
   const container = document.getElementById('frq-panel-content');
   if (!container) return;
+  _frqCurrentIdx = null;
 
-  // Check for existing result
-  let existing = null;
-  try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
-    existing = state.frqResults && state.frqResults['unit1'];
-  } catch(e) {}
+  const frqState = getFRQState();
+  const answered = frqState.questions || [];
+  const total = FRQ_QUESTIONS_U1.length;
+  const nextIdx = answered.length; // next unlocked question index
+  const allDone = nextIdx >= total;
 
-  const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
-
-  let priorResultHtml = '';
-  if (existing) {
-    const c = tierColors[existing.tier] || 'var(--text3)';
-    const emoji = { gold: '🥇', silver: '🥈', bronze: '🥉' }[existing.tier] || '📝';
-    priorResultHtml = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${c};padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
-      <div style="font-size:24px">${emoji}</div>
-      <div>
-        <div style="font-family:var(--bebas);font-size:14px;color:${c};letter-spacing:1px">Best: ${existing.score}% — ${existing.tier ? existing.tier.charAt(0).toUpperCase()+existing.tier.slice(1) : 'Attempted'}</div>
-        <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">You can retake to improve your score</div>
-      </div>
+  // Header summary
+  let summaryHtml = '';
+  if (answered.length > 0) {
+    const composite = frqState.composite || 0;
+    const tier = frqState.compositeTier;
+    const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+    const c = tier ? tierColors[tier] : 'var(--amber)';
+    summaryHtml = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${c};padding:10px 14px;margin-bottom:14px">
+      <div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">OPEN ANSWER PROGRESS — ${answered.length}/${total} COMPLETE</div>
+      <div style="font-family:var(--bebas);font-size:22px;color:${c}">${composite}% Composite${tier ? ' · ' + tier.charAt(0).toUpperCase()+tier.slice(1) : ''}</div>
     </div>`;
   }
 
+  // Question list — each with status
+  const qRows = FRQ_QUESTIONS_U1.map((q, i) => {
+    const ans = answered[i];
+    const isAnswered = !!ans;
+    const isUnlocked = i <= nextIdx;
+    const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
+    const c = ans && ans.tier ? tierColors[ans.tier] : 'var(--text3)';
+
+    if (isAnswered) {
+      return `<div style="background:var(--bg3);border:1px solid var(--border);padding:10px 12px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+          <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.45;flex:1">${q}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:var(--bebas);font-size:18px;color:${c}">${ans.score}%</div>
+            <div style="font-family:var(--dm);font-size:7px;color:${c};letter-spacing:1px">${ans.tier ? ans.tier.toUpperCase() : 'SCORED'}</div>
+          </div>
+        </div>
+        <button onclick="retryFRQ(${i})" style="margin-top:6px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 8px;cursor:pointer" onmouseover="this.style.borderColor='var(--amber2)';this.style.color='var(--amber)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↺ Retry to improve</button>
+      </div>`;
+    } else if (isUnlocked) {
+      return `<div style="background:var(--bg2);border:1px solid var(--amber2);padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="startFRQ(${i})" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--amber2)'">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">QUESTION ${i+1} — UNLOCKED ▶</div>
+        <div style="font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.45">${q}</div>
+      </div>`;
+    } else {
+      return `<div style="background:var(--bg3);border:1px solid var(--border);padding:10px 12px;margin-bottom:6px;opacity:.45">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">QUESTION ${i+1} — 🔒 LOCKED</div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text3);line-height:1.45">${q}</div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:4px">Complete Question ${i} to unlock</div>
+      </div>`;
+    }
+  }).join('');
+
   container.innerHTML = `
-    ${priorResultHtml}
-    <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;">STEP 1 — CHOOSE A QUESTION</div>
-    <div class="frq-q-list" id="frq-q-list">
-      ${FRQ_QUESTIONS_U1.map((q,i) => `<button class="frq-q-opt" onclick="selectFRQQ(${i},this)">${q}</button>`).join('')}
-    </div>
-    <div id="frq-answer-section" style="display:none;">
-      <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;margin-top:14px;">STEP 2 — WRITE YOUR ANSWER</div>
+    ${summaryHtml}
+    <div id="frq-question-list">${qRows}</div>
+    <div id="frq-answer-section" style="display:none;margin-top:14px">
+      <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
       <div class="frq-selected-q" id="frq-selected-display"></div>
       <textarea id="frq-textarea" placeholder="Write your answer here. Aim for 3–5 sentences using specific people, events, dates, and terms from class."></textarea>
       <div class="frq-word-count" id="frq-word-count">0 words · <span style="color:var(--text3);font-size:7px;letter-spacing:1px">⚠ PASTE DISABLED — TYPE YOUR OWN RESPONSE</span></div>
-      <div class="frq-hint-box">💡 Strong answers name specific evidence and explain <em>why</em> it matters — not just what happened. Bronze ≥60% · Silver ≥75% · Gold ≥90%</div>
+      <div class="frq-hint-box">💡 Strong answers name specific evidence and explain <em>why</em> it matters. Bronze ≥60% · Silver ≥75% · Gold ≥90%</div>
       <button class="btn full" id="frq-submit-btn" onclick="submitFRQUnit()" style="border-color:var(--amber);color:var(--amber);font-size:14px;padding:14px;letter-spacing:3px;">
         <span>Submit for AI Grading →</span>
       </button>
+      <button onclick="cancelFRQ()" style="margin-top:6px;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;width:100%">Cancel</button>
     </div>
-    <div id="frq-result-section" style="display:none;"></div>`;
-  _frqSelectedQ = null;
+    <div id="frq-result-section" style="display:none;margin-top:14px;"></div>`;
 }
 
-function selectFRQQ(idx, btnEl) {
-  _frqSelectedQ = FRQ_QUESTIONS_U1[idx];
-  document.querySelectorAll('.frq-q-opt').forEach(b => b.classList.remove('selected'));
-  btnEl.classList.add('selected');
-  document.getElementById('frq-selected-display').textContent = _frqSelectedQ;
-  const section = document.getElementById('frq-answer-section');
-  section.style.display = 'block';
+function startFRQ(idx) {
+  _frqCurrentIdx = idx;
+  document.getElementById('frq-question-list').style.display = 'none';
+  document.getElementById('frq-answer-section').style.display = 'block';
+  document.getElementById('frq-result-section').style.display = 'none';
+  document.getElementById('frq-selected-display').textContent = FRQ_QUESTIONS_U1[idx];
   const ta = document.getElementById('frq-textarea');
+  ta.value = '';
   ta.oninput = () => {
     const w = ta.value.trim().split(/\s+/).filter(Boolean).length;
-    document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '');
+    document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '') + ' · ';
   };
-  setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  setTimeout(() => document.getElementById('frq-answer-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function retryFRQ(idx) {
+  startFRQ(idx);
+}
+
+function cancelFRQ() {
+  _frqCurrentIdx = null;
+  renderFRQPanel();
 }
 
 async function submitFRQUnit() {
@@ -2326,6 +2413,7 @@ async function submitFRQUnit() {
   }
   const btn = document.getElementById('frq-submit-btn');
   btn.disabled = true; btn.innerHTML = '<span>⏳ Grading your answer…</span>';
+  const question = FRQ_QUESTIONS_U1[_frqCurrentIdx];
 
   try {
     const resp = await fetch('https://aged-tooth-21e7.jonesolson79.workers.dev', {
@@ -2344,7 +2432,7 @@ Scoring rubric:
 
 Respond ONLY with valid JSON, no other text:
 {"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2-3 sentences: what they did well and one specific thing to improve>"}`,
-        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${_frqSelectedQ}\n\nStudent Answer: ${answer}` }]
+        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
       })
     });
     const data = await resp.json();
@@ -2352,20 +2440,20 @@ Respond ONLY with valid JSON, no other text:
     let result;
     try { result = JSON.parse(raw.replace(/```json|```/g, '').trim()); }
     catch(e) { result = { score: 65, tier: 'bronze', feedback: 'Your response showed understanding of the topic. Try to include more specific evidence in your next attempt.' }; }
-    showFRQResult(result, answer);
+    showFRQResult(result, answer, question);
   } catch(e) {
     btn.disabled = false; btn.innerHTML = '<span>Submit for AI Grading →</span>';
     alert('Grading failed — check your connection and try again.');
   }
 }
 
-function showFRQResult(result, answer) {
+function showFRQResult(result, answer, question) {
   const score = Math.max(0, Math.min(100, Math.round(result.score || 0)));
   const tier = score >= 90 ? 'gold' : score >= 75 ? 'silver' : score >= 60 ? 'bronze' : null;
   const tierColors = { gold: 'var(--gold)', silver: '#c8c8d8', bronze: '#cd7f32' };
-  const tierLabels = { gold: '🥇 Gold Trophy', silver: '🥈 Silver Trophy', bronze: '🥉 Bronze Trophy' };
+  const tierLabels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
   const color = tier ? tierColors[tier] : 'var(--text3)';
-  const label = tier ? tierLabels[tier] : 'No Trophy — Keep Trying';
+  const label = tier ? tierLabels[tier] : 'Below Bronze';
 
   document.getElementById('frq-answer-section').style.display = 'none';
   const resultSection = document.getElementById('frq-result-section');
@@ -2381,36 +2469,27 @@ function showFRQResult(result, answer) {
       <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR ANSWER</div>
       <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--bg3);border:1px solid var(--border)">${answer}</div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--amber2);color:var(--amber)"><span>↺ Try Again</span></button>
-    </div>`;
+    <button class="btn full sm" onclick="renderFRQPanel()" style="border-color:var(--teal2);color:var(--teal2)"><span>← Back to Questions</span></button>`;
 
-  // Save to shell localStorage
-  try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
-    if (!state.frqResults) state.frqResults = {};
-    const prev = state.frqResults['unit1'];
-    if (!prev || score > prev.score) {
-      state.frqResults['unit1'] = { score, tier, question: _frqSelectedQ, date: Date.now() };
-      localStorage.setItem('ac_shell_state', JSON.stringify(state));
-      renderHubTrophySection();
-      renderPlayTabSummary();
-    }
-  } catch(e) {}
-
-  // Save to Supabase via shell's sfetch if available (page has its own Supabase setup)
-  saveFRQResultToSupabase(score, tier);
-  updateFRQBadge(score, tier);
+  // Save — keep best score per question
+  const frqState = getFRQState();
+  if (!frqState.questions) frqState.questions = [];
+  const existing = frqState.questions[_frqCurrentIdx];
+  // Only update if better or new
+  if (!existing || score > existing.score) {
+    frqState.questions[_frqCurrentIdx] = { q: question, score, tier, answer, date: Date.now() };
+  }
+  saveFRQState(frqState);
 }
 
 function saveFRQResultToSupabase(score, tier) {
   try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     const name = state.name;
     const period = state.period || '';
     if (!name || name === 'Guest') return;
-    const supaUrl = typeof SUPA_URL !== 'undefined' ? SUPA_URL : null;
-    const supaH = typeof SUPA_H !== 'undefined' ? SUPA_H : null;
+    const supaUrl = typeof AC_SUPA_URL !== 'undefined' ? AC_SUPA_URL : null;
+    const supaH = typeof AC_HEADERS !== 'undefined' ? AC_HEADERS : null;
     if (!supaUrl || !supaH) return;
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
@@ -2430,12 +2509,14 @@ function saveFRQResultToSupabase(score, tier) {
 function updateFRQBadge(score, tier) {
   const badge = document.getElementById('badge-frq');
   if (!badge) return;
-  const labels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
-  if (tier && labels[tier]) {
-    badge.textContent = labels[tier];
+  if (score > 0) {
+    const labels = { gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' };
+    badge.textContent = tier && labels[tier] ? labels[tier] : score + '%';
     badge.style.display = 'block';
   }
 }
+
+function showUnitHub() {}
 
 function showUnitHub() {
   showScreen('unit-hub-screen');
@@ -3386,6 +3467,8 @@ function pushLessonProgress(acc) {
 async function pushACResult(acc) {
   if (!P || !P.name || P.name === 'Guest') return;
   const tier = calcTier(acc);
+  // Debug — show what's being saved so we can verify name/period match
+  notify(`💾 Saving: "${P.name}" | period: "${P.period||'(none)'}" | acc: ${acc}%`, 'teal');
 
   // ── 1. Write to ac_results (leaderboard / trophy) ─────────────────
   try {
