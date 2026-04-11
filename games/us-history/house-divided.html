@@ -160,7 +160,7 @@ body.hud-active #root{padding-top:68px;}
 .frq-q-opt:hover{border-color:var(--amber2);color:var(--cream);background:rgba(232,160,32,.06)}
 .frq-q-opt.selected{border-color:var(--gold);color:var(--cream);background:rgba(232,160,32,.1)}
 .frq-selected-q{background:rgba(232,160,32,.08);border:1px solid var(--amber2);border-left:3px solid var(--gold);padding:10px 12px;font-family:var(--crimson);font-size:14px;color:var(--cream);line-height:1.5;font-style:italic;margin-bottom:10px}
-#frq-textarea{width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;outline:none}
+#frq-textarea{width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);font-family:var(--crimson);font-size:14px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;outline:none;-webkit-user-select:text;user-select:text}
 #frq-textarea:focus{border-color:var(--amber2)}
 #frq-textarea::placeholder{color:var(--text3)}
 .frq-word-count{font-family:var(--dm);font-size:8px;color:var(--text3);text-align:right;margin-top:3px;margin-bottom:10px}
@@ -632,7 +632,8 @@ body.hud-active #root{padding-top:68px;}
 
     </div>
 
-    <div id="hub-chapters" style="display:none;"></div>
+    <div class="section-head" style="font-size:14px;margin-top:8px;">Game Rounds</div>
+    <div id="hub-chapters"></div>
     <div class="deco-divider"><span class="deco-divider-icon">⚔️</span></div>
     <div class="section-head" style="font-size:14px;">Badges</div>
     <div class="badges-row" id="hub-badges"></div>
@@ -2115,11 +2116,9 @@ function showScreen(id) {
 
 // ── Hub Tab System ─────────────────────────────────────
 function launchFirstLesson() {
-  // Find the first unlocked but incomplete lesson, or first lesson if all complete
-  const lesson = LESSONS.find((l, idx) => isLessonUnlocked(idx) && !P.lessonsCompleted.includes(l.id))
-    || LESSONS.find((l, idx) => isLessonUnlocked(idx))
-    || LESSONS[0];
-  if (lesson) openBriefing(lesson.id);
+  // Scroll down to the Game Rounds so student can see and pick their round
+  const el = document.getElementById('hub-chapters');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function switchHubTab(tabId, btnEl) {
@@ -2234,7 +2233,7 @@ function renderFRQPanel() {
       <div style="font-family:var(--dm);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;margin-top:14px;">STEP 2 — WRITE YOUR ANSWER</div>
       <div class="frq-selected-q" id="frq-selected-display"></div>
       <textarea id="frq-textarea" placeholder="Write your answer here. Aim for 3–5 sentences using specific people, events, dates, and terms from class."></textarea>
-      <div class="frq-word-count" id="frq-word-count">0 words</div>
+      <div class="frq-word-count" id="frq-word-count">0 words · <span style="color:var(--text3);font-size:7px;letter-spacing:1px">⚠ PASTE DISABLED — TYPE YOUR OWN RESPONSE</span></div>
       <div class="frq-hint-box">💡 Strong answers name specific evidence and explain <em>why</em> it matters — not just what happened. Bronze ≥60% · Silver ≥75% · Gold ≥90%</div>
       <button class="btn full" id="frq-submit-btn" onclick="submitFRQUnit()" style="border-color:var(--amber);color:var(--amber);font-size:14px;padding:14px;letter-spacing:3px;">
         <span>Submit for AI Grading →</span>
@@ -3734,17 +3733,38 @@ function switchPlayer() {
 // ── Anti-copy
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
-  document.addEventListener('contextmenu',e=>{if(!isInput(e.target))e.preventDefault();});
+  function isFRQ(el){return el&&el.id==='frq-textarea';}
+
+  document.addEventListener('contextmenu',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no right-click on FRQ
+    if(!isInput(e.target))e.preventDefault();
+  });
   document.addEventListener('copy',e=>{if(!isInput(e.target))e.preventDefault();});
   document.addEventListener('cut',e=>{if(!isInput(e.target))e.preventDefault();});
+  document.addEventListener('paste',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no paste into FRQ
+    if(!isInput(e.target))e.preventDefault();
+  });
   document.addEventListener('keydown',e=>{
+    if(isFRQ(e.target)){
+      const ctrl=e.ctrlKey||e.metaKey;
+      // Block paste (Ctrl+V), select-all (Ctrl+A), cut (Ctrl+X) in FRQ
+      if(ctrl&&['v','V','a','A','x','X'].includes(e.key)){e.preventDefault();return;}
+    }
     if(isInput(e.target))return;
     const ctrl=e.ctrlKey||e.metaKey;
     if(ctrl&&['c','x','a','u','s','C','X','A','U','S'].includes(e.key))e.preventDefault();
     if(e.key==='F12'||(ctrl&&e.shiftKey&&['i','I','j','J'].includes(e.key)))e.preventDefault();
   });
   document.addEventListener('selectstart',e=>{if(!isInput(e.target))e.preventDefault();});
-  document.addEventListener('dragstart',e=>e.preventDefault());
+  document.addEventListener('dragstart',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}  // no drag-drop into FRQ
+    e.preventDefault();
+  });
+  // Block drop (dragging text in from outside)
+  document.addEventListener('drop',e=>{
+    if(isFRQ(e.target)){e.preventDefault();return;}
+  });
 })();
 
 </script>
