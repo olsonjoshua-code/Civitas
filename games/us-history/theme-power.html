@@ -2825,22 +2825,30 @@ function getCompositeScore() {
     vocabScore = (shell.vocabBestScore && shell.vocabBestScore[VOCAB_DECK_ID]) || 0;
   } catch(e) {}
 
-  // FRQ — average % across all submitted FRQs (only count attempted ones)
+  // FRQ — score across ALL FRQs (unsubmitted ones count as 0)
   let frqScore = 0;
+  let frqAllDone = false;
   try {
     if (typeof UNIT_FRQS !== 'undefined' && UNIT_FRQS.length) {
-      const attempted = UNIT_FRQS.filter(f => getFRQBestScore(f.id) !== null);
-      if (attempted.length) {
-        const totalEarned = attempted.reduce((sum, f) => sum + getFRQBestScore(f.id), 0);
-        const totalPossible = attempted.reduce((sum, f) => sum + f.points, 0);
-        frqScore = Math.round(totalEarned / totalPossible * 100);
-      }
+      // Total possible points across ALL FRQs
+      const totalPossible = UNIT_FRQS.reduce((sum, f) => sum + f.points, 0);
+      // Total earned — unsubmitted FRQs count as 0
+      const totalEarned = UNIT_FRQS.reduce((sum, f) => {
+        const best = getFRQBestScore(f.id);
+        return sum + (best !== null ? best : 0);
+      }, 0);
+      frqScore = totalPossible > 0 ? Math.round(totalEarned / totalPossible * 100) : 0;
+      frqAllDone = UNIT_FRQS.every(f => getFRQBestScore(f.id) !== null);
     } else {
       // Fallback to old system if UNIT_FRQS not defined
       const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       const frqR = shell.frqResults && shell.frqResults[UNIT_ID];
       if (frqR) {
-        frqScore = frqR.composite !== undefined ? frqR.composite : (frqR.score || 0);
+        const qs = frqR.questions || [];
+        const total = typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : qs.length;
+        const earned = qs.reduce((a, q) => a + (q.score || 0), 0);
+        frqScore = total > 0 ? Math.round(earned / total) : 0;
+        frqAllDone = qs.length >= total;
       }
     }
   } catch(e) {}
@@ -2852,7 +2860,8 @@ function getCompositeScore() {
     mcqAttempted: lessonScores.length > 0,
     vocabAttempted: vocabScore > 0,
     frqAttempted: frqScore > 0,
-    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqScore > 0
+    frqAllDone,
+    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqAllDone
   };
 }
 
@@ -2867,7 +2876,11 @@ function renderPlayTabSummary() {
   const scores = Object.values(P.lessonBestScores || {});
   if (!scores.length) { el.innerHTML = ''; return; }
 
-  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, frqAllDone, allAttempted } = getCompositeScore();
+  const frqTotal = typeof UNIT_FRQS !== 'undefined' ? UNIT_FRQS.length : (typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : 0);
+  const frqDone = typeof UNIT_FRQS !== 'undefined'
+    ? UNIT_FRQS.filter(f => getFRQBestScore(f.id) !== null).length
+    : (() => { try { const s=JSON.parse(localStorage.getItem(SHELL_KEY)||'{}'); return ((s.frqResults&&s.frqResults[UNIT_ID]&&s.frqResults[UNIT_ID].questions)||[]).length; } catch(e){ return 0; } })();
   const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
   const tierColors = { historian:'#e8d0ff', gold:'#ffd700', silver:'#c8c8d8', bronze:'#cd7f32', completed:'#38a050', tryagain:'#c02020' };
   const color = tierColors[tier.label.toLowerCase().replace(' ','')] || tierColors.completed;
@@ -2884,7 +2897,7 @@ function renderPlayTabSummary() {
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">50%</span></span>
       <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOCAB ${vocabAttempted?vocabScore+'%':'—'} <span style="opacity:.5">25%</span></span>
-      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqDoneCount}/${frqCountPS} ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
     </div>
   </div>`;
 }
@@ -2979,10 +2992,14 @@ function saveFRQState(frqState) {
   try {
     const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     if (!state.frqResults) state.frqResults = {};
-    // Compute composite = average of all question scores
+    // Compute composite = total earned / total possible (unanswered = 0)
     const qs = frqState.questions || [];
-    const composite = qs.length ? Math.round(qs.reduce((a, q) => a + q.score, 0) / qs.length) : 0;
-    const tier = composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null;
+    const total = typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : qs.length;
+    const allDone = qs.length >= total;
+    const earned = qs.reduce((a, q) => a + (q.score || 0), 0);
+    const composite = total > 0 ? Math.round(earned / total) : 0;
+    // Only award a trophy tier when ALL FRQs are submitted
+    const tier = allDone ? (composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null) : null;
     frqState.composite = composite;
     frqState.compositeTier = tier;
     frqState.score = composite; // backwards compat
@@ -3192,15 +3209,51 @@ function saveFRQResultToSupabase(score, tier) {
     const supaUrl = typeof AC_SUPA_URL !== 'undefined' ? AC_SUPA_URL : null;
     const supaH = typeof AC_HEADERS !== 'undefined' ? AC_HEADERS : null;
     if (!supaUrl || !supaH) return;
+    // Push to ac_results (leaderboard)
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify({
         name, period,
-        unit_id: 'theme_power_frq',
+        unit_id: 'unit1_frq',
         best_accuracy: score,
         best_score: score,
         cards: tier || 'none',
+        updated_at: new Date().toISOString()
+      })
+    });
+    // Also push frq_progress to civitas_profiles for cross-device sync
+    const fullName = P ? (P.fullName || P.name) : name;
+    if (fullName && fullName !== 'Guest') {
+      try {
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        const frqProgress = (ss.courseProgress && ss.courseProgress[CIV_COURSE] && ss.courseProgress[CIV_COURSE].frqSubmissions) || {};
+        fetch(supaUrl + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+          method: 'POST',
+          headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({
+            full_name: fullName,
+            frq_progress: JSON.stringify(frqProgress),
+            updated_at: new Date().toISOString()
+          })
+        });
+      } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+// Push vocab results to civitas_profiles for cross-device sync
+async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
+  try {
+    const fullName = P ? (P.fullName || P.name) : null;
+    if (!fullName || fullName === 'Guest') return;
+    await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        full_name: fullName,
+        vocab_passed: JSON.stringify(vocabPassed || {}),
+        vocab_best_score: JSON.stringify(vocabBestScore || {}),
         updated_at: new Date().toISOString()
       })
     });
@@ -4513,10 +4566,13 @@ window.addEventListener('message', e => {
       if (passed) state.vocabPassed[deckId] = true;
       if (score !== undefined) state.vocabBestScore[deckId] = Math.max(score, state.vocabBestScore[deckId] || 0);
       localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+      // Push vocab to civitas_profiles so it syncs across devices
+      pushVocabToSupabase(state.vocabPassed, state.vocabBestScore);
     } catch(e) {}
     updateVocabQuizStatus();
     renderHubTrophySection();
     renderPlayTabSummary();
+    try { if (typeof renderHubTaskCards === 'function') renderHubTaskCards(); } catch(e) {}
   }
 });
 
@@ -4534,8 +4590,11 @@ window.addEventListener('storage', e => {
         updateVocabQuizStatus();
         renderHubTrophySection();
         renderPlayTabSummary();
+        try { if (typeof renderHubTaskCards === 'function') renderHubTaskCards(); } catch(e) {}
         const badge = document.getElementById('badge-vocab');
         if (badge) { badge.textContent = newVocab + '%'; badge.style.display = 'block'; }
+        // Push to Supabase for cross-device sync
+        pushVocabToSupabase(newState.vocabPassed, newState.vocabBestScore);
       }
     } catch(e) {}
   }
@@ -4570,6 +4629,8 @@ function checkVocabReturn() {
     if (d.passed) state.vocabPassed['unit1'] = true;
     if (d.score !== undefined) state.vocabBestScore['unit1'] = Math.max(d.score, state.vocabBestScore['unit1'] || 0);
     localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    // Push vocab to civitas_profiles so it syncs across devices
+    pushVocabToSupabase(state.vocabPassed, state.vocabBestScore);
     notify(d.passed ? `✅ Vocab Check passed: ${d.score}%` : `Vocab Check: ${d.score}%`);
   } catch(e) {}
 }
