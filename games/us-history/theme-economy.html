@@ -3186,17 +3186,35 @@ function saveFRQResultToSupabase(score, tier) {
 async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
   try {
     const fullName = P ? (P.fullName || P.name) : null;
+    const displayName = P ? P.name : null;
+    const period = P ? (P.period || '') : '';
     if (!fullName || fullName === 'Guest') return;
-    await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+    const vocabPassedStr = JSON.stringify(vocabPassed || {});
+    const vocabBestStr = JSON.stringify(vocabBestScore || {});
+    // Push to civitas_profiles (Civitas shell)
+    fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
-        vocab_passed: JSON.stringify(vocabPassed || {}),
-        vocab_best_score: JSON.stringify(vocabBestScore || {}),
+        vocab_passed: vocabPassedStr,
+        vocab_best_score: vocabBestStr,
         updated_at: new Date().toISOString()
       })
-    });
+    }).catch(()=>{});
+    // Also push to ac_student_profiles (US History hub)
+    fetch(AC_SUPA_URL + '/rest/v1/ac_student_profiles?on_conflict=full_name,period', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        full_name: fullName,
+        display_name: displayName,
+        period: String(period),
+        vocab_passed: vocabPassedStr,
+        vocab_best_score: vocabBestStr,
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
   } catch(e) {}
 }
 
