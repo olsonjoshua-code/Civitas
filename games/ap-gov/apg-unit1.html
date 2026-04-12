@@ -669,6 +669,17 @@ async function _loadProfileFromDB() {
         localStorage.setItem('civitas_state', JSON.stringify(ss));
       } catch(e) {}
     }
+    // Restore vocab score for this unit
+    if (p.vocab_best_score) {
+      try {
+        const vbs = JSON.parse(p.vocab_best_score || '{}');
+        const score = vbs[UNIT_ID] || 0;
+        if (score > 0) {
+          const localScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+          if (score > localScore) localStorage.setItem('civitas_vocab_' + UNIT_ID, score);
+        }
+      } catch(e) {}
+    }
     _dbLoaded = true;
   } catch(e) { /* silently fail — game still works from localStorage */ }
 }
@@ -987,6 +998,19 @@ function hasAnyFRQSubmitted() {
 function showHub() {
   document.getElementById('hub').style.display = 'flex';
   renderRoundCards();
+  // Restore vocab badge from localStorage or civitas_state on load
+  try {
+    let vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+    // Also check civitas_state in case localStorage was wiped
+    if (!vocabScore) {
+      const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+      vocabScore = (civ.vocabBestScore && civ.vocabBestScore[UNIT_ID]) || 0;
+    }
+    if (vocabScore >= 80) {
+      const badge = document.getElementById('vocab-badge');
+      if (badge) { badge.textContent = vocabScore + '%'; badge.style.display = 'block'; }
+    }
+  } catch(e) {}
 }
 
 function renderRoundCards() {
