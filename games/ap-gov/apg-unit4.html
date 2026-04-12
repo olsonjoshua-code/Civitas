@@ -1281,6 +1281,46 @@ function closeFlashcards() {
 // ── VOCAB QUIZ ENGINE ─────────────────────────────────────
 let _vqQuestions = [], _vqIdx = 0, _vqScore = 0, _vqAnswered = false;
 
+function _enterQuizFocus() {
+  const header = document.getElementById('game-header');
+  const tabs = document.querySelector('.hub-tabs');
+  const tabQuiz = document.getElementById('tab-quiz');
+  if (tabQuiz) {
+    Array.from(tabQuiz.children).forEach(el => {
+      if (el.id !== 'vq-area' && el.id !== 'vq-exit-btn') {
+        el.dataset.vqHidden = '1';
+        el.style.display = 'none';
+      }
+    });
+  }
+  if (header) header.style.display = 'none';
+  if (tabs) tabs.style.display = 'none';
+  if (!document.getElementById('vq-exit-btn')) {
+    const vqArea = document.getElementById('vq-area');
+    if (vqArea) {
+      const exitBtn = document.createElement('div');
+      exitBtn.id = 'vq-exit-btn';
+      exitBtn.innerHTML = '<button onclick="_exitQuizFocus()" style="font-family:var(--dm);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;margin-bottom:12px">✕ Exit Quiz</button>';
+      vqArea.parentNode.insertBefore(exitBtn, vqArea);
+    }
+  }
+}
+function _exitQuizFocus() {
+  const header = document.getElementById('game-header');
+  const tabs = document.querySelector('.hub-tabs');
+  if (header) header.style.display = '';
+  if (tabs) tabs.style.display = '';
+  const tabQuiz = document.getElementById('tab-quiz');
+  if (tabQuiz) {
+    Array.from(tabQuiz.children).forEach(el => {
+      if (el.dataset.vqHidden) { el.style.display = ''; delete el.dataset.vqHidden; }
+    });
+  }
+  const exitBtn = document.getElementById('vq-exit-btn');
+  if (exitBtn) exitBtn.remove();
+  const vqArea = document.getElementById('vq-area');
+  if (vqArea) vqArea.innerHTML = '';
+}
 function startVocabQuiz() {
   // Close flashcards if open
   closeFlashcards();
@@ -1291,6 +1331,7 @@ function startVocabQuiz() {
   if (qt) qt.classList.add('active');
   const qp = document.getElementById('tab-quiz');
   if (qp) qp.classList.add('active');
+  _enterQuizFocus();
 
   // Build 20 questions — term → pick correct definition from 4
   const shuffled = [...VOCAB_TERMS].sort(() => Math.random() - 0.5);
