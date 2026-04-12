@@ -923,6 +923,15 @@ window.addEventListener('load', () => {
         document.getElementById('loading').style.opacity = '0';
         setTimeout(async () => {
           document.getElementById('loading').style.display = 'none';
+          // Populate identity keys from civitas_state so _loadProfileFromDB can find the student
+          try {
+            const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+            if (civ && civ.name && civ.name !== 'Guest') {
+              const fullName = civ.fullName || civ.name;
+              if (!localStorage.getItem('civitas_full_name')) localStorage.setItem('civitas_full_name', fullName);
+              if (!localStorage.getItem('civitas_student_name')) localStorage.setItem('civitas_student_name', civ.name);
+            }
+          } catch(e) {}
           await _loadProfileFromDB();
           showHub();
         }, 500);
