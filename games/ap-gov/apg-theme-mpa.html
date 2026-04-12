@@ -254,6 +254,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <button class="hub-tab" id="hubtab-btn-about" onclick="switchTab('about',this)">📋 About</button>
   </div>
   <div class="hub-content">
+    <!-- PLAY TAB -->
     <div class="hub-panel active" id="tab-play">
       <div id="play-tab-trophy-summary"></div>
       <div class="activity-grid" style="margin-top:16px;">
@@ -281,15 +282,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         </div>
       </div>
     </div>
-    <div class="hub-panel" id="tab-frq">
-      <div id="frq-seq-content">
-        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);background:rgba(42,170,152,.06);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:10px 14px;margin-bottom:16px;line-height:1.7">
-          <strong style="color:var(--teal2)">Two FRQs per theme.</strong> Complete the Concept Application first to unlock the Argument Essay. Submit for AI feedback — resubmit anytime to improve.
-        </div>
-        <div id="frq-seq-list"></div>
-        <div id="frq-seq-detail" style="display:none;margin-top:14px"></div>
+
+    <!-- ROUNDS TAB -->
+    <div class="hub-panel" id="tab-rounds">
+      <button onclick="switchTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:7px 14px;cursor:pointer;margin-top:12px;margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(255,215,0,.1)'" onmouseout="this.style.background='transparent'">← Back to Unit Hub</button>
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-label"><span>PROGRESS</span><span id="prog-pct">0 / 4 rounds complete</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       </div>
+      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;margin-top:12px;"></div>
+      <div id="hub-trophy-section" style="margin-bottom:16px"></div>
     </div>
+
+
     <div class="hub-panel" id="tab-about">
       <div class="sh">About This Game</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:22px 26px;margin-bottom:18px">
@@ -644,35 +649,29 @@ function getRoundProgress(i){try{const d=localStorage.getItem('civitas_'+UNIT_ID
 function saveRoundProgress(i,pct,correct,total){try{const key='civitas_'+UNIT_ID+'_r'+i;const prev=getRoundProgress(i)||{bestPct:0,attempts:0};const u={bestPct:Math.max(prev.bestPct,pct),bestCorrect:correct,bestTotal:total,attempts:(prev.attempts||0)+1,completedAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify(u));_pushRoundsToSupabase();return u;}catch(e){return null;}}
 function isRoundUnlocked(i){try{if(localStorage.getItem('civitas_is_teacher')==='1')return true;}catch(e){}return i===0||getRoundProgress(i-1)!==null;}
 function allRoundsComplete(){return QUESTION_BANK.rounds.every((_,i)=>getRoundProgress(i)!==null);}
-function showHub(){document.getElementById('hub').style.display='flex';renderRoundCards();}
-
-function renderRoundCards(){
-  const el=document.getElementById('round-cards');if(!el)return;
-  const colors=['var(--acc2)','var(--blue)','var(--amber)','var(--purple2)'];
-  el.innerHTML=QUESTION_BANK.rounds.map((round,i)=>{
-    const progress=getRoundProgress(i);const unlocked=isRoundUnlocked(i);const done=progress!==null;const color=colors[i];
-    const trophy=done?getTrophyForAccuracy(progress.bestPct):null;
-    return`<div style="background:var(--bg2);border:1px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};border-left:4px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${unlocked?'cursor:pointer':'opacity:.45;cursor:not-allowed'}"
-      ${unlocked?`onclick="startRound(${i})" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='${done?color:unlocked?'var(--border2)':'var(--border)'}'"`:''}>
-      <div style="font-size:28px;flex-shrink:0">${round.icon}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${i+1} OF ${QUESTION_BANK.rounds.length}</div>
-        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">${round.label.replace(/^Round \d+ — /,'')}</div>
-        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${round.desc.split('.')[0]}.</div>
-      </div>
-      <div style="flex-shrink:0;text-align:right">
-        ${done?`<div style="font-family:var(--bebas);font-size:28px;line-height:1;color:${trophy.color}">${progress.bestPct}%</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:6px">${trophy.label}</div><div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:3px 10px">↺ Replay</div>`
-        :unlocked?`<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:6px 16px">▶ Play</div>`
-        :`<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete Round ${i} first</div>`}
-      </div></div>`;
-  }).join('');
-  const completed=QUESTION_BANK.rounds.filter((_,i)=>getRoundProgress(i)!==null).length;
-  const pct=Math.round(completed/QUESTION_BANK.rounds.length*100);
-  const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
-  if(pf)pf.style.width=pct+'%';if(pp)pp.textContent=`${completed} / ${QUESTION_BANK.rounds.length} rounds complete`;
-  renderHubTrophySection();
+function showHub() {
+  document.getElementById('hub').style.display = 'flex';
+  renderRoundCards();
   renderPlayTabSummary();
   updateBadges();
+  // Restore vocab badge from civitas_state on load
+  try {
+    const frq1Done = parseInt(localStorage.getItem('civitas_frq_mpa_frq1') || '0') > 0;
+    const frq2Done = parseInt(localStorage.getItem('civitas_frq_mpa_frq2') || '0') > 0;
+    const frqDoneCount = (frq1Done ? 1 : 0) + (frq2Done ? 1 : 0);
+    const _f1 = parseInt(localStorage.getItem('civitas_frq_mpa_frq1') || '0') > 0;
+    const _f2 = parseInt(localStorage.getItem('civitas_frq_mpa_frq2') || '0') > 0;
+    const _fct = (_f1?1:0) + (_f2?1:0);
+    const _fbadge = document.getElementById('badge-frq');
+    if (_fbadge && _fct > 0) { _fbadge.textContent = _fct + '/2'; _fbadge.style.display = 'block'; }
+    const mcqDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+    if (mcqDone) {
+      const scores = QUESTION_BANK.rounds.map((_, i) => { const p = getRoundProgress(i); return p ? (p.bestPct||0):0; });
+      const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      const bg = document.getElementById('badge-game');
+      if (bg) { bg.textContent = avg + '%'; bg.style.display = 'block'; }
+    }
+  } catch(e) {}
 }
 function renderCompleteBanner(){
   if(document.getElementById('complete-banner'))return;
@@ -898,13 +897,14 @@ function returnToShell(){ syncProgressToCloud();
   try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_gov');}catch(e){}
   window.location.href=CIVITAS_URL;
 }
-function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');}
-
-function startRound(roundIdx){
-  if(!isRoundUnlocked(roundIdx)){notify('🔒 Complete the previous round first!');return;}
-  G={roundIdx,questionIdx:0,questions:[],currentSet:null,selectedChoice:null,answered:false,roundScores:[],totalGold:0,sessionCorrect:0,sessionTotal:0};
-  document.getElementById('hub').style.display='none';document.getElementById('game').style.display='flex';
-  buildProgressPips();updatePips();showRoundIntro();
+function switchTab(name, btn) {
+  document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'rounds') renderHubTrophySection();
+  if (name === 'play') { renderPlayTabSummary(); updateBadges(); }
+  if (name === 'frq') renderThemeFRQTab();
 }
 function exitGame(){
   if(G.sessionTotal>0&&!confirm('Exit? Progress for this round will be lost.'))return;
@@ -1163,10 +1163,12 @@ function showRoundComplete(){
     }catch(e){}
     syncProgressToCloud();
     saveProgressToSupabase();
-    if(allRoundsComplete()){showThemeComplete(pct);}else{renderRoundCards();}
-  };}
+    renderHubTrophySection();
+    renderPlayTabSummary();
+    updateBadges();
+  };
+  }
 }
-
 // ── COMPOSITE SCORE & TROPHY SECTION (67% MCQ · 33% FRQ) ─────────────────
 
 function getCompositeScore() {
@@ -1312,7 +1314,6 @@ function updateBadges() {
     badgeFRQ.style.display = 'block';
   }
 }
-
 
 function renderThemeFRQTab() {
   var el = document.getElementById('frq-seq-list');
@@ -1460,6 +1461,59 @@ function openThemeFRQDetail(frqId) {
   detail.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function printUnitCertificate() {
+  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const scores = getCompositeScore();
+  const mcqScore = scores.mcqScore, frqScore = scores.frqScore, composite = scores.composite;
+  const tier = calcTier(composite);
+  const trophyLabel = tier ? tier.label : 'In Progress';
+  const trophyIcon = tier ? tier.icon : '⏳';
+  const trophyColor = tier ? (composite===100?'#9060c0':composite>=90?'#ffd700':composite>=75?'#c8c8d8':'#cd7f32') : '#38a050';
+  const w = window.open('','_blank','width=900,height=560');
+  if (!w) { notify('Allow popups to print your certificate.'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&family=DM+Sans:wght@400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.cert{width:820px;background:#faf7f0;border:3px solid ${trophyColor};padding:40px 56px;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px ${trophyColor},0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}
+.dv{height:2px;background:linear-gradient(90deg,transparent,${trophyColor},transparent);margin:12px auto;width:82%}
+.stats{display:flex;justify-content:center;gap:28px;margin:14px 0;padding:12px 20px;background:rgba(0,0,0,.03);border:1px solid ${trophyColor}44}
+.sv{font-size:22px;font-weight:700;color:#8a4820;font-family:'Cinzel Decorative',serif}.sl{font-size:8px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px}
+.sigs{display:flex;justify-content:space-around;margin-top:18px;padding-top:14px;border-top:1px solid rgba(0,0,0,.15)}
+.sgl{width:150px;height:1px;background:#8a6a2a;margin:0 auto 4px}.sn{font-size:11px;color:#1a1208;font-weight:600;font-family:'Cinzel',serif}.st{font-size:8px;color:#8a6a2a;letter-spacing:.1em}
+.pb{padding:10px 28px;background:${trophyColor};border:none;color:#1a1208;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;margin:0 6px}
+@media print{.np{display:none!important}}</style></head><body>
+<div class="cert">
+  <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:6px">CIVITAS · AP U.S. GOVERNMENT · BIG IDEA REVIEW</div>
+  <div style="font-size:48px;margin:8px 0">🏛️</div>
+  <div style="font-family:'Cinzel Decorative',serif;font-size:24px;font-weight:700;color:#1a1208;margin:6px 0">Certificate of Completion</div>
+  <div class="dv"></div>
+  <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.15em;color:#5a4520;margin:7px 0">This certifies that</div>
+  <div style="font-family:'Cinzel Decorative',serif;font-size:34px;font-weight:700;color:#1a1208;margin:10px 0">${studentName}</div>
+  <div style="font-family:'Crimson Text',serif;font-size:14px;color:#5a4520;font-style:italic;margin:5px 0">has successfully completed</div>
+  <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:#1a1208;margin:6px 0">Big Idea: Political Analysis</div>
+  <div style="font-size:36px;margin:8px 0">${trophyIcon}</div>
+  <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:${trophyColor};margin:4px 0">${trophyLabel} Trophy</div>
+  <div class="stats">
+    <div><div class="sv">${mcqScore}%</div><div class="sl">MCQ SCORE</div></div>
+    <div><div class="sv">${frqScore}%</div><div class="sl">FRQ SCORE</div></div>
+    <div><div class="sv">${composite}%</div><div class="sl">COMPOSITE</div></div>
+    <div><div class="sv">${trophyIcon}</div><div class="sl">TROPHY</div></div>
+  </div>
+  <div style="font-family:'DM Sans',sans-serif;font-size:8px;color:#8a6a2a;letter-spacing:.08em;margin-bottom:4px">MCQ 67% · FRQ 33%</div>
+  <div class="dv"></div>
+  <div class="sigs">
+    <div><div class="sgl"></div><div class="sn">${studentName}</div><div class="st">STUDENT</div></div>
+    <div><div class="sgl"></div><div class="sn">Joshua Olson</div><div class="st">AP GOVERNMENT TEACHER</div></div>
+    <div><div class="sgl"></div><div class="sn">${date}</div><div class="st">DATE COMPLETED</div></div>
+  </div>
+</div>
+<div class="np" style="text-align:center;margin-top:18px">
+  <button class="pb" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <button class="pb" onclick="window.close()" style="background:#5a4520;color:#faf7f0">Close</button>
+</div></body></html>`);
+  w.document.close();
+}
 
 function getTrophyForAccuracy(pct){
   if(pct===100)return{label:'Historian',icon:'🏛️',color:'var(--purple2)',glow:'rgba(144,128,240,.4)'};
@@ -1477,7 +1531,7 @@ function notify(msg){const n=document.createElement('div');n.className='notif';n
 // ── FRQ FUNCTIONS ─────────────────────────────────
 const FRQ_RUBRICS = {
   frq1: {
-    title: 'Interpreting Political Data (Concept Application)', promptHtml: '<div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">A political science researcher conducts a national poll and reports: "62% of Americans support a new federal healthcare program." The poll sampled 450 adults recruited through an online survey platform. The margin of error is reported as ±4.5 percentage points. A senator cites this poll to argue that Congress must pass the program immediately. Use the scenario above to answer the following:             <br><br>             <strong>(A)</strong> Identify one methodological limitation of the poll described in the scenario.<br>             <strong>(B)</strong> Explain how the limitation you identified in Part A could affect the validity of the poll\'s findings and the senator\'s argument.<br>             <strong>(C)</strong> Explain how political ideology could cause two different senators to interpret the same polling data in opposite ways.',
+    title: 'Interpreting Political Data (Concept Application)',
     maxScore: 3, goldReward: 60,
     rubric: `3-point Concept Application FRQ:
 PART A (1 point): Student identifies one methodological limitation. Accept: non-random/convenience sampling (online recruits not random), small sample size (450), self-selection bias, sampling error (±4.5% is high), population not defined, no likely voter screen. Must be accurately described, not just named.
@@ -1486,7 +1540,7 @@ PART C (1 point): Student explains how ideology shapes interpretation of the sam
 SCORING: Each part scored independently (0 or 1). Generic answers earn 0. Maximum 3 points.`
   },
   frq2: {
-    title: 'The Role of Public Opinion in Democratic Governance (Argument Essay)', promptHtml: '<div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">             Develop an argument that explains whether public opinion polling strengthens or weakens democratic accountability in the United States.             <br><br>             Use at least <strong>one piece of evidence</strong> from one of the following foundational documents:             <ul style="margin:10px 0 10px 20px;line-height:2">               <li>Federalist No. 10 (James Madison, 1787)</li>               <li>Federalist No. 51 (James Madison, 1788)</li>             </ul>             In your essay, you must:             <ul style="margin:0 0 0 20px;line-height:2">               <li>Articulate a defensible claim or thesis that establishes a line of reasoning</li>               <li>Support your claim with at least TWO pieces of evidence (one from the documents above)</li>               <li>Use reasoning to explain why your evidence supports your claim</li>               <li>Respond to an opposing perspective using rebuttal or refutation</li>             </ul>',
+    title: 'The Role of Public Opinion in Democratic Governance (Argument Essay)',
     maxScore: 6, goldReward: 120,
     rubric: `6-point Argument Essay FRQ:
 TASK A — THESIS (1 point): Defensible claim that establishes a line of reasoning. Must go beyond restating the prompt. Required for Tasks B3 and D.
@@ -1571,75 +1625,10 @@ async function submitFRQ(frqId) {
     btnEl.textContent='⚡ Submit for AI Grading';
   }
   btnEl.disabled=false;
-  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); renderThemeFRQTab(); } catch(e2) {}
 }
 
 
-// ── CERTIFICATE ─────────────────────────────────────────
-function printUnitCertificate() {
-  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
-  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-  const unitData = progress[UNIT_ID] || {};
-  const accuracy = unitData.bestAccuracy || 0;
-  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-  const trophy = accuracy >= 90 ? '🏆 Gold' : accuracy >= 75 ? '⭐ Silver' : accuracy >= 60 ? '🥉 Bronze' : '✅ Completed';
-  const trophyColor = accuracy >= 90 ? '#ffd700' : accuracy >= 75 ? '#c8c8d8' : accuracy >= 60 ? '#cd7f32' : '#38a050';
-  let roundsDone = 0;
-  for (let i = 0; i < 4; i++) {
-    try { const r = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_r' + i) || 'null'); if (r && r.completed) roundsDone++; } catch(e) {}
-  }
-  const w = window.open('', '_blank', 'width=860,height=580');
-  if (!w) { notify('Allow popups to print your certificate.'); return; }
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Big Idea Certificate</title>'
-    + '<style>@import url(\'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&family=DM+Sans:wght@400&display=swap\');'
-    + '*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;font-family:\'DM Sans\',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}'
-    + '.cert{width:780px;background:#faf7f0;border:3px solid '+trophyColor+';padding:36px 48px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px '+trophyColor+',0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}'
-    + '.cert::before,.cert::after{content:\'⚖\';position:absolute;font-size:20px;color:'+trophyColor+';opacity:.4}.cert::before{top:12px;left:12px}.cert::after{top:12px;right:12px}'
-    + '.corner{position:absolute;font-size:14px;color:'+trophyColor+';opacity:.4}'
-    + '.eyebrow{font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:5px}'
-    + '.main-title{font-family:\'Cinzel Decorative\',serif;font-size:22px;font-weight:700;color:#1a1208;letter-spacing:.08em;margin:5px 0}'
-    + '.divider{height:2px;background:linear-gradient(90deg,transparent,'+trophyColor+',transparent);margin:11px auto;width:80%}'
-    + '.awarded{font-size:10px;color:#5a4520;letter-spacing:.15em;margin:6px 0;font-family:\'Cinzel\',serif}'
-    + '.student-name{font-family:\'Cinzel Decorative\',serif;font-size:30px;font-weight:700;color:#1a1208;margin:8px 0}'
-    + '.badge{display:inline-block;border:1px solid '+trophyColor+'88;padding:5px 16px;margin:6px 0;font-family:\'Cinzel\',serif;font-size:9px;color:#8a6a2a;letter-spacing:.18em}'
-    + '.stats{display:flex;justify-content:center;gap:28px;margin:13px 0;padding:10px 18px;background:rgba(0,0,0,.03);border:1px solid '+trophyColor+'44}'
-    + '.stat-val{font-size:20px;font-weight:700;color:#8a4820;font-family:\'Cinzel Decorative\',serif}.stat-lbl{font-size:7px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px}'
-    + '.sigs{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(0,0,0,.12)}'
-    + '.sig-line{width:140px;height:1px;background:#8a6a2a;margin:0 auto 3px}.sig-name{font-size:10px;color:#1a1208;font-weight:600;font-family:\'Cinzel\',serif}.sig-title{font-size:7px;color:#8a6a2a;letter-spacing:.1em}'
-    + '.school{font-size:8px;color:#8a6a2a;letter-spacing:.1em;margin-top:10px}'
-    + '.print-btn{margin-top:16px;padding:8px 24px;background:#c9a84c;border:none;color:#1a1208;font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:.08em;cursor:pointer}'
-    + '.print-btn.close{background:#5a4520;color:#faf7f0;margin-left:8px}'
-    + '@media print{body{padding:0}.cert{box-shadow:none}.no-print{display:none!important}}'
-    + '</style></head><body><div><div class="cert">'
-    + '<span class="corner" style="bottom:12px;left:12px">⚖</span><span class="corner" style="bottom:12px;right:12px">⚖</span>'
-    + '<div class="eyebrow">AP U.S. Government & Politics · Big Idea Review · Civitas</div>'
-    + '<div style="font-size:44px;margin:6px 0">🏛️</div>'
-    + '<div class="main-title">Certificate of Completion</div>'
-    + '<div class="divider"></div>'
-    + '<div class="awarded">This certifies that</div>'
-    + '<div class="student-name">'+studentName+'</div>'
-    + '<div style="font-family:\'Crimson Text\',serif;font-size:12px;color:#5a4520;font-style:italic;margin:5px 0">has completed the Big Idea cross-unit review game</div>'
-    + '<div class="badge">BIG IDEA: '+GAME_TITLE.toUpperCase()+'</div>'
-    + '<div class="stats">'
-    + '<div class="stat"><div class="stat-val">'+accuracy+'%</div><div class="stat-lbl">BEST ACCURACY</div></div>'
-    + '<div class="stat"><div class="stat-val">'+roundsDone+'/4</div><div class="stat-lbl">ROUNDS DONE</div></div>'
-    + '<div class="stat"><div class="stat-val">'+trophy.split(' ')[0]+'</div><div class="stat-lbl">TROPHY</div></div>'
-    + '</div>'
-    + '<div style="font-family:\'Cinzel\',serif;font-size:13px;color:'+trophyColor+';letter-spacing:.1em;margin:6px 0">'+trophy+' Achievement</div>'
-    + '<div class="divider"></div>'
-    + '<div class="sigs">'
-    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+studentName+'</div><div class="sig-title">STUDENT</div></div>'
-    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
-    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+date+'</div><div class="sig-title">DATE COMPLETED</div></div>'
-    + '</div>'
-    + '<div class="school">Civitas · AP U.S. Government & Politics · '+new Date().getFullYear()+'</div>'
-    + '</div>'
-    + '<div style="text-align:center" class="no-print">'
-    + '<button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>'
-    + '<button class="print-btn close" onclick="window.close()">✕ CLOSE</button>'
-    + '</div></div></body></html>');
-  w.document.close();
-}
 
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}
