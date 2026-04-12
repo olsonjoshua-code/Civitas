@@ -5340,7 +5340,9 @@ function renderCourseUnits(){
     const doneFromState=(cp.unitsCompleted||[]).includes(u.id);
     const doneFromLS=unitProg[u.id]&&unitProg[u.id].bestAccuracy!=null;
     const done=doneFromState||doneFromLS;
-    const unitAcc=unitProg[u.id]?.bestAccuracy??null;
+    // For Big Idea themes use composite score; for units use bestAccuracy
+    const _ud = unitProg[u.id];
+    const unitAcc = _ud ? (u.isBigIdea ? (_ud.composite ?? _ud.bestAccuracy ?? null) : (_ud.bestAccuracy ?? null)) : null;
     const unitTrophyColor=unitAcc===null?null:unitAcc===100?'var(--purple2)':unitAcc>=90?'var(--gold)':unitAcc>=75?'#c8c8d8':unitAcc>=60?'#cd7f32':'var(--green2)';
     const unitTrophyLabel=unitAcc===null?'':unitAcc===100?'🏛️ Historian':unitAcc>=90?'🏆 Gold':unitAcc>=75?'⭐ Silver':unitAcc>=60?'🥉 Bronze':'✅ Completed';
     const isBigIdea=!!u.isBigIdea;
@@ -6132,11 +6134,7 @@ function printUnitTrophyCert(unitId) {
   var pct = up.bestAccuracy || up.composite || 0;
   var mcqScore = up.mcqScore || 0;
   var frqScore = up.frqScore || 0;
-  // vocabScore: chain through all sources — unit progress → localStorage → civitas_state → Supabase S object
   var vocabScore = up.vocabScore || 0;
-  if (!vocabScore) { try { vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + unitId) || '0'); } catch(e) {} }
-  if (!vocabScore) { try { var cs = JSON.parse(localStorage.getItem('civitas_state') || '{}'); vocabScore = (cs.vocabBestScore && cs.vocabBestScore[unitId]) || 0; } catch(e) {} }
-  if (!vocabScore) { try { vocabScore = (S.vocabBestScore && S.vocabBestScore[unitId]) || 0; } catch(e) {} }
   var isTheme = unitId.startsWith('apg_bi');
   var studentName = S.name || S.fullName || localStorage.getItem('civitas_student_name') || 'Student';
   var period = S.courses && S.courses[0] ? S.courses[0].period : '';

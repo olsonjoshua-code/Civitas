@@ -1572,10 +1572,10 @@ function renderHubTrophySection() {
     if (fn && fn !== 'Mr. Olson') {
       const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
       const existing = prog[UNIT_ID] || {};
-      const needsUpdate = composite > (existing.composite || 0) || mcqScore > (existing.mcqScore || 0) || frqScore > (existing.frqScore || 0);
+      const needsUpdate = composite > (existing.composite || 0) || mcqScore > (existing.mcqScore || 0) || frqScore > (existing.frqScore || 0) || (!existing.composite && (mcqScore > 0 || frqScore > 0));
       if (needsUpdate) {
         prog[UNIT_ID] = Object.assign({}, existing, {
-          bestAccuracy: Math.max(composite, existing.bestAccuracy || 0),
+          bestAccuracy: Math.min(100, Math.max(composite, existing.bestAccuracy || 0)),
           composite, mcqScore, frqScore, frqAllDone,
           ...(tier ? { trophy: tier.label.toLowerCase(), completedAt: existing.completedAt || new Date().toISOString() } : {})
         });
