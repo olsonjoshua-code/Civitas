@@ -210,8 +210,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
 .activity-card{background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.activity-card-strip{height:3px;width:100%}
-.activity-card-body{padding:16px 18px}
+.activity-card-strip{height:3px;width:100%}.activity-card-body{padding:16px 18px}
 .activity-card-icon{font-size:26px;margin-bottom:8px}
 .activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px}
 .activity-card-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:5px}
@@ -253,11 +252,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <button class="hub-tab" id="hubtab-btn-frq" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
     <button class="hub-tab" id="hubtab-btn-about" onclick="switchTab('about',this)">📋 About</button>
   </div>
+
   <div class="hub-content">
+
     <!-- PLAY TAB -->
     <div class="hub-panel active" id="tab-play">
       <div id="play-tab-trophy-summary"></div>
       <div class="activity-grid" style="margin-top:16px;">
+
+        <!-- MCQ Rounds card -->
         <div class="activity-card" onclick="switchTab('rounds',document.getElementById('hubtab-btn-rounds'))" style="border-top:3px solid var(--gold)">
           <div class="activity-card-strip" style="background:var(--gold)"></div>
           <div class="activity-card-body">
@@ -269,17 +272,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
           </div>
           <div class="activity-card-badge" id="badge-game" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
         </div>
+
+        <!-- FRQ card -->
         <div class="activity-card" onclick="switchTab('frq',document.getElementById('hubtab-btn-frq'))" style="border-top:3px solid var(--teal)">
           <div class="activity-card-strip" style="background:var(--teal)"></div>
           <div class="activity-card-body">
             <div class="activity-card-icon">✍️</div>
             <div class="activity-card-label">FRQ PRACTICE · AI GRADED</div>
-            <div class="activity-card-title">Free Response Questions</div>
-            <div class="activity-card-desc">Two AI-graded FRQs covering Political Analysis — Concept Application then Argument Essay. Unlock sequentially.</div>
-            <div class="activity-card-action" style="color:var(--teal2)">→ Start FRQs</div>
+            <div class="activity-card-title">Free Response Question</div>
+            <div class="activity-card-desc">One AI-graded FRQ covering Political Analysis. Submit for instant feedback, resubmit anytime to improve.</div>
+            <div class="activity-card-action" style="color:var(--teal2)">→ Start FRQ</div>
           </div>
           <div class="activity-card-badge" id="badge-frq" style="display:none;border-color:var(--teal2);color:var(--teal2)"></div>
         </div>
+
       </div>
     </div>
 
@@ -287,36 +293,50 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     <div class="hub-panel" id="tab-rounds">
       <button onclick="switchTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:7px 14px;cursor:pointer;margin-top:12px;margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(255,215,0,.1)'" onmouseout="this.style.background='transparent'">← Back to Unit Hub</button>
       <div class="prog-wrap" id="prog-wrap">
-        <div class="prog-label"><span>PROGRESS</span><span id="prog-pct">0 / 4 rounds complete</span></div>
+        <div class="prog-label">
+          <span>PROGRESS</span>
+          <span id="prog-pct">0 / 4 rounds complete</span>
+        </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       </div>
       <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;margin-top:12px;"></div>
       <div id="hub-trophy-section" style="margin-bottom:16px"></div>
     </div>
 
-
+    <!-- ABOUT TAB -->
+    <div class="hub-panel" id="tab-frq">
+      <div id="frq-seq-content">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);background:rgba(42,170,152,.06);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:10px 14px;margin-bottom:16px;line-height:1.7">
+          <strong style="color:var(--teal2)">Two FRQs per theme.</strong> Complete the Concept Application first to unlock the Argument Essay. Submit for AI feedback — resubmit anytime to improve.
+        </div>
+        <div id="frq-seq-list"></div>
+        <div id="frq-seq-detail" style="display:none;margin-top:14px"></div>
+      </div>
+    </div>
     <div class="hub-panel" id="tab-about">
       <div class="sh">About This Game</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);padding:22px 26px;margin-bottom:18px">
-        <div style="font-family:var(--bebas);font-size:16px;color:var(--acc2);letter-spacing:3px;margin-bottom:8px">BIG IDEA: MPA — METHODS OF POLITICAL ANALYSIS</div>
-        <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8">Political scientists use quantitative and qualitative methods to study government and politics — including surveys, electoral data, demographic analysis, and document analysis. Understanding how to read, interpret, and critique data is essential to AP Gov. This game pulls all MPA-tagged questions from Units 1–5.</div>
+        <div style="font-family:var(--bebas);font-size:16px;color:var(--acc2);letter-spacing:3px;margin-bottom:8px">BIG IDEA: CON — CONSTITUTIONALISM</div>
+        <div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.8">The U.S. Constitution establishes and limits government power through principles including separation of powers, checks and balances, federalism, judicial review, rule of law, and the amendment process. This game pulls questions tagged CON from across all five AP Gov units.</div>
       </div>
       <div class="sh">Topics Covered</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px">
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 1 — Analyzing foundational documents as primary sources</div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 2 — Interpreting approval ratings, congressional productivity data</div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 3 — Reading civil liberties trend data, SCOTUS decision data by category</div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 4 — Polling methodology, ideological self-identification data, public opinion trends</div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 5 — Interpreting electoral maps, turnout data, campaign finance data</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 1 — Separation of powers, checks and balances, McCulloch v. Maryland, Lopez</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 2 — Marbury v. Madison, judicial review, Article I/II/III powers, Federalist 70 & 78</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 3 — Bill of Rights, selective incorporation, 14th Amendment, Gideon, McDonald</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 4 — Constitutional foundations of political culture, amendment process</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border2);padding:10px 14px;font-family:var(--dm);font-size:11px;color:var(--text2)">Unit 5 — Electoral College, Citizens United, constitutional provisions affecting elections</div>
       </div>
       <div class="sh">Required Documents in This Game</div>
       <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px"><div style="font-size:18px">📜</div><div style="flex:1"><div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">Polling Methodology Overview</div></div><div style="font-family:var(--dm);font-size:8px;color:var(--acc2);letter-spacing:1px">Round 2 — Set A</div></div>
-          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px"><div style="font-size:18px">📜</div><div style="flex:1"><div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">Election & Demographic Data</div></div><div style="font-family:var(--dm);font-size:8px;color:var(--acc2);letter-spacing:1px">Round 2 — Set B</div></div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px"><div style="font-size:18px">📜</div><div style="flex:1"><div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">Federalist No. 51</div></div><div style="font-family:var(--dm);font-size:8px;color:var(--acc2);letter-spacing:1px">Round 2 — Set A</div></div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px"><div style="font-size:18px">⚖️</div><div style="flex:1"><div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">Marbury v. Madison</div></div><div style="font-family:var(--dm);font-size:8px;color:var(--acc2);letter-spacing:1px">Round 2 — Set B</div></div>
       </div>
     </div>
-  </div>
+
+
 </div>
+
 
 <div id="game">
   <div id="game-header">
@@ -1163,13 +1183,11 @@ function showRoundComplete(){
     }catch(e){}
     syncProgressToCloud();
     saveProgressToSupabase();
-    renderHubTrophySection();
-    renderPlayTabSummary();
-    updateBadges();
-  };
-  }
+    try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
+    if(allRoundsComplete()){showThemeComplete(pct);}else{renderRoundCards();}
+  };}
 }
-// ── COMPOSITE SCORE & TROPHY SECTION (67% MCQ · 33% FRQ) ─────────────────
+// ── COMPOSITE SCORE & TROPHY SECTION ─────────────────
 
 function getCompositeScore() {
   // MCQ score — average accuracy across all rounds
@@ -1185,7 +1203,7 @@ function getCompositeScore() {
   // FRQ score — from theme FRQ save key
   const frq1Raw = parseInt(localStorage.getItem('civitas_frq_mpa_frq1') || '0');
   const frq2Raw = parseInt(localStorage.getItem('civitas_frq_mpa_frq2') || '0');
-  const frqScore = Math.round((frq1Raw + frq2Raw) / 6 * 100); // 6 total points
+  const frqScore = Math.round((frq1Raw + frq2Raw) / 9 * 100); // 9 total points (frq1=3 + frq2=6)
   const frqAttempted = frq1Raw > 0 || frq2Raw > 0;
   const frqAllDone = frq1Raw > 0 && frq2Raw > 0; // both submitted
 
@@ -1335,7 +1353,8 @@ function renderThemeFRQTab() {
   var summaryHtml = '';
   if (submitted > 0) {
     var totalEarned = scores.frq1 + scores.frq2;
-    var composite = Math.round(totalEarned / 6 * 100);
+    var maxPossible = Object.keys(FRQ_RUBRICS).reduce(function(s,k){return s+(FRQ_RUBRICS[k].maxScore||3);},0);
+    var composite = Math.round(totalEarned / maxPossible * 100);
     var tc = composite>=90?'var(--gold)':composite>=75?'#c8c8d8':composite>=60?'#cd7f32':'var(--amber)';
     summaryHtml = '<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+tc+';padding:10px 14px;margin-bottom:14px">'
       + '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">FRQ PROGRESS — '+submitted+'/2 COMPLETE</div>'
@@ -1351,7 +1370,7 @@ function renderThemeFRQTab() {
     var label = FRQ_LABELS[fid];
     var rd = FRQ_RUBRICS[fid];
     var title = rd ? rd.title : fid;
-    var pct = isAnswered ? Math.round(score / 3 * 100) : null;
+    var pct = isAnswered ? Math.round(score / (rd ? rd.maxScore : 3) * 100) : null;
     var sc = pct===null?color:pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
 
     if (isAnswered) {
@@ -1359,7 +1378,7 @@ function renderThemeFRQTab() {
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
         + '<div><span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+color+'">'+label+'</span>'
         + '<div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-top:4px">'+title+'</div></div>'
-        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/3</div>'
+        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/' + (rd ? rd.maxScore : 3) + '</div>'
         + '<div style="font-family:var(--dm);font-size:7px;color:var(--text3)">'+pct+'%</div></div></div>'
         + '<button data-fid="'+fid+'" class="theme-frq-open" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 10px;cursor:pointer">↺ Resubmit to improve</button>'
         + '</div>';
@@ -1408,7 +1427,7 @@ function openThemeFRQDetail(frqId) {
   if (list) list.style.display = 'none';
 
   var scoreHtml = savedScore > 0
-    ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/3</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
+    ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/'+(rd?rd.maxScore:3)+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
     : '';
 
   detail.innerHTML = '<button id="frq-back-btn" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px">← Back to FRQs</button>'
@@ -1629,6 +1648,71 @@ async function submitFRQ(frqId) {
 }
 
 
+// ── CERTIFICATE ─────────────────────────────────────────
+function printUnitCertificate() {
+  const studentName = localStorage.getItem('civitas_student_name') || 'Student';
+  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+  const unitData = progress[UNIT_ID] || {};
+  const accuracy = unitData.bestAccuracy || 0;
+  const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  const trophy = accuracy >= 90 ? '🏆 Gold' : accuracy >= 75 ? '⭐ Silver' : accuracy >= 60 ? '🥉 Bronze' : '✅ Completed';
+  const trophyColor = accuracy >= 90 ? '#ffd700' : accuracy >= 75 ? '#c8c8d8' : accuracy >= 60 ? '#cd7f32' : '#38a050';
+  let roundsDone = 0;
+  for (let i = 0; i < 4; i++) {
+    try { const r = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_r' + i) || 'null'); if (r && r.completed) roundsDone++; } catch(e) {}
+  }
+  const w = window.open('', '_blank', 'width=860,height=580');
+  if (!w) { notify('Allow popups to print your certificate.'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Big Idea Certificate</title>'
+    + '<style>@import url(\'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&family=DM+Sans:wght@400&display=swap\');'
+    + '*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;font-family:\'DM Sans\',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}'
+    + '.cert{width:780px;background:#faf7f0;border:3px solid '+trophyColor+';padding:36px 48px;position:relative;text-align:center;box-shadow:0 0 0 8px #faf7f0,0 0 0 11px '+trophyColor+',0 0 0 15px #faf7f0,0 0 0 17px #8a6a2a}'
+    + '.cert::before,.cert::after{content:\'⚖\';position:absolute;font-size:20px;color:'+trophyColor+';opacity:.4}.cert::before{top:12px;left:12px}.cert::after{top:12px;right:12px}'
+    + '.corner{position:absolute;font-size:14px;color:'+trophyColor+';opacity:.4}'
+    + '.eyebrow{font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:.32em;color:#8a6a2a;margin-bottom:5px}'
+    + '.main-title{font-family:\'Cinzel Decorative\',serif;font-size:22px;font-weight:700;color:#1a1208;letter-spacing:.08em;margin:5px 0}'
+    + '.divider{height:2px;background:linear-gradient(90deg,transparent,'+trophyColor+',transparent);margin:11px auto;width:80%}'
+    + '.awarded{font-size:10px;color:#5a4520;letter-spacing:.15em;margin:6px 0;font-family:\'Cinzel\',serif}'
+    + '.student-name{font-family:\'Cinzel Decorative\',serif;font-size:30px;font-weight:700;color:#1a1208;margin:8px 0}'
+    + '.badge{display:inline-block;border:1px solid '+trophyColor+'88;padding:5px 16px;margin:6px 0;font-family:\'Cinzel\',serif;font-size:9px;color:#8a6a2a;letter-spacing:.18em}'
+    + '.stats{display:flex;justify-content:center;gap:28px;margin:13px 0;padding:10px 18px;background:rgba(0,0,0,.03);border:1px solid '+trophyColor+'44}'
+    + '.stat-val{font-size:20px;font-weight:700;color:#8a4820;font-family:\'Cinzel Decorative\',serif}.stat-lbl{font-size:7px;letter-spacing:.12em;color:#8a6a2a;margin-top:2px}'
+    + '.sigs{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(0,0,0,.12)}'
+    + '.sig-line{width:140px;height:1px;background:#8a6a2a;margin:0 auto 3px}.sig-name{font-size:10px;color:#1a1208;font-weight:600;font-family:\'Cinzel\',serif}.sig-title{font-size:7px;color:#8a6a2a;letter-spacing:.1em}'
+    + '.school{font-size:8px;color:#8a6a2a;letter-spacing:.1em;margin-top:10px}'
+    + '.print-btn{margin-top:16px;padding:8px 24px;background:#c9a84c;border:none;color:#1a1208;font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:.08em;cursor:pointer}'
+    + '.print-btn.close{background:#5a4520;color:#faf7f0;margin-left:8px}'
+    + '@media print{body{padding:0}.cert{box-shadow:none}.no-print{display:none!important}}'
+    + '</style></head><body><div><div class="cert">'
+    + '<span class="corner" style="bottom:12px;left:12px">⚖</span><span class="corner" style="bottom:12px;right:12px">⚖</span>'
+    + '<div class="eyebrow">AP U.S. Government & Politics · Big Idea Review · Civitas</div>'
+    + '<div style="font-size:44px;margin:6px 0">🏛️</div>'
+    + '<div class="main-title">Certificate of Completion</div>'
+    + '<div class="divider"></div>'
+    + '<div class="awarded">This certifies that</div>'
+    + '<div class="student-name">'+studentName+'</div>'
+    + '<div style="font-family:\'Crimson Text\',serif;font-size:12px;color:#5a4520;font-style:italic;margin:5px 0">has completed the Big Idea cross-unit review game</div>'
+    + '<div class="badge">BIG IDEA: '+GAME_TITLE.toUpperCase()+'</div>'
+    + '<div class="stats">'
+    + '<div class="stat"><div class="stat-val">'+accuracy+'%</div><div class="stat-lbl">BEST ACCURACY</div></div>'
+    + '<div class="stat"><div class="stat-val">'+roundsDone+'/4</div><div class="stat-lbl">ROUNDS DONE</div></div>'
+    + '<div class="stat"><div class="stat-val">'+trophy.split(' ')[0]+'</div><div class="stat-lbl">TROPHY</div></div>'
+    + '</div>'
+    + '<div style="font-family:\'Cinzel\',serif;font-size:13px;color:'+trophyColor+';letter-spacing:.1em;margin:6px 0">'+trophy+' Achievement</div>'
+    + '<div class="divider"></div>'
+    + '<div class="sigs">'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+studentName+'</div><div class="sig-title">STUDENT</div></div>'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
+    + '<div class="sig"><div class="sig-line"></div><div class="sig-name">'+date+'</div><div class="sig-title">DATE COMPLETED</div></div>'
+    + '</div>'
+    + '<div class="school">Civitas · AP U.S. Government & Politics · '+new Date().getFullYear()+'</div>'
+    + '</div>'
+    + '<div style="text-align:center" class="no-print">'
+    + '<button class="print-btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>'
+    + '<button class="print-btn close" onclick="window.close()">✕ CLOSE</button>'
+    + '</div></div></body></html>');
+  w.document.close();
+}
 
 (function(){
   function isInput(el){return el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA');}

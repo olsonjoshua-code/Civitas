@@ -1359,7 +1359,7 @@ function getCompositeScore() {
   // FRQ score — from theme FRQ save key
   const frq1Raw = parseInt(localStorage.getItem('civitas_frq_lor_frq1') || '0');
   const frq2Raw = parseInt(localStorage.getItem('civitas_frq_lor_frq2') || '0');
-  const frqScore = Math.round((frq1Raw + frq2Raw) / 6 * 100); // 6 total points
+  const frqScore = Math.round((frq1Raw + frq2Raw) / 9 * 100); // 9 total points (frq1=3 + frq2=6)
   const frqAttempted = frq1Raw > 0 || frq2Raw > 0;
   const frqAllDone = frq1Raw > 0 && frq2Raw > 0; // both submitted
 
@@ -1510,7 +1510,8 @@ function renderThemeFRQTab() {
   var summaryHtml = '';
   if (submitted > 0) {
     var totalEarned = scores.frq1 + scores.frq2;
-    var composite = Math.round(totalEarned / 6 * 100);
+    var maxPossible = Object.keys(FRQ_RUBRICS).reduce(function(s,k){return s+(FRQ_RUBRICS[k].maxScore||3);},0);
+    var composite = Math.round(totalEarned / maxPossible * 100);
     var tc = composite>=90?'var(--gold)':composite>=75?'#c8c8d8':composite>=60?'#cd7f32':'var(--amber)';
     summaryHtml = '<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+tc+';padding:10px 14px;margin-bottom:14px">'
       + '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">FRQ PROGRESS — '+submitted+'/2 COMPLETE</div>'
@@ -1526,7 +1527,7 @@ function renderThemeFRQTab() {
     var label = FRQ_LABELS[fid];
     var rd = FRQ_RUBRICS[fid];
     var title = rd ? rd.title : fid;
-    var pct = isAnswered ? Math.round(score / 3 * 100) : null;
+    var pct = isAnswered ? Math.round(score / (rd ? rd.maxScore : 3) * 100) : null;
     var sc = pct===null?color:pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
 
     if (isAnswered) {
@@ -1534,7 +1535,7 @@ function renderThemeFRQTab() {
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
         + '<div><span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+color+'">'+label+'</span>'
         + '<div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-top:4px">'+title+'</div></div>'
-        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/3</div>'
+        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/' + (rd ? rd.maxScore : 3) + '</div>'
         + '<div style="font-family:var(--dm);font-size:7px;color:var(--text3)">'+pct+'%</div></div></div>'
         + '<button data-fid="'+fid+'" class="theme-frq-open" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 10px;cursor:pointer">↺ Resubmit to improve</button>'
         + '</div>';
@@ -1583,7 +1584,7 @@ function openThemeFRQDetail(frqId) {
   if (list) list.style.display = 'none';
 
   var scoreHtml = savedScore > 0
-    ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/3</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
+    ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/'+(rd?rd.maxScore:3)+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
     : '';
 
   detail.innerHTML = '<button id="frq-back-btn" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px">← Back to FRQs</button>'
@@ -1764,7 +1765,7 @@ async function submitFRQ(frqId) {
     btnEl.textContent='⚡ Submit for AI Grading';
   }
   btnEl.disabled=false;
-  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); renderThemeFRQTab(); } catch(e2) {}
 }
 
 
