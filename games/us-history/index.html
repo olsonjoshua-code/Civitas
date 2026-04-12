@@ -2293,44 +2293,45 @@ async function boot(){
 
   loadS();
 
-  // ── Check for Civitas session first ──────────────────────────────────
-  // If student came from the Civitas shell, civitas_state has their identity.
-  // Populate S from it and skip the setup/login screen entirely.
-  if(!S.setupDone || !S.name){
-    try{
-      const civRaw = localStorage.getItem('civitas_state');
-      if(civRaw){
-        const civ = JSON.parse(civRaw);
-        if(civ && civ.name && civ.name !== 'Guest'){
-          S.name        = civ.name;
-          S.fullName    = civ.fullName || civ.name;
-          S.period      = civ.period || '';
-          S.avatar      = civ.avatar || 'scholar_f';
-          S.setupDone   = true;
-          S.isGuest     = false;
+  // ── Always merge vocab from civitas_state into S ──────────────────────
+  // civitas_state is written by the Civitas shell on restore and has the
+  // latest vocab from Supabase. ac_shell_state may be stale or empty.
+  try {
+    const civRaw = localStorage.getItem('civitas_state');
+    if(civRaw){
+      const civ = JSON.parse(civRaw);
+      if(civ && civ.name && civ.name !== 'Guest'){
+        // Always carry over gold
+        if(civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
+        // Always merge vocab — civitas_state wins on each key
+        if(civ.vocabPassed && Object.keys(civ.vocabPassed).length){
+          if(!S.vocabPassed) S.vocabPassed = {};
+          Object.keys(civ.vocabPassed).forEach(k => { if(civ.vocabPassed[k]) S.vocabPassed[k] = true; });
+        }
+        if(civ.vocabBestScore && Object.keys(civ.vocabBestScore).length){
+          if(!S.vocabBestScore) S.vocabBestScore = {};
+          Object.keys(civ.vocabBestScore).forEach(k => {
+            S.vocabBestScore[k] = Math.max(civ.vocabBestScore[k]||0, S.vocabBestScore[k]||0);
+          });
+        }
+        // If not set up yet, also copy identity
+        if(!S.setupDone || !S.name){
+          S.name      = civ.name;
+          S.fullName  = civ.fullName || civ.name;
+          S.period    = civ.period || '';
+          S.avatar    = civ.avatar || 'scholar_f';
+          S.setupDone = true;
+          S.isGuest   = false;
           S.fromCivitas = true;
-          // Carry over gold so HUD shows correct balance
-          if(civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
-          // Carry over vocab from civitas_state (restored by Civitas shell from Supabase)
-          if(civ.vocabPassed && Object.keys(civ.vocabPassed).length){
-            if(!S.vocabPassed) S.vocabPassed = {};
-            Object.keys(civ.vocabPassed).forEach(k => { if(civ.vocabPassed[k]) S.vocabPassed[k] = true; });
-          }
-          if(civ.vocabBestScore && Object.keys(civ.vocabBestScore).length){
-            if(!S.vocabBestScore) S.vocabBestScore = {};
-            Object.keys(civ.vocabBestScore).forEach(k => {
-              S.vocabBestScore[k] = Math.max(civ.vocabBestScore[k]||0, S.vocabBestScore[k]||0);
-            });
-          }
-          saveS();
-          // Also pull latest from ac_student_profiles to get vocab + frq scores
+          // Pull latest from ac_student_profiles too
           loadProfileByName(S.fullName, S.period).then(profile => {
             if(profile){ applyStudentProfile(profile); saveS(); }
           }).catch(()=>{});
         }
+        saveS();
       }
-    }catch(e){}
-  }
+    }
+  }catch(e){}
 
   if(S.setupDone && !S.isGuest && S.name){
     // Always go straight to shell — no confirmation needed on return
