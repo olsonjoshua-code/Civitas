@@ -341,7 +341,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
     <!-- ABOUT TAB -->
     <div class="hub-panel" id="tab-frq">
-      <div class="sh">FRQ Practice — AI Graded</div>
+      <div id="frq-seq-content">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text2);background:rgba(42,170,152,.06);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:10px 14px;margin-bottom:16px;line-height:1.7">
+          <strong style="color:var(--teal2)">Two FRQs per theme.</strong> Complete the Concept Application first to unlock the Argument Essay. Submit for AI feedback — resubmit anytime to improve.
+        </div>
+        <div id="frq-seq-list"></div>
+        <div id="frq-seq-detail" style="display:none;margin-top:14px"></div>
+      </div>
+    </div>
       <div style="background:rgba(112,96,208,.06);border:1px solid var(--acc);border-left:3px solid var(--acc2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">
         <strong style="color:var(--acc2)">How it works:</strong> Write your response below, then click Submit. Claude grades it against the official College Board rubric point by point and gives you instant feedback. Resubmit as many times as you want to improve.
       </div>
@@ -1102,6 +1109,7 @@ function switchTab(name, btn) {
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'rounds') renderHubTrophySection();
   if (name === 'play') { renderPlayTabSummary(); updateBadges(); }
+  if (name === 'frq') renderThemeFRQTab();
 }
 
 // ── GAME ───────────────────────────────────────────────────────────────────────
@@ -1765,6 +1773,154 @@ function updateBadges() {
   }
 }
 
+
+function renderThemeFRQTab() {
+  var el = document.getElementById('frq-seq-list');
+  var detail = document.getElementById('frq-seq-detail');
+  if (!el) return;
+
+  var FRQ_IDS = ['frq1', 'frq2'];
+  var FRQ_LABELS = {frq1:'Concept Application', frq2:'Argument Essay'};
+  var FRQ_COLORS = {frq1:'var(--teal2)', frq2:'var(--purple2)'};
+  var FRQ_KEY = 'civitas_frq_pmcd_';
+
+  var scores = {
+    frq1: parseInt(localStorage.getItem(FRQ_KEY + 'frq1') || '0'),
+    frq2: parseInt(localStorage.getItem(FRQ_KEY + 'frq2') || '0')
+  };
+  var submitted = FRQ_IDS.filter(function(id) { return scores[id] > 0; }).length;
+  var nextIdx = submitted;
+
+  var summaryHtml = '';
+  if (submitted > 0) {
+    var totalEarned = scores.frq1 + scores.frq2;
+    var composite = Math.round(totalEarned / 6 * 100);
+    var tc = composite>=90?'var(--gold)':composite>=75?'#c8c8d8':composite>=60?'#cd7f32':'var(--amber)';
+    summaryHtml = '<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+tc+';padding:10px 14px;margin-bottom:14px">'
+      + '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">FRQ PROGRESS — '+submitted+'/2 COMPLETE</div>'
+      + '<div style="font-family:var(--bebas);font-size:22px;color:'+tc+'">'+composite+'%</div>'
+      + '</div>';
+  }
+
+  var rows = FRQ_IDS.map(function(fid, i) {
+    var score = scores[fid];
+    var isAnswered = score > 0;
+    var isUnlocked = i <= nextIdx;
+    var color = FRQ_COLORS[fid];
+    var label = FRQ_LABELS[fid];
+    var rd = FRQ_RUBRICS[fid];
+    var title = rd ? rd.title : fid;
+    var pct = isAnswered ? Math.round(score / 3 * 100) : null;
+    var sc = pct===null?color:pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
+
+    if (isAnswered) {
+      return '<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid '+sc+';padding:12px 16px;margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
+        + '<div><span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+color+'">'+label+'</span>'
+        + '<div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-top:4px">'+title+'</div></div>'
+        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/3</div>'
+        + '<div style="font-family:var(--dm);font-size:7px;color:var(--text3)">'+pct+'%</div></div></div>'
+        + '<button data-fid="'+fid+'" class="theme-frq-open" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 10px;cursor:pointer">↺ Resubmit to improve</button>'
+        + '</div>';
+    } else if (isUnlocked) {
+      return '<div data-fid="'+fid+'" class="theme-frq-open" style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+color+';padding:12px 16px;margin-bottom:8px;cursor:pointer">'
+        + '<div style="font-family:var(--dm);font-size:8px;color:'+color+';letter-spacing:2px;margin-bottom:4px">'+label+' — UNLOCKED ▶</div>'
+        + '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream)">'+title+'</div>'
+        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">3 points · click to open</div>'
+        + '</div>';
+    } else {
+      return '<div style="background:var(--bg3);border:1px solid var(--border);padding:12px 16px;margin-bottom:8px;opacity:.45">'
+        + '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">'+label+' — 🔒 LOCKED</div>'
+        + '<div style="font-family:var(--playfair);font-size:13px;color:var(--text3)">'+title+'</div>'
+        + '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:4px">Complete the Concept Application first</div>'
+        + '</div>';
+    }
+  }).join('');
+
+  el.innerHTML = summaryHtml + rows;
+  if (detail) detail.style.display = 'none';
+
+  // Wire up click handlers using data attributes
+  el.querySelectorAll('.theme-frq-open').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      openThemeFRQDetail(this.getAttribute('data-fid'));
+    });
+  });
+}
+
+function openThemeFRQDetail(frqId) {
+  var rd = FRQ_RUBRICS[frqId];
+  if (!rd) return;
+  var detail = document.getElementById('frq-seq-detail');
+  var list = document.getElementById('frq-seq-list');
+  if (!detail) return;
+
+  var FRQ_COLORS = {frq1:'var(--teal2)', frq2:'var(--purple2)'};
+  var FRQ_LABELS = {frq1:'Concept Application', frq2:'Argument Essay'};
+  var FRQ_KEY = 'civitas_frq_pmcd_';
+  var color = FRQ_COLORS[frqId] || 'var(--teal2)';
+  var label = FRQ_LABELS[frqId] || frqId;
+  var savedScore = parseInt(localStorage.getItem(FRQ_KEY + frqId) || '0');
+  var fb = localStorage.getItem('civitas_frq_feedback_pmcd_' + frqId) || '';
+
+  detail.style.display = 'block';
+  if (list) list.style.display = 'none';
+
+  var scoreHtml = savedScore > 0
+    ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/3</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
+    : '';
+
+  detail.innerHTML = '<button id="frq-back-btn" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--teal2);color:var(--teal2);padding:7px 14px;cursor:pointer;margin-bottom:14px;display:inline-flex;align-items:center;gap:6px">← Back to FRQs</button>'
+    + '<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+color+';overflow:hidden">'
+    + '<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
+    + '<div style="font-size:22px">✍️</div>'
+    + '<div style="flex:1"><span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+color+'">'+label+'</span>'
+    + '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream);margin-top:4px">'+rd.title+'</div></div>'
+    + scoreHtml + '</div>'
+    + '<div style="padding:12px 16px;border-bottom:1px solid var(--border)">'
+    + '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
+    + '<div id="detail-prompt-'+frqId+'" style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.75"></div></div>'
+    + '<div style="padding:12px 16px">'
+    + '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
+    + '<textarea id="'+frqId+'-text" style="width:100%;min-height:160px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.7;padding:12px;outline:none;resize:vertical;box-sizing:border-box" placeholder="Write your response here..."></textarea>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
+    + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="'+frqId+'-wc">0 words</div>'
+    + '<button id="'+frqId+'-btn" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid '+color+';color:'+color+';padding:7px 18px;cursor:pointer">'+(fb?'⟳ Resubmit':'⚡ Submit for AI Grading')+'</button></div></div>'
+    + '<div id="'+frqId+'-feedback" style="display:'+(fb?'block':'none')+';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">'+fb+'</div>'
+    + '</div>';
+
+  // Wire back button
+  document.getElementById('frq-back-btn').addEventListener('click', function() {
+    detail.style.display = 'none';
+    if (list) { list.style.display = 'block'; renderThemeFRQTab(); }
+  });
+
+  // Wire submit button
+  document.getElementById(frqId+'-btn').addEventListener('click', function() { submitFRQ(frqId); });
+
+  // Wire paste prevention
+  var ta = document.getElementById(frqId+'-text');
+  if (ta) {
+    ta.addEventListener('paste', function(e) { e.preventDefault(); notify('Pasting is disabled.'); });
+    ta.addEventListener('input', function() {
+      var n = ta.value.trim().split(/\s+/).filter(function(w){return w.length>0;}).length;
+      var wc = document.getElementById(frqId+'-wc');
+      if (wc) { wc.textContent = n+' words'; wc.style.color = n<40?'var(--red2)':'var(--green2)'; }
+    });
+  }
+
+  // Populate prompt from original hidden source or FRQ_RUBRICS
+  var promptEl = document.getElementById('detail-prompt-'+frqId);
+  var srcEl = document.getElementById(frqId+'-prompt-src');
+  if (promptEl) {
+    if (srcEl) { promptEl.innerHTML = srcEl.innerHTML; }
+    else if (rd.promptHtml) { promptEl.innerHTML = rd.promptHtml; }
+  }
+
+  detail.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+
 function getTrophyForAccuracy(pct) {
   if (pct===100) return {label:'Historian',  icon:'🏛️',color:'var(--purple2)',glow:'rgba(144,128,240,.4)'};
   if (pct>=90)  return {label:'Gold Trophy', icon:'🥇',color:'var(--gold)',   glow:'rgba(255,215,0,.4)'};
@@ -1804,7 +1960,7 @@ function notify(msg) {
 // ── FRQ FUNCTIONS ─────────────────────────────────
 const FRQ_RUBRICS = {
   frq1: {
-    title: 'Competing Interests in the Legislative Process (Concept Application)',
+    title: 'Competing Interests in the Legislative Process (Concept Application)', promptHtml: '<div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">             A coalition of pharmaceutical companies spends $200 million lobbying Congress against a proposed law that would allow the federal government to negotiate drug prices on behalf of Medicare. At the same time, a coalition of patient advocacy groups and AARP mobilize millions of members to contact their representatives in support of the bill. Use the scenario above to answer the following:             <br><br>             <strong>(A)</strong> Identify a linkage institution or political process that is relevant to this scenario.<br>             <strong>(B)</strong> In the context of this scenario, explain how the linkage institution or process you identified in Part A connects competing interests to the policymaking process.<br>             <strong>(C)</strong> Explain one way that government could respond to the competing interests described in the scenario.',
     maxScore: 3, goldReward: 60,
     rubric: `3-point Concept Application FRQ:
 PART A (1 point): Student identifies a linkage institution or process relevant to the scenario. Accept: interest groups, political parties, elections, media, lobbying. Must be accurately described with reference to competing interests.
@@ -1813,7 +1969,7 @@ PART C (1 point): Explains one way that government could respond to address the 
 SCORING: Each part scored independently (0 or 1). Generic answers earn 0. Maximum 3 points.`
   },
   frq2: {
-    title: 'The Role of Interest Groups in American Democracy (Argument Essay)',
+    title: 'The Role of Interest Groups in American Democracy (Argument Essay)', promptHtml: '<div style="font-family:var(--crimson);font-size:15px;color:var(--text);line-height:1.75">             Develop an argument that evaluates whether interest groups help or harm American democracy.             <br><br>             Use at least <strong>one piece of evidence</strong> from one of the following:             <ul style="margin:10px 0 10px 20px;line-height:2">               <li>Federalist No. 10 (James Madison, 1787)</li>               <li>Citizens United v. FEC (2010)</li>               <li>McCulloch v. Maryland (1819)</li>             </ul>             In your essay, you must:             <ul style="margin:0 0 0 20px;line-height:2">               <li>Articulate a defensible claim or thesis that establishes a line of reasoning</li>               <li>Support your claim with at least TWO pieces of evidence (one from the documents above)</li>               <li>Use reasoning to explain why your evidence supports your claim</li>               <li>Respond to an opposing perspective using rebuttal or refutation</li>             </ul>',
     maxScore: 6, goldReward: 120,
     rubric: `6-point Argument Essay FRQ:
 TASK A — THESIS (1 point): Defensible claim about whether interest groups help or harm American democracy, with a line of reasoning. Must go beyond restating the prompt. Required for Tasks B3 and D.
