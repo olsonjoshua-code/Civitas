@@ -1372,6 +1372,37 @@ function renderVocabQuizComplete() {
       badge.textContent = pct + '%';
       badge.style.display = 'block';
     }
+    // Push vocab to Supabase for cross-device sync
+    try {
+      const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+      if (fn && fn !== 'Mr. Olson') {
+        // Read existing vocab from Supabase first, then merge
+        fetch(_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=vocab_passed,vocab_best_score&limit=1',
+          {headers: {'Content-Type':'application/json','apikey':_SUPA_KEY,'Authorization':'Bearer '+_SUPA_KEY}}
+        ).then(r => r.json()).then(rows => {
+          const existing = rows && rows[0];
+          let vp = {}; let vbs = {};
+          try { vp = JSON.parse(existing && existing.vocab_passed || '{}'); } catch(e) {}
+          try { vbs = JSON.parse(existing && existing.vocab_best_score || '{}'); } catch(e) {}
+          vp[UNIT_ID] = passed || vp[UNIT_ID] || false;
+          vbs[UNIT_ID] = Math.max(pct, vbs[UNIT_ID] || 0);
+          // Also write to civitas_state so shell sees it on next boot
+          try {
+            const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+            if (!civ.vocabPassed) civ.vocabPassed = {};
+            if (!civ.vocabBestScore) civ.vocabBestScore = {};
+            civ.vocabPassed[UNIT_ID] = passed || civ.vocabPassed[UNIT_ID] || false;
+            civ.vocabBestScore[UNIT_ID] = Math.max(pct, civ.vocabBestScore[UNIT_ID] || 0);
+            localStorage.setItem('civitas_state', JSON.stringify(civ));
+          } catch(e) {}
+          return fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','apikey':_SUPA_KEY,'Authorization':'Bearer '+_SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+            body: JSON.stringify({full_name: fn, vocab_passed: JSON.stringify(vp), vocab_best_score: JSON.stringify(vbs), updated_at: new Date().toISOString()})
+          });
+        }).catch(() => {});
+      }
+    } catch(e) {}
   } catch(e) {}
 
   el.innerHTML = `
