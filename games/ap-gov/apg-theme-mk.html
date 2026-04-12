@@ -1572,6 +1572,34 @@ function printUnitCertificate() {
   w.document.close();
 }
 
+function renderRoundCards(){
+  const el=document.getElementById('round-cards');if(!el)return;
+  const colors=['var(--acc2)','var(--blue)','var(--amber)','var(--purple2)'];
+  el.innerHTML=QUESTION_BANK.rounds.map((round,i)=>{
+    const progress=getRoundProgress(i);const unlocked=isRoundUnlocked(i);const done=progress!==null;const color=colors[i];
+    const trophy=done?getTrophyForAccuracy(progress.bestPct):null;
+    return`<div style="background:var(--bg2);border:1px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};border-left:4px solid ${done?color:unlocked?'var(--border2)':'var(--border)'};display:flex;align-items:center;gap:16px;padding:14px 18px;transition:all .2s;${unlocked?'cursor:pointer':'opacity:.45;cursor:not-allowed'}"
+      ${unlocked?`onclick="startRound(${i})" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='${done?color:unlocked?'var(--border2)':'var(--border)'}'"`:''}>
+      <div style="font-size:28px;flex-shrink:0">${round.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">ROUND ${i+1} OF ${QUESTION_BANK.rounds.length}</div>
+        <div style="font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:2px">${round.label.replace(/^Round \d+ — /,'')}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${round.desc.split('.')[0]}.</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        ${done?`<div style="font-family:var(--bebas);font-size:28px;line-height:1;color:${trophy.color}">${progress.bestPct}%</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-bottom:6px">${trophy.label}</div><div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:3px 10px">↺ Replay</div>`
+        :unlocked?`<div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${color};border:1px solid ${color};padding:6px 16px">▶ Play</div>`
+        :`<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">🔒 Complete Round ${i} first</div>`}
+      </div></div>`;
+  }).join('');
+  const completed=QUESTION_BANK.rounds.filter((_,i)=>getRoundProgress(i)!==null).length;
+  const pct=Math.round(completed/QUESTION_BANK.rounds.length*100);
+  const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
+  if(pf)pf.style.width=pct+'%';if(pp)pp.textContent=`${completed} / ${QUESTION_BANK.rounds.length} rounds complete`;
+  if(allRoundsComplete())renderCompleteBanner();
+  appendFRQRoundCard();
+}
+
 function getTrophyForAccuracy(pct){
   if(pct===100)return{label:'Historian',icon:'🏛️',color:'var(--purple2)',glow:'rgba(144,128,240,.4)'};
   if(pct>=90)return{label:'Gold Trophy',icon:'🥇',color:'var(--gold)',glow:'rgba(255,215,0,.4)'};
