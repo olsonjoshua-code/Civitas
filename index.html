@@ -6129,7 +6129,11 @@ function printUnitTrophyCert(unitId) {
   var progress = {};
   try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
   var up = progress[unitId] || {};
-  var pct = up.bestAccuracy || 0;
+  var pct = up.bestAccuracy || up.composite || 0;
+  var mcqScore = up.mcqScore || 0;
+  var frqScore = up.frqScore || 0;
+  var vocabScore = up.vocabScore || 0;
+  var isTheme = unitId.startsWith('apg_bi');
   var studentName = S.name || S.fullName || localStorage.getItem('civitas_student_name') || 'Student';
   var period = S.courses && S.courses[0] ? S.courses[0].period : '';
   var date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
@@ -6141,6 +6145,17 @@ function printUnitTrophyCert(unitId) {
   var tc = tiers.color;
   var w = window.open('','_blank','width=860,height=580');
   if (!w) { notify('Allow popups to print.'); return; }
+  var statsHtml = isTheme
+    ? '<div><div class="stat-val">' + mcqScore + '%</div><div class="stat-lbl">MCQ SCORE</div></div>'
+      + '<div><div class="stat-val">' + frqScore + '%</div><div class="stat-lbl">FRQ SCORE</div></div>'
+      + '<div><div class="stat-val">' + pct + '%</div><div class="stat-lbl">COMPOSITE</div></div>'
+      + '<div><div class="stat-val">' + tiers.emoji + '</div><div class="stat-lbl">TROPHY</div></div>'
+    : '<div><div class="stat-val">' + mcqScore + '%</div><div class="stat-lbl">MCQ SCORE</div></div>'
+      + '<div><div class="stat-val">' + frqScore + '%</div><div class="stat-lbl">FRQ SCORE</div></div>'
+      + '<div><div class="stat-val">' + vocabScore + '%</div><div class="stat-lbl">VOCAB SCORE</div></div>'
+      + '<div><div class="stat-val">' + pct + '%</div><div class="stat-lbl">COMPOSITE</div></div>'
+      + '<div><div class="stat-val">' + tiers.emoji + '</div><div class="stat-lbl">TROPHY</div></div>';
+  var weightingNote = isTheme ? 'MCQ 67% · FRQ 33%' : 'MCQ 50% · FRQ 25% · VOCAB 25%';
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Unit Certificate</title>'
     + '<style>@import url(\'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&display=swap\');'
     + '*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;flex-direction:column}'
@@ -6165,9 +6180,10 @@ function printUnitTrophyCert(unitId) {
     + '<div style="font-size:32px;margin:8px 0">' + tiers.emoji + '</div>'
     + '<div style="font-family:\'Cinzel Decorative\',serif;font-size:16px;color:' + tc + ';margin:4px 0">' + tiers.label.toUpperCase() + ' TROPHY</div>'
     + '<div class="stats">'
-    + '<div><div class="stat-val">' + pct + '%</div><div class="stat-lbl">AVG ACCURACY</div></div>'
-    + '<div><div class="stat-val">' + tiers.emoji + '</div><div class="stat-lbl">TROPHY</div></div>'
-    + '</div><div class="divider"></div>'
+    + statsHtml
+    + '</div>'
+    + '<div style="font-family:\'DM Sans\',sans-serif;font-size:8px;color:#8a6a2a;letter-spacing:.08em;margin-bottom:4px">' + weightingNote + '</div>'
+    + '<div class="divider"></div>'
     + '<div class="sigs">'
     + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period ? ' - PERIOD ' + period : '') + '</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
