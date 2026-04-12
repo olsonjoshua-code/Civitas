@@ -701,7 +701,7 @@ body::before{content:'';position:fixed;inset:0;
       <div class="campaign-section" id="campaign-rpg-section" style="margin-bottom:22px">
         <div id="rpg-card-mount"></div>
       </div>
-      <div class="trophy-room-hero"><div class="tr-icon">🏆</div><div style="flex:1"><div class="tr-title">Trophy Room</div><div class="tr-sub">Your best performance in each era. Earned by accuracy — certificates print your full history.</div></div><button onclick="syncFromSupabase().then(()=>{buildUnitMedalGrid();buildFRQTrophyGrid();renderTrophyRoom();})" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--teal2)';this.style.color='var(--teal2)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↻ Refresh</button></div>
+      <div class="trophy-room-hero"><div class="tr-icon">🏆</div><div style="flex:1"><div class="tr-title">Trophy Room</div><div class="tr-sub">Your best performance in each era. Earned by accuracy — certificates print your full history.</div></div><button onclick="fullRefreshFromSupabase()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--teal2)';this.style.color='var(--teal2)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↻ Refresh</button></div>
       <div class="tier-legend">
         <div class="tl-item"><div class="tl-dot" style="border-color:var(--historian);background:rgba(232,208,255,.15)"></div>Historian — 100%</div>
         <div class="tl-item"><div class="tl-dot" style="border-color:var(--gold);background:rgba(255,215,0,.15)"></div>Gold — 90–99%</div>
@@ -2820,6 +2820,84 @@ async function resetProfile(){
 }
 
 // ── SUPABASE SYNC ─────────────────────────────────────
+async function fullRefreshFromSupabase() {
+  // Show feedback
+  const btn = document.querySelector('[onclick="fullRefreshFromSupabase()"]');
+  if (btn) { btn.textContent = '⏳ Syncing...'; btn.disabled = true; }
+  try {
+    // 1. Pull directly from civitas_profiles — the most up to date source
+    try {
+      const fullName = S.fullName || S.name;
+      if (fullName && fullName !== 'Guest') {
+        const resp = await fetch(
+          SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=vocab_passed,vocab_best_score,gold,frq_progress&limit=1',
+          {headers: SUPA_H}
+        );
+        const rows = await resp.json();
+        if (Array.isArray(rows) && rows[0]) {
+          const p = rows[0];
+          if (!S.vocabPassed) S.vocabPassed = {};
+          if (!S.vocabBestScore) S.vocabBestScore = {};
+          try {
+            const vp = JSON.parse(p.vocab_passed || '{}');
+            const vbs = JSON.parse(p.vocab_best_score || '{}');
+            Object.keys(vp).forEach(k => { if(vp[k]) S.vocabPassed[k] = true; });
+            Object.keys(vbs).forEach(k => { if(k[0]!=='_') S.vocabBestScore[k] = Math.max(vbs[k]||0, S.vocabBestScore[k]||0); });
+          } catch(e) {}
+          if (p.gold) S.gold = Math.max(S.gold||0, p.gold);
+          // Also update civitas_state so next boot has fresh data
+          try {
+            const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+            if (!civ.vocabPassed) civ.vocabPassed = {};
+            if (!civ.vocabBestScore) civ.vocabBestScore = {};
+            Object.keys(S.vocabPassed).forEach(k => { civ.vocabPassed[k] = true; });
+            Object.keys(S.vocabBestScore).forEach(k => { civ.vocabBestScore[k] = Math.max(S.vocabBestScore[k]||0, civ.vocabBestScore[k]||0); });
+            if (p.gold) civ.gold = Math.max(p.gold, civ.gold||0);
+            localStorage.setItem('civitas_state', JSON.stringify(civ));
+          } catch(e) {}
+        }
+      }
+    } catch(e) {}
+
+    // 2. Also merge from civitas_state (local Civitas shell cache)
+    try {
+      const civRaw = localStorage.getItem('civitas_state');
+      if (civRaw) {
+        const civ = JSON.parse(civRaw);
+        if (civ && civ.vocabPassed) {
+          if (!S.vocabPassed) S.vocabPassed = {};
+          if (!S.vocabBestScore) S.vocabBestScore = {};
+          Object.keys(civ.vocabPassed).forEach(k => { if(civ.vocabPassed[k]) S.vocabPassed[k] = true; });
+          Object.keys(civ.vocabBestScore||{}).forEach(k => {
+            S.vocabBestScore[k] = Math.max(civ.vocabBestScore[k]||0, S.vocabBestScore[k]||0);
+          });
+        }
+        if (civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
+      }
+    } catch(e) {}
+
+    // 3. Pull latest from ac_student_profiles (vocab + gold)
+    if (S.fullName && S.period !== undefined) {
+      const profile = await loadProfileByName(S.fullName, S.period);
+      if (profile) applyStudentProfile(profile);
+    }
+    // 4. Sync trophies from ac_results
+    await syncFromSupabase();
+    saveS();
+    // 5. Rebuild all displays
+    buildUnitMedalGrid();
+    buildFRQTrophyGrid();
+    renderVocabMedals();
+    renderTrophyRoom();
+    updateHUD();
+    renderTimeline();
+    notify('✅ Profile synced!');
+  } catch(e) {
+    notify('Sync failed — check your connection.');
+  }
+  if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
+}
+
 async function syncFromSupabase(){
   // Also restore vocab from ac_student_profiles on every sync
   if(S.fullName && S.period){
