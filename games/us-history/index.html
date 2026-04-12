@@ -2825,7 +2825,31 @@ async function fullRefreshFromSupabase() {
   const btn = document.querySelector('[onclick="fullRefreshFromSupabase()"]');
   if (btn) { btn.textContent = '⏳ Syncing...'; btn.disabled = true; }
   try {
-    // 1. Re-merge vocab from civitas_state (Civitas shell restore)
+    // 1. Pull directly from civitas_profiles — the most up to date source
+    try {
+      const fullName = S.fullName || S.name;
+      if (fullName && fullName !== 'Guest') {
+        const resp = await fetch(
+          SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=vocab_passed,vocab_best_score,gold,frq_progress&limit=1',
+          {headers: SUPA_H}
+        );
+        const rows = await resp.json();
+        if (Array.isArray(rows) && rows[0]) {
+          const p = rows[0];
+          if (!S.vocabPassed) S.vocabPassed = {};
+          if (!S.vocabBestScore) S.vocabBestScore = {};
+          try {
+            const vp = JSON.parse(p.vocab_passed || '{}');
+            const vbs = JSON.parse(p.vocab_best_score || '{}');
+            Object.keys(vp).forEach(k => { if(vp[k]) S.vocabPassed[k] = true; });
+            Object.keys(vbs).forEach(k => { if(k[0]!=='_') S.vocabBestScore[k] = Math.max(vbs[k]||0, S.vocabBestScore[k]||0); });
+          } catch(e) {}
+          if (p.gold) S.gold = Math.max(S.gold||0, p.gold);
+        }
+      }
+    } catch(e) {}
+
+    // 2. Also merge from civitas_state (local Civitas shell cache)
     try {
       const civRaw = localStorage.getItem('civitas_state');
       if (civRaw) {
@@ -2841,15 +2865,16 @@ async function fullRefreshFromSupabase() {
         if (civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
       }
     } catch(e) {}
-    // 2. Pull latest from ac_student_profiles (vocab + gold)
+
+    // 3. Pull latest from ac_student_profiles (vocab + gold)
     if (S.fullName && S.period !== undefined) {
       const profile = await loadProfileByName(S.fullName, S.period);
       if (profile) applyStudentProfile(profile);
     }
-    // 3. Sync trophies from ac_results
+    // 4. Sync trophies from ac_results
     await syncFromSupabase();
     saveS();
-    // 4. Rebuild all displays
+    // 5. Rebuild all displays
     buildUnitMedalGrid();
     buildFRQTrophyGrid();
     renderVocabMedals();
