@@ -5892,7 +5892,7 @@ function renderMCQMedals() {
 
   el.innerHTML = units.map(u => {
     const ud = progress[u.id];
-    const score = ud ? (ud.mcqScore || ud.bestAccuracy || null) : null;
+    const score = ud ? (Math.min(100, ud.mcqScore || ud.bestAccuracy || 0) || null) : null;
     const earned = score !== null && score >= 60;
     const t = earned ? tier(score) : null;
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;background:var(--bg2);border:1px solid ${earned ? t.ribbon+'88' : 'var(--border)'};min-width:70px">
@@ -5933,7 +5933,7 @@ function renderFRQMedals() {
 
   el.innerHTML = units.map(u => {
     const ud = progress[u.id];
-    const frqScore = ud ? (ud.frqScore || null) : null;
+    const frqScore = ud ? (Math.min(100, ud.frqScore || 0) || null) : null;
     // Units need all 4 FRQ types (frqAllDone=true); themes just need 1 FRQ submitted
     const isTheme = u.id.startsWith('apg_bi');
     const frqAllDone = ud ? (isTheme ? frqScore !== null : (ud.frqAllDone || false)) : false;
@@ -6057,7 +6057,7 @@ function renderBigIdeaTrophies() {
     + BIG_IDEAS.map(function(bi) {
       var p = prog[bi.id];
       var done = p && p.completedAt;
-      var pct = done ? (p.bestAccuracy || 0) : null;
+      var pct = done ? Math.min(100, p.composite ?? p.bestAccuracy ?? 0) : null;
       var t = done ? biTier(pct) : null;
       return '<div class="trophy-card" style="border-top:3px solid ' + (done ? bi.color : 'var(--border)') + ';animation:none">'
         + '<div class="trophy-era" style="height:52px;font-size:22px">' + (done ? t.icon : bi.icon)
@@ -6131,7 +6131,7 @@ function printUnitTrophyCert(unitId) {
   var progress = {};
   try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
   var up = progress[unitId] || {};
-  var pct = up.bestAccuracy || up.composite || 0;
+  var pct = Math.min(100, up.composite ?? up.bestAccuracy ?? 0);
   var mcqScore = up.mcqScore || 0;
   var frqScore = up.frqScore || 0;
   var vocabScore = up.vocabScore || 0;
