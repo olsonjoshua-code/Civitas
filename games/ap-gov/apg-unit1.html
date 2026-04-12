@@ -1268,6 +1268,39 @@ function closeFlashcards() {
 // ── VOCAB QUIZ ENGINE ─────────────────────────────────────
 let _vqQuestions = [], _vqIdx = 0, _vqScore = 0, _vqAnswered = false;
 
+function _enterQuizFocus() {
+  // Hide hub header and tabs for mobile focus mode
+  const header = document.getElementById('game-header');
+  const tabs = document.querySelector('.hub-tabs');
+  const startCard = document.querySelector('#tab-quiz > div:first-of-type');
+  if (header) header.style.display = 'none';
+  if (tabs) tabs.style.display = 'none';
+  if (startCard) startCard.style.display = 'none';
+  // Add exit button at top of quiz area
+  const vqArea = document.getElementById('vq-area');
+  if (vqArea) {
+    const exitBtn = document.createElement('div');
+    exitBtn.id = 'vq-exit-btn';
+    exitBtn.innerHTML = '<button onclick="_exitQuizFocus()" style="font-family:var(--dm);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;margin-bottom:12px">✕ Exit Quiz</button>';
+    vqArea.parentNode.insertBefore(exitBtn, vqArea);
+  }
+}
+
+function _exitQuizFocus() {
+  // Restore hub header and tabs
+  const header = document.getElementById('game-header');
+  const tabs = document.querySelector('.hub-tabs');
+  const startCard = document.querySelector('#tab-quiz > div:first-of-type');
+  if (header) header.style.display = '';
+  if (tabs) tabs.style.display = '';
+  if (startCard) startCard.style.display = '';
+  const exitBtn = document.getElementById('vq-exit-btn');
+  if (exitBtn) exitBtn.remove();
+  // Clear quiz area
+  const vqArea = document.getElementById('vq-area');
+  if (vqArea) vqArea.innerHTML = '';
+}
+
 function startVocabQuiz() {
   // Close flashcards if open
   closeFlashcards();
@@ -1278,6 +1311,8 @@ function startVocabQuiz() {
   if (qt) qt.classList.add('active');
   const qp = document.getElementById('tab-quiz');
   if (qp) qp.classList.add('active');
+  // Enter focus mode — hide header/tabs on mobile
+  _enterQuizFocus();
 
   // Build 20 questions — term → pick correct definition from 4
   const shuffled = [...VOCAB_TERMS].sort(() => Math.random() - 0.5);
@@ -1358,6 +1393,8 @@ function answerVocabQ(choiceIdx) {
 }
 
 function renderVocabQuizComplete() {
+  // Restore hub layout
+  _exitQuizFocus();
   const el = document.getElementById('vq-area');
   const pct = Math.round((_vqScore / _vqQuestions.length) * 100);
   const passed = pct >= 80;
