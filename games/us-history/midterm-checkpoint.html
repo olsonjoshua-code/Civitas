@@ -615,6 +615,11 @@ function afterLogin() {
     var rb = document.getElementById('shell-return-btn');
     if (rb) rb.style.display = 'block';
   }
+  // Restore section progress from Supabase (handles wiped Chromebook localStorage)
+  var restoreName = G && (G.fullName || G.name);
+  if (restoreName && restoreName !== 'Guest') {
+    restoreMidtermFromSupabase(restoreName);
+  }
   renderHub();
   showScreen('hub-screen');
   setActiveNav(0);
@@ -1363,10 +1368,55 @@ async function pushACResult() {
         courses: JSON.stringify(existingCourses),
         unit_progress: JSON.stringify(unitProgress),
         course_progress: JSON.stringify(courseProgress),
+        midterm_progress: JSON.stringify({
+          sectionBest: G._sectionBest || [],
+          sectionUnlocked: G._sectionUnlocked || [],
+          score: G.score || 0,
+          savedAt: new Date().toISOString()
+        }),
         updated_at: new Date().toISOString()
       })
     });
   } catch(e) { console.log('civitas_profiles push failed', e); }
+}
+
+// Restore midterm section progress from Supabase (handles wiped localStorage)
+async function restoreMidtermFromSupabase(fullName) {
+  if (!fullName || fullName === 'Guest') return;
+  try {
+    var resp = await fetch(
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=midterm_progress,unit_progress&limit=1',
+      {headers: AC_HEADERS}
+    );
+    var rows = await resp.json();
+    if (!rows || !rows[0]) return;
+    var profile = rows[0];
+    // Restore section progress
+    if (profile.midterm_progress && profile.midterm_progress !== '{}') {
+      try {
+        var mp = JSON.parse(profile.midterm_progress);
+        if (mp.sectionBest && mp.sectionBest.length) {
+          // Supabase wins — only restore if better than local
+          var localBest = G._sectionBest || [];
+          mp.sectionBest.forEach(function(v, i) {
+            if (v !== null && (localBest[i] === null || localBest[i] === undefined || v > localBest[i])) {
+              if (!G._sectionBest) G._sectionBest = [null,null,null,null,null,null];
+              G._sectionBest[i] = v;
+              // Unlock next section if passed
+              var sp = QUESTION_BANK.filter(function(q){return q.section===(i+1);});
+              var st = Math.min(8, sp.length);
+              if (v >= Math.ceil(st * 0.75) && i+1 < 6) {
+                if (!G._sectionUnlocked) G._sectionUnlocked = [true,false,false,false,false,false];
+                G._sectionUnlocked[i+1] = true;
+              }
+            }
+          });
+          saveGame();
+          try { renderHub(); } catch(e) {}
+        }
+      } catch(e) {}
+    }
+  } catch(e) { console.log('restoreMidtermFromSupabase failed', e); }
 }
 
 (function() {
