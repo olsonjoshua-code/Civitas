@@ -2572,6 +2572,38 @@ function awardGoldToShell(amount, source, showParticle = true) {
     shell.goldLedger.unshift({ ts: Date.now(), source, unitId: UNIT_ID, amount, type: 'earn' });
     if (shell.goldLedger.length > 50) shell.goldLedger = shell.goldLedger.slice(0, 50);
     localStorage.setItem(SHELL_KEY, JSON.stringify(shell));
+    // Push gold to Supabase for cross-device sync (debounced)
+    clearTimeout(awardGoldToShell._t);
+    awardGoldToShell._t = setTimeout(() => {
+      try {
+        const fullName = P ? (P.fullName || P.name) : null;
+        if (!fullName || fullName === 'Guest') return;
+        const s = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+        fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+          method: 'POST',
+          headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+          body: JSON.stringify({
+            full_name: fullName,
+            gold: s.gold || 0,
+            gold_earned: s.goldEarned || 0,
+            updated_at: new Date().toISOString()
+          })
+        }).catch(()=>{});
+        // Also push to ac_student_profiles
+        fetch(AC_SUPA_URL + '/rest/v1/ac_student_profiles?on_conflict=full_name,period', {
+          method: 'POST',
+          headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+          body: JSON.stringify({
+            full_name: fullName,
+            display_name: P ? P.name : fullName,
+            period: String(P ? (P.period || '') : ''),
+            gold: s.gold || 0,
+            gold_earned: s.goldEarned || 0,
+            updated_at: new Date().toISOString()
+          })
+        }).catch(()=>{});
+      } catch(e) {}
+    }, 2000);
   } catch(e) { console.warn('Gold write failed', e); }
   if (showParticle) spawnGoldParticle('+' + amount + ' 🪙');
   // Update HUD gold display
