@@ -2845,6 +2845,16 @@ async function fullRefreshFromSupabase() {
             Object.keys(vbs).forEach(k => { if(k[0]!=='_') S.vocabBestScore[k] = Math.max(vbs[k]||0, S.vocabBestScore[k]||0); });
           } catch(e) {}
           if (p.gold) S.gold = Math.max(S.gold||0, p.gold);
+          // Also update civitas_state so next boot has fresh data
+          try {
+            const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+            if (!civ.vocabPassed) civ.vocabPassed = {};
+            if (!civ.vocabBestScore) civ.vocabBestScore = {};
+            Object.keys(S.vocabPassed).forEach(k => { civ.vocabPassed[k] = true; });
+            Object.keys(S.vocabBestScore).forEach(k => { civ.vocabBestScore[k] = Math.max(S.vocabBestScore[k]||0, civ.vocabBestScore[k]||0); });
+            if (p.gold) civ.gold = Math.max(p.gold, civ.gold||0);
+            localStorage.setItem('civitas_state', JSON.stringify(civ));
+          } catch(e) {}
         }
       }
     } catch(e) {}
