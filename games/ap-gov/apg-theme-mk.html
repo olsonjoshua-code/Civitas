@@ -207,6 +207,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   #question-area{padding:14px}
   .question-card{padding:16px}
 }
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.activity-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:16px 18px}
+.activity-card-icon{font-size:26px;margin-bottom:8px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px}
+.activity-card-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:5px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:12px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;background:rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
@@ -237,9 +248,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   <button onclick="saveGameToFile()" style="position:absolute;top:16px;right:155px;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1.5px solid var(--blue);color:var(--blue2);padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10" onmouseover="this.style.background='var(--blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--blue2)'">💾 Save</button>
   </div>
   <div class="hub-tabs">
-    <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
-    
-    <button class="hub-tab" onclick="switchTab('about',this)">📋 About This Game</button>
+    <button class="hub-tab active" id="hubtab-btn-play" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" id="hubtab-btn-rounds" onclick="switchTab('rounds',this)">⚔️ Rounds</button>
+    <button class="hub-tab" id="hubtab-btn-frq" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" id="hubtab-btn-about" onclick="switchTab('about',this)">📋 About</button>
   </div>
   <div class="hub-content">
     <div class="hub-panel active" id="tab-play">
@@ -721,8 +733,9 @@ function renderRoundCards(){
   const pct=Math.round(completed/QUESTION_BANK.rounds.length*100);
   const pf=document.getElementById('prog-fill');const pp=document.getElementById('prog-pct');
   if(pf)pf.style.width=pct+'%';if(pp)pp.textContent=`${completed} / ${QUESTION_BANK.rounds.length} rounds complete`;
-  if(allRoundsComplete())renderCompleteBanner();
-  appendFRQRoundCard();
+  renderHubTrophySection();
+  renderPlayTabSummary();
+  updateBadges();
 }
 
 function renderCompleteBanner(){
@@ -1245,6 +1258,154 @@ function showRoundComplete(){
     if(allRoundsComplete()){showThemeComplete(pct);}else{renderRoundCards();}
   };}
 }
+
+// ── COMPOSITE SCORE & TROPHY SECTION (67% MCQ · 33% FRQ) ─────────────────
+
+function getCompositeScore() {
+  // MCQ score — average accuracy across all rounds
+  const roundScores = QUESTION_BANK.rounds.map((_, i) => {
+    const p = getRoundProgress(i);
+    return p ? (p.bestPct || 0) : 0;
+  });
+  const mcqScore = roundScores.length
+    ? Math.round(roundScores.reduce((a, b) => a + b, 0) / roundScores.length)
+    : 0;
+  const mcqAttempted = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+
+  // FRQ score — from theme FRQ save key
+  const FRQ_KEY = 'civitas_frq_mk_frq1';
+  const FRQ_MAX = 3;
+  const frqRaw = parseInt(localStorage.getItem(FRQ_KEY) || '0');
+  const frqScore = FRQ_MAX > 0 ? Math.round(frqRaw / FRQ_MAX * 100) : 0;
+  const frqAttempted = frqRaw > 0;
+  const frqAllDone = frqAttempted; // theme has 1 FRQ
+
+  // Composite: MCQ 67% + FRQ 33%
+  const composite = Math.round(mcqScore * 0.67 + frqScore * 0.33);
+
+  return { mcqScore, frqScore, composite,
+    mcqAttempted, frqAttempted, frqAllDone,
+    allAttempted: mcqAttempted && frqAttempted };
+}
+
+function calcTier(composite) {
+  if (composite === 100) return { label: 'Historian', icon: '🏛️', color: 'var(--purple2)' };
+  if (composite >= 90)  return { label: 'Gold',      icon: '🥇', color: 'var(--gold)' };
+  if (composite >= 75)  return { label: 'Silver',    icon: '🥈', color: '#c8c8d8' };
+  if (composite >= 60)  return { label: 'Bronze',    icon: '🥉', color: '#cd7f32' };
+  return null;
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  const { mcqScore, frqScore, composite, mcqAttempted, frqAttempted, frqAllDone } = getCompositeScore();
+  const tier = calcTier(composite);
+
+  if (!mcqAttempted && !frqAttempted) { el.innerHTML = ''; return; }
+
+  const tierColor = tier ? tier.color : 'var(--amber)';
+  const tierIcon = tier ? tier.icon : '⏳';
+  const tierLabel = tier ? tier.label : 'In Progress';
+
+  function medalRow(label, score, attempted, color) {
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">${label}</span>
+        <span style="font-family:var(--bebas);font-size:15px;color:${attempted ? color : 'var(--text3)'}">${attempted ? score + '%' : '—'}</span>
+      </div>
+      <div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden">
+        <div style="height:100%;width:${attempted ? score : 0}%;background:${color};border-radius:2px;transition:width .6s ease"></div>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid ${tierColor};padding:16px 18px;margin-top:4px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:36px">${tierIcon}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">UNIT TROPHY</div>
+          <div style="font-family:var(--bebas);font-size:22px;color:${tierColor};letter-spacing:2px">${tierLabel}</div>
+          <div style="font-family:var(--bebas);font-size:30px;color:${tierColor};line-height:1">${composite}%</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px">Composite Score</div>
+        </div>
+        ${tier ? `<button onclick="printUnitCertificate()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid ${tierColor};color:${tierColor};padding:6px 12px;cursor:pointer">🖨 Print</button>` : ''}
+      </div>
+      <div>
+        ${medalRow('UNIT GAME (MCQ)', mcqScore, mcqAttempted, 'var(--gold)')}
+        ${medalRow('FRQ PRACTICE', frqScore, frqAttempted, 'var(--teal2)')}
+      </div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6">
+        Weighted: MCQ 67% · FRQ 33% · Unfinished sections count as 0%
+      </div>
+    </div>`;
+
+  // Save scores to unit progress
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || '';
+    if (fn && fn !== 'Mr. Olson') {
+      const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+      const existing = prog[UNIT_ID] || {};
+      const needsUpdate = composite > (existing.composite || 0) || mcqScore > (existing.mcqScore || 0) || frqScore > (existing.frqScore || 0);
+      if (needsUpdate) {
+        prog[UNIT_ID] = Object.assign({}, existing, {
+          bestAccuracy: Math.max(composite, existing.bestAccuracy || 0),
+          composite, mcqScore, frqScore, frqAllDone,
+          ...(tier ? { trophy: tier.label.toLowerCase(), completedAt: existing.completedAt || new Date().toISOString() } : {})
+        });
+        localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+        _pushRoundsToSupabase();
+      }
+    }
+  } catch(e) {}
+}
+
+function renderPlayTabSummary() {
+  const el = document.getElementById('play-tab-trophy-summary');
+  if (!el) return;
+  const { mcqScore, frqScore, composite, mcqAttempted, frqAttempted } = getCompositeScore();
+  if (!mcqAttempted && !frqAttempted) { el.innerHTML = ''; return; }
+  const tier = calcTier(composite);
+  const tierColor = tier ? tier.color : 'var(--amber)';
+  const tierIcon = tier ? tier.icon : '⏳';
+  const tierLabel = tier ? tier.label : 'In Progress';
+  el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${tierColor};padding:12px 14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="font-size:28px">${tierIcon}</div>
+      <div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">CURRENT SCORE</div>
+        <div style="font-family:var(--bebas);font-size:24px;color:${tierColor};line-height:1">${composite}% <span style="font-size:13px">${tierLabel}</span></div>
+      </div>
+      <button onclick="switchTab('rounds',document.getElementById('hubtab-btn-rounds'))" style="margin-left:auto;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer">View Rounds →</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">67%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">FRQ ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">33%</span></span>
+    </div>
+  </div>`;
+}
+
+function updateBadges() {
+  // MCQ badge
+  const mcqAttempted = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const mcqScores = QUESTION_BANK.rounds.map((_, i) => { const p = getRoundProgress(i); return p ? (p.bestPct || 0) : 0; });
+  const mcqAvg = mcqScores.length ? Math.round(mcqScores.reduce((a,b)=>a+b,0)/mcqScores.length) : 0;
+  const badgeGame = document.getElementById('badge-game');
+  if (badgeGame && mcqAttempted) { badgeGame.textContent = mcqAvg + '%'; badgeGame.style.display = 'block'; }
+
+  // FRQ badge
+  const FRQ_KEY = 'civitas_frq_mk_frq1';
+  const frqRaw = parseInt(localStorage.getItem(FRQ_KEY) || '0');
+  const FRQ_MAX = 3;
+  const badgeFRQ = document.getElementById('badge-frq');
+  if (badgeFRQ && frqRaw > 0) {
+    badgeFRQ.textContent = frqRaw + '/' + FRQ_MAX;
+    badgeFRQ.style.display = 'block';
+  }
+}
+
 function getTrophyForAccuracy(pct){
   if(pct===100)return{label:'Historian',icon:'🏛️',color:'var(--purple2)',glow:'rgba(144,128,240,.4)'};
   if(pct>=90)return{label:'Gold Trophy',icon:'🥇',color:'var(--gold)',glow:'rgba(255,215,0,.4)'};
@@ -1355,8 +1516,7 @@ async function submitFRQ(frqId) {
     btnEl.textContent='⚡ Submit for AI Grading';
   }
   btnEl.disabled=false;
-  // Re-check unit completion after FRQ submit — triggers trophy if now complete
-  try { if (typeof allRoundsComplete === 'function' && allRoundsComplete()) { renderUnitTrophyBanner(); updateProgress(); } } catch(e) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
 }
 
 
