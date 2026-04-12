@@ -871,6 +871,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
           <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px">Score 80%+ on a unit vocab quiz to earn a medal.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="vocab-medal-grid"></div>
 
+          <div class="sh" style="margin-bottom:8px">MCQ Medals</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px">Complete all rounds in a unit to earn an MCQ medal.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="mcq-medal-grid"></div>
+
+          <div class="sh" style="margin-bottom:8px">FRQ Medals</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px">Submit all 4 FRQ types in a unit to earn an FRQ medal.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="frq-medal-grid"></div>
+
           <div class="sh" style="margin-bottom:10px">Big Idea Review Trophies</div>
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px" id="big-idea-trophies"></div>
 
@@ -5534,6 +5542,8 @@ function openUnitPreview(courseId, unitId){
 // ══════════════════════════════════════════════════════
 function renderCourseTrophies(){
   renderVocabMedals();
+  renderMCQMedals();
+  renderFRQMedals();
   renderBigIdeaTrophies();
   const el=document.getElementById('cv-trophy-grid');
   const units=COURSE_UNITS[_activeCourseId]||[];
@@ -5851,6 +5861,80 @@ th{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:#8a6a2a;pa
   <button class="print-btn" style="background:#5a4520;color:#faf7f0;margin-left:8px" onclick="window.close()">✕ CLOSE</button>
 </div></div></body></html>`);
   w.document.close();
+}
+
+function renderMCQMedals() {
+  const el = document.getElementById('mcq-medal-grid');
+  if (!el) return;
+  if (_activeCourseId !== 'ap_gov') { el.innerHTML = ''; return; }
+
+  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+  const units = [
+    { id:'apg_u1', label:'Unit 1', sub:'Foundations' },
+    { id:'apg_u2', label:'Unit 2', sub:'Branches' },
+    { id:'apg_u3', label:'Unit 3', sub:'Civil Liberties' },
+    { id:'apg_u4', label:'Unit 4', sub:'Ideology' },
+    { id:'apg_u5', label:'Unit 5', sub:'Participation' },
+  ];
+
+  function tier(score) {
+    if (score === 100) return { color:'#e8d0ff', label:'Historian', ribbon:'#9060c0' };
+    if (score >= 90)  return { color:'#ffd700', label:'Gold',      ribbon:'#b8900a' };
+    if (score >= 75)  return { color:'#d8d8e8', label:'Silver',    ribbon:'#707080' };
+    if (score >= 60)  return { color:'#cd7f32', label:'Bronze',    ribbon:'#8b4010' };
+    return               { color:'#38a050', label:'Passed',    ribbon:'#1a6030' };
+  }
+
+  el.innerHTML = units.map(u => {
+    const ud = progress[u.id];
+    const score = ud ? (ud.mcqScore || ud.bestAccuracy || null) : null;
+    const earned = score !== null && score >= 60;
+    const t = earned ? tier(score) : null;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;background:var(--bg2);border:1px solid ${earned ? t.ribbon+'88' : 'var(--border)'};min-width:70px">
+      <div style="font-size:${earned?'22':'18'}px">${earned ? '⚔️' : '⬜'}</div>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;color:${earned ? t.color : 'var(--text3)'};">${u.label}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${u.sub}</div>
+      ${earned ? `<div style="font-family:var(--bebas);font-size:9px;color:${t.color}">${t.label}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${score}%</div>` : '<div style="font-family:var(--dm);font-size:8px;color:var(--text3)">Not earned</div>'}
+    </div>`;
+  }).join('');
+}
+
+function renderFRQMedals() {
+  const el = document.getElementById('frq-medal-grid');
+  if (!el) return;
+  if (_activeCourseId !== 'ap_gov') { el.innerHTML = ''; return; }
+
+  const progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+  const units = [
+    { id:'apg_u1', label:'Unit 1', sub:'Foundations' },
+    { id:'apg_u2', label:'Unit 2', sub:'Branches' },
+    { id:'apg_u3', label:'Unit 3', sub:'Civil Liberties' },
+    { id:'apg_u4', label:'Unit 4', sub:'Ideology' },
+    { id:'apg_u5', label:'Unit 5', sub:'Participation' },
+  ];
+
+  function tier(score) {
+    if (score === 100) return { color:'#e8d0ff', label:'Historian', ribbon:'#9060c0' };
+    if (score >= 90)  return { color:'#ffd700', label:'Gold',      ribbon:'#b8900a' };
+    if (score >= 75)  return { color:'#d8d8e8', label:'Silver',    ribbon:'#707080' };
+    if (score >= 60)  return { color:'#cd7f32', label:'Bronze',    ribbon:'#8b4010' };
+    return               { color:'#38a050', label:'Passed',    ribbon:'#1a6030' };
+  }
+
+  el.innerHTML = units.map(u => {
+    const ud = progress[u.id];
+    // FRQ medal requires all 4 types submitted (frqAllDone flag)
+    const frqScore = ud ? (ud.frqScore || null) : null;
+    const frqAllDone = ud ? (ud.frqAllDone || false) : false;
+    const earned = frqAllDone && frqScore !== null && frqScore >= 60;
+    const t = earned ? tier(frqScore) : null;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;background:var(--bg2);border:1px solid ${earned ? t.ribbon+'88' : 'var(--border)'};min-width:70px">
+      <div style="font-size:${earned?'22':'18'}px">${earned ? '✍️' : '⬜'}</div>
+      <div style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;color:${earned ? t.color : 'var(--text3)'};">${u.label}</div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${u.sub}</div>
+      ${earned ? `<div style="font-family:var(--bebas);font-size:9px;color:${t.color}">${t.label}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${frqScore}%</div>` : '<div style="font-family:var(--dm);font-size:8px;color:var(--text3)">Not earned</div>'}
+    </div>`;
+  }).join('');
 }
 
 function renderVocabMedals() {
