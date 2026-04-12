@@ -379,10 +379,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       <div class="sh">Game Rounds</div>
       <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
       <!-- FRQ required notice -->
-      <div id="frq-required-notice" style="display:none;background:rgba(112,96,208,.08);border:1px solid rgba(112,96,208,.3);border-left:4px solid var(--purple);padding:12px 18px;margin-bottom:24px">
-        <div style="font-family:var(--bebas);font-size:11px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">✍️ FRQ REQUIRED TO COMPLETE THIS UNIT</div>
-        <div style="font-family:var(--dm);font-size:10px;color:var(--text2)">You've completed all game rounds. Submit at least one FRQ in the <strong style="color:var(--purple2)">FRQ Practice</strong> tab to unlock your unit trophy and certificate.</div>
-      </div>
+      <!-- Unit Score & Trophy Section -->
+      <div id="hub-trophy-section" style="margin-bottom:16px"></div>
 
       <!-- Study activities -->
       <div class="sh">Study Tools</div>
@@ -1032,6 +1030,7 @@ function hasAnyFRQSubmitted() {
 function showHub() {
   document.getElementById('hub').style.display = 'flex';
   renderRoundCards();
+  renderHubTrophySection();
   // Restore vocab badge from localStorage or civitas_state on load
   try {
     let vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
@@ -1100,28 +1099,13 @@ function renderRoundCards() {
 
   // Update progress bar — rounds + FRQ requirement
   const completedRounds = QUESTION_BANK.rounds.filter((_, i) => getRoundProgress(i) !== null).length;
-  const frqDone = hasAnyFRQSubmitted() ? 1 : 0;
-  const total = QUESTION_BANK.rounds.length + 1; // +1 for FRQ
-  const completed = completedRounds + frqDone;
-  const pct = Math.round(completed / total * 100);
+  const pct = Math.round(completedRounds / QUESTION_BANK.rounds.length * 100);
   const progFill = document.getElementById('prog-fill');
   const progPct = document.getElementById('prog-pct');
   if (progFill) progFill.style.width = pct + '%';
-  if (progPct) progPct.textContent = `${completedRounds} / ${QUESTION_BANK.rounds.length} rounds · FRQ: ${frqDone ? '✓' : 'required'}`;
+  if (progPct) progPct.textContent = `${completedRounds} / ${QUESTION_BANK.rounds.length} rounds complete`;
 
-  // Show FRQ requirement notice if rounds done but no FRQ yet
-  const allGameRoundsDone = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
-  const frqSubmitted = hasAnyFRQSubmitted();
-  const frqNotice = document.getElementById('frq-required-notice');
-  if (frqNotice) {
-    if (allGameRoundsDone && !frqSubmitted) {
-      frqNotice.style.display = 'block';
-    } else {
-      frqNotice.style.display = 'none';
-    }
-  }
-  // Show unit trophy if all done (rounds + FRQ)
-  if (allRoundsComplete()) renderUnitTrophyBanner();
+  renderHubTrophySection();
   appendFRQRoundCard();
 }
 
@@ -1461,6 +1445,8 @@ function answerVocabQ(choiceIdx) {
 function renderVocabQuizComplete() {
   // Restore hub layout
   _exitQuizFocus();
+  // Update trophy section
+  setTimeout(() => { try { renderHubTrophySection(); } catch(e) {} }, 100);
   const el = document.getElementById('vq-area');
   const pct = Math.round((_vqScore / _vqQuestions.length) * 100);
   const passed = pct >= 80;
@@ -2091,6 +2077,131 @@ function showUnitComplete() {
 
   // Award gold to Civitas shell
   awardGoldToShell(G.totalGold, 'AP Gov Unit 1');
+}
+
+// ── COMPOSITE SCORE & TROPHY SECTION ──────────────────────────────────────
+
+function getCompositeScore() {
+  // MCQ score — average accuracy across all rounds (0 if not done)
+  const roundScores = QUESTION_BANK.rounds.map((_, i) => {
+    const p = getRoundProgress(i);
+    return p ? (p.bestPct || 0) : 0;
+  });
+  const mcqScore = roundScores.length
+    ? Math.round(roundScores.reduce((a, b) => a + b, 0) / roundScores.length)
+    : 0;
+  const mcqAttempted = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+
+  // Vocab score — from localStorage
+  const vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+  const vocabAttempted = vocabScore >= 80;
+
+  // FRQ score — total earned / total possible across assigned FRQs (zeros for unanswered)
+  const assignedFRQs = getUnitFRQs();
+  const frqTotalPossible = assignedFRQs.reduce((s, f) => s + (f.points || 3), 0);
+  const frqTotalEarned = assignedFRQs.reduce((s, f) => {
+    const best = getFRQBestScore(f.id);
+    return s + (best !== null ? best : 0);
+  }, 0);
+  const frqScore = frqTotalPossible > 0 ? Math.round(frqTotalEarned / frqTotalPossible * 100) : 0;
+  const frqAllDone = assignedFRQs.every(f => getFRQBestScore(f.id) !== null);
+  const frqAttempted = assignedFRQs.some(f => getFRQBestScore(f.id) !== null);
+
+  // Composite: MCQ 50% + Vocab 25% + FRQ 25%
+  const composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
+
+  return { mcqScore, vocabScore, frqScore, composite,
+    mcqAttempted, vocabAttempted, frqAttempted, frqAllDone,
+    allAttempted: mcqAttempted && vocabAttempted && frqAllDone };
+}
+
+function calcTier(composite) {
+  if (composite === 100) return { label: 'Historian', icon: '🏛️', color: 'var(--purple2)' };
+  if (composite >= 90)  return { label: 'Gold',      icon: '🥇', color: 'var(--gold)' };
+  if (composite >= 75)  return { label: 'Silver',    icon: '🥈', color: '#c8c8d8' };
+  if (composite >= 60)  return { label: 'Bronze',    icon: '🥉', color: '#cd7f32' };
+  return null;
+}
+
+function renderHubTrophySection() {
+  const el = document.getElementById('hub-trophy-section');
+  if (!el) return;
+
+  const { mcqScore, vocabScore, frqScore, composite,
+    mcqAttempted, vocabAttempted, frqAttempted, frqAllDone } = getCompositeScore();
+
+  const tier = calcTier(composite);
+  const assignedFRQs = getUnitFRQs();
+  const frqDoneCount = assignedFRQs.filter(f => getFRQBestScore(f.id) !== null).length;
+  const frqTotal = assignedFRQs.length;
+
+  // Only show if student has started something
+  if (!mcqAttempted && !vocabAttempted && !frqAttempted) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const tierColor = tier ? tier.color : 'var(--amber)';
+  const tierIcon = tier ? tier.icon : '⏳';
+  const tierLabel = tier ? tier.label : 'In Progress';
+
+  function medalRow(label, score, attempted, allDone, color, doneCount, total) {
+    const display = attempted ? score + '%' : '—';
+    const medalIcon = !attempted ? '○' : (allDone && score >= 90) ? '🏆' : (allDone && score >= 75) ? '⭐' : (allDone && score >= 60) ? '🥉' : attempted ? '✓' : '○';
+    const note = total && !allDone && attempted
+      ? `<span style="font-size:8px;color:var(--amber);margin-left:6px">${doneCount}/${total} · medal at ${total}/${total}</span>`
+      : allDone && score >= 60 ? `<span style="font-size:8px;color:${color};margin-left:6px">Medal ✓</span>` : '';
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px">${label}</span>
+        <span style="font-family:var(--bebas);font-size:15px;color:${attempted ? color : 'var(--text3)'}">
+          ${medalIcon} ${display}${note}
+        </span>
+      </div>
+      <div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden">
+        <div style="height:100%;width:${attempted ? score : 0}%;background:${color};border-radius:2px;transition:width .6s ease"></div>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid ${tierColor};padding:16px 18px;margin-top:4px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:36px">${tierIcon}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">UNIT TROPHY</div>
+          <div style="font-family:var(--bebas);font-size:22px;color:${tierColor};letter-spacing:2px">${tierLabel}</div>
+          <div style="font-family:var(--bebas);font-size:30px;color:${tierColor};line-height:1">${composite}%</div>
+          <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:2px">Composite Score</div>
+        </div>
+        ${tier ? `<button onclick="printUnitCertificate()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid ${tierColor};color:${tierColor};padding:6px 12px;cursor:pointer">🖨 Print</button>` : ''}
+      </div>
+      <div>
+        ${medalRow('UNIT GAME (MCQ)', mcqScore, mcqAttempted, mcqAttempted, 'var(--gold)', null, null)}
+        ${medalRow('VOCAB CHECK', vocabScore, vocabScore > 0, vocabAttempted, '#a080e8', null, null)}
+        ${medalRow('OPEN ANSWER (FRQ)', frqScore, frqAttempted, frqAllDone, 'var(--teal2)', frqDoneCount, frqTotal)}
+      </div>
+      <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6">
+        Weighted: MCQ 50% · Vocab 25% · FRQ 25% · Unfinished sections count as 0%
+      </div>
+    </div>`;
+
+  // Push to Supabase if trophy tier reached
+  if (tier) {
+    try {
+      const fn = _dbFullName || localStorage.getItem('civitas_full_name') || '';
+      if (fn && fn !== 'Mr. Olson') {
+        const prev = localStorage.getItem('civitas_unit_progress');
+        const prog = prev ? JSON.parse(prev) : {};
+        const prevTier = prog[UNIT_ID] ? prog[UNIT_ID].trophy : null;
+        if (!prevTier || composite > (prog[UNIT_ID].composite || 0)) {
+          prog[UNIT_ID] = { bestAccuracy: composite, composite, trophy: tier.label.toLowerCase(), completedAt: new Date().toISOString() };
+          localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+          _pushRoundsToSupabase();
+        }
+      }
+    } catch(e) {}
+  }
 }
 
 function getTrophyForAccuracy(pct) {
@@ -3116,8 +3227,8 @@ async function submitUnitFRQ(frqId){
     btnEl.textContent='Submit for AI Grading';
   }
   btnEl.disabled=false;
-  // Re-check unit completion after FRQ submit — triggers trophy if now complete
-  try { if (typeof allRoundsComplete === 'function' && allRoundsComplete()) { renderUnitTrophyBanner(); updateProgress(); } } catch(e) {}
+  // Update trophy section after FRQ submit
+  try { renderHubTrophySection(); } catch(e) {}
 }
 
 (function(){
