@@ -352,12 +352,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 
   <!-- Tabs -->
-  <div class="hub-tabs">
-    <button class="hub-tab active" onclick="switchTab('play',this)">🎮 Play</button>
-    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
-    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
-    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
-    <button class="hub-tab" onclick="switchTab('coverage',this)">📊 CED Coverage</button>
+  <div class="hub-tabs" style="margin-top:14px;">
+    <button class="hub-tab active" id="hubtab-btn-play" onclick="switchTab('play',this)">🎮 Play</button>
+    <button class="hub-tab" id="hubtab-btn-rounds" onclick="switchTab('rounds',this)">⚔️ Rounds</button>
+    <button class="hub-tab" id="hubtab-btn-briefing" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" id="hubtab-btn-vocab" onclick="switchTab('vocab',this)">🃏 Flashcards</button>
+    <button class="hub-tab" id="hubtab-btn-quiz" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" id="hubtab-btn-frq" onclick="switchTab('frq',this)">✍️ FRQ Practice</button>
+    <button class="hub-tab" id="hubtab-btn-coverage" onclick="switchTab('coverage',this)">📊 CED Coverage</button>
   </div>
 
   <!-- Hub Content -->
@@ -365,7 +367,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
     <!-- PLAY TAB -->
     <div class="hub-panel active" id="tab-play">
+      <div id="play-tab-trophy-summary"></div>
+      <div class="activity-grid" style="margin-top:16px;">
 
+        <!-- MCQ Rounds card -->
+        <div class="activity-card" onclick="switchTab('rounds',document.getElementById('hubtab-btn-rounds'))" style="border-top:3px solid var(--gold)">
+          <div class="activity-card-strip" style="background:var(--gold)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">⚔️</div>
+            <div class="activity-card-label">MCQ CHALLENGE · GRADED</div>
+            <div class="activity-card-title">Unit Game</div>
+            <div class="activity-card-desc">Play through all rounds covering Unit 1. Answer multiple choice questions to earn gold and your MCQ medal.</div>
+            <div class="activity-card-action" style="color:var(--gold)">→ View Rounds</div>
+          </div>
+          <div class="activity-card-badge" id="badge-game" style="display:none;border-color:var(--gold);color:var(--gold)"></div>
+        </div>
+
+        <!-- Vocab Quiz card -->
+        <div class="activity-card" onclick="switchTab('quiz',document.getElementById('hubtab-btn-quiz'))" style="border-top:3px solid var(--purple)">
+          <div class="activity-card-strip" style="background:var(--purple)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">✅</div>
+            <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
+            <div class="activity-card-title">Vocab Check</div>
+            <div class="activity-card-desc">Graded vocabulary quiz covering all Unit 1 terms. Pass with 80%+ to earn a Vocab Medal and 75 gold.</div>
+            <div class="activity-card-action" style="color:var(--purple2)">→ Take Quiz</div>
+          </div>
+          <div class="activity-card-badge" id="badge-vocab" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
+        </div>
+
+        <!-- FRQ card -->
+        <div class="activity-card" onclick="switchTab('frq',document.getElementById('hubtab-btn-frq'))" style="border-top:3px solid var(--teal)">
+          <div class="activity-card-strip" style="background:var(--teal)"></div>
+          <div class="activity-card-body">
+            <div class="activity-card-icon">✍️</div>
+            <div class="activity-card-label">FRQ PRACTICE · AI GRADED</div>
+            <div class="activity-card-title">Free Response Questions</div>
+            <div class="activity-card-desc">One FRQ per type — Concept Application, Quantitative Analysis, Supreme Court, and Argumentation. Graded by AI.</div>
+            <div class="activity-card-action" style="color:var(--teal2)">→ Start FRQs</div>
+          </div>
+          <div class="activity-card-badge" id="badge-frq" style="display:none;border-color:var(--teal2);color:var(--teal2)"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ROUNDS TAB -->
+    <div class="hub-panel" id="tab-rounds">
+      <button onclick="switchTab('play',document.getElementById('hubtab-btn-play'))" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:7px 14px;cursor:pointer;margin-top:12px;margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.background='rgba(255,215,0,.1)'" onmouseout="this.style.background='transparent'">← Back to Unit Hub</button>
       <!-- Overall unit progress bar -->
       <div class="prog-wrap" id="prog-wrap">
         <div class="prog-label">
@@ -374,56 +423,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         </div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       </div>
-
-      <!-- Round cards -->
-      <div class="sh">Game Rounds</div>
-      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
-      <!-- FRQ required notice -->
-      <!-- Unit Score & Trophy Section -->
+      <div id="round-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;margin-top:12px;"></div>
       <div id="hub-trophy-section" style="margin-bottom:16px"></div>
-
-      <!-- Study activities -->
-      <div class="sh">Study Tools</div>
-      <div class="activity-grid">
-
-        <!-- Briefing -->
-        <div class="activity-card" onclick="switchTab('briefing',Array.from(document.querySelectorAll('.hub-tab')).find(t=>t.textContent.includes('Briefing')))" style="border-top:3px solid var(--teal)">
-          <div class="activity-card-strip" style="background:var(--teal)"></div>
-          <div class="activity-card-body">
-            <div class="activity-card-icon">📋</div>
-            <div class="activity-card-label">STUDY GUIDE</div>
-            <div class="activity-card-title">Unit Briefing</div>
-            <div class="activity-card-desc">Complete review of all Unit 1 topics, required documents, SCOTUS cases, and key vocabulary — written for AP exam readiness.</div>
-            <div class="activity-card-action" style="color:var(--teal2)">→ Read Briefing</div>
-          </div>
-        </div>
-
-        <!-- Flashcards -->
-        <div class="activity-card" onclick="launchFlashcards()" style="border-top:3px solid var(--amber)">
-          <div class="activity-card-strip" style="background:var(--amber)"></div>
-          <div class="activity-card-body">
-            <div class="activity-card-icon">🃏</div>
-            <div class="activity-card-label">VOCABULARY · SPACED REPETITION</div>
-            <div class="activity-card-title">Flashcard Deck</div>
-            <div class="activity-card-desc">Study all Unit 1 key terms — from popular sovereignty to judicial review — with the Civitas flashcard engine.</div>
-            <div class="activity-card-action" style="color:var(--amber)">→ Study Flashcards</div>
-          </div>
-        </div>
-
-        <!-- Vocab Quiz -->
-        <div class="activity-card" onclick="switchTab('quiz',Array.from(document.querySelectorAll('.hub-tab')).find(t=>t.textContent.includes('Vocab Quiz')))" style="border-top:3px solid var(--purple)">
-          <div class="activity-card-strip" style="background:var(--purple)"></div>
-          <div class="activity-card-body">
-            <div class="activity-card-icon">✅</div>
-            <div class="activity-card-label">VOCABULARY QUIZ · GRADED</div>
-            <div class="activity-card-title">Vocab Check</div>
-            <div class="activity-card-desc">Graded vocabulary quiz covering all Unit 1 terms. Pass with 80%+ to earn a Vocab Medal and gold reward.</div>
-            <div class="activity-card-action" style="color:var(--purple2)">→ Take Quiz</div>
-          </div>
-          <div class="activity-card-badge" id="vocab-badge" style="display:none;border-color:var(--purple2);color:var(--purple2)"></div>
-        </div>
-
-      </div>
     </div>
 
     <!-- FRQ TAB -->
@@ -1031,6 +1032,8 @@ function showHub() {
   document.getElementById('hub').style.display = 'flex';
   renderRoundCards();
   renderHubTrophySection();
+  renderPlayTabSummary();
+  updateBadges();
   // Restore vocab badge from localStorage or civitas_state on load
   try {
     let vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
@@ -1106,7 +1109,8 @@ function renderRoundCards() {
   if (progPct) progPct.textContent = `${completedRounds} / ${QUESTION_BANK.rounds.length} rounds complete`;
 
   renderHubTrophySection();
-  appendFRQRoundCard();
+  renderPlayTabSummary();
+  updateBadges();
 }
 
 function renderUnitTrophyBanner() {
@@ -1446,7 +1450,7 @@ function renderVocabQuizComplete() {
   // Restore hub layout
   _exitQuizFocus();
   // Update trophy section
-  setTimeout(() => { try { renderHubTrophySection(); } catch(e) {} }, 100);
+  setTimeout(() => { try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e) {} }, 100);
   const el = document.getElementById('vq-area');
   const pct = Math.round((_vqScore / _vqQuestions.length) * 100);
   const passed = pct >= 80;
@@ -1548,9 +1552,11 @@ function returnToShell() {
 function switchTab(name, btn) {
   document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'frq') renderFRQTab();
+  if (name === 'rounds') renderHubTrophySection();
+  if (name === 'play') renderPlayTabSummary();
 }
 
 function startRound(roundIdx) {
@@ -2201,6 +2207,58 @@ function renderHubTrophySection() {
         }
       }
     } catch(e) {}
+  }
+}
+
+function renderPlayTabSummary() {
+  const el = document.getElementById('play-tab-trophy-summary');
+  if (!el) return;
+  const { mcqScore, vocabScore, frqScore, composite,
+    mcqAttempted, vocabAttempted, frqAttempted } = getCompositeScore();
+  if (!mcqAttempted && !vocabAttempted && !frqAttempted) { el.innerHTML = ''; return; }
+  const tier = calcTier(composite);
+  const tierColor = tier ? tier.color : 'var(--amber)';
+  const tierIcon = tier ? tier.icon : '⏳';
+  const tierLabel = tier ? tier.label : 'In Progress';
+  el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid ${tierColor};padding:12px 14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="font-size:28px">${tierIcon}</div>
+      <div>
+        <div style="font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px">CURRENT UNIT SCORE</div>
+        <div style="font-family:var(--bebas);font-size:24px;color:${tierColor};line-height:1">${composite}% <span style="font-size:13px">${tierLabel}</span></div>
+      </div>
+      <button onclick="switchTab('rounds',document.getElementById('hubtab-btn-rounds'))" style="margin-left:auto;font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:5px 10px;cursor:pointer">View Rounds →</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">50%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${vocabAttempted?'var(--purple2)':'var(--text3)'}">VOCAB ${vocabAttempted?vocabScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">FRQ ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+    </div>
+  </div>`;
+}
+
+function updateBadges() {
+  // MCQ badge
+  const mcqAttempted = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
+  const mcqScores = QUESTION_BANK.rounds.map((_, i) => { const p = getRoundProgress(i); return p ? (p.bestPct || 0) : 0; });
+  const mcqAvg = mcqScores.length ? Math.round(mcqScores.reduce((a,b)=>a+b,0)/mcqScores.length) : 0;
+  const badgeGame = document.getElementById('badge-game');
+  if (badgeGame && mcqAttempted) { badgeGame.textContent = mcqAvg + '%'; badgeGame.style.display = 'block'; }
+
+  // Vocab badge
+  const vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+  const badgeVocab = document.getElementById('badge-vocab');
+  if (badgeVocab && vocabScore > 0) { badgeVocab.textContent = vocabScore + '%'; badgeVocab.style.display = 'block'; }
+
+  // FRQ badge
+  const assignedFRQs = getUnitFRQs();
+  const frqDone = assignedFRQs.filter(f => getFRQBestScore(f.id) !== null).length;
+  const frqTotal = assignedFRQs.length;
+  const badgeFRQ = document.getElementById('badge-frq');
+  if (badgeFRQ && frqDone > 0) {
+    badgeFRQ.textContent = frqDone + '/' + frqTotal;
+    badgeFRQ.style.display = 'block';
+    if (frqDone >= frqTotal) { badgeFRQ.style.borderColor = 'var(--teal2)'; badgeFRQ.style.color = 'var(--teal2)'; }
   }
 }
 
@@ -3228,7 +3286,7 @@ async function submitUnitFRQ(frqId){
   }
   btnEl.disabled=false;
   // Update trophy section after FRQ submit
-  try { renderHubTrophySection(); } catch(e) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e) {}
 }
 
 (function(){
