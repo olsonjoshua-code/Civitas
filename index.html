@@ -6132,7 +6132,11 @@ function printUnitTrophyCert(unitId) {
   var pct = up.bestAccuracy || up.composite || 0;
   var mcqScore = up.mcqScore || 0;
   var frqScore = up.frqScore || 0;
+  // vocabScore: chain through all sources — unit progress → localStorage → civitas_state → Supabase S object
   var vocabScore = up.vocabScore || 0;
+  if (!vocabScore) { try { vocabScore = parseInt(localStorage.getItem('civitas_vocab_' + unitId) || '0'); } catch(e) {} }
+  if (!vocabScore) { try { var cs = JSON.parse(localStorage.getItem('civitas_state') || '{}'); vocabScore = (cs.vocabBestScore && cs.vocabBestScore[unitId]) || 0; } catch(e) {} }
+  if (!vocabScore) { try { vocabScore = (S.vocabBestScore && S.vocabBestScore[unitId]) || 0; } catch(e) {} }
   var isTheme = unitId.startsWith('apg_bi');
   var studentName = S.name || S.fullName || localStorage.getItem('civitas_student_name') || 'Student';
   var period = S.courses && S.courses[0] ? S.courses[0].period : '';
