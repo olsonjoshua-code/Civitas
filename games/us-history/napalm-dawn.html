@@ -2672,12 +2672,16 @@ function getCompositeScore() {
     ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
     : 0;
 
-  // Vocab — from shell localStorage (keyed by deck ID, not unit ID)
+  // Vocab — check civitas_state first (Civitas shell), then ac_shell_state (legacy)
   const VOCAB_DECK_ID = 'unit9_vietnam_nixon';
   let vocabScore = 0;
   try {
-    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    vocabScore = (shell.vocabBestScore && shell.vocabBestScore[VOCAB_DECK_ID]) || 0;
+    // Civitas shell saves to civitas_state, legacy shell saves to ac_shell_state
+    const civState = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const legacyState = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const civScore = (civState.vocabBestScore && civState.vocabBestScore[VOCAB_DECK_ID]) || 0;
+    const legacyScore = (legacyState.vocabBestScore && legacyState.vocabBestScore[VOCAB_DECK_ID]) || 0;
+    vocabScore = Math.max(civScore, legacyScore);
   } catch(e) {}
 
   // FRQ — score across ALL FRQs (unsubmitted ones count as 0)
@@ -2791,7 +2795,10 @@ function updateFlashcardStatus() {
   const el = document.getElementById('flashcard-status');
   if (!el) return;
   try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const _civS = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const _legS = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const state = { vocabPassed: Object.assign({}, _legS.vocabPassed||{}, _civS.vocabPassed||{}), vocabBestScore: {} };
+    Object.keys(Object.assign({}, _legS.vocabBestScore||{}, _civS.vocabBestScore||{})).forEach(k => { state.vocabBestScore[k] = Math.max((_civS.vocabBestScore||{})[k]||0, (_legS.vocabBestScore||{})[k]||0); });
     const studied = state.flashcardsStudied && state.flashcardsStudied['unit1'];
     el.textContent = studied ? '✓ You have studied this deck before.' : 'Not yet studied.';
     el.style.color = studied ? 'var(--teal2)' : 'var(--text3)';
@@ -2802,7 +2809,10 @@ function updateVocabQuizStatus() {
   const el = document.getElementById('vocabquiz-status');
   if (!el) return;
   try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const _civS = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const _legS = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const state = { vocabPassed: Object.assign({}, _legS.vocabPassed||{}, _civS.vocabPassed||{}), vocabBestScore: {} };
+    Object.keys(Object.assign({}, _legS.vocabBestScore||{}, _civS.vocabBestScore||{})).forEach(k => { state.vocabBestScore[k] = Math.max((_civS.vocabBestScore||{})[k]||0, (_legS.vocabBestScore||{})[k]||0); });
     const passed = state.vocabPassed && state.vocabPassed['unit9_vietnam_nixon'];
     const best = state.vocabBestScore && state.vocabBestScore['unit9_vietnam_nixon'];
     if (passed) {
@@ -3147,7 +3157,10 @@ function showUnitHub() {
   renderPlayTabSummary();
   // Refresh vocab badge
   try {
-    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const _cv = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const _lv = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const state = { vocabPassed: Object.assign({}, _lv.vocabPassed||{}, _cv.vocabPassed||{}), vocabBestScore: {} };
+    Object.keys(Object.assign({}, _lv.vocabBestScore||{}, _cv.vocabBestScore||{})).forEach(k => { state.vocabBestScore[k] = Math.max((_cv.vocabBestScore||{})[k]||0, (_lv.vocabBestScore||{})[k]||0); });
     const passed = state.vocabPassed && state.vocabPassed['unit9_vietnam_nixon'];
     const best = state.vocabBestScore && state.vocabBestScore['unit9_vietnam_nixon'];
     const badge = document.getElementById('badge-vocab');
@@ -3158,7 +3171,10 @@ function showUnitHub() {
   } catch(e) {}
   // Restore FRQ badge if student has a prior result
   try {
-    const state = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const _civS = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    const _legS = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
+    const state = { vocabPassed: Object.assign({}, _legS.vocabPassed||{}, _civS.vocabPassed||{}), vocabBestScore: {} };
+    Object.keys(Object.assign({}, _legS.vocabBestScore||{}, _civS.vocabBestScore||{})).forEach(k => { state.vocabBestScore[k] = Math.max((_civS.vocabBestScore||{})[k]||0, (_legS.vocabBestScore||{})[k]||0); });
     const frq = state.frqResults && state.frqResults['unit7b'];
     if (frq && frq.tier) updateFRQBadge(frq.score, frq.tier);
   } catch(e) {}
