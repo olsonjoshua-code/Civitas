@@ -2376,7 +2376,7 @@ async function restoreProgressFromCivitas(fullName) {
   if (!fullName || fullName === 'Guest') return;
   try {
     const resp = await fetch(
-      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress,frq_progress',
+      AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress,frq_progress,vocab_passed,vocab_best_score',
       {headers: AC_HEADERS}
     );
     const rows = await resp.json();
@@ -2433,6 +2433,27 @@ async function restoreProgressFromCivitas(fullName) {
         localStorage.setItem('civitas_state', JSON.stringify(ss));
       }
     } catch(e) {}
+
+    // Restore vocab scores from Supabase into SHELL_KEY
+    try {
+      if (profile.vocab_passed || profile.vocab_best_score) {
+        const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+        if (!state.vocabPassed) state.vocabPassed = {};
+        if (!state.vocabBestScore) state.vocabBestScore = {};
+        const dbPassed = JSON.parse(profile.vocab_passed || '{}');
+        const dbBest   = JSON.parse(profile.vocab_best_score || '{}');
+        // Supabase wins
+        Object.keys(dbPassed).forEach(k => { if (dbPassed[k]) state.vocabPassed[k] = true; });
+        Object.keys(dbBest).forEach(k => {
+          state.vocabBestScore[k] = Math.max(dbBest[k] || 0, state.vocabBestScore[k] || 0);
+        });
+        localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+      }
+    } catch(e) {}
+
+    // Re-render hub task cards now that all data is restored
+    try { if (typeof renderHubTaskCards === 'function') renderHubTaskCards(); } catch(e) {}
+    try { if (typeof renderHubTrophySection === 'function') renderHubTrophySection(); } catch(e) {}
 
   } catch(e) { console.log('restoreProgressFromCivitas failed', e); }
 }
@@ -2647,18 +2668,22 @@ function getCompositeScore() {
     vocabScore = (shell.vocabBestScore && shell.vocabBestScore[VOCAB_DECK_ID]) || 0;
   } catch(e) {}
 
-  // FRQ — composite of all answered questions from shell localStorage
+  // FRQ — average % across all submitted FRQs (only count attempted ones)
   let frqScore = 0;
   try {
-    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    const frqR = shell.frqResults && shell.frqResults['unit3b'];
-    if (frqR) {
-      // New format: composite stored directly
-      if (frqR.composite !== undefined) {
-        frqScore = frqR.composite;
-      // Old single-score format
-      } else if (frqR.score !== undefined) {
-        frqScore = frqR.score;
+    if (typeof UNIT_FRQS !== 'undefined' && UNIT_FRQS.length) {
+      const attempted = UNIT_FRQS.filter(f => getFRQBestScore(f.id) !== null);
+      if (attempted.length) {
+        const totalEarned = attempted.reduce((sum, f) => sum + getFRQBestScore(f.id), 0);
+        const totalPossible = attempted.reduce((sum, f) => sum + f.points, 0);
+        frqScore = Math.round(totalEarned / totalPossible * 100);
+      }
+    } else {
+      // Fallback to old system if UNIT_FRQS not defined
+      const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+      const frqR = shell.frqResults && shell.frqResults[UNIT_ID];
+      if (frqR) {
+        frqScore = frqR.composite !== undefined ? frqR.composite : (frqR.score || 0);
       }
     }
   } catch(e) {}
