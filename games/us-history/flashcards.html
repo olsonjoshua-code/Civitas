@@ -1535,6 +1535,18 @@ function loadShellState() {
 }
 function saveShellState() {
   try { localStorage.setItem(SHELL_KEY, JSON.stringify(S)); } catch(e) {}
+  // Also mirror vocab into civitas_state so Civitas shell can read it on restore
+  try {
+    const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    if (!civ.vocabPassed) civ.vocabPassed = {};
+    if (!civ.vocabBestScore) civ.vocabBestScore = {};
+    // Merge — take highest score per deck
+    Object.keys(S.vocabPassed || {}).forEach(k => { if (S.vocabPassed[k]) civ.vocabPassed[k] = true; });
+    Object.keys(S.vocabBestScore || {}).forEach(k => {
+      civ.vocabBestScore[k] = Math.max(S.vocabBestScore[k] || 0, civ.vocabBestScore[k] || 0);
+    });
+    localStorage.setItem('civitas_state', JSON.stringify(civ));
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════════════════════

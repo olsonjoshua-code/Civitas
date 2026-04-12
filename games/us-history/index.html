@@ -2311,7 +2311,22 @@ async function boot(){
           S.fromCivitas = true;
           // Carry over gold so HUD shows correct balance
           if(civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
+          // Carry over vocab from civitas_state (restored by Civitas shell from Supabase)
+          if(civ.vocabPassed && Object.keys(civ.vocabPassed).length){
+            if(!S.vocabPassed) S.vocabPassed = {};
+            Object.keys(civ.vocabPassed).forEach(k => { if(civ.vocabPassed[k]) S.vocabPassed[k] = true; });
+          }
+          if(civ.vocabBestScore && Object.keys(civ.vocabBestScore).length){
+            if(!S.vocabBestScore) S.vocabBestScore = {};
+            Object.keys(civ.vocabBestScore).forEach(k => {
+              S.vocabBestScore[k] = Math.max(civ.vocabBestScore[k]||0, S.vocabBestScore[k]||0);
+            });
+          }
           saveS();
+          // Also pull latest from ac_student_profiles to get vocab + frq scores
+          loadProfileByName(S.fullName, S.period).then(profile => {
+            if(profile){ applyStudentProfile(profile); saveS(); }
+          }).catch(()=>{});
         }
       }
     }catch(e){}
@@ -2805,6 +2820,23 @@ async function resetProfile(){
 
 // ── SUPABASE SYNC ─────────────────────────────────────
 async function syncFromSupabase(){
+  // Also restore vocab from ac_student_profiles on every sync
+  if(S.fullName && S.period){
+    loadProfileByName(S.fullName, S.period).then(profile => {
+      if(profile){
+        try{
+          const vp = JSON.parse(profile.vocab_passed||'{}');
+          const vbs = JSON.parse(profile.vocab_best_score||'{}');
+          if(!S.vocabPassed) S.vocabPassed={};
+          if(!S.vocabBestScore) S.vocabBestScore={};
+          Object.keys(vp).forEach(k=>{ if(vp[k]) S.vocabPassed[k]=true; });
+          Object.keys(vbs).forEach(k=>{ if(k[0]!=='_') S.vocabBestScore[k]=Math.max(vbs[k]||0,S.vocabBestScore[k]||0); });
+          saveS();
+          renderVocabMedals();
+        }catch(e){}
+      }
+    }).catch(()=>{});
+  }
   const rows=await sfetch(`/rest/v1/ac_results?name=eq.${encodeURIComponent(S.name)}&select=unit_id,best_accuracy,best_score,cards`);
   console.log('syncFromSupabase: name='+S.name+' rows='+JSON.stringify(rows));
   if(!Array.isArray(rows))return;
