@@ -6720,6 +6720,8 @@ function openStudentModal(fullName){
   document.getElementById('student-modal-name').textContent=s.char+' '+s.name+(s.period?' · Period '+s.period:'');
   document.getElementById('student-modal-body').innerHTML=buildStudentModalHTML(s);
   document.getElementById('student-modal-overlay').style.display='flex';
+  // Load per-course periods into reassign rows async
+  loadReassignRows(s.fullName||s.name);
 }
 function closeStudentModal(){
   document.getElementById('student-modal-overlay').style.display='none';
@@ -6950,12 +6952,34 @@ function buildStudentModalHTML(s){
     </div>`;
   }
 
-  // Footer with gold + last seen + delete
-  html+=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--border)">
+  // Footer — gold + last seen
+  html+=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--border);margin-bottom:14px">
     <div style="display:flex;gap:16px;align-items:center">
       <div><span style="font-family:var(--bebas);font-size:20px;color:var(--gc)">${s.gold.toLocaleString()} 🪙</span> <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">gold earned</span></div>
       <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Last seen: ${s.lastSeen}</div>
     </div>
+  </div>`;
+
+  // ── Reassign Section ──
+  // Reassign section — course rows loaded async after render
+  html+=`<div style="background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--amber);padding:12px 14px;margin-bottom:12px">
+    <div style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--amber);margin-bottom:8px">REASSIGN PERIODS</div>
+    <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-bottom:10px">Each course the student is enrolled in is shown with their current period. Change any and click Apply.</div>
+    <div id="reassign-rows-${s.fullName}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+      <div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic">Loading courses…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button onclick="applyReassign('${s.fullName||s.name}')"
+        style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:6px 16px;cursor:pointer;transition:all .15s"
+        onmouseenter="this.style.background='rgba(232,160,32,.1)'" onmouseleave="this.style.background='transparent'">
+        ✓ Apply Changes
+      </button>
+      <div id="reassign-status-${s.fullName}" style="font-family:var(--dm);font-size:10px;min-height:14px"></div>
+    </div>
+  </div>`;
+
+  // Delete button
+  html+=`<div style="display:flex;justify-content:flex-end;padding-top:4px">
     <button onclick="deleteStudentConfirm('${s.fullName||s.name}');closeStudentModal()"
       style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:5px 14px;cursor:pointer">
       🗑 Delete Student
@@ -6963,6 +6987,130 @@ function buildStudentModalHTML(s){
   </div>`;
 
   return html;
+}
+
+// Loads the student's enrolled courses from Supabase and builds
+// one row per course showing current period + a dropdown to change it
+async function loadReassignRows(fullName) {
+  const rowsEl = document.getElementById('reassign-rows-' + fullName);
+  if (!rowsEl) return;
+
+  try {
+    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=courses,period', {
+      headers: SUPA_H
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (!Array.isArray(data) || !data[0]) { rowsEl.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--red2)">Profile not found.</div>'; return; }
+
+    let courses = [];
+    try { courses = JSON.parse(data[0].courses || '[]'); } catch(e) {}
+
+    // Course display names
+    const COURSE_NAMES = {
+      ap_gov:'AP U.S. Government', ap_cmp:'AP Comparative Gov',
+      ap_sem:'AP Seminar', ap_wh:'AP World History',
+      ap_ush:'AP U.S. History', ap_hg:'AP Human Geography',
+      ap_eco:'AP Economics', hs_ush:'U.S. History',
+      hs_gov:'Government', hs_eco:'Economics',
+      us_history:'U.S. History'
+    };
+
+    if (!courses.length) {
+      rowsEl.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic">No courses enrolled.</div>';
+      return;
+    }
+
+    const periodOpts = [1,2,3,4,5,6,7].map(p => `<option value="${p}">${p}</option>`).join('') + '<option value="guest">Guest</option>';
+
+    rowsEl.innerHTML = courses.map((c, i) => {
+      const name = COURSE_NAMES[c.id] || c.id;
+      const cur  = c.period || '—';
+      return `<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:7px 10px;background:var(--bg2);border:1px solid var(--border)">
+        <div>
+          <div style="font-family:var(--dm);font-size:11px;color:var(--cream)">${name}</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:1px">Current period: <strong style="color:var(--civitas2)">${cur}</strong></div>
+        </div>
+        <select id="rrow-period-${fullName}-${i}" data-course-id="${c.id}" data-original="${cur}"
+          style="font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:5px 8px;outline:none;cursor:pointer;min-width:80px"
+          onchange="this.style.borderColor=this.value!==this.dataset.original?'var(--amber)':'var(--border2)'">
+          ${[1,2,3,4,5,6,7].map(p => `<option value="${p}" ${String(cur)===String(p)?'selected':''}>${p}</option>`).join('')}
+          <option value="guest" ${cur==='guest'?'selected':''}>Guest</option>
+        </select>
+      </div>`;
+    }).join('');
+
+    // Store course count for applyReassign
+    rowsEl.dataset.courseCount = courses.length;
+    rowsEl.dataset.fullName    = fullName;
+
+  } catch(e) {
+    if(rowsEl) rowsEl.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--red2)">Error loading courses: ' + e.message + '</div>';
+  }
+}
+
+async function applyReassign(fullName) {
+  const rowsEl   = document.getElementById('reassign-rows-' + fullName);
+  const statusEl = document.getElementById('reassign-status-' + fullName);
+  if (!rowsEl || !statusEl) return;
+
+  // Collect all period selects and find which ones changed
+  const selects = rowsEl.querySelectorAll('select[data-course-id]');
+  if (!selects.length) { statusEl.innerHTML = '<span style="color:var(--red2)">No courses loaded.</span>'; return; }
+
+  const changes = [];
+  selects.forEach(sel => {
+    const courseId  = sel.dataset.courseId;
+    const original  = sel.dataset.original;
+    const newPeriod = sel.value;
+    if (String(newPeriod) !== String(original)) changes.push({ courseId, newPeriod });
+  });
+
+  if (!changes.length) {
+    statusEl.innerHTML = '<span style="color:var(--text2)">No periods were changed.</span>';
+    return;
+  }
+
+  statusEl.innerHTML = '<span style="color:var(--text2)">Saving…</span>';
+
+  try {
+    // Fetch current profile to get full courses array
+    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=courses', {
+      headers: SUPA_H
+    });
+    if (!resp.ok) throw new Error('Fetch failed: HTTP ' + resp.status);
+    const data = await resp.json();
+    if (!Array.isArray(data) || !data[0]) throw new Error('Profile not found.');
+
+    let courses = [];
+    try { courses = JSON.parse(data[0].courses || '[]'); } catch(e) {}
+
+    // Apply each change
+    changes.forEach(({ courseId, newPeriod }) => {
+      const idx = courses.findIndex(c => c.id === courseId);
+      if (idx >= 0) courses[idx].period = newPeriod;
+    });
+
+    // Top-level period = first enrolled course's period (backwards compat)
+    const topPeriod = courses[0]?.period || '';
+
+    const patch = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName), {
+      method: 'PATCH',
+      headers: { ...SUPA_H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ courses: JSON.stringify(courses), period: topPeriod, updated_at: new Date().toISOString() })
+    });
+    if (!patch.ok) throw new Error('Supabase PATCH failed: HTTP ' + patch.status);
+
+    const summary = changes.map(c => c.courseId.replace(/_/g,' ') + ' → Period ' + c.newPeriod).join(' · ');
+    statusEl.innerHTML = '<span style="color:var(--green2)">✓ Saved: ' + summary + '</span>';
+    notify('✓ ' + fullName + ' updated');
+
+    // Reload the rows so dropdowns reflect saved state
+    loadReassignRows(fullName);
+    setTimeout(() => renderTeacherView(), 900);
+  } catch(e) {
+    statusEl.innerHTML = '<span style="color:var(--red2)">Error: ' + e.message + '</span>';
+  }
 }
 
 async function deleteStudentConfirm(fullName){
