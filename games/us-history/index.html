@@ -5096,6 +5096,26 @@ async function openStudentProfile(name, period){
     </table>`;
   }
 
+  // Pre-populate reassign dropdowns with current values
+  const periodSel = document.getElementById('sp-reassign-period');
+  if(periodSel){
+    // Set current period
+    Array.from(periodSel.options).forEach(o => { o.selected = String(o.value) === String(period); });
+  }
+  // Load teacher list into dropdown and pre-select current teacher
+  const teacherSel = document.getElementById('sp-reassign-teacher');
+  if(teacherSel){
+    const currentTeacherId = prof.teacher_id || '';
+    loadTeacherList().then(teachers => {
+      teacherSel.innerHTML = '<option value="">— No teacher —</option>' +
+        teachers.map(t => `<option value="${t.id}" ${t.id === currentTeacherId ? 'selected' : ''}>${t.display_name}</option>`).join('');
+    });
+  }
+  document.getElementById('sp-reassign-status').innerHTML = '';
+  // Store current name+period for the apply function
+  document.getElementById('sp-reassign-period').dataset.currentName = name;
+  document.getElementById('sp-reassign-period').dataset.currentPeriod = period;
+
   // Test scores section
   const testResults = unitResults.filter(r => r.unit_id && r.unit_id.startsWith('test_'));
   const spTestEl = document.getElementById('sp-test');
@@ -5284,6 +5304,98 @@ window._dashDelClick = function(key, e){
   const {name, period} = window._dashDelRegistry[key];
   dashboardDeleteStudent(name, period);
 };
+
+async function applyStudentReassign(){
+  const periodSel  = document.getElementById('sp-reassign-period');
+  const teacherSel = document.getElementById('sp-reassign-teacher');
+  const statusEl   = document.getElementById('sp-reassign-status');
+  if(!periodSel) return;
+
+  const oldName    = periodSel.dataset.currentName || '';
+  const oldPeriod  = periodSel.dataset.currentPeriod || '';
+  const newPeriod  = periodSel.value;
+  const newTeacherId = teacherSel ? teacherSel.value : '';
+  const newTeacherName = teacherSel ? (teacherSel.options[teacherSel.selectedIndex]?.text || '') : '';
+
+  if(!oldName){ statusEl.innerHTML='<span style="color:var(--red2)">No student loaded.</span>'; return; }
+  if(!newPeriod){ statusEl.innerHTML='<span style="color:var(--red2)">Select a period.</span>'; return; }
+
+  const periodChanged  = String(newPeriod) !== String(oldPeriod);
+  const teacherChanged = newTeacherId !== '';
+
+  if(!periodChanged && !teacherChanged){
+    statusEl.innerHTML='<span style="color:var(--text2)">No changes to apply.</span>'; return;
+  }
+
+  statusEl.innerHTML='<span style="color:var(--text2)">Updating…</span>';
+
+  try{
+    const now = new Date().toISOString();
+    const patches = [];
+
+    if(periodChanged){
+      // Update period on all tables that use (name, period) as key
+      // ac_student_profiles — PATCH display_name+period
+      patches.push(
+        fetch(SUPA_URL+'/rest/v1/ac_student_profiles?display_name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(oldPeriod),{
+          method:'PATCH', headers:{...SUPA_H,'Prefer':'return=minimal'},
+          body:JSON.stringify({period:newPeriod, updated_at:now})
+        })
+      );
+      // ac_results — PATCH name+period rows
+      patches.push(
+        fetch(SUPA_URL+'/rest/v1/ac_results?name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(oldPeriod),{
+          method:'PATCH', headers:{...SUPA_H,'Prefer':'return=minimal'},
+          body:JSON.stringify({period:newPeriod})
+        })
+      );
+      // ac_sessions — PATCH student_name+period rows
+      patches.push(
+        fetch(SUPA_URL+'/rest/v1/ac_sessions?student_name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(oldPeriod),{
+          method:'PATCH', headers:{...SUPA_H,'Prefer':'return=minimal'},
+          body:JSON.stringify({period:newPeriod})
+        })
+      );
+      // ac_engagement — PATCH student_name+period rows
+      patches.push(
+        fetch(SUPA_URL+'/rest/v1/ac_engagement?student_name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(oldPeriod),{
+          method:'PATCH', headers:{...SUPA_H,'Prefer':'return=minimal'},
+          body:JSON.stringify({period:newPeriod})
+        })
+      );
+    }
+
+    if(teacherChanged){
+      // Update teacher_id on ac_student_profiles
+      const teacherPatch = {teacher_id: newTeacherId || null, updated_at: now};
+      const key = periodChanged
+        ? 'display_name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(newPeriod)
+        : 'display_name=eq.'+encodeURIComponent(oldName)+'&period=eq.'+encodeURIComponent(oldPeriod);
+      patches.push(
+        fetch(SUPA_URL+'/rest/v1/ac_student_profiles?'+key,{
+          method:'PATCH', headers:{...SUPA_H,'Prefer':'return=minimal'},
+          body:JSON.stringify(teacherPatch)
+        })
+      );
+    }
+
+    await Promise.all(patches);
+
+    let msg = '✓ ' + oldName;
+    if(periodChanged)  msg += ' → Period ' + newPeriod;
+    if(teacherChanged && newTeacherName) msg += ' · Teacher: ' + newTeacherName;
+    statusEl.innerHTML = '<span style="color:var(--green2)">' + msg + '</span>';
+    notify('✓ Student reassigned');
+
+    // Update the stored values so a second apply works correctly
+    periodSel.dataset.currentPeriod = newPeriod;
+
+    // Refresh dashboard after short delay
+    setTimeout(() => renderTeacherView(), 800);
+  }catch(e){
+    statusEl.innerHTML='<span style="color:var(--red2)">Error: '+e.message+'</span>';
+  }
+}
 
 async function dashboardDeleteStudent(name, period){
   if(!confirm('Remove "'+name+'" (Period '+period+') completely?\nThis deletes their results, profile, and sessions and cannot be undone.'))return;
@@ -5749,6 +5861,31 @@ function closeWelcome(){
         <div id="sp-sub" style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:1px;"></div>
       </div>
       <button onclick="closeStudentProfile()" style="font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;">CLOSE</button>
+    </div>
+    <!-- Reassign bar -->
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 18px;background:rgba(232,160,32,.05);border-bottom:1px solid var(--border2);">
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--amber);letter-spacing:2px;flex-shrink:0">REASSIGN:</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;margin-bottom:2px">PERIOD</div>
+          <select id="sp-reassign-period" style="font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 8px;outline:none;cursor:pointer">
+            ${[1,2,3,4,5,6,7].map(p=>`<option value="${p}">${p}</option>`).join('')}
+            <option value="guest">Guest</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;margin-bottom:2px">TEACHER</div>
+          <select id="sp-reassign-teacher" style="font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 8px;outline:none;cursor:pointer">
+            <option value="">— Loading —</option>
+          </select>
+        </div>
+        <button onclick="applyStudentReassign()"
+          style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 12px;cursor:pointer;margin-top:12px;transition:all .15s"
+          onmouseenter="this.style.background='rgba(232,160,32,.1)'" onmouseleave="this.style.background='transparent'">
+          ✓ Apply
+        </button>
+      </div>
+      <div id="sp-reassign-status" style="font-family:var(--dm);font-size:10px;min-height:14px;width:100%"></div>
     </div>
     <!-- Summary stats -->
     <div id="sp-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 18px;border-bottom:1px solid var(--border2);"></div>
