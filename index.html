@@ -762,6 +762,49 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
         <div id="mpe-status" style="margin-top:10px;font-family:var(--dm);font-size:11px"></div>
       </div>
 
+      <!-- SCORE ADJUSTMENT TOOL -->
+      <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+          <div class="sh" style="font-size:14px;margin-bottom:0">Score Adjustment Tool</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Select a student to view and edit their MCQ, Vocab, and FRQ scores directly</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px">STUDENT</div>
+              <button onclick="populateSADropdown()" title="Refresh student list"
+                style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:2px 7px;cursor:pointer;transition:all .15s"
+                onmouseenter="this.style.borderColor='var(--blue2)';this.style.color='var(--blue2)'" onmouseleave="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">REFRESH</button>
+            </div>
+            <div style="position:relative">
+              <input id="sa-student-search" type="text" placeholder="Type to search students..."
+                style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none;padding-right:28px"
+                onfocus="this.style.borderColor='var(--blue2)';document.getElementById('sa-dropdown').style.display='block';filterSADropdown()"
+                oninput="filterSADropdown()"
+                onblur="setTimeout(function(){document.getElementById('sa-dropdown').style.display='none'},200)"
+                autocomplete="off">
+              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none">&#9660;</span>
+              <div id="sa-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg2);border:1px solid var(--blue2);border-top:none;max-height:180px;overflow-y:auto"></div>
+            </div>
+            <input type="hidden" id="sa-student-name">
+          </div>
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">COURSE</div>
+            <select id="sa-course" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
+              <option value="ap_gov">AP U.S. Government</option>
+              <option value="ap_cmp">AP Comparative Government</option>
+              <option value="ap_sem">AP Seminar</option>
+              <option value="hs_ush">U.S. History</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <button class="btn sm" onclick="loadStudentScores()" style="border-color:var(--blue2);color:var(--blue2)"><span>&#8595; Load Student Scores</span></button>
+        </div>
+        <div id="sa-scores-container" style="margin-top:14px"></div>
+        <div id="sa-status" style="margin-top:10px;font-family:var(--dm);font-size:11px"></div>
+      </div>
+
       <!-- SAVE FILE RESTORE TOOL -->
       <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -7560,7 +7603,509 @@ async function commitManualProgress() {
 }
 
 // Initialize MPE on page load
-document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); populateMPEDropdown(); });
+document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); populateMPEDropdown(); populateSADropdown(); });
+
+// ── TEACHER: SCORE ADJUSTMENT TOOL ───────────────────────────────────────────
+
+// AP Gov FRQ definitions (id, unit, type, label, max points)
+const SA_FRQS = {
+  ap_gov: [
+    {id:'apg_u1_ca1', unit:'apg_u1', type:'CA', label:'U1 CA-1: Articles & Federalism', points:3},
+    {id:'apg_u1_ca2', unit:'apg_u1', type:'CA', label:'U1 CA-2: Checks & Balances', points:3},
+    {id:'apg_u1_qa1', unit:'apg_u1', type:'QA', label:'U1 QA-1: Trust in Government', points:3},
+    {id:'apg_u1_qa2', unit:'apg_u1', type:'QA', label:'U1 QA-2: Voter Turnout', points:3},
+    {id:'apg_u1_sc1', unit:'apg_u1', type:'SC', label:'U1 SC-1: SCOTUS Comparison 1', points:4},
+    {id:'apg_u1_sc2', unit:'apg_u1', type:'SC', label:'U1 SC-2: SCOTUS Comparison 2', points:4},
+    {id:'apg_u1_ae1', unit:'apg_u1', type:'AE', label:'U1 AE-1: Argument Essay 1', points:6},
+    {id:'apg_u1_ae2', unit:'apg_u1', type:'AE', label:'U1 AE-2: Argument Essay 2', points:6},
+    {id:'apg_u2_ca1', unit:'apg_u2', type:'CA', label:'U2 CA-1: Congress & Lawmaking', points:3},
+    {id:'apg_u2_ca2', unit:'apg_u2', type:'CA', label:'U2 CA-2: Executive Power', points:3},
+    {id:'apg_u2_qa1', unit:'apg_u2', type:'QA', label:'U2 QA-1: Congressional Approval', points:3},
+    {id:'apg_u2_qa2', unit:'apg_u2', type:'QA', label:'U2 QA-2: Presidential Power', points:3},
+    {id:'apg_u2_sc1', unit:'apg_u2', type:'SC', label:'U2 SC-1: SCOTUS Comparison 1', points:4},
+    {id:'apg_u2_sc2', unit:'apg_u2', type:'SC', label:'U2 SC-2: SCOTUS Comparison 2', points:4},
+    {id:'apg_u2_ae1', unit:'apg_u2', type:'AE', label:'U2 AE-1: Argument Essay 1', points:6},
+    {id:'apg_u2_ae2', unit:'apg_u2', type:'AE', label:'U2 AE-2: Argument Essay 2', points:6},
+    {id:'apg_u3_ca1', unit:'apg_u3', type:'CA', label:'U3 CA-1: Civil Liberties', points:3},
+    {id:'apg_u3_ca2', unit:'apg_u3', type:'CA', label:'U3 CA-2: Civil Rights', points:3},
+    {id:'apg_u3_qa1', unit:'apg_u3', type:'QA', label:'U3 QA-1: Rights Data', points:3},
+    {id:'apg_u3_qa2', unit:'apg_u3', type:'QA', label:'U3 QA-2: Liberties Data', points:3},
+    {id:'apg_u3_sc1', unit:'apg_u3', type:'SC', label:'U3 SC-1: SCOTUS Comparison 1', points:4},
+    {id:'apg_u3_sc2', unit:'apg_u3', type:'SC', label:'U3 SC-2: SCOTUS Comparison 2', points:4},
+    {id:'apg_u3_ae1', unit:'apg_u3', type:'AE', label:'U3 AE-1: Argument Essay 1', points:6},
+    {id:'apg_u3_ae2', unit:'apg_u3', type:'AE', label:'U3 AE-2: Argument Essay 2', points:6},
+    {id:'apg_u4_ca1', unit:'apg_u4', type:'CA', label:'U4 CA-1: Political Ideology', points:3},
+    {id:'apg_u4_ca2', unit:'apg_u4', type:'CA', label:'U4 CA-2: Public Opinion', points:3},
+    {id:'apg_u4_qa1', unit:'apg_u4', type:'QA', label:'U4 QA-1: Ideology Data', points:3},
+    {id:'apg_u4_qa2', unit:'apg_u4', type:'QA', label:'U4 QA-2: Opinion Polls', points:3},
+    {id:'apg_u4_sc1', unit:'apg_u4', type:'SC', label:'U4 SC-1: SCOTUS Comparison 1', points:4},
+    {id:'apg_u4_sc2', unit:'apg_u4', type:'SC', label:'U4 SC-2: SCOTUS Comparison 2', points:4},
+    {id:'apg_u4_ae1', unit:'apg_u4', type:'AE', label:'U4 AE-1: Argument Essay 1', points:6},
+    {id:'apg_u4_ae2', unit:'apg_u4', type:'AE', label:'U4 AE-2: Argument Essay 2', points:6},
+    {id:'apg_u5_ca1', unit:'apg_u5', type:'CA', label:'U5 CA-1: Political Participation', points:3},
+    {id:'apg_u5_ca2', unit:'apg_u5', type:'CA', label:'U5 CA-2: Elections & Campaigns', points:3},
+    {id:'apg_u5_qa1', unit:'apg_u5', type:'QA', label:'U5 QA-1: Participation Data', points:3},
+    {id:'apg_u5_qa2', unit:'apg_u5', type:'QA', label:'U5 QA-2: Election Data', points:3},
+    {id:'apg_u5_sc1', unit:'apg_u5', type:'SC', label:'U5 SC-1: SCOTUS Comparison 1', points:4},
+    {id:'apg_u5_sc2', unit:'apg_u5', type:'SC', label:'U5 SC-2: SCOTUS Comparison 2', points:4},
+    {id:'apg_u5_ae1', unit:'apg_u5', type:'AE', label:'U5 AE-1: Argument Essay 1', points:6},
+    {id:'apg_u5_ae2', unit:'apg_u5', type:'AE', label:'U5 AE-2: Argument Essay 2', points:6},
+  ]
+};
+
+// MCQ units per course
+const SA_MCQ_UNITS = {
+  ap_gov: [
+    {id:'apg_u1', label:'Unit 1', sub:'Foundations of Democracy'},
+    {id:'apg_u2', label:'Unit 2', sub:'Branches of Government'},
+    {id:'apg_u3', label:'Unit 3', sub:'Civil Liberties & Rights'},
+    {id:'apg_u4', label:'Unit 4', sub:'American Political Ideologies'},
+    {id:'apg_u5', label:'Unit 5', sub:'Political Participation'},
+    {id:'apg_bi_con',  label:'Big Idea: CON',  sub:'Constitutionalism'},
+    {id:'apg_bi_lor',  label:'Big Idea: LOR',  sub:'Liberty & Order'},
+    {id:'apg_bi_pmcd', label:'Big Idea: PMCD', sub:'Competing Interests'},
+    {id:'apg_bi_mk',   label:'Big Idea: MK',   sub:'Civic Participation'},
+    {id:'apg_bi_mpa',  label:'Big Idea: MPA',  sub:'Political Analysis'},
+  ],
+  ap_cmp: [
+    {id:'apcmp_u1', label:'Unit 1', sub:'Intro to Comparative'},
+    {id:'apcmp_u2', label:'Unit 2', sub:'United Kingdom'},
+    {id:'apcmp_u3', label:'Unit 3', sub:'Mexico'},
+    {id:'apcmp_u4', label:'Unit 4', sub:'Russia'},
+    {id:'apcmp_u5', label:'Unit 5', sub:'China'},
+    {id:'apcmp_u6', label:'Unit 6', sub:'Iran'},
+    {id:'apcmp_u7', label:'Unit 7', sub:'Nigeria'},
+  ],
+  ap_sem: [
+    {id:'apsem_u1', label:'Unit 1', sub:'Research Foundation'},
+    {id:'apsem_u2', label:'Unit 2', sub:'Reading Arguments'},
+    {id:'apsem_u3', label:'Unit 3', sub:'Evaluating Sources'},
+    {id:'apsem_u4', label:'Unit 4', sub:'Building Arguments'},
+    {id:'apsem_u5', label:'Unit 5', sub:'Individual Research'},
+    {id:'apsem_u6', label:'Unit 6', sub:'Team Collaboration'},
+  ],
+  hs_ush: [
+    {id:'ush_u1', label:'Unit 1', sub:'A House Divided'},
+    {id:'ush_u2a', label:'Unit 2A', sub:'Boomtown Nation'},
+    {id:'ush_u2b', label:'Unit 2B', sub:'Age of Reform'},
+    {id:'ush_u3a', label:'Unit 3A', sub:'Empire Rising'},
+    {id:'ush_u3b', label:'Unit 3B', sub:'Into the Trenches'},
+    {id:'ush_u4a', label:'Unit 4A', sub:'Boom or Bust'},
+    {id:'ush_u4b', label:'Unit 4B', sub:'Crash & Recovery'},
+    {id:'ush_u5a', label:'Unit 5A', sub:'Arsenal of Democracy'},
+    {id:'ush_u5b', label:'Unit 5B', sub:'Iron Curtain'},
+    {id:'ush_u6',  label:'Unit 6',  sub:'Chronicles of Change'},
+    {id:'ush_u7a', label:'Unit 7A', sub:'Camelot'},
+    {id:'ush_u7b', label:'Unit 7B', sub:'Napalm Dawn'},
+    {id:'ush_u8',  label:'Unit 8',  sub:'Modern America'},
+  ]
+};
+
+// Vocab units per course
+const SA_VOCAB_UNITS = {
+  ap_gov: [
+    {id:'apg_u1', label:'Unit 1', sub:'Foundations'},
+    {id:'apg_u2', label:'Unit 2', sub:'Branches'},
+    {id:'apg_u3', label:'Unit 3', sub:'Civil Liberties'},
+    {id:'apg_u4', label:'Unit 4', sub:'Ideology'},
+    {id:'apg_u5', label:'Unit 5', sub:'Participation'},
+  ],
+  hs_ush: [
+    {id:'ush_u1',  label:'Unit 1',  sub:'A House Divided'},
+    {id:'ush_u2a', label:'Unit 2A', sub:'Boomtown Nation'},
+    {id:'ush_u2b', label:'Unit 2B', sub:'Age of Reform'},
+    {id:'ush_u3a', label:'Unit 3A', sub:'Empire Rising'},
+    {id:'ush_u3b', label:'Unit 3B', sub:'Into the Trenches'},
+    {id:'ush_u4a', label:'Unit 4A', sub:'Boom or Bust'},
+    {id:'ush_u4b', label:'Unit 4B', sub:'Crash & Recovery'},
+  ]
+};
+
+// FRQ type badge colors
+const SA_FRQ_COLORS = {
+  CA: {bg:'rgba(72,120,208,.15)', border:'var(--blue2)', label:'var(--blue2)'},
+  QA: {bg:'rgba(42,170,80,.12)',  border:'var(--green2)',label:'var(--green2)'},
+  SC: {bg:'rgba(232,160,32,.12)', border:'var(--amber)', label:'var(--amber)'},
+  AE: {bg:'rgba(192,48,48,.12)',  border:'var(--red2)',  label:'var(--red2)'},
+};
+
+let _saStudentList = [];
+let _saCurrentProfile = null; // raw Supabase profile row
+let _saCurrentFrqRows = [];   // rows from civitas_frq_results for this student
+
+function populateSADropdown() {
+  if (_teacherData && _teacherData.length) {
+    _saStudentList = _teacherData
+      .map(s => ({ label: s.displayName || s.name || s.fullName, fullName: s.fullName || s.name }))
+      .filter(s => s.fullName)
+      .sort((a, b) => a.label.localeCompare(b.label));
+    filterSADropdown();
+    notify('Student list refreshed (' + _saStudentList.length + ')');
+  } else {
+    sfetch('/rest/v1/civitas_profiles?select=display_name,full_name&order=display_name.asc&limit=300').then(rows => {
+      _saStudentList = (rows || [])
+        .map(r => ({ label: r.display_name || r.full_name, fullName: r.full_name }))
+        .filter(s => s.fullName)
+        .sort((a, b) => a.label.localeCompare(b.label));
+      filterSADropdown();
+      notify('Loaded ' + _saStudentList.length + ' students');
+    }).catch(() => notify('Could not load students — try Refresh'));
+  }
+}
+
+function filterSADropdown() {
+  const q = (document.getElementById('sa-student-search')?.value || '').toLowerCase();
+  const dd = document.getElementById('sa-dropdown');
+  if (!dd) return;
+  if (!_saStudentList.length) {
+    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No students loaded — click Refresh</div>';
+    dd.style.display = 'block'; return;
+  }
+  const filtered = q ? _saStudentList.filter(s => s.label.toLowerCase().includes(q) || s.fullName.toLowerCase().includes(q)) : _saStudentList;
+  if (!filtered.length) {
+    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No matches</div>';
+  } else {
+    dd.innerHTML = filtered.map(s =>
+      '<div onmousedown="selectSAStudent(\'' + s.fullName.replace(/'/g,"\\'") + '\',\'' + s.label.replace(/'/g,"\\'") + '\')" ' +
+      'style="font-family:var(--dm);font-size:11px;color:var(--cream);padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s" ' +
+      'onmouseenter="this.style.background=\'rgba(72,120,208,.12)\'" onmouseleave="this.style.background=\'transparent\'">' +
+      s.label + (s.fullName !== s.label ? ' <span style="font-size:9px;color:var(--text3)">· ' + s.fullName + '</span>' : '') +
+      '</div>'
+    ).join('');
+  }
+  dd.style.display = 'block';
+}
+
+function selectSAStudent(fullName, label) {
+  document.getElementById('sa-student-name').value = fullName;
+  document.getElementById('sa-student-search').value = label;
+  document.getElementById('sa-student-search').style.borderColor = 'var(--green2)';
+  document.getElementById('sa-dropdown').style.display = 'none';
+  document.getElementById('sa-status').innerHTML =
+    '<span style="color:var(--green2);font-family:var(--dm);font-size:10px">&#10003; ' + label + ' selected — click Load Student Scores</span>';
+  document.getElementById('sa-scores-container').innerHTML = '';
+  _saCurrentProfile = null; _saCurrentFrqRows = [];
+}
+
+async function loadStudentScores() {
+  const studentName = document.getElementById('sa-student-name').value.trim();
+  const course = document.getElementById('sa-course').value;
+  const status = document.getElementById('sa-status');
+  const container = document.getElementById('sa-scores-container');
+  if (!studentName) { status.innerHTML = '<span style="color:var(--red2)">Select a student first.</span>'; return; }
+  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Loading...</span>';
+  container.innerHTML = '';
+  try {
+    const [profiles, frqRows] = await Promise.all([
+      sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*'),
+      sfetch('/rest/v1/civitas_frq_results?student_name=eq.' + encodeURIComponent(studentName) + '&select=frq_id,score&order=score.desc')
+    ]);
+    if (!Array.isArray(profiles) || !profiles[0]) {
+      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '".</span>'; return;
+    }
+    _saCurrentProfile = profiles[0];
+    _saCurrentFrqRows = frqRows || [];
+    renderSAScores(course);
+    status.innerHTML = '';
+  } catch(e) {
+    status.innerHTML = '<span style="color:var(--red2)">Error: ' + e.message + '</span>';
+  }
+}
+
+function renderSAScores(course) {
+  const p = _saCurrentProfile;
+  const container = document.getElementById('sa-scores-container');
+  if (!p) return;
+
+  let unitProg = {};
+  let vocabBest = {};
+  try { unitProg = JSON.parse(p.unit_progress || '{}'); } catch(e) {}
+  try { vocabBest = JSON.parse(p.vocab_best_score || '{}'); } catch(e) {}
+
+  // Best FRQ score per frq_id from civitas_frq_results
+  const frqBest = {};
+  _saCurrentFrqRows.forEach(r => { if ((r.score || 0) > (frqBest[r.frq_id] || 0)) frqBest[r.frq_id] = r.score; });
+  // Also check frq_progress (backup storage)
+  let frqProgress = {};
+  try { frqProgress = JSON.parse(p.frq_progress || '{}'); } catch(e) {}
+  Object.keys(frqProgress).forEach(fid => {
+    const bs = frqProgress[fid]?.bestScore || 0;
+    if (bs > (frqBest[fid] || 0)) frqBest[fid] = bs;
+  });
+
+  const mcqUnits = SA_MCQ_UNITS[course] || [];
+  const vocabUnits = SA_VOCAB_UNITS[course] || [];
+  const frqDefs = SA_FRQS[course] || [];
+
+  // FRQ by unit for grouping
+  const frqByUnit = {};
+  frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
+
+  function tierLabel(score, min) {
+    if (score >= 100) return '<span style="color:#e8d0ff;font-family:var(--bebas);font-size:9px">HISTORIAN</span>';
+    if (score >= 90)  return '<span style="color:#ffd700;font-family:var(--bebas);font-size:9px">GOLD</span>';
+    if (score >= 75)  return '<span style="color:#d8d8e8;font-family:var(--bebas);font-size:9px">SILVER</span>';
+    if (score >= 60)  return '<span style="color:#cd7f32;font-family:var(--bebas);font-size:9px">BRONZE</span>';
+    if (score >= min) return '<span style="color:#38a050;font-family:var(--bebas);font-size:9px">PASSED</span>';
+    return '<span style="color:var(--text3);font-family:var(--bebas);font-size:9px">—</span>';
+  }
+
+  let html = '';
+
+  // ── MCQ SECTION ──
+  if (mcqUnits.length) {
+    html += '<div style="margin-bottom:18px">';
+    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--civitas2);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#9876; MCQ SCORES (unit_progress.bestAccuracy)</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">';
+    mcqUnits.forEach(u => {
+      const ud = unitProg[u.id];
+      const current = ud ? Math.round(ud.bestAccuracy || ud.mcqScore || 0) : null;
+      const badge = current !== null ? tierLabel(current, 60) : '<span style="color:var(--text3);font-size:9px;font-family:var(--dm)">No data</span>';
+      html += '<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">';
+      html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:10px;color:var(--cream)">' + u.label + ' <span style="font-size:9px;color:var(--text3)">' + u.sub + '</span></div>';
+      html += '<div style="margin-top:2px">' + badge + '</div></div>';
+      html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
+      html += '<input type="number" id="sa-mcq-' + u.id + '" min="0" max="100" value="' + (current !== null ? current : '') + '" placeholder="—" ';
+      html += 'style="width:50px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
+      html += 'onfocus="this.style.borderColor=\'var(--civitas)\'" onblur="this.style.borderColor=\'var(--border2)\'">';
+      html += '<span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>';
+      html += '</div></div>';
+    });
+    html += '</div></div>';
+  }
+
+  // ── VOCAB SECTION ──
+  if (vocabUnits.length) {
+    html += '<div style="margin-bottom:18px">';
+    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--purple2);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#128218; VOCAB SCORES (vocab_best_score, threshold 80%)</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">';
+    vocabUnits.forEach(u => {
+      const current = vocabBest[u.id] || null;
+      const badge = current !== null ? tierLabel(current, 80) : '<span style="color:var(--text3);font-size:9px;font-family:var(--dm)">No data</span>';
+      html += '<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">';
+      html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:10px;color:var(--cream)">' + u.label + ' <span style="font-size:9px;color:var(--text3)">' + u.sub + '</span></div>';
+      html += '<div style="margin-top:2px">' + badge + '</div></div>';
+      html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
+      html += '<input type="number" id="sa-vocab-' + u.id + '" min="0" max="100" value="' + (current !== null ? current : '') + '" placeholder="—" ';
+      html += 'style="width:50px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
+      html += 'onfocus="this.style.borderColor=\'var(--civitas)\'" onblur="this.style.borderColor=\'var(--border2)\'">';
+      html += '<span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>';
+      html += '</div></div>';
+    });
+    html += '</div></div>';
+  }
+
+  // ── FRQ SECTION ──
+  if (frqDefs.length) {
+    html += '<div style="margin-bottom:18px">';
+    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--amber);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#9998; FRQ SCORES (points scored / max points)</div>';
+    // Legend
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
+    Object.entries(SA_FRQ_COLORS).forEach(([type, c]) => {
+      html += '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:' + c.label + ';padding:2px 8px;border:1px solid ' + c.border + ';background:' + c.bg + '">' + type + ' · ' + ({CA:'Concept App',QA:'Quantitative',SC:'SCOTUS Comp',AE:'Argument Essay'}[type]) + '</div>';
+    });
+    html += '</div>';
+
+    // Group by unit
+    Object.entries(frqByUnit).forEach(([unitId, frqs]) => {
+      const unitLabel = mcqUnits.find(u => u.id === unitId);
+      html += '<div style="margin-bottom:12px">';
+      html += '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">' + (unitLabel ? unitLabel.label + ' — ' + unitLabel.sub : unitId) + '</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:5px">';
+      frqs.forEach(f => {
+        const c = SA_FRQ_COLORS[f.type] || SA_FRQ_COLORS.CA;
+        const currentPts = frqBest[f.id] || null;
+        const currentPct = currentPts !== null ? Math.round((currentPts / f.points) * 100) : null;
+        html += '<div style="background:' + c.bg + ';border:1px solid ' + c.border + '44;padding:7px 10px;display:flex;align-items:center;gap:8px">';
+        html += '<div style="flex-shrink:0;font-family:var(--bebas);font-size:10px;color:' + c.label + ';letter-spacing:1px;min-width:24px">' + f.type + '</div>';
+        html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:9px;color:var(--cream);line-height:1.3">' + f.label + '</div>';
+        html += '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:1px">Max: ' + f.points + ' pts' + (currentPct !== null ? ' · Current: ' + currentPts + '/' + f.points + ' (' + currentPct + '%)' : ' · No submission') + '</div></div>';
+        html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
+        html += '<input type="number" id="sa-frq-' + f.id + '" min="0" max="' + f.points + '" value="' + (currentPts !== null ? currentPts : '') + '" placeholder="—" ';
+        html += 'style="width:44px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid ' + c.border + '66;color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
+        html += 'onfocus="this.style.borderColor=\'' + c.border + '\'" onblur="this.style.borderColor=\'' + c.border + '66\'">';
+        html += '<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">/' + f.points + '</span>';
+        html += '</div></div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Apply button
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;padding-top:12px;border-top:1px solid var(--border2)">';
+  html += '<button class="btn sm green" onclick="commitSAScores()"><span>&#10003; Apply All Changes</span></button>';
+  html += '<button class="btn sm" onclick="loadStudentScores()" style="border-color:var(--border2);color:var(--text3)"><span>&#8635; Reload</span></button>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+async function commitSAScores() {
+  const studentName = document.getElementById('sa-student-name').value.trim();
+  const course = document.getElementById('sa-course').value;
+  const status = document.getElementById('sa-status');
+  if (!studentName || !_saCurrentProfile) { status.innerHTML = '<span style="color:var(--red2)">Load a student first.</span>'; return; }
+
+  const p = _saCurrentProfile;
+  let unitProg = {};
+  let vocabBest = {};
+  let vocabPassed = {};
+  let frqProgress = {};
+  try { unitProg = JSON.parse(p.unit_progress || '{}'); } catch(e) {}
+  try { vocabBest = JSON.parse(p.vocab_best_score || '{}'); } catch(e) {}
+  try { vocabPassed = JSON.parse(p.vocab_passed || '{}'); } catch(e) {}
+  try { frqProgress = JSON.parse(p.frq_progress || '{}'); } catch(e) {}
+
+  const now = new Date().toISOString();
+  const payload = { full_name: studentName, updated_at: now };
+  let changed = [];
+
+  // ── MCQ scores → unit_progress ──
+  const mcqUnits = SA_MCQ_UNITS[course] || [];
+  let mcqChanged = false;
+  mcqUnits.forEach(u => {
+    const el = document.getElementById('sa-mcq-' + u.id);
+    if (!el || el.value === '') return;
+    const newScore = Math.max(0, Math.min(100, parseInt(el.value) || 0));
+    const existing = unitProg[u.id] || {};
+    const oldScore = existing.bestAccuracy || existing.mcqScore || 0;
+    if (newScore !== oldScore) {
+      unitProg[u.id] = {
+        ...existing,
+        bestAccuracy: Math.max(newScore, oldScore),
+        mcqScore: newScore,
+        completedAt: existing.completedAt || (newScore >= 60 ? now : undefined)
+      };
+      if (newScore >= 60 && !unitProg[u.id].completedAt) unitProg[u.id].completedAt = now;
+      changed.push(u.label + ' MCQ: ' + newScore + '%');
+      mcqChanged = true;
+    }
+  });
+  if (mcqChanged) payload.unit_progress = JSON.stringify(unitProg);
+
+  // ── Vocab scores → vocab_best_score + vocab_passed ──
+  const vocabUnits = SA_VOCAB_UNITS[course] || [];
+  let vocabChanged = false;
+  vocabUnits.forEach(u => {
+    const el = document.getElementById('sa-vocab-' + u.id);
+    if (!el || el.value === '') return;
+    const newScore = Math.max(0, Math.min(100, parseInt(el.value) || 0));
+    const oldScore = vocabBest[u.id] || 0;
+    if (newScore !== oldScore) {
+      vocabBest[u.id] = newScore;
+      if (newScore >= 80) vocabPassed[u.id] = true;
+      else delete vocabPassed[u.id];
+      changed.push(u.label + ' Vocab: ' + newScore + '%');
+      vocabChanged = true;
+    }
+  });
+  if (vocabChanged) {
+    payload.vocab_best_score = JSON.stringify(vocabBest);
+    payload.vocab_passed = JSON.stringify(vocabPassed);
+  }
+
+  // ── FRQ scores → frq_progress + civitas_frq_results ──
+  const frqDefs = SA_FRQS[course] || [];
+  const frqUpdates = []; // [{id, score, maxScore}]
+  frqDefs.forEach(f => {
+    const el = document.getElementById('sa-frq-' + f.id);
+    if (!el || el.value === '') return;
+    const newPts = Math.max(0, Math.min(f.points, parseInt(el.value) || 0));
+    const existing = frqProgress[f.id];
+    const oldPts = existing?.bestScore || 0;
+    if (newPts !== oldPts) {
+      frqProgress[f.id] = {
+        bestScore: Math.max(newPts, oldPts),
+        maxScore: f.points,
+        attempts: (existing?.attempts || 0) + 1,
+        teacherAdjusted: true,
+        adjustedAt: now,
+        history: [...(existing?.history || []), { score: newPts, ts: Date.now(), teacherAdj: true }]
+      };
+      frqUpdates.push({ id: f.id, score: newPts, maxScore: f.points });
+      const pct = Math.round((newPts / f.points) * 100);
+      changed.push(f.label + ': ' + newPts + '/' + f.points + ' (' + pct + '%)');
+    }
+  });
+  if (frqUpdates.length) {
+    payload.frq_progress = JSON.stringify(frqProgress);
+
+    // Also update unit_progress frqScore + frqAllDone for affected units
+    const frqByUnit = {};
+    frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
+    const affectedUnits = [...new Set(frqUpdates.map(u => {
+      const def = frqDefs.find(f => f.id === u.id); return def?.unit;
+    }).filter(Boolean))];
+
+    affectedUnits.forEach(uid => {
+      const unitFrqs = frqByUnit[uid] || [];
+      // Compute per-type best pct across all FRQs of that unit
+      const typeBest = {}; // type -> best pct
+      unitFrqs.forEach(f => {
+        const pts = frqProgress[f.id]?.bestScore || 0;
+        const pct = Math.round((pts / f.points) * 100);
+        if (!typeBest[f.type] || pct > typeBest[f.type]) typeBest[f.type] = pct;
+      });
+      const types = Object.keys(typeBest);
+      const allTypes = ['CA','QA','SC','AE'];
+      const frqAllDone = course === 'ap_gov' ? allTypes.every(t => types.includes(t)) : types.length > 0;
+      const frqScore = types.length > 0 ? Math.round(types.reduce((a, t) => a + typeBest[t], 0) / types.length) : 0;
+      if (!unitProg[uid]) unitProg[uid] = {};
+      unitProg[uid].frqScore = frqScore;
+      unitProg[uid].frqAllDone = frqAllDone;
+    });
+    payload.unit_progress = JSON.stringify(unitProg);
+  }
+
+  if (!changed.length) {
+    status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">No changes detected — edit a score first.</span>'; return;
+  }
+
+  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Saving...</span>';
+
+  try {
+    // Upsert profile fields
+    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok && resp.status !== 200 && resp.status !== 201) throw new Error('Supabase error ' + resp.status);
+
+    // Upsert FRQ results rows into civitas_frq_results
+    if (frqUpdates.length) {
+      const frqRows = frqUpdates.map(u => ({
+        student_name: p.display_name || studentName,
+        full_name: studentName,
+        frq_id: u.id,
+        score: u.score,
+        teacher_adjusted: true,
+        submitted_at: now
+      }));
+      await fetch(SUPA_URL + '/rest/v1/civitas_frq_results?on_conflict=student_name,frq_id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(frqRows)
+      });
+    }
+
+    status.innerHTML =
+      '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2);font-family:var(--dm);font-size:11px">' +
+      '&#10003; Saved for <strong>' + (p.display_name || studentName) + '</strong>:<br>' +
+      changed.map(c => '&nbsp;&nbsp;· ' + c).join('<br>') +
+      '<br><span style="font-size:9px;opacity:.7;margin-top:4px;display:block">Student will see updated scores after next profile sync.</span></div>';
+
+    // Refresh display
+    _saCurrentProfile = null; _saCurrentFrqRows = [];
+    await loadStudentScores();
+  } catch(e) {
+    status.innerHTML = '<span style="color:var(--red2)">&#10007; Error: ' + e.message + '</span>';
+  }
+}
+
+// Wire up SA dropdown population alongside MPE on DOMContentLoaded
+// (appended to existing listener at bottom of file)
 
 // ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────
 function clearImportJSON() {
