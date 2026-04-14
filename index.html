@@ -697,7 +697,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
     <div id="view-teacher" class="view">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
         <div>
-          <div class="sh" style="margin-bottom:3px">Teacher Dashboard</div>
+          <div class="sh" style="margin-bottom:3px">Teacher Dashboard — <span id="teacher-dash-name" style="color:var(--teal2)"></span></div>
           <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Session only — not visible to students.</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -5059,6 +5059,7 @@ function studentLogout(){
 function teacherLogout(){
   if(!confirm('Log out of teacher session?'))return;
   IS_TEACHER=false;
+  CURRENT_TEACHER=null;
   try{
     sessionStorage.removeItem('civitas_shell_active');
     localStorage.removeItem('civitas_student_name');
@@ -6787,6 +6788,23 @@ async function renderTeacherView(){
   if(!re)return;
   re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px">Loading…</div>';
 
+  // Set teacher name in header
+  const dashName=document.getElementById('teacher-dash-name');
+  if(dashName) dashName.textContent=CURRENT_TEACHER?CURRENT_TEACHER.name:'';
+
+  // Pre-filter and lock dropdown for limited-access teachers (e.g. Mrs. Smith → hs_ush only)
+  const courseFilter=document.getElementById('teacher-course-filter');
+  if(courseFilter && CURRENT_TEACHER && CURRENT_TEACHER.courses.length===1){
+    courseFilter.value=CURRENT_TEACHER.courses[0];
+    courseFilter.disabled=true;
+    courseFilter.style.opacity='.6';
+    courseFilter.style.cursor='default';
+  } else if(courseFilter){
+    courseFilter.disabled=false;
+    courseFilter.style.opacity='1';
+    courseFilter.style.cursor='pointer';
+  }
+
   try{
     const [profiles,frqRows,testRows]=await Promise.all([
       sfetch('/rest/v1/civitas_profiles?select=*&order=period.asc,display_name.asc&limit=300'),
@@ -6794,14 +6812,22 @@ async function renderTeacherView(){
       sfetch('/rest/v1/civitas_test_scores?select=student_name,test_name,score&limit=2000')
     ]);
 
-    // Build student data — all enrolled students, filterable by course
-    const _activeCourse=document.getElementById('teacher-course-filter')?.value||'all';
+    // Determine which courses this teacher can see
+    const _teacherCourses = CURRENT_TEACHER ? CURRENT_TEACHER.courses : null; // null = see all
+    const _activeCourse = document.getElementById('teacher-course-filter')?.value || 'all';
+
     const students=(profiles||[])
       .filter(p=>{
         try{
           const c=JSON.parse(p.courses||'[]');
-          if(!c.length)return false;
-          if(_activeCourse==='all')return true;
+          if(!c.length) return false;
+          // Filter by logged-in teacher's allowed courses first
+          if(_teacherCourses){
+            const hasAllowedCourse = c.some(x => _teacherCourses.includes(x.id));
+            if(!hasAllowedCourse) return false;
+          }
+          // Then apply the course dropdown filter
+          if(_activeCourse==='all') return true;
           return c.some(x=>x.id===_activeCourse);
         }catch(e){return false;}
       })
@@ -6809,6 +6835,7 @@ async function renderTeacherView(){
 
     _teacherData=students;
     populateMPEDropdown(); // keep MPE student list in sync
+    populateSADropdown();  // keep score adjustment list in sync
 
     // Stats bar
     const statsEl=document.getElementById('teacher-stats-bar');
@@ -6848,7 +6875,7 @@ async function renderTeacherView(){
   }catch(e){
     document.getElementById('teacher-results').innerHTML=`<div style="color:var(--red2);font-family:var(--dm);font-size:10px;padding:8px">Error: ${e.message}</div>`;
   }
-  try{const n=document.getElementById('teacher-notes');if(n)n.value=localStorage.getItem('civitas_teacher_notes')||'';}catch(e){}
+  try{const n=document.getElementById('teacher-notes');if(n){const nk=CURRENT_TEACHER?CURRENT_TEACHER.notesKey:'civitas_teacher_notes';n.value=localStorage.getItem(nk)||'';}}catch(e){}
   loadTeacherFeedback();
 }
 
@@ -7472,7 +7499,7 @@ async function markFeedbackResolved(id){
   }catch(e){notify('Error: '+e.message);}
 }
 
-function saveNotes(){try{localStorage.setItem('civitas_teacher_notes',document.getElementById('teacher-notes').value);}catch(e){}}
+function saveNotes(){try{const nk=CURRENT_TEACHER?CURRENT_TEACHER.notesKey:'civitas_teacher_notes';localStorage.setItem(nk,document.getElementById('teacher-notes').value);}catch(e){}}
 
 async function exportCivitasCSV(){
   notify('Building export…');
