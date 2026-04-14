@@ -2323,6 +2323,14 @@ async function boot(){
           S.setupDone = true;
           S.isGuest   = false;
           S.fromCivitas = true;
+          // Pick up teacher assignment passed from civitas shell
+          try{
+            const tid=localStorage.getItem('civitas_ush_teacher_id');
+            const tname=localStorage.getItem('civitas_ush_teacher_name');
+            if(tid){S.teacherId=tid;S.teacherName=tname||'';}
+            localStorage.removeItem('civitas_ush_teacher_id');
+            localStorage.removeItem('civitas_ush_teacher_name');
+          }catch(e){}
           // Pull latest from ac_student_profiles too
           loadProfileByName(S.fullName, S.period).then(profile => {
             if(profile){ applyStudentProfile(profile); saveS(); }
