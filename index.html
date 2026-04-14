@@ -2909,7 +2909,22 @@ async function getTeachersForCourse(courseId) {
 //  STATE
 // ══════════════════════════════════════════════════════
 const SHELL_KEY = 'civitas_state';
-const TEACHER_PWD = 'olson219';
+const TEACHER_PWD = 'olson219'; // kept for any legacy references
+const TEACHERS = {
+  'olson219': {
+    name: 'Mr. Olson',
+    fullName: 'Joshua Olson',
+    courses: ['ap_gov','ap_cmp','ap_sem','hs_ush'],
+    notesKey: 'civitas_notes_olson'
+  },
+  'smith225': {
+    name: 'Mrs. Smith',
+    fullName: 'Christina Smith',
+    courses: ['hs_ush'],
+    notesKey: 'civitas_notes_smith'
+  }
+};
+let CURRENT_TEACHER = null; // set on login
 const OB_KEY = 'civitas_onboarding_seen';
 let IS_TEACHER = false;
 
@@ -2928,29 +2943,30 @@ function submitTeacher(){
   const err=document.getElementById('teacher-err');
   if(!inp)return;
   const val=(inp.value||'').trim().toLowerCase();
-  if(val===TEACHER_PWD.toLowerCase()){
+  const teacher=TEACHERS[val];
+  if(teacher){
     IS_TEACHER=true;
+    CURRENT_TEACHER=teacher;
     inp.value='';
     if(err)err.textContent='';
     const box=document.getElementById('teacher-box');if(box)box.style.display='none';
-    // Populate teacher identity so the HUD shows the right name
-    S.name='Mr. Olson';
-    S.fullName='Joshua Olson';
+    // Set teacher identity
+    S.name=teacher.name;
+    S.fullName=teacher.fullName;
     S.isTeacher=true;
     S.setupDone=true;
     S.avatar=S.avatar||'scholar';
-    // Ensure teacher has AP Gov enrolled
+    // Enroll teacher in their courses
     if(!S.courses)S.courses=[];
-    // Ensure ap_gov is enrolled but preserve any other courses already added
-    if(!S.courses.find(c=>c.id==='ap_gov')){
-      S.courses.push({id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()});
-    }
-    // Save immediately so courses persist through unit game navigation
+    teacher.courses.forEach(cid=>{
+      if(!S.courses.find(c=>c.id===cid)){
+        S.courses.push({id:cid,period:'teacher',enrolledAt:new Date().toISOString()});
+      }
+    });
     saveS();
-    localStorage.setItem('civitas_student_name','Mr. Olson');
-    localStorage.setItem('civitas_full_name','Joshua Olson');
+    localStorage.setItem('civitas_student_name',teacher.name);
+    localStorage.setItem('civitas_full_name',teacher.fullName);
     enterShell();
-    // Force after all nav resets have fired
     setTimeout(function(){
       var b=document.getElementById('nav-teacher');
       if(b)b.style.display='inline-block';
@@ -3989,8 +4005,10 @@ async function checkTeacherAndBrowse(){
   const pwd=document.getElementById('recover-teacher-pwd');
   const err=document.getElementById('recover-teacher-err');
   if(!pwd)return;
-  if(pwd.value.toLowerCase()===TEACHER_PWD.toLowerCase()){
+  const teacher=TEACHERS[pwd.value.trim().toLowerCase()];
+  if(teacher){
     err.textContent='';
+    CURRENT_TEACHER=teacher;
     showAllProfiles();
   } else {
     err.textContent='Incorrect code.';
@@ -4126,13 +4144,18 @@ async function boot(){
       // loadS() already ran above — only override name/teacher flag,
       // preserving S.courses that loadS() restored from civitas_state
       S.name=savedName; S.fullName=savedFull; S.setupDone=true;
+      // Check if this saved identity is a known teacher
+      const _restoredTeacher = Object.values(TEACHERS).find(t=>t.fullName===savedFull);
       if(!Array.isArray(S.courses)||S.courses.length===0){
-        // Fallback: rebuild from saved name if state was empty
-        if(savedFull==='Joshua Olson'){
-          S.courses=[{id:'ap_gov',period:'teacher',enrolledAt:new Date().toISOString()}];
+        // Fallback: rebuild courses from teacher config if state was empty
+        if(_restoredTeacher){
+          S.courses=_restoredTeacher.courses.map(cid=>({id:cid,period:'teacher',enrolledAt:new Date().toISOString()}));
         }
       }
-      if(savedFull==='Joshua Olson'||S.period==='teacher'){IS_TEACHER=true;S.isTeacher=true;S.period='teacher';}
+      if(_restoredTeacher||S.period==='teacher'){
+        IS_TEACHER=true;S.isTeacher=true;S.period='teacher';
+        CURRENT_TEACHER=_restoredTeacher||null;
+      }
       enterShell();return;
     }
   }
@@ -4326,6 +4349,7 @@ function applyProfile(p){
 // ══════════════════════════════════════════════════════
 let _setupSelectedCourses=[];
 let _setupPeriods={};
+let _setupTeachers={}; // courseId -> {id, display_name, periods[]}
 let _setupAvatar='scholar';
 
 function showSetupScreen(){
@@ -4333,6 +4357,7 @@ function showSetupScreen(){
   S=defaultState();
   _setupSelectedCourses=[];
   _setupPeriods={};
+  _setupTeachers={};
   _setupAvatar='scholar';
   try{localStorage.removeItem(SHELL_KEY);}catch(e){}
   document.getElementById('title-screen').style.display='none';
@@ -4670,6 +4695,9 @@ function toggleCourse(id){
   buildCourseSelector();
 }
 
+// Courses that require a teacher selection before picking a period
+const MULTI_TEACHER_COURSES = ['hs_ush','us_history'];
+
 function buildPeriodSelector(){
   const el=document.getElementById('period-selector');
   if(!_setupSelectedCourses.length){
@@ -4679,21 +4707,79 @@ function buildPeriodSelector(){
   el.innerHTML=_setupSelectedCourses.map(id=>{
     const cat=COURSE_CATALOG.find(c=>c.id===id);if(!cat)return'';
     const sel=_setupPeriods[id];
-    return`<div class="period-course-block" style="border-left:3px solid ${cat.color}">
-      <div class="period-course-name">${cat.icon} ${cat.name}</div>
-      <div class="period-grid">
+    const needsTeacher=MULTI_TEACHER_COURSES.includes(id);
+    const selTeacher=_setupTeachers[id];
+    // For multi-teacher courses: show teacher picker, then (if teacher chosen) period grid
+    const teacherSection=needsTeacher?`
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">SELECT YOUR TEACHER</div>
+      <div id="teacher-btns-${id}" style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);font-style:italic">Loading teachers…</div>
+      </div>`:'';
+    const periodSection=`
+      <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">${needsTeacher?'THEN SELECT YOUR PERIOD':'SELECT YOUR PERIOD'}</div>
+      <div class="period-grid" id="period-grid-${id}" style="${needsTeacher&&!selTeacher?'opacity:.35;pointer-events:none':''}">
         ${[1,2,3,4,5,6,7].map(p=>`<div class="period-btn ${sel==p?'selected':''}" onclick="pickPeriod('${id}',${p},this)">${p}</div>`).join('')}
         <div class="period-btn guest-btn ${sel==='guest'?'selected':''}" onclick="pickPeriod('${id}','guest',this)">GUEST / NO PERIOD</div>
-      </div>
+      </div>`;
+    return`<div class="period-course-block" style="border-left:3px solid ${cat.color}">
+      <div class="period-course-name">${cat.icon} ${cat.name}</div>
+      ${teacherSection}${periodSection}
     </div>`;
   }).join('');
+  // Load teachers async for any multi-teacher courses
+  _setupSelectedCourses.filter(id=>MULTI_TEACHER_COURSES.includes(id)).forEach(id=>{
+    loadSetupTeachers(id);
+  });
+}
+
+async function loadSetupTeachers(courseId){
+  const el=document.getElementById('teacher-btns-'+courseId);
+  if(!el)return;
+  try{
+    const teachers=await getTeachersForCourse(courseId);
+    if(!teachers||!teachers.length){
+      el.innerHTML='<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">No teachers found.</div>';
+      return;
+    }
+    const selTeacher=_setupTeachers[courseId];
+    el.innerHTML=teachers.map(t=>`
+      <div onclick="pickSetupTeacher('${courseId}','${t.id}','${t.display_name.replace(/'/g,"\'")}',${JSON.stringify(t.periods||[1,2,3,4,5,6,7])})"
+        style="background:${selTeacher&&selTeacher.id===t.id?'rgba(32,136,120,.1)':'var(--bg2)'};
+               border:1.5px solid ${selTeacher&&selTeacher.id===t.id?'var(--teal2)':'var(--border2)'};
+               color:${selTeacher&&selTeacher.id===t.id?'var(--teal2)':'var(--cream)'};
+               font-family:var(--playfair);font-size:13px;padding:10px 14px;cursor:pointer;
+               transition:all .15s;font-style:italic"
+        onmouseenter="this.style.borderColor='var(--teal2)'"
+        onmouseleave="this.style.borderColor='${selTeacher&&selTeacher.id===t.id?'var(--teal2)':'var(--border2)'}'">
+        ${t.display_name}
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="font-family:var(--dm);font-size:9px;color:var(--red2)">Could not load teachers.</div>';
+  }
+}
+
+function pickSetupTeacher(courseId, teacherId, teacherName, periods){
+  _setupTeachers[courseId]={id:teacherId, display_name:teacherName, periods};
+  // Rebuild just the teacher buttons to show selection
+  loadSetupTeachers(courseId);
+  // Unlock and rebuild period grid with this teacher's periods
+  const periodGrid=document.getElementById('period-grid-'+courseId);
+  if(periodGrid){
+    periodGrid.style.opacity='1';
+    periodGrid.style.pointerEvents='auto';
+    const sel=_setupPeriods[courseId];
+    const available=periods&&periods.length?periods:[1,2,3,4,5,6,7];
+    periodGrid.innerHTML=available.map(p=>`<div class="period-btn ${sel==p?'selected':''}" onclick="pickPeriod('${courseId}',${p},this)">${p}</div>`).join('')
+      +`<div class="period-btn guest-btn ${sel==='guest'?'selected':''}" onclick="pickPeriod('${courseId}','guest',this)">GUEST / NO PERIOD</div>`;
+  }
 }
 
 function pickPeriod(courseId,period,el){
   _setupPeriods[courseId]=period;
   // Re-render just this block's buttons
   const block=el.closest('.period-course-block');
-  block.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('selected'));
+  const grid=document.getElementById('period-grid-'+courseId)||block.querySelector('.period-grid');
+  if(grid) grid.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
 }
 
@@ -4718,10 +4804,12 @@ function buildConfirm(){
       const cat=COURSE_CATALOG.find(c=>c.id===id);if(!cat)return'';
       const period=_setupPeriods[id];
       const periodLabel=period==='guest'?'Guest':period?'Period '+period:'⚠️ No period selected';
+      const teacherInfo=_setupTeachers[id];
+      const teacherLabel=teacherInfo?teacherInfo.display_name:'';
       return`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${cat.color};margin-bottom:6px">
         <span style="font-size:20px">${cat.icon}</span>
         <div style="flex:1"><div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">${cat.name}</div>
-        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${cat.grade}</div></div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${cat.grade}${teacherLabel?' · '+teacherLabel:''}</div></div>
         <div style="font-family:var(--bebas);font-size:11px;color:${period?'var(--civitas2)':'var(--red2)'};letter-spacing:1px">${periodLabel}</div>
       </div>`;
     }).join('')}`;
@@ -4733,6 +4821,10 @@ async function confirmProfile(){
   if(!_setupSelectedCourses.length){notify('Select at least one course.');return;}
   const allHavePeriod=_setupSelectedCourses.every(id=>_setupPeriods[id]);
   if(!allHavePeriod){notify('Select a period for each course.');return;}
+  // For multi-teacher courses, teacher must be selected too
+  const needsTeacher=_setupSelectedCourses.filter(id=>MULTI_TEACHER_COURSES.includes(id));
+  const allHaveTeacher=needsTeacher.every(id=>_setupTeachers[id]);
+  if(!allHaveTeacher){notify('Select a teacher for each course that requires one.');return;}
 
   const parts=raw.split(/\s+/);
   const firstName=parts[0][0].toUpperCase()+parts[0].slice(1).toLowerCase();
@@ -4745,7 +4837,11 @@ async function confirmProfile(){
   S.avatar=_setupAvatar;
   S.isGuest=false;
   S.setupDone=true;
-  S.courses=_setupSelectedCourses.map(id=>({id,period:_setupPeriods[id],enrolledAt:new Date().toISOString()}));
+  S.courses=_setupSelectedCourses.map(id=>{
+    const t=_setupTeachers[id];
+    return {id, period:_setupPeriods[id], enrolledAt:new Date().toISOString(),
+            ...(t?{teacherId:t.id, teacherName:t.display_name}:{})};
+  });
   S.unlocked=CHAR_POOL.filter(c=>c.unlockMethod==='free').map(c=>c.id);
 
   // Check for returning student on new device
@@ -5095,7 +5191,16 @@ function enterCourse(courseId){
     return;
   }
   if(courseId==='hs_ush'){
-    try{localStorage.setItem('civitas_last_course','us_history');localStorage.setItem('civitas_returning','1');}catch(e){}
+    try{
+      localStorage.setItem('civitas_last_course','us_history');
+      localStorage.setItem('civitas_returning','1');
+      // Pass teacher assignment to history game
+      const ushCourse=(S.courses||[]).find(c=>c.id==='hs_ush');
+      if(ushCourse&&ushCourse.teacherId){
+        localStorage.setItem('civitas_ush_teacher_id', ushCourse.teacherId);
+        localStorage.setItem('civitas_ush_teacher_name', ushCourse.teacherName||'');
+      }
+    }catch(e){}
     window.location.href=CIVITAS_BASE+'games/us-history/';
     return;
   }
@@ -5238,8 +5343,22 @@ function enrollCourse(courseId){
   const cat=COURSE_CATALOG.find(c=>c.id===courseId);
   if(!cat||cat.comingSoon){notify('📚 '+( cat?cat.name:'Course')+' — coming soon!');return;}
   if((S.courses||[]).find(c=>c.id===courseId)){notify('Already enrolled!');return;}
-  const period=IS_TEACHER?'teacher':prompt('Enter your class period (e.g. 1, 2, 4):','');
-  if(period===null)return; // cancelled
+  if(IS_TEACHER){
+    if(!S.courses)S.courses=[];
+    S.courses.push({id:courseId,period:'teacher',enrolledAt:new Date().toISOString()});
+    saveS();updateHUD();
+    const modal=document.getElementById('add-course-modal');if(modal)modal.remove();
+    renderDashboard();notify('✅ Enrolled in '+cat.name+'!');
+    return;
+  }
+  // Multi-teacher courses get a proper picker overlay
+  if(MULTI_TEACHER_COURSES.includes(courseId)){
+    showEnrollOverlay(courseId,cat);
+    return;
+  }
+  // All other courses — simple period prompt
+  const period=prompt('Enter your class period (e.g. 1, 2, 4):','');
+  if(period===null)return;
   if(!S.courses)S.courses=[];
   S.courses.push({id:courseId,period:period||'',enrolledAt:new Date().toISOString()});
   saveS();
@@ -5247,6 +5366,85 @@ function enrollCourse(courseId){
   const modal=document.getElementById('add-course-modal');if(modal)modal.remove();
   renderDashboard();
   notify('✅ Enrolled in '+cat.name+'!');
+}
+
+async function showEnrollOverlay(courseId, cat){
+  // Remove any existing overlay
+  const existing=document.getElementById('enroll-overlay');if(existing)existing.remove();
+
+  const teachers=await getTeachersForCourse(courseId);
+  let selectedTeacher=null;
+
+  const overlay=document.createElement('div');
+  overlay.id='enroll-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9500;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  function render(){
+    overlay.innerHTML=`
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--teal2);max-width:500px;width:100%;padding:24px">
+        <div style="font-family:var(--bebas);font-size:20px;color:var(--teal2);letter-spacing:3px;margin-bottom:4px">Enroll in ${cat.name}</div>
+        <div style="font-family:var(--dm);font-size:10px;color:var(--text3);margin-bottom:18px">Select your teacher, then your class period.</div>
+
+        <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR TEACHER</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+          ${teachers.map(t=>`
+            <div onclick="document.querySelectorAll('.enroll-teacher-btn').forEach(b=>{b.style.borderColor='var(--border2)';b.style.color='var(--cream)';b.style.background='var(--bg3)'});this.style.borderColor='var(--teal2)';this.style.color='var(--teal2)';this.style.background='rgba(32,136,120,.1)';window._enrollTeacher={id:'${t.id}',name:'${t.display_name.replace(/'/g,"\'")}',periods:${JSON.stringify(t.periods||[1,2,3,4,5,6,7])}}; document.getElementById('enroll-period-section').style.display='block'; buildEnrollPeriods(${JSON.stringify(t.periods||[1,2,3,4,5,6,7])})"
+              class="enroll-teacher-btn"
+              style="background:${selectedTeacher&&selectedTeacher.id===t.id?'rgba(32,136,120,.1)':'var(--bg3)'};border:1.5px solid ${selectedTeacher&&selectedTeacher.id===t.id?'var(--teal2)':'var(--border2)'};color:${selectedTeacher&&selectedTeacher.id===t.id?'var(--teal2)':'var(--cream)'};font-family:var(--playfair);font-size:13px;padding:10px 14px;cursor:pointer;font-style:italic;transition:all .15s">
+              ${t.display_name}
+            </div>`).join('')}
+        </div>
+
+        <div id="enroll-period-section" style="display:none">
+          <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:6px">YOUR PERIOD</div>
+          <div id="enroll-period-grid" class="period-grid" style="margin-bottom:16px"></div>
+        </div>
+
+        <div id="enroll-status" style="font-family:var(--dm);font-size:10px;min-height:14px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px">
+          <button onclick="commitEnroll('${courseId}')"
+            style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1.5px solid var(--teal2);color:var(--teal2);padding:8px 20px;cursor:pointer;flex:1;transition:all .15s"
+            onmouseenter="this.style.background='rgba(32,136,120,.1)'" onmouseleave="this.style.background='transparent'">
+            ✓ Enroll
+          </button>
+          <button onclick="document.getElementById('enroll-overlay').remove()"
+            style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;border:1.5px solid var(--border2);color:var(--text3);padding:8px 16px;cursor:pointer">
+            Cancel
+          </button>
+        </div>
+      </div>`;
+  }
+  render();
+  document.body.appendChild(overlay);
+}
+
+window._enrollTeacher = null;
+window._enrollPeriod  = null;
+
+function buildEnrollPeriods(periods){
+  const grid=document.getElementById('enroll-period-grid');
+  if(!grid)return;
+  window._enrollPeriod=null;
+  const available=periods&&periods.length?periods:[1,2,3,4,5,6,7];
+  grid.innerHTML=available.map(p=>`
+    <div class="period-btn" onclick="window._enrollPeriod=${p};document.querySelectorAll('#enroll-period-grid .period-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">${p}</div>
+  `).join('')+`<div class="period-btn guest-btn" onclick="window._enrollPeriod='guest';document.querySelectorAll('#enroll-period-grid .period-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">GUEST / NO PERIOD</div>`;
+}
+
+function commitEnroll(courseId){
+  const statusEl=document.getElementById('enroll-status');
+  const t=window._enrollTeacher;
+  const p=window._enrollPeriod;
+  if(!t){if(statusEl)statusEl.innerHTML='<span style="color:var(--red2)">Select your teacher first.</span>';return;}
+  if(!p){if(statusEl)statusEl.innerHTML='<span style="color:var(--red2)">Select your period.</span>';return;}
+  if(!S.courses)S.courses=[];
+  S.courses.push({id:courseId,period:p,teacherId:t.id,teacherName:t.name,enrolledAt:new Date().toISOString()});
+  saveS();updateHUD();
+  document.getElementById('enroll-overlay').remove();
+  const modal=document.getElementById('add-course-modal');if(modal)modal.remove();
+  renderDashboard();
+  notify('✅ Enrolled in '+courseId.replace(/_/g,' ')+'!');
+  window._enrollTeacher=null;window._enrollPeriod=null;
 }
 
 function openCourseSwitcher(){
