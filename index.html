@@ -7796,19 +7796,25 @@ async function loadStudentScores() {
   status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Loading...</span>';
   container.innerHTML = '';
   try {
-    const [profiles, frqRows] = await Promise.all([
-      sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*'),
-      sfetch('/rest/v1/civitas_frq_results?student_name=eq.' + encodeURIComponent(studentName) + '&select=frq_id,score&order=score.desc')
-    ]);
+    const profResp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*', {
+      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+    if (!profResp.ok) throw new Error('Profile fetch failed: HTTP ' + profResp.status + ' — ' + await profResp.text());
+    const profiles = await profResp.json();
     if (!Array.isArray(profiles) || !profiles[0]) {
-      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '".</span>'; return;
+      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '". Try clicking Refresh to reload the student list.</span>'; return;
     }
+    const displayName = profiles[0].display_name || studentName;
+    const frqResp = await fetch(SUPA_URL + '/rest/v1/civitas_frq_results?student_name=eq.' + encodeURIComponent(displayName) + '&select=frq_id,score&order=score.desc', {
+      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+    const frqRows = frqResp.ok ? await frqResp.json() : [];
     _saCurrentProfile = profiles[0];
-    _saCurrentFrqRows = frqRows || [];
+    _saCurrentFrqRows = Array.isArray(frqRows) ? frqRows : [];
     renderSAScores(course);
-    status.innerHTML = '';
+    status.innerHTML = '<span style="color:var(--text3);font-family:var(--dm);font-size:9px">Loaded ' + displayName + ' — edit any value and click Apply All Changes.</span>';
   } catch(e) {
-    status.innerHTML = '<span style="color:var(--red2)">Error: ' + e.message + '</span>';
+    status.innerHTML = '<span style="color:var(--red2)">&#10007; Load error: ' + e.message + '</span>';
   }
 }
 
@@ -7945,7 +7951,10 @@ async function commitSAScores() {
   const studentName = document.getElementById('sa-student-name').value.trim();
   const course = document.getElementById('sa-course').value;
   const status = document.getElementById('sa-status');
-  if (!studentName || !_saCurrentProfile) { status.innerHTML = '<span style="color:var(--red2)">Load a student first.</span>'; return; }
+
+  if (!studentName || !_saCurrentProfile) {
+    status.innerHTML = '<span style="color:var(--red2)">Load a student first.</span>'; return;
+  }
 
   const p = _saCurrentProfile;
   let unitProg = {};
@@ -7959,151 +7968,134 @@ async function commitSAScores() {
 
   const now = new Date().toISOString();
   const payload = { full_name: studentName, updated_at: now };
-  let changed = [];
+  const changed = [];
+  let unitProgDirty = false;
+  let vocabDirty = false;
+  let frqProgressDirty = false;
 
-  // ── MCQ scores → unit_progress ──
+  // ── MCQ scores → unit_progress.bestAccuracy ──
   const mcqUnits = SA_MCQ_UNITS[course] || [];
-  let mcqChanged = false;
   mcqUnits.forEach(u => {
     const el = document.getElementById('sa-mcq-' + u.id);
     if (!el || el.value === '') return;
-    const newScore = Math.max(0, Math.min(100, parseInt(el.value) || 0));
+    const newScore = Math.max(0, Math.min(100, parseInt(el.value)));
+    if (isNaN(newScore)) return;
     const existing = unitProg[u.id] || {};
-    const oldScore = existing.bestAccuracy || existing.mcqScore || 0;
-    if (newScore !== oldScore) {
-      unitProg[u.id] = {
-        ...existing,
-        bestAccuracy: Math.max(newScore, oldScore),
-        mcqScore: newScore,
-        completedAt: existing.completedAt || (newScore >= 60 ? now : undefined)
-      };
-      if (newScore >= 60 && !unitProg[u.id].completedAt) unitProg[u.id].completedAt = now;
-      changed.push(u.label + ' MCQ: ' + newScore + '%');
-      mcqChanged = true;
-    }
+    const oldScore = Math.round(existing.bestAccuracy || existing.mcqScore || 0);
+    if (newScore === oldScore) return;
+    unitProg[u.id] = Object.assign({}, existing, {
+      bestAccuracy: newScore,
+      mcqScore: newScore,
+      completedAt: existing.completedAt || (newScore > 0 ? now : null)
+    });
+    if (!unitProg[u.id].completedAt && newScore > 0) unitProg[u.id].completedAt = now;
+    changed.push(u.label + ' MCQ: ' + oldScore + '% → ' + newScore + '%');
+    unitProgDirty = true;
   });
-  if (mcqChanged) payload.unit_progress = JSON.stringify(unitProg);
 
   // ── Vocab scores → vocab_best_score + vocab_passed ──
   const vocabUnits = SA_VOCAB_UNITS[course] || [];
-  let vocabChanged = false;
   vocabUnits.forEach(u => {
     const el = document.getElementById('sa-vocab-' + u.id);
     if (!el || el.value === '') return;
-    const newScore = Math.max(0, Math.min(100, parseInt(el.value) || 0));
+    const newScore = Math.max(0, Math.min(100, parseInt(el.value)));
+    if (isNaN(newScore)) return;
     const oldScore = vocabBest[u.id] || 0;
-    if (newScore !== oldScore) {
-      vocabBest[u.id] = newScore;
-      if (newScore >= 80) vocabPassed[u.id] = true;
-      else delete vocabPassed[u.id];
-      changed.push(u.label + ' Vocab: ' + newScore + '%');
-      vocabChanged = true;
-    }
+    if (newScore === oldScore) return;
+    vocabBest[u.id] = newScore;
+    if (newScore >= 80) vocabPassed[u.id] = true;
+    else delete vocabPassed[u.id];
+    changed.push(u.label + ' Vocab: ' + oldScore + '% → ' + newScore + '%');
+    vocabDirty = true;
   });
-  if (vocabChanged) {
-    payload.vocab_best_score = JSON.stringify(vocabBest);
-    payload.vocab_passed = JSON.stringify(vocabPassed);
-  }
 
-  // ── FRQ scores → frq_progress + civitas_frq_results ──
+  // ── FRQ scores → frq_progress only (frq_results uses INSERT per submission) ──
   const frqDefs = SA_FRQS[course] || [];
-  const frqUpdates = []; // [{id, score, maxScore}]
+  const frqByUnit = {};
+  frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
+  const affectedUnits = new Set();
+
   frqDefs.forEach(f => {
     const el = document.getElementById('sa-frq-' + f.id);
     if (!el || el.value === '') return;
-    const newPts = Math.max(0, Math.min(f.points, parseInt(el.value) || 0));
-    const existing = frqProgress[f.id];
-    const oldPts = existing?.bestScore || 0;
-    if (newPts !== oldPts) {
-      frqProgress[f.id] = {
-        bestScore: Math.max(newPts, oldPts),
-        maxScore: f.points,
-        attempts: (existing?.attempts || 0) + 1,
-        teacherAdjusted: true,
-        adjustedAt: now,
-        history: [...(existing?.history || []), { score: newPts, ts: Date.now(), teacherAdj: true }]
-      };
-      frqUpdates.push({ id: f.id, score: newPts, maxScore: f.points });
-      const pct = Math.round((newPts / f.points) * 100);
-      changed.push(f.label + ': ' + newPts + '/' + f.points + ' (' + pct + '%)');
-    }
+    const newPts = Math.max(0, Math.min(f.points, parseInt(el.value)));
+    if (isNaN(newPts)) return;
+    const existing = frqProgress[f.id] || {};
+    const oldPts = existing.bestScore || 0;
+    if (newPts === oldPts) return;
+    frqProgress[f.id] = {
+      bestScore: newPts,
+      maxScore: f.points,
+      attempts: (existing.attempts || 0) + 1,
+      history: (existing.history || []).concat([{ score: newPts, ts: Date.now(), teacherAdj: true }])
+    };
+    affectedUnits.add(f.unit);
+    const pct = Math.round((newPts / f.points) * 100);
+    const oldPct = Math.round((oldPts / f.points) * 100);
+    changed.push(f.label.split(':')[0] + ': ' + oldPts + '/' + f.points + ' → ' + newPts + '/' + f.points + ' (' + pct + '%)');
+    frqProgressDirty = true;
   });
-  if (frqUpdates.length) {
-    payload.frq_progress = JSON.stringify(frqProgress);
 
-    // Also update unit_progress frqScore + frqAllDone for affected units
-    const frqByUnit = {};
-    frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
-    const affectedUnits = [...new Set(frqUpdates.map(u => {
-      const def = frqDefs.find(f => f.id === u.id); return def?.unit;
-    }).filter(Boolean))];
-
+  // Recompute frqScore + frqAllDone on unit_progress for any affected units
+  if (frqProgressDirty) {
     affectedUnits.forEach(uid => {
       const unitFrqs = frqByUnit[uid] || [];
-      // Compute per-type best pct across all FRQs of that unit
-      const typeBest = {}; // type -> best pct
+      const typeBest = {};
       unitFrqs.forEach(f => {
-        const pts = frqProgress[f.id]?.bestScore || 0;
+        const pts = frqProgress[f.id] ? frqProgress[f.id].bestScore : 0;
         const pct = Math.round((pts / f.points) * 100);
-        if (!typeBest[f.type] || pct > typeBest[f.type]) typeBest[f.type] = pct;
+        if (!(f.type in typeBest) || pct > typeBest[f.type]) typeBest[f.type] = pct;
       });
-      const types = Object.keys(typeBest);
-      const allTypes = ['CA','QA','SC','AE'];
-      const frqAllDone = course === 'ap_gov' ? allTypes.every(t => types.includes(t)) : types.length > 0;
-      const frqScore = types.length > 0 ? Math.round(types.reduce((a, t) => a + typeBest[t], 0) / types.length) : 0;
+      const typesPresent = Object.keys(typeBest);
+      const allTypes = ['CA', 'QA', 'SC', 'AE'];
+      const frqAllDone = course === 'ap_gov' ? allTypes.every(t => typesPresent.includes(t)) : typesPresent.length > 0;
+      const frqScore = typesPresent.length > 0
+        ? Math.round(typesPresent.reduce((a, t) => a + typeBest[t], 0) / typesPresent.length)
+        : 0;
       if (!unitProg[uid]) unitProg[uid] = {};
       unitProg[uid].frqScore = frqScore;
       unitProg[uid].frqAllDone = frqAllDone;
+      unitProgDirty = true;
     });
-    payload.unit_progress = JSON.stringify(unitProg);
   }
 
   if (!changed.length) {
-    status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">No changes detected — edit a score first.</span>'; return;
+    status.innerHTML = '<span style="color:var(--amber);font-family:var(--dm);font-size:10px">No changes detected. Make sure you edited a value that differs from the current score.</span>';
+    return;
   }
 
-  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Saving...</span>';
+  if (unitProgDirty) payload.unit_progress = JSON.stringify(unitProg);
+  if (vocabDirty) { payload.vocab_best_score = JSON.stringify(vocabBest); payload.vocab_passed = JSON.stringify(vocabPassed); }
+  if (frqProgressDirty) payload.frq_progress = JSON.stringify(frqProgress);
+
+  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Saving ' + changed.length + ' change(s)...</span>';
 
   try {
-    // Upsert profile fields
     const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
       body: JSON.stringify(payload)
     });
-    if (!resp.ok && resp.status !== 200 && resp.status !== 201) throw new Error('Supabase error ' + resp.status);
 
-    // Upsert FRQ results rows into civitas_frq_results
-    if (frqUpdates.length) {
-      const frqRows = frqUpdates.map(u => ({
-        student_name: p.display_name || studentName,
-        full_name: studentName,
-        frq_id: u.id,
-        score: u.score,
-        teacher_adjusted: true,
-        submitted_at: now
-      }));
-      await fetch(SUPA_URL + '/rest/v1/civitas_frq_results?on_conflict=student_name,frq_id', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(frqRows)
-      });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error('Supabase ' + resp.status + ': ' + errText.slice(0, 120));
     }
 
     status.innerHTML =
       '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2);font-family:var(--dm);font-size:11px">' +
       '&#10003; Saved for <strong>' + (p.display_name || studentName) + '</strong>:<br>' +
-      changed.map(c => '&nbsp;&nbsp;· ' + c).join('<br>') +
-      '<br><span style="font-size:9px;opacity:.7;margin-top:4px;display:block">Student will see updated scores after next profile sync.</span></div>';
+      changed.map(c => '&nbsp;&nbsp;&#183; ' + c).join('<br>') +
+      '<br><div style="font-size:9px;color:var(--text3);margin-top:6px;padding:6px;background:rgba(255,255,255,.04);border:1px solid var(--border)">&#9432; Student will see updated scores after they use <strong>Returning Student</strong> on the title screen to re-sync their profile from Supabase.</div>' +
+      '</div>';
 
-    // Refresh display
+    // Refresh display with new values
     _saCurrentProfile = null; _saCurrentFrqRows = [];
     await loadStudentScores();
   } catch(e) {
-    status.innerHTML = '<span style="color:var(--red2)">&#10007; Error: ' + e.message + '</span>';
+    status.innerHTML = '<span style="color:var(--red2);font-family:var(--dm);font-size:11px">&#10007; Save failed: ' + e.message + '</span>';
   }
 }
-
 // Wire up SA dropdown population alongside MPE on DOMContentLoaded
 // (appended to existing listener at bottom of file)
 
