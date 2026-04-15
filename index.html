@@ -4263,7 +4263,18 @@ function applyProfile(p){
   try{S.badgesEarned=JSON.parse(p.badges_earned||'[]');}catch(e){}
   try{S.unlocked=JSON.parse(p.unlocked||'[]');}catch(e){}
   try{S.vocabPassed=JSON.parse(p.vocab_passed||'{}');}catch(e){}
-  try{S.vocabBestScore=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
+  try{
+    S.vocabBestScore=JSON.parse(p.vocab_best_score||'{}');
+    // Also write each vocab score to localStorage so renderVocabMedals() reads them correctly
+    // (renderVocabMedals reads civitas_vocab_<id> first, S.vocabBestScore only as fallback)
+    Object.keys(S.vocabBestScore||{}).forEach(id=>{
+      try{
+        const dbScore = S.vocabBestScore[id];
+        const existing = parseInt(localStorage.getItem('civitas_vocab_'+id)||'0');
+        if(dbScore > existing) localStorage.setItem('civitas_vocab_'+id, String(dbScore));
+      }catch(e){}
+    });
+  }catch(e){}
   try{S.flashcardsStudied=JSON.parse(p.flashcards_studied||'{}');}catch(e){}
   // Restore unit_progress to localStorage so the leaderboard and progress bars work
   // Supabase always wins — this ensures MPE grants and restores are never blocked by stale localStorage
@@ -4322,20 +4333,34 @@ function applyProfile(p){
     });
   } catch(e) {}
   // Restore FRQ submission scores so trophy checks work immediately after recovery
+  // frq_progress is the authoritative source — merge it into BOTH S.courseProgress
+  // and localStorage so saveS() doesn't wipe it out on the next save cycle
   try {
     if (p.frq_progress && p.frq_progress !== '{}' && p.frq_progress !== 'null') {
       const dbFrq = JSON.parse(p.frq_progress);
+
+      // 1. Merge into S.courseProgress (in-memory) so it survives the next saveS()
+      if (!S.courseProgress) S.courseProgress = {};
+      if (!S.courseProgress.ap_gov) S.courseProgress.ap_gov = {};
+      if (!S.courseProgress.ap_gov.frqSubmissions) S.courseProgress.ap_gov.frqSubmissions = {};
+      Object.keys(dbFrq).forEach(fid => {
+        const existing = S.courseProgress.ap_gov.frqSubmissions[fid];
+        if (!existing || dbFrq[fid].bestScore > (existing.bestScore || 0)) {
+          S.courseProgress.ap_gov.frqSubmissions[fid] = dbFrq[fid];
+        }
+      });
+
+      // 2. Also patch localStorage civitas_state so unit games see it immediately
       const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
       if (!ss.courseProgress) ss.courseProgress = {};
       if (!ss.courseProgress.ap_gov) ss.courseProgress.ap_gov = {};
       if (!ss.courseProgress.ap_gov.frqSubmissions) ss.courseProgress.ap_gov.frqSubmissions = {};
-      const existing = ss.courseProgress.ap_gov.frqSubmissions;
       Object.keys(dbFrq).forEach(fid => {
-        if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
-          existing[fid] = dbFrq[fid];
+        const existing = ss.courseProgress.ap_gov.frqSubmissions[fid];
+        if (!existing || dbFrq[fid].bestScore > (existing.bestScore || 0)) {
+          ss.courseProgress.ap_gov.frqSubmissions[fid] = dbFrq[fid];
         }
       });
-      ss.courseProgress.ap_gov.frqSubmissions = existing;
       localStorage.setItem('civitas_state', JSON.stringify(ss));
     }
   } catch(e) {}
