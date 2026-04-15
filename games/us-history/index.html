@@ -5117,6 +5117,8 @@ async function openStudentProfile(name, period){
     loadTeacherList().then(teachers => {
       teacherSel.innerHTML = '<option value="">— No teacher —</option>' +
         teachers.map(t => `<option value="${t.id}" ${t.id === currentTeacherId ? 'selected' : ''}>${t.display_name}</option>`).join('');
+      // Store original so we can detect actual changes
+      teacherSel.dataset.originalTeacher = currentTeacherId;
     });
   }
   document.getElementById('sp-reassign-status').innerHTML = '';
@@ -5329,10 +5331,12 @@ async function applyStudentReassign(){
   if(!newPeriod){ statusEl.innerHTML='<span style="color:var(--red2)">Select a period.</span>'; return; }
 
   const periodChanged  = String(newPeriod) !== String(oldPeriod);
-  const teacherChanged = newTeacherId !== '';
+  // For teacher: read the original from the select's data attribute (set when dropdown was populated)
+  const origTeacherId  = teacherSel ? (teacherSel.dataset.originalTeacher || '') : '';
+  const teacherChanged = newTeacherId !== origTeacherId;
 
   if(!periodChanged && !teacherChanged){
-    statusEl.innerHTML='<span style="color:var(--text2)">No changes to apply.</span>'; return;
+    statusEl.innerHTML='<span style="color:var(--text2)">No changes — adjust a period or teacher first.</span>'; return;
   }
 
   statusEl.innerHTML='<span style="color:var(--text2)">Updating…</span>';
@@ -5877,7 +5881,13 @@ function closeWelcome(){
         <div>
           <div style="font-family:var(--bebas);font-size:8px;color:var(--text3);letter-spacing:1px;margin-bottom:2px">PERIOD</div>
           <select id="sp-reassign-period" style="font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 8px;outline:none;cursor:pointer">
-            ${[1,2,3,4,5,6,7].map(p=>`<option value="${p}">${p}</option>`).join('')}
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
             <option value="guest">Guest</option>
           </select>
         </div>
