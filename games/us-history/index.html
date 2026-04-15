@@ -2539,7 +2539,7 @@ async function submitTeacherFromProfile(){
     }
     const teacher=rows[0];
     IS_TEACHER=true;
-    _currentTeacher={id:teacher.id,name:teacher.display_name,periods:teacher.periods||[]};
+    _currentTeacher={id:teacher.id,name:teacher.display_name,periods:teacher.periods||[],seeAll:!!teacher.see_all};
     S.isTeacher=true;
     saveS();
     inp.value='';
@@ -2568,7 +2568,7 @@ async function submitTeacher(){
     }
     const teacher=rows[0];
     IS_TEACHER=true;
-    _currentTeacher={id:teacher.id, name:teacher.display_name, periods:teacher.periods||[]};
+    _currentTeacher={id:teacher.id, name:teacher.display_name, periods:teacher.periods||[], seeAll:!!teacher.see_all};
     S.isTeacher=true;
     S.name=teacher.display_name;
     S.setupDone=true;
@@ -4936,16 +4936,29 @@ function renderStory(){
 // ── TEACHER ───────────────────────────────────────────
 function teacherLogout(){IS_TEACHER=false;S.isTeacher=false;saveS();document.getElementById('nav-teacher').style.display='none';updateHUD();showView('timeline');}
 
+function switchHTperiod(period){
+  document.querySelectorAll('[id^="htp-"]').forEach(b=>{b.style.background='transparent';b.style.color='var(--text3)';});
+  const btn=document.getElementById('htp-'+period);
+  if(btn){btn.style.background='var(--amber)';btn.style.color='var(--bg)';}
+  const el=document.getElementById('ht-roster-table');
+  if(el&&window._htBuildRoster)el.innerHTML=window._htBuildRoster(period);
+}
+
 async function renderTeacherView(){
   const ul=document.getElementById('teacher-units');
   ul.innerHTML=UNIT_DATA.filter(u=>u.url).map(u=>`<div class="t-unit-row"><div style="font-size:20px;flex-shrink:0">${u.icon}</div><div style="flex:1;min-width:140px"><div style="font-family:var(--playfair);font-size:12px;color:var(--cream)">${u.num} — ${u.title}</div><div style="font-family:var(--dm);font-size:8px;color:var(--text3)">${u.years}</div></div><a href="${u.url}" target="_blank" style="text-decoration:none"><button class="btn xs teal"><span>▶ Open</span></button></a></div>`).join('');
+
+  // Show teacher name in header
+  const dashName = document.getElementById('teacher-dash-name');
+  if(dashName) dashName.textContent = _currentTeacher ? _currentTeacher.name : '';
+
   const re=document.getElementById('teacher-results');
   re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3)">Loading…</div>';
   let all, profiles, sessions;
   try{
     [all, profiles, sessions]=await Promise.all([
       sfetch('/rest/v1/ac_results?select=name,period,unit_id,best_score,best_accuracy,attempts,updated_at&order=updated_at.desc&limit=500'),
-      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,vocab_passed,units_completed,gold,updated_at'),
+      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,teacher_id,vocab_passed,units_completed,gold,updated_at'),
       sfetch('/rest/v1/ac_sessions?select=student_name,period,minutes&limit=5000')
     ]);
   }catch(err){
@@ -4956,6 +4969,12 @@ async function renderTeacherView(){
     re.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);font-style:italic;padding:12px">No results yet.</div>';
     return;
   }
+
+  // Build teacher_id lookup from profiles
+  const teacherIdLookup={};
+  (profiles||[]).forEach(p=>{
+    if(p.display_name && p.period) teacherIdLookup[p.display_name+'|'+p.period]=p.teacher_id||null;
+  });
 
   // Session totals per student
   const sessSm={};
@@ -4972,39 +4991,135 @@ async function renderTeacherView(){
     try{const vp=JSON.parse(p.vocab_passed||'{}');vocabLookup[p.display_name+'|'+p.period]=Object.values(vp).filter(Boolean).length;}catch(e){}
   });
 
-  // Seed all known students so vocab-only students appear
+  // Seed all known students
   const sm={};
   (profiles||[]).forEach(p=>{
     if(!p.display_name||!p.period||p.period==='guest'||p.period==='teacher')return;
     const k=p.display_name+'|'+p.period;
-    if(!sm[k])sm[k]={name:p.display_name,period:p.period,units:[],score:0};
+    if(!sm[k])sm[k]={name:p.display_name,period:p.period,teacherId:p.teacher_id||null,units:[],score:0};
   });
-  all.forEach(r=>{const k=r.name+'|'+r.period;if(!sm[k])sm[k]={name:r.name,period:r.period,units:[],score:0};if(!r.unit_id||(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')))sm[k].units.push(r);sm[k].score+=r.best_score||0;});
-  const sts=Object.values(sm).sort((a,b)=>b.score-a.score);
+  all.forEach(r=>{
+    const k=r.name+'|'+r.period;
+    if(!sm[k])sm[k]={name:r.name,period:r.period,teacherId:teacherIdLookup[k]||null,units:[],score:0};
+    if(!r.unit_id||(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')))sm[k].units.push(r);
+    sm[k].score+=r.best_score||0;
+  });
 
-  re.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${sts.length} students · ${(all||[]).filter(r=>!r.unit_id||!r.unit_id.startsWith('vocab_')).length} unit results</div>
-      <button class="btn xs green" onclick="exportCSV()"><span>⬇ Export CSV</span></button>
-    </div>
-    <table class="lb-table"><thead><tr><th>STUDENT</th><th>PD</th><th>UNITS</th><th>SCORE</th><th>GOLDS</th><th>HISTORIANS</th><th>VOCAB</th><th>AVG ACC</th><th>⏱ MINS</th><th></th></tr></thead><tbody>${sts.map((s,i)=>{
+  // Filter by teacher — show own students + unassigned
+  // Mr. Olson (or any teacher with no restriction set) sees everyone
+  // Mrs. Smith sees only her students + unassigned
+  const myId = _currentTeacher ? _currentTeacher.id : null;
+  const allSts = Object.values(sm);
+  // "Mine" = assigned to me. "Unassigned" = no teacher_id. "Others" = assigned to someone else.
+  const mine       = allSts.filter(s => s.teacherId === myId);
+  const unassigned = allSts.filter(s => !s.teacherId && s.teacherId !== myId);
+  const others     = allSts.filter(s => s.teacherId && s.teacherId !== myId);
+
+  // For now: show mine + unassigned. "Others" hidden unless you are Olson (myId=first teacher)
+  // We'll let Olson see everyone; identify Olson by being the first teacher in ac_teachers
+  // Simple approach: Olson's code is 'olson219' which maps to a specific id
+  // We'll just check if this teacher has periods covering all — use a flag on _currentTeacher
+  // seeAll: true if teacher has see_all flag in ac_teachers, or if no teacher logged in
+  const seeAll = !myId || (_currentTeacher && _currentTeacher.seeAll);
+  const sts = (seeAll ? allSts : [...mine, ...unassigned]).sort((a,b)=>b.score-a.score);
+
+  // Period tabs
+  const periods=[...new Set(sts.map(s=>s.period).filter(p=>p&&p!=='teacher'&&p!=='guest'))].sort((a,b)=>+a-+b);
+  window._htSessSm=sessSm; window._htVocabLookup=vocabLookup;
+  window._htUnassigned=unassigned;
+
+  function buildHTRoster(filterPeriod){
+    const filtered=filterPeriod==='all'?sts:sts.filter(s=>String(s.period)===String(filterPeriod));
+    if(!filtered.length)return'<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:12px;font-style:italic">No students in this period.</div>';
+    let rows='<table class="lb-table"><thead><tr>'
+      +'<th>STUDENT</th><th>PD</th><th>UNITS</th><th>SCORE</th>'
+      +'<th>GOLDS</th><th>HISTORIANS</th><th>VOCAB</th><th>AVG ACC</th><th>&#9201; MINS</th><th></th>'
+      +'</tr></thead><tbody>';
+    filtered.forEach((s,i)=>{
       const k=s.name+'|'+s.period;
       const avgAcc=s.units.length?Math.round(s.units.reduce((a,u)=>a+(u.best_accuracy||0),0)/s.units.length):0;
       const vocab=vocabLookup[k]||0;
       const mins=sessSm[k]||0;
-      return`<tr style="cursor:pointer" onclick="openStudentProfile('${s.name.replace(/'/g,"\\'")}','${s.period||''}')" title="Click to view ${s.name}'s full profile">
-        <td style="font-family:var(--playfair);font-size:12px;color:var(--cream)">${s.name} <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">▶</span></td>
-        <td style="color:var(--text3);font-size:10px">${s.period?'Pd '+s.period:'—'}</td>
-        <td style="color:var(--teal2)">${s.units.length}</td>
-        <td style="color:var(--amber);font-weight:600">${s.score.toLocaleString()}</td>
-        <td style="color:var(--gold)">${s.units.filter(u=>u.best_accuracy>=90).length}</td>
-        <td style="color:var(--historian)">${s.units.filter(u=>u.best_accuracy===100).length}</td>
-        <td style="color:var(--teal2)">${vocab}</td>
-        <td style="color:var(--text2)">${avgAcc}%</td>
-        <td style="color:var(--green2)">${mins>0?mins+' min':'—'}</td>
-        <td onclick="event.stopPropagation()">${(()=>{const _k='del_'+i;window._dashDelRegistry[_k]={name:s.name,period:s.period||''};return'<button onclick="window._dashDelClick(\''+_k+'\',event)" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:3px 8px;cursor:pointer;letter-spacing:1px;">✕ REMOVE</button>';})()}</td>
-      </tr>`;
-    }).join('')}</tbody></table>`;
+      const unBadge=!s.teacherId
+        ?'<span style="font-family:var(--dm);font-size:8px;color:var(--amber);margin-right:5px;border:1px solid rgba(232,160,32,.5);padding:1px 4px;border-radius:2px">unassigned</span>'
+        :'';
+      const delKey='del_'+i;
+      window._dashDelRegistry[delKey]={name:s.name,period:s.period||''};
+      rows+='<tr class="ht-row" data-name="'+s.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" data-period="'+(s.period||'')+'" style="cursor:pointer">'
+        +'<td style="font-family:var(--playfair);font-size:12px;color:var(--cream)">'+unBadge+s.name+' <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">&#9658;</span></td>'
+        +'<td style="color:var(--text3);font-size:10px">'+(s.period?'Pd '+s.period:'&#8212;')+'</td>'
+        +'<td style="color:var(--teal2)">'+s.units.length+'</td>'
+        +'<td style="color:var(--amber);font-weight:600">'+s.score.toLocaleString()+'</td>'
+        +'<td style="color:var(--gold)">'+s.units.filter(u=>u.best_accuracy>=90).length+'</td>'
+        +'<td style="color:var(--historian)">'+s.units.filter(u=>u.best_accuracy===100).length+'</td>'
+        +'<td style="color:var(--teal2)">'+vocab+'</td>'
+        +'<td style="color:var(--text2)">'+avgAcc+'%</td>'
+        +'<td style="color:var(--green2)">'+(mins>0?mins+' min':'&#8212;')+'</td>'
+        +'<td onclick="event.stopPropagation()"><button class="ht-del-btn" data-delkey="'+delKey+'" style="font-family:var(--bebas);font-size:9px;background:transparent;border:1px solid var(--red2);color:var(--red2);padding:3px 8px;cursor:pointer;letter-spacing:1px;">&#10005; REMOVE</button></td>'
+        +'</tr>';
+    });
+    rows+='</tbody></table>';
+    return rows;
+  }
+  window._htBuildRoster=buildHTRoster;
+
+  const unassignedCount=unassigned.length;
+  const unassignedNotice=unassignedCount>0&&!seeAll
+    ?'<div style="font-family:var(--dm);font-size:9px;color:var(--amber);padding:7px 10px;background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.2);margin-bottom:10px">⚠️ '+unassignedCount+' student'+(unassignedCount!==1?'s':'')+' not yet assigned to a teacher — shown so you can assign them via the student modal.</div>'
+    :'';
+
+  // Build period tabs using a temp element to avoid quote conflicts
+  let periodTabsHtml='';
+  if(periods.length>1){
+    const tabEl=document.createElement('div');
+    tabEl.style.cssText='display:flex;gap:0;flex-wrap:wrap;margin-bottom:12px;border:1px solid var(--border2)';
+    tabEl.id='ht-period-tabs';
+    const allBtn=document.createElement('button');
+    allBtn.id='htp-all';
+    allBtn.textContent='ALL';
+    allBtn.style.cssText='font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:var(--amber);color:var(--bg);border:none;cursor:pointer';
+    allBtn.onclick=()=>switchHTperiod('all');
+    tabEl.appendChild(allBtn);
+    periods.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.id='htp-'+p;
+      btn.textContent='Period '+p;
+      btn.style.cssText='font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;color:var(--text3);border:none;border-left:1px solid var(--border2);cursor:pointer';
+      btn.onclick=()=>switchHTperiod(p);
+      tabEl.appendChild(btn);
+    });
+    periodTabsHtml=tabEl.outerHTML;
+  }
+
+  re.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">'
+    +'<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">'+sts.length+' students · '+(all||[]).filter(r=>!r.unit_id||!r.unit_id.startsWith('vocab_')).length+' unit results</div>'
+    +'<button class="btn xs green" onclick="exportCSV()"><span>⬇ Export CSV</span></button>'
+    +'</div>'
+    +unassignedNotice
+    +periodTabsHtml
+    +'<div id="ht-roster-table">'+buildHTRoster('all')+'</div>';
+
+  // Event delegation — handles row clicks AND delete buttons
+  re.addEventListener('click', function htRowClick(e){
+    // Delete button
+    const delBtn = e.target.closest('.ht-del-btn');
+    if(delBtn){
+      e.stopPropagation();
+      const key = delBtn.dataset.delkey;
+      if(key && window._dashDelRegistry[key]){
+        const {name,period} = window._dashDelRegistry[key];
+        dashboardDeleteStudent(name, period);
+      }
+      return;
+    }
+    // Row click → open student profile
+    const row = e.target.closest('.ht-row');
+    if(!row) return;
+    const name   = row.dataset.name;
+    const period = row.dataset.period;
+    if(name) openStudentProfile(name, period);
+  }, {once: true});
   try{const n=document.getElementById('teacher-notes');if(n)n.value=localStorage.getItem('ac_teacher_notes')||'';}catch(e){}
   buildTestUnitSelect();
 }
