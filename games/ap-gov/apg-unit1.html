@@ -613,6 +613,7 @@ const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 let _dbRounds = {};          // round data loaded from Supabase on boot
 let _dbUnitProgress = {};    // unit_progress loaded from Supabase on boot
 let _dbFullName = '';        // authoritative full_name from Supabase
+let _dbFrqProgress = {};     // FRQ submissions from Supabase — used by _bestScore() before localStorage is ready
 let _dbLoaded = false;
 
 async function _loadProfileFromDB() {
@@ -721,6 +722,10 @@ async function _loadProfileFromDB() {
           if (score > localScore) localStorage.setItem('civitas_vocab_' + UNIT_ID, score);
         }
       } catch(e) {}
+    }
+    // Cache FRQ submissions in memory so _bestScore() works even before civitas_state is written
+    if (p.frq_progress && p.frq_progress !== '{}') {
+      try { _dbFrqProgress = JSON.parse(p.frq_progress); } catch(e) {}
     }
     _dbLoaded = true;
   } catch(e) { /* silently fail — game still works from localStorage */ }
@@ -3070,6 +3075,11 @@ function getUnitFRQs(){
   const types = ['CA','QA','SC','AE'];
 
   function _bestScore(id){
+    // 1. In-memory Supabase cache (fastest, always up to date after boot load)
+    if (_dbFrqProgress && _dbFrqProgress[id] && _dbFrqProgress[id].bestScore > 0) {
+      return _dbFrqProgress[id].bestScore;
+    }
+    // 2. civitas_state in localStorage (may be empty if Chromebook wiped it)
     try{
       const s = JSON.parse(localStorage.getItem('civitas_state')||'{}');
       const sub = s&&s.courseProgress&&s.courseProgress.ap_gov&&s.courseProgress.ap_gov.frqSubmissions||{};
@@ -3099,14 +3109,28 @@ function getUnitFRQs(){
     const savedId = savedIds && savedIds[ti];
     const savedFRQ = savedId ? pool.find(function(f){return f.id===savedId;}) : null;
 
-    // If this type already has a completed score, keep it locked
-    if(savedFRQ && _bestScore(savedId) !== null){
+    // If this type already has a completed score, lock to that question
+    // Check score FIRST (even before checking if savedFRQ is in pool) because
+    // the score proves the student already worked on it — don't re-randomize
+    if(savedId && _bestScore(savedId) !== null){
+      // If savedFRQ is in the pool, use it; otherwise fall through to random
+      // (handles edge case where an FRQ was removed from the pool)
+      if(savedFRQ){
+        result.push(savedFRQ);
+        newIds.push(savedFRQ.id);
+        return;
+      }
+    }
+
+    // If we have a saved assignment with no score yet, keep the same question
+    // (preserves draft work even without a submitted score)
+    if(savedFRQ){
       result.push(savedFRQ);
       newIds.push(savedFRQ.id);
       return;
     }
 
-    // Otherwise pick a fresh random one for this type
+    // No saved assignment or saved FRQ not found in pool — pick a fresh random one
     const seed = (Date.now() + ti * 999983) % pool.length;
     const chosen = pool[Math.floor(seed) % pool.length];
     result.push(chosen);
