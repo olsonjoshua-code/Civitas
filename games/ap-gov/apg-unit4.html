@@ -646,7 +646,7 @@ async function _loadProfileFromDB() {
         } catch(e) {}
       });
     }
-    // Restore partial progress
+    // Restore partial progress (includes _frqDrafts and _frqSel — patched)
     const partialCol = 'unit_partial_' + UNIT_ID;
     if (p[partialCol] && p[partialCol] !== '{}') {
       try {
@@ -655,6 +655,24 @@ async function _loadProfileFromDB() {
         const dbPartial = JSON.parse(p[partialCol]);
         if (!existing || (dbPartial.ts && JSON.parse(existing).ts < dbPartial.ts)) {
           localStorage.setItem(lsKey, JSON.stringify(dbPartial));
+        }
+        // Restore FRQ drafts into in-memory cache so student sees their work
+        if (dbPartial._frqDrafts) {
+          Object.keys(dbPartial._frqDrafts).forEach(function(fid) {
+            if (!_frqDraftCache[fid] && dbPartial._frqDrafts[fid]) {
+              _frqDraftCache[fid] = dbPartial._frqDrafts[fid];
+              try { localStorage.setItem('civitas_frq_draft_' + fid, dbPartial._frqDrafts[fid]); } catch(e) {}
+            }
+          });
+        }
+        // Restore FRQ question selection into localStorage so getUnitFRQs() finds it
+        if (dbPartial._frqSel) {
+          try {
+            const selKey = 'civitas_frq_sel_' + UNIT_ID;
+            if (!localStorage.getItem(selKey)) {
+              localStorage.setItem(selKey, JSON.stringify(dbPartial._frqSel));
+            }
+          } catch(e) {}
         }
       } catch(e) {}
     }
@@ -2355,6 +2373,7 @@ function saveProgress(pct) {
 
 // ── PARTIAL PROGRESS SAVE ──────────────────────────────────────────────
 let _saveDebounce = null;
+let _partialCache = null; // in-memory partial — never lost to localStorage wipe (Issue 4)
 function savePartialProgress() {
   try {
     const partial = {
@@ -2364,6 +2383,7 @@ function savePartialProgress() {
       total: G.sessionTotal,
       ts: Date.now()
     };
+    _partialCache = partial; // keep in memory
     localStorage.setItem('civitas_' + UNIT_ID + '_partial', JSON.stringify(partial));
   } catch(e) {}
   // Debounced Supabase push — waits 1.5s after last answer
@@ -2679,7 +2699,7 @@ async function saveProgressToSupabase() {
       full_name: sn,
       unit_progress: JSON.stringify(unitProg),
       ['unit_rounds_apg_u4']: JSON.stringify(rounds),
-      ['unit_partial_apg_u4']: (()=>{try{return localStorage.getItem('civitas_apg_u4_partial')||'{}'}catch(e){return'{}'}})(),
+      ['unit_partial_apg_u4']: (()=>{ try { if(_partialCache) return JSON.stringify(_partialCache); return localStorage.getItem('civitas_apg_u4_partial')||'{}'; } catch(e){return'{}';} })(), // patched: reads in-memory first (Issue 4)
       frq_progress: JSON.stringify(frqProgress),
       updated_at: new Date().toISOString()
     };
@@ -3037,8 +3057,16 @@ function getUnitFRQs(){
   }
 
   // Load previously saved selection (array of 4 FRQ ids, one per type)
+  // Priority: in-memory > localStorage > unit_partial blob from Supabase
   let savedIds = null;
-  try{savedIds = JSON.parse(localStorage.getItem(SEL_KEY)||'null');}catch(e){}
+  try { savedIds = JSON.parse(localStorage.getItem(SEL_KEY) || 'null'); } catch(e) {}
+  if (!savedIds) {
+    // Fallback: check the unit_partial blob (backed up to Supabase)
+    try {
+      const partial = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_partial') || '{}');
+      if (partial._frqSel) savedIds = partial._frqSel;
+    } catch(e) {}
+  }
 
   const result = [];
   const newIds = [];
@@ -3064,14 +3092,88 @@ function getUnitFRQs(){
     newIds.push(chosen.id);
   });
 
-  // Persist so it survives refreshes within the same session
-  try{localStorage.setItem(SEL_KEY, JSON.stringify(newIds));}catch(e){}
+  // Persist: localStorage + unit_partial blob (which syncs to Supabase)
+  try { localStorage.setItem(SEL_KEY, JSON.stringify(newIds)); } catch(e) {}
+  // Also embed in unit_partial so Supabase backup includes it
+  try {
+    const partial = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_partial') || '{}');
+    partial._frqSel = newIds;
+    localStorage.setItem('civitas_' + UNIT_ID + '_partial', JSON.stringify(partial));
+  } catch(e) {}
 
   return result.length ? result : UNIT_FRQS;
 }
-function getFRQDraft(id){try{return localStorage.getItem('civitas_frq_draft_'+id)||'';}catch(e){return '';}}
-function saveFRQDraft(id,t){try{localStorage.setItem('civitas_frq_draft_'+id,t);}catch(e){}}
-function getFRQFeedback(id){try{return localStorage.getItem('civitas_frq_fb_'+id)||'';}catch(e){return '';}}
+// ── FRQ DRAFT / FEEDBACK — Supabase-first (Issue 1, 2 patched) ──────────────
+// In-memory caches so a wiped localStorage never loses typed work mid-session
+const _frqDraftCache = {};   // { [frqId]: draftText }
+const _frqFeedbackCache = {}; // { [frqId]: feedbackHtml }
+let _draftDebounce = null;
+
+function getFRQDraft(id) {
+  // 1. In-memory (fastest, survives refreshes within session)
+  if (_frqDraftCache[id]) return _frqDraftCache[id];
+  // 2. localStorage (fast, may be wiped on Chromebook logout)
+  try { const v = localStorage.getItem('civitas_frq_draft_' + id); if (v) return v; } catch(e) {}
+  return '';
+}
+function saveFRQDraft(id, t) {
+  // Always update in-memory cache first
+  _frqDraftCache[id] = t;
+  // Write localStorage for same-session resilience
+  try { localStorage.setItem('civitas_frq_draft_' + id, t); } catch(e) {}
+  // Debounced push: piggyback draft text onto unit_partial in Supabase
+  // so it survives Chromebook logout. Fires 3s after last keystroke.
+  clearTimeout(_draftDebounce);
+  _draftDebounce = setTimeout(function() {
+    _flushDraftsToSupabase();
+  }, 3000);
+}
+async function _flushDraftsToSupabase() {
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    // Build a drafts snapshot from memory (most up to date)
+    const drafts = Object.assign({}, _frqDraftCache);
+    // Also scrape any draft keys from localStorage that aren't in memory yet
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('civitas_frq_draft_') && !drafts[k.replace('civitas_frq_draft_', '')]) {
+          drafts[k.replace('civitas_frq_draft_', '')] = localStorage.getItem(k) || '';
+        }
+      }
+    } catch(e) {}
+    if (!Object.keys(drafts).length) return;
+    // Read current partial blob, merge drafts in, push back
+    let partial = {};
+    try { partial = JSON.parse(localStorage.getItem('civitas_' + UNIT_ID + '_partial') || '{}'); } catch(e) {}
+    partial._frqDrafts = drafts;
+    const partialStr = JSON.stringify(partial);
+    try { localStorage.setItem('civitas_' + UNIT_ID + '_partial', partialStr); } catch(e) {}
+    const payload = {
+      full_name: fn.trim(),
+      ['unit_partial_' + UNIT_ID]: partialStr,
+      updated_at: new Date().toISOString()
+    };
+    await fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+function getFRQFeedback(id) {
+  // 1. In-memory cache (set right after AI grading)
+  if (_frqFeedbackCache[id]) return _frqFeedbackCache[id];
+  // 2. localStorage
+  try { const v = localStorage.getItem('civitas_frq_fb_' + id); if (v) return v; } catch(e) {}
+  return '';
+}
+// Call this after AI grading so in-memory + localStorage both get the feedback HTML
+function saveFRQFeedback(id, html) {
+  _frqFeedbackCache[id] = html;
+  try { localStorage.setItem('civitas_frq_fb_' + id, html); } catch(e) {}
+}
 function getFRQBestScore(id){
   try{const s=JSON.parse(localStorage.getItem('civitas_state')||'{}');
   const sub=s&&s.courseProgress&&s.courseProgress.ap_gov&&s.courseProgress.ap_gov.frqSubmissions||{};
@@ -3285,7 +3387,7 @@ async function submitUnitFRQ(frqId){
       +'<div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">'+result.improveHint+'</div></div>';
     fbHtml+='<div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Revise and resubmit to improve.</div>';
     feedbackEl.innerHTML=fbHtml;
-    try{localStorage.setItem('civitas_frq_fb_'+frqId,fbHtml);}catch(e){}
+    saveFRQFeedback(frqId, fbHtml); // patched: uses in-memory + localStorage (Issue 2)
     btnEl.textContent='⟳ Resubmit';
   }catch(e){
     feedbackEl.innerHTML='<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection.<br><small>'+e.message+'</small></div>';
