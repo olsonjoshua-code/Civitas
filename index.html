@@ -7925,28 +7925,35 @@ function renderMPEUnits() {
   const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
   const el = document.getElementById('mpe-units');
 
-  function renderSection(label, items, color) {
+  function renderSection(label, items, color, isCoreUnit) {
     if (!items || !items.length) return '';
     return `
       <div style="font-family:var(--bebas);font-size:9px;color:${color};letter-spacing:2px;margin:10px 0 6px">${label}</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px">
         ${items.map(u => `
           <div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">
             <input type="checkbox" id="mpe-chk-${u.id}" style="cursor:pointer;width:14px;height:14px;flex-shrink:0">
             <label for="mpe-chk-${u.id}" style="font-family:var(--dm);font-size:10px;color:var(--text2);flex:1;cursor:pointer">${u.label}</label>
             <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">MCQ</span>
               <input type="number" id="mpe-acc-${u.id}" min="0" max="100" value="80"
-                style="width:46px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
+                style="width:42px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
               <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+              ${isCoreUnit ? `
+              <span style="font-family:var(--dm);font-size:8px;color:var(--purple2);margin-left:4px">FRQ</span>
+              <input type="number" id="mpe-frq-${u.id}" min="0" max="100" placeholder="—"
+                title="FRQ score % (leave blank to skip)"
+                style="width:42px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--purple);color:var(--purple2);padding:3px 5px;text-align:center;outline:none">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>` : ''}
             </div>
           </div>`).join('')}
       </div>`;
   }
 
   el.innerHTML =
-    renderSection('CORE UNITS', data.units, 'var(--civitas2)') +
-    renderSection('VOCAB QUIZZES', data.vocab, 'var(--amber)') +
-    renderSection('BIG IDEAS / EXAM / CAMPAIGN', data.extras, 'var(--teal2)');
+    renderSection('CORE UNITS', data.units, 'var(--civitas2)', true) +
+    renderSection('VOCAB QUIZZES', data.vocab, 'var(--amber)', false) +
+    renderSection('BIG IDEAS / EXAM / CAMPAIGN', data.extras, 'var(--teal2)', false);
 }
 
 async function commitManualProgress() {
@@ -8021,28 +8028,61 @@ async function commitManualProgress() {
       payload.vocab_best_score = JSON.stringify(vocabBestScore);
     }
 
-    // For any core units marked complete, write a dummy FRQ submission so the
-    // trophy fires automatically when the student next loads the unit game.
-    // This merges with any real FRQ submissions already in Supabase.
+    // For any core units marked complete, write FRQ score into unit_progress
+    // (frqScore + frqAllDone) so the FRQ medal awards correctly.
+    // If the teacher entered a FRQ %, use that. Otherwise write a minimal
+    // mpe_granted marker so hasAnyFRQSubmitted() doesn't block unit completion.
     if (selectedUnits.length) {
       let existingFRQ = {};
       try { existingFRQ = JSON.parse(profile.frq_progress || '{}'); } catch(e) {}
       const now2 = new Date().toISOString();
+      let frqDirty = false;
+
       selectedUnits.forEach(u => {
-        // Only write dummy if no real submission exists for this unit yet
-        const unitFRQKey = u.id + '_mpe_granted';
-        if (!existingFRQ[unitFRQKey]) {
-          existingFRQ[unitFRQKey] = {
-            bestScore: 1,
-            maxScore: 1,
-            attempts: 1,
-            mpeGranted: true,
-            grantedAt: now2,
-            history: [{ score: 1, ts: Date.now() }]
-          };
+        const frqEl = document.getElementById('mpe-frq-' + u.id);
+        const frqPct = frqEl && frqEl.value !== '' ? Math.max(0, Math.min(100, parseInt(frqEl.value))) : null;
+
+        if (frqPct !== null && !isNaN(frqPct)) {
+          // Write frqScore + frqAllDone onto unit_progress so the medal renders immediately
+          if (!unitProg[u.id]) unitProg[u.id] = {};
+          unitProg[u.id].frqScore = frqPct;
+          unitProg[u.id].frqAllDone = true;
+
+          // Write synthetic frq_progress entries for each AP Gov FRQ type
+          // so the unit game also shows scores correctly on load
+          const types = course === 'ap_gov' ? ['CA', 'QA', 'SC', 'AE'] : ['FRQ'];
+          types.forEach(t => {
+            const key = u.id + '_mpe_' + t;
+            const existing = existingFRQ[key] || {};
+            const maxPts = t === 'AE' ? 6 : t === 'SC' ? 4 : 3;
+            const pts = Math.round((frqPct / 100) * maxPts);
+            if (!existing.bestScore || pts > existing.bestScore) {
+              existingFRQ[key] = {
+                bestScore: pts,
+                maxScore: maxPts,
+                attempts: (existing.attempts || 0) + 1,
+                mpeGranted: true,
+                grantedAt: now2,
+                history: (existing.history || []).concat([{ score: pts, ts: Date.now(), teacherAdj: true }])
+              };
+              frqDirty = true;
+            }
+          });
+        } else {
+          // No FRQ score entered — write minimal marker so unit completion isn't blocked
+          const unitFRQKey = u.id + '_mpe_granted';
+          if (!existingFRQ[unitFRQKey]) {
+            existingFRQ[unitFRQKey] = {
+              bestScore: 1, maxScore: 1, attempts: 1,
+              mpeGranted: true, grantedAt: now2,
+              history: [{ score: 1, ts: Date.now() }]
+            };
+            frqDirty = true;
+          }
         }
       });
-      payload.frq_progress = JSON.stringify(existingFRQ);
+
+      if (frqDirty) payload.frq_progress = JSON.stringify(existingFRQ);
     }
 
     const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
