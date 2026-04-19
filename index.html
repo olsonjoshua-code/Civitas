@@ -8103,16 +8103,19 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
   grid.innerHTML='';
   units.forEach(u=>{
     const ud=unitProg[u.id]||{};
-    const mcq=Math.round(ud.mcqScore||ud.bestAccuracy||0);
-    const vocab=u.hasVocab?(ud.vocabScore||vocabBest[u.id]||0):0;
+    // mcqScore is the raw MCQ-only accuracy. bestAccuracy = composite (do NOT use as MCQ fallback)
+    const mcq=ud.mcqScore!=null?Math.round(ud.mcqScore):null;
+    const vocab=u.hasVocab||(ud.vocabScore!=null)?(ud.vocabScore!=null?Math.round(ud.vocabScore):(vocabBest[u.id]||null)):null;
+    // frqScore stored on unit_progress is authoritative; fall back to averaging civitas_frq_results
     const unitFRQs=(USE_FRQS[course]||[]).filter(f=>f.unit===u.id);
-    let frqPct=Math.round(ud.frqScore||0);
-    if(!frqPct&&unitFRQs.length&&u.hasFRQ){
+    let frqPct=ud.frqScore!=null?Math.round(ud.frqScore):null;
+    if(frqPct===null&&unitFRQs.length&&u.hasFRQ){
       const scored=unitFRQs.filter(f=>frqBest[f.id]!=null);
       if(scored.length) frqPct=Math.round(scored.reduce((a,f)=>a+Math.round((frqBest[f.id]/f.points)*100),0)/scored.length);
     }
-    // Use stored composite if available, otherwise calculate
-    const comp=ud.composite!=null?Math.round(ud.composite):useGetComposite(mcq,vocab,frqPct,u.hasFRQ,u.hasVocab);
+    // composite: use stored value if available, otherwise calculate from components
+    const comp=ud.composite!=null?Math.round(ud.composite)
+      :(mcq!=null?useGetComposite(mcq||0,vocab||0,frqPct||0,u.hasFRQ,u.hasVocab):0);
     const tier=useCalcTier(comp);
     const wt=u.hasFRQ&&u.hasVocab?'50% wt':u.hasFRQ?'60% wt':u.hasVocab?'75% wt':'100%';
     const card=document.createElement('div');
@@ -8125,45 +8128,79 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
       <div style="padding:10px 12px">
         <div style="font-family:var(--bebas);font-size:8px;letter-spacing:2px;color:var(--text3);margin-bottom:2px">${u.num}</div>
         <div style="font-family:var(--playfair);font-size:12px;color:var(--cream);margin-bottom:10px;line-height:1.3">${u.title}</div>
-        <div style="margin-bottom:8px">
-          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between"><span>MCQ Accuracy</span><span>${wt}</span></div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="number" min="0" max="100" id="use-mcq-${u.id}" value="${mcq||''}" placeholder="—"
-              style="width:58px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 6px;outline:none"
-              oninput="useRecalcCard('${u.id}',${u.hasFRQ},${u.hasVocab})"
-              onfocus="this.style.borderColor='var(--civitas)'" onblur="this.style.borderColor='var(--border2)'">
-            <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+
+          <div>
+            <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--civitas2);margin-bottom:3px">MCQ %</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" min="0" max="100" id="use-mcq-${u.id}" value="${mcq!=null?mcq:''}" placeholder="—"
+                style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 5px;outline:none"
+                oninput="useRecalcCard('${u.id}')"
+                onfocus="this.style.borderColor='var(--civitas)'" onblur="this.style.borderColor='var(--border2)'">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            </div>
           </div>
+
+          <div>
+            <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--purple2);margin-bottom:3px">VOCAB %</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" min="0" max="100" id="use-vocab-${u.id}" value="${vocab!=null?vocab:''}" placeholder="—"
+                style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 5px;outline:none"
+                oninput="useRecalcCard('${u.id}')"
+                onfocus="this.style.borderColor='var(--purple2)'" onblur="this.style.borderColor='var(--border2)'">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--amber);margin-bottom:3px">FRQ %</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" min="0" max="100" id="use-frq-pct-${u.id}" value="${frqPct!=null?frqPct:''}" placeholder="—"
+                style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 5px;outline:none"
+                oninput="useRecalcCard('${u.id}')"
+                onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border2)'">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--teal2);margin-bottom:3px">OVERRIDE COMPOSITE</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" min="0" max="100" id="use-override-${u.id}" placeholder="auto"
+                title="Force-set the composite directly, overriding the calculation"
+                style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--teal);color:var(--teal2);padding:4px 5px;outline:none"
+                oninput="useRecalcCard('${u.id}')"
+                onfocus="this.style.borderColor='var(--teal2)'" onblur="this.style.borderColor='var(--teal)'">
+              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            </div>
+          </div>
+
         </div>
-        ${u.hasVocab||ud.vocabScore?`
-        <div style="margin-bottom:8px">
-          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between"><span>Vocab Score</span><span>25% wt</span></div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${vocab>0?`<span style="color:var(--purple2)">${vocab}%</span>${vocab>=80?' <span style="color:var(--green2)">✓ passed</span>':''} — edit in Vocab tab`:'No data — edit in Vocab tab'}</div>
-        </div>`:''}
-        ${u.hasFRQ?`
-        <div style="margin-bottom:8px">
-          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--amber);margin-bottom:3px">FRQ / Open Answer</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${frqPct>0?`Avg: <span style="color:var(--amber)">${frqPct}%</span> — edit in FRQ tab`:'No submissions — edit in FRQ tab'}</div>
-        </div>`:''}
-        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+
+        <div style="padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
           <div>
             <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1px;color:var(--text3)">COMPOSITE</div>
-            <div id="use-comp-${u.id}" style="font-family:var(--bebas);font-size:18px;color:${tier.color}">${comp}%</div>
+            <div id="use-comp-${u.id}" style="font-family:var(--bebas);font-size:18px;color:${tier.color}">${comp!=null?comp:0}%</div>
           </div>
           <div id="use-tier-${u.id}" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid ${tier.border};color:${tier.color};background:${tier.bg}">${tier.emoji} ${tier.label}</div>
         </div>
-      </div>`;
-    grid.appendChild(card);
+      </div>`;    grid.appendChild(card);
   });
 }
 
-function useRecalcCard(uid,hasFRQ,hasVocab){
-  const mcq=parseInt(document.getElementById('use-mcq-'+uid)?.value||0)||0;
-  // Vocab is read from the loaded profile data, not a card input
-  const vocabEl=document.getElementById('use-voc-'+uid);
-  const vocab=hasVocab&&vocabEl?(parseInt(vocabEl.value||0)||0):0;
-  const comp=useGetComposite(mcq,vocab,0,false,hasVocab);
-  const tier=useCalcTier(comp);
+function useRecalcCard(uid){
+  const mcq   = parseFloat(document.getElementById('use-mcq-'+uid)?.value)   || 0;
+  const vocab  = parseFloat(document.getElementById('use-vocab-'+uid)?.value)  || 0;
+  const frq    = parseFloat(document.getElementById('use-frq-pct-'+uid)?.value)|| 0;
+  const overEl = document.getElementById('use-override-'+uid);
+  const override = overEl && overEl.value !== '' ? parseFloat(overEl.value) : null;
+  // If override is set, use it directly; otherwise calculate from components
+  const hasFRQ  = !!document.getElementById('use-frq-pct-'+uid);
+  const hasVocab= !!document.getElementById('use-vocab-'+uid);
+  const calculated = useGetComposite(mcq, vocab, frq, hasFRQ, hasVocab);
+  const comp = override !== null ? Math.round(override) : calculated;
+  const tier = useCalcTier(comp);
   const ce=document.getElementById('use-comp-'+uid);
   const te=document.getElementById('use-tier-'+uid);
   const be=document.getElementById('use-badge-'+uid);
@@ -8290,17 +8327,63 @@ async function useSaveAllScores(){
   const payload={full_name:fullName,updated_at:now};
   const changes=[];
   let unitDirty=false,vocabDirty=false,frqDirty=false;
-  // MCQ units
+  // Unit cards — MCQ, Vocab, FRQ, and optional composite override
   (USE_COURSE_UNITS[course]||[]).forEach(u=>{
-    const el=document.getElementById('use-mcq-'+u.id);
-    if(!el||el.value==='') return;
-    const v=Math.max(0,Math.min(100,parseInt(el.value)));
-    if(isNaN(v)) return;
-    const old=Math.round((unitProg[u.id]||{}).bestAccuracy||0);
-    if(v===old) return;
-    unitProg[u.id]=Object.assign({},unitProg[u.id]||{},{bestAccuracy:v,mcqScore:v,completedAt:(unitProg[u.id]||{}).completedAt||(v>0?now:null)});
-    changes.push(u.num+' MCQ: '+old+'→'+v+'%');
-    unitDirty=true;
+    const mcqEl      = document.getElementById('use-mcq-'+u.id);
+    const vocabEl    = document.getElementById('use-vocab-'+u.id);
+    const frqPctEl   = document.getElementById('use-frq-pct-'+u.id);
+    const overrideEl = document.getElementById('use-override-'+u.id);
+    const existing   = unitProg[u.id] || {};
+    let changed = false;
+    const patch = Object.assign({}, existing);
+
+    if(mcqEl && mcqEl.value !== '') {
+      const v = Math.max(0,Math.min(100,parseInt(mcqEl.value)));
+      if(!isNaN(v) && v !== Math.round(existing.mcqScore||0)) {
+        patch.mcqScore = v;
+        patch.bestAccuracy = v; // keep bestAccuracy in sync for leaderboard reads
+        patch.completedAt = existing.completedAt || (v>0?now:null);
+        changes.push(u.num+' MCQ: '+(existing.mcqScore||0)+'→'+v+'%');
+        changed = true;
+      }
+    }
+
+    if(vocabEl && vocabEl.value !== '') {
+      const v = Math.max(0,Math.min(100,parseInt(vocabEl.value)));
+      if(!isNaN(v) && v !== Math.round(existing.vocabScore||0)) {
+        patch.vocabScore = v;
+        // Also sync to top-level vocab blobs
+        vocabBest[u.id] = Math.max(v, vocabBest[u.id]||0);
+        if(v >= 80) vocabPassed[u.id] = true;
+        changes.push(u.num+' Vocab: '+(existing.vocabScore||0)+'→'+v+'%');
+        changed = true; vocabDirty = true;
+      }
+    }
+
+    if(frqPctEl && frqPctEl.value !== '') {
+      const v = Math.max(0,Math.min(100,parseInt(frqPctEl.value)));
+      if(!isNaN(v) && v !== Math.round(existing.frqScore||0)) {
+        patch.frqScore = v;
+        patch.frqAllDone = true;
+        // Sync to frq_progress as well
+        const fkey = u.id+'_unit_frq';
+        frqProg[fkey] = Object.assign({},frqProg[fkey]||{},{bestScore:v,maxScore:100,teacherAdj:true,updatedAt:now});
+        changes.push(u.num+' FRQ: '+(existing.frqScore||0)+'→'+v+'%');
+        changed = true; frqDirty = true;
+      }
+    }
+
+    if(overrideEl && overrideEl.value !== '') {
+      const v = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
+      if(!isNaN(v) && v !== Math.round(existing.composite||0)) {
+        patch.composite = v;
+        patch.trophy = v>=100?'historian':v>=90?'gold':v>=80?'silver':v>=70?'bronze':v>=60?'completed':'tryagain';
+        changes.push(u.num+' Composite override: '+(existing.composite||0)+'→'+v+'%');
+        changed = true;
+      }
+    }
+
+    if(changed) { unitProg[u.id] = patch; unitDirty = true; }
   });
   // Vocab
   (USE_VOCAB[course]||[]).forEach(v=>{
