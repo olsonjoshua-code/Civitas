@@ -8101,11 +8101,16 @@ async function useLoadUSHScores(fullName, st){
   const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
   if(civProf&&civProf[0]) displayName = civProf[0].display_name || fullName;
 
+  // ac_results keyed by display_name ("Nathan K.")
+  // ac_student_profiles has full_name ("Nathan Kuzak") — use that for vocab lookup
+  console.log('[USE] Querying ac_results for display_name:', displayName, '| ac_student_profiles for full_name:', fullName);
   const [acResults, acProfile] = await Promise.all([
     sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(displayName)+'&select=unit_id,best_score,best_accuracy,attempts,updated_at&order=unit_id.asc').catch(()=>[]),
-    sfetch('/rest/v1/ac_student_profiles?display_name=eq.'+encodeURIComponent(displayName)+'&select=vocab_passed,vocab_best_score,period&limit=5').catch(()=>[])
+    sfetch('/rest/v1/ac_student_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=vocab_passed,vocab_best_score,period&limit=5').catch(()=>[])
   ]);
 
+  console.log('[USE] ac_results rows:', acResults?.length, '| ac_student_profiles rows:', acProfile?.length);
+  if(acResults?.length) console.log('[USE] Sample unit_id:', acResults[0].unit_id, 'acc:', acResults[0].best_accuracy);
   // Build a synthetic profile object in civitas_profiles format
   // so useRenderAll can work with it
   const unitProg = {};
