@@ -942,33 +942,24 @@ function syncProgressToShell(acc){
     // Vocab score
     const vocabScore=parseInt(localStorage.getItem('civitas_vocab_'+UNIT_ID)||'0');
 
-    // FRQ score: average of submitted FRQs
-    let frqScore=null;
+    // FRQ score: earned points out of ALL possible points (unsubmitted = 0)
+    // This gives partial credit for what was completed
+    let frqScore=0;
+    let anyFrqSubmitted=false;
     try{
       const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
       const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};
-      // Get all unit FRQ ids
-      const unitFrqIds=UNIT_FRQS.map(function(f){return f.id;});
-      const submitted=unitFrqIds.filter(function(id){return subs[id]&&subs[id].bestScore>0;});
-      if(submitted.length>0){
-        const totalEarned=submitted.reduce(function(s,id){return s+(subs[id].bestScore||0);},0);
-        const totalMax=submitted.reduce(function(s,id){
-          const frq=UNIT_FRQS.find(function(f){return f.id===id;});
-          return s+(frq?frq.points:4);
-        },0);
-        frqScore=totalMax>0?Math.round(totalEarned/totalMax*100):0;
-      }
+      const totalMax=UNIT_FRQS.reduce(function(s,f){return s+f.points;},0);
+      const totalEarned=UNIT_FRQS.reduce(function(s,f){
+        if(subs[f.id]&&subs[f.id].bestScore>0){anyFrqSubmitted=true;}
+        return s+(subs[f.id]?subs[f.id].bestScore||0:0);
+      },0);
+      frqScore=totalMax>0?Math.round(totalEarned/totalMax*100):0;
     }catch(e){}
 
     // Composite: MCQ 50%, Vocab 25%, FRQ 25%
-    // Only include FRQ if submitted
-    let composite;
-    if(frqScore!==null){
-      composite=Math.round(mcqScore*0.5+vocabScore*0.25+frqScore*0.25);
-    } else {
-      // No FRQ yet — weight MCQ 67%, Vocab 33%
-      composite=Math.round(mcqScore*0.67+vocabScore*0.33);
-    }
+    // Always include FRQ (0 if nothing submitted yet)
+    const composite=Math.round(mcqScore*0.5+vocabScore*0.25+frqScore*0.25);
 
     const trophy=composite>=100?'historian':composite>=90?'gold':composite>=80?'silver':composite>=70?'bronze':composite>=60?'completed':'tryagain';
 
@@ -977,11 +968,7 @@ function syncProgressToShell(acc){
       mcqScore:mcqScore,
       vocabScore:vocabScore,
       frqScore:frqScore,
-      frqAllDone:frqScore!==null&&UNIT_FRQS.every(function(f){
-        try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
-          const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};
-          return subs[f.id]&&subs[f.id].bestScore>0;}catch(e){return false;}
-      }),
+      frqAllDone:anyFrqSubmitted&&UNIT_FRQS.every(function(f){try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};return subs[f.id]&&subs[f.id].bestScore>0;}catch(e){return false;}}),
       composite:composite,
       trophy:trophy,
       completedAt:prev.completedAt||new Date().toISOString()
