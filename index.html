@@ -8215,10 +8215,14 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
     // mcqScore is the raw MCQ-only accuracy. bestAccuracy = composite (do NOT use as MCQ fallback)
     const mcq=ud.mcqScore!=null?Math.round(ud.mcqScore):null;
     // For USH, vocab is keyed by deck ID in vocab_best_score
-    const vocabKey = course==='hs_ush' ? (USH_DECK_MAP[u.id]||u.id) : u.id;
-    const vocab=u.hasVocab||(ud.vocabScore!=null)
-      ?(ud.vocabScore!=null?Math.round(ud.vocabScore):(vocabBest[vocabKey]||vocabBest[u.id]||null))
-      :(vocabBest[vocabKey]!=null?vocabBest[vocabKey]:null);
+    const vocabKey = course==='hs_ush' ? (USH_DECK_MAP[u.id]||ushKey||u.id) : u.id;
+    const vocabFromDeck = vocabBest[vocabKey]!=null ? Math.round(vocabBest[vocabKey]) : null;
+    const vocab = ud.vocabScore!=null ? Math.round(ud.vocabScore)
+                : vocabFromDeck!=null ? vocabFromDeck
+                : vocabBest[u.id]!=null ? Math.round(vocabBest[u.id])
+                : null;
+    // For USH, treat hasVocab as true if vocab data exists
+    const effectiveHasVocab = u.hasVocab || vocab!=null;
     // frqScore stored on unit_progress is authoritative; fall back to averaging civitas_frq_results
     const unitFRQs=(USE_FRQS[course]||[]).filter(f=>f.unit===u.id);
     let frqPct=ud.frqScore!=null?Math.round(ud.frqScore):null;
@@ -8228,9 +8232,9 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
     }
     // composite: use stored value if available, otherwise calculate from components
     const comp=ud.composite!=null?Math.round(ud.composite)
-      :(mcq!=null?useGetComposite(mcq||0,vocab||0,frqPct||0,u.hasFRQ,u.hasVocab):0);
+      :(mcq!=null||vocab!=null?useGetComposite(mcq||0,vocab||0,frqPct||0,u.hasFRQ,effectiveHasVocab):0);
     const tier=useCalcTier(comp);
-    const wt=u.hasFRQ&&u.hasVocab?'50% wt':u.hasFRQ?'60% wt':u.hasVocab?'75% wt':'100%';
+    const wt=u.hasFRQ&&effectiveHasVocab?'50% wt':u.hasFRQ?'60% wt':effectiveHasVocab?'75% wt':'100%';
     const card=document.createElement('div');
     card.style.cssText='background:var(--bg3);border:1px solid var(--border2);overflow:hidden';
     card.innerHTML=`
