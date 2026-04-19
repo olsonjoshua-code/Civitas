@@ -225,6 +225,45 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <script>
 const CURL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
 const CSK='civitas_state',SPX='apcmp_rpg_v1_';
+
+// ── SUPABASE SAVE/RESTORE FOR RPG ────────────────────────────────────────────
+async function pushGameToSupa() {
+  if (!G || !G.name || !_sk) return;
+  try {
+    var fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || G.name || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    var payload = {
+      full_name: fn.trim(),
+      unit_rounds_apcmp_rpg: JSON.stringify({ saveKey: _sk, gameState: G, savedAt: new Date().toISOString() }),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SURL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SKEY, 'Authorization': 'Bearer ' + SKEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+async function pullGameFromSupa(name) {
+  try {
+    var fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || name || '';
+    if (!fn) return null;
+    var r = await Promise.race([
+      fetch(SURL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn.trim()) + '&select=unit_rounds_apcmp_rpg&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': SKEY, 'Authorization': 'Bearer ' + SKEY }
+      }),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 6000); })
+    ]);
+    if (!r.ok) return null;
+    var rows = await r.json();
+    if (!rows || !rows[0] || !rows[0].unit_rounds_apcmp_rpg) return null;
+    var data = JSON.parse(rows[0].unit_rounds_apcmp_rpg);
+    return data;
+  } catch(e) { return null; }
+}
+// ── END SUPABASE SAVE/RESTORE ─────────────────────────────────────────────────
+
 const SURL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
 const RANKS=[{m:0,l:'Junior Analyst'},{m:200,l:'Field Analyst'},{m:600,l:'Senior Analyst'},{m:1200,l:'Expert Analyst'},{m:2000,l:'Global Scholar'}];
@@ -711,7 +750,7 @@ const CH_UNLOCK={
 const STAV=['analyst_m','analyst_f','diplomat','journalist'];
 let G=null,_sk=null;
 function ds(){return{name:'',firstName:'',lastName:'',period:'',avatarId:'analyst_m',equippedCharId:'analyst_m',unlocked:['analyst_m','analyst_f','diplomat','journalist'],level:1,xp:0,score:0,hp:100,maxHp:100,gold:0,mp:{},intelFound:[],chapterComplete:false,totalCorrect:0,totalQ:0};}
-function sv(){if(!G||!_sk)return;try{localStorage.setItem(_sk,JSON.stringify(G));}catch(e){}svChapter();}
+function sv(){if(!G||!_sk)return;try{localStorage.setItem(_sk,JSON.stringify(G));}catch(e){}svChapter();pushGameToSupa();}
 function gc(id){for(var i=0;i<CHARS.length;i++)if(CHARS[i].id===id)return CHARS[i];return CHARS[0];}
 function ge(){return gc(G.equippedCharId||'analyst_m');}
 function iu2(id){var ch=gc(id);if(ch.unlock==='starter')return true;var u=G.unlocked||[];for(var i=0;i<u.length;i++)if(u[i]===id)return true;return false;}
@@ -729,7 +768,24 @@ function axp(amt){G.xp+=Math.round(amt*gcx());G.score+=amt;var lv=false;while(G.
 function showLU(){var el=document.createElement('div');el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:2px solid var(--acc);padding:20px 30px;text-align:center;z-index:600;animation:pop .4s;min-width:220px';el.innerHTML='<div style="font-family:Bebas Neue,sans-serif;font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">RANK UP!</div><div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:var(--acc2)">Level '+G.level+'</div><div style="font-family:DM Sans,sans-serif;font-size:11px;color:var(--teal2);margin-top:4px">'+gr().l+'</div>';document.body.appendChild(el);setTimeout(function(){el.remove();},2400);}
 
 function lcb(){try{var lk=localStorage.getItem('apcmp_rpg_last_key');if(lk){var sv2=localStorage.getItem(lk);if(sv2){var d=JSON.parse(sv2);if(d&&d.name){window._ck=lk;document.getElementById('cb').style.display='block';document.getElementById('cbn').textContent=d.name;document.getElementById('cbs').textContent='Level '+d.level+' - '+d.score+' pts';document.getElementById('ls1').style.display='none';}}}}catch(e){}}
-function continueGame(){try{var sv3=localStorage.getItem(window._ck);if(sv3){var d=JSON.parse(sv3);if(d&&d.name){G=Object.assign(ds(),d);_sk=window._ck;ccx();launch();return;}}}catch(e){}ntf('Could not load save.','red');hideCont();}
+function continueGame(){
+  try{
+    var sv3=localStorage.getItem(window._ck);
+    if(sv3){var d=JSON.parse(sv3);if(d&&d.name){G=Object.assign(ds(),d);_sk=window._ck;ccx();launch();return;}}
+  }catch(e){}
+  // localStorage empty — try Supabase restore
+  pullGameFromSupa('').then(function(data) {
+    if(data && data.gameState && data.gameState.name) {
+      G = Object.assign(ds(), data.gameState);
+      _sk = data.saveKey || window._ck;
+      localStorage.setItem(_sk, JSON.stringify(G));
+      localStorage.setItem('apcmp_rpg_last_key', _sk);
+      ccx(); launch();
+    } else {
+      ntf('Could not load save.','red'); hideCont();
+    }
+  }).catch(function() { ntf('Could not load save.','red'); hideCont(); });
+}
 function hideCont(){document.getElementById('cb').style.display='none';document.getElementById('ls1').style.display='block';}
 function doLogin(){var first=document.getElementById('if2').value.trim();var last=document.getElementById('il2').value.trim();if(!first||!last){document.getElementById('le').textContent='Please enter both names.';return;}var sk=SPX+first.toLowerCase()+'_'+last.toLowerCase().replace(/\s+/g,'_');_sk=sk;window._lf=first.charAt(0).toUpperCase()+first.slice(1).toLowerCase();window._ll=last.charAt(0).toUpperCase()+last.slice(1).toLowerCase();localStorage.setItem('apcmp_rpg_last_key',sk);G=ds();G.name=window._lf+' '+window._ll;G.firstName=window._lf;G.lastName=window._ll;G.period='guest';sv();goAv();}
 function cle(){document.getElementById('le').textContent='';}

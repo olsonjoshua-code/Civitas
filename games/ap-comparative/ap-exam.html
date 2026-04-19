@@ -220,6 +220,79 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);background-ima
 
 <script>
 const UNIT_ID='apcmp_exam';
+
+// ── SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────────
+const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+let _dbLoaded = false;
+let _dbFullName = '';
+
+async function _loadProfileFromDB() {
+  try {
+    const fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const r = await Promise.race([
+      fetch(_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn.trim()) + '&select=*&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (!r.ok) return;
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!p) return;
+    _dbFullName = (p.full_name || fn).trim();
+
+    // Restore exam history from unit_rounds column
+    const roundCol = 'unit_rounds_' + UNIT_ID;
+    if (p[roundCol]) {
+      try {
+        const dbData = JSON.parse(p[roundCol] || '{}');
+        if (dbData.examHistory) {
+          const local = JSON.parse(localStorage.getItem('civitas_exam_history_apcmp') || '[]');
+          // Merge: keep all unique entries by date
+          const merged = [...local];
+          dbData.examHistory.forEach(e => {
+            if (!merged.find(x => x.date === e.date)) merged.push(e);
+          });
+          merged.sort((a,b) => new Date(a.date) - new Date(b.date));
+          localStorage.setItem('civitas_exam_history_apcmp', JSON.stringify(merged.slice(-20)));
+        }
+      } catch(e) {}
+    }
+
+    // Restore gold
+    if (p.gold) {
+      try {
+        const localGold = parseInt(localStorage.getItem('civitas_gold') || '0');
+        if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
+      } catch(e) {}
+    }
+
+    _dbLoaded = true;
+  } catch(e) {}
+}
+
+async function _pushExamToSupabase(examEntry) {
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const history = JSON.parse(localStorage.getItem('civitas_exam_history_apcmp') || '[]');
+    const payload = {
+      full_name: fn.trim(),
+      ['unit_rounds_' + UNIT_ID]: JSON.stringify({ examHistory: history }),
+      updated_at: new Date().toISOString()
+    };
+    try { payload.gold = parseInt(localStorage.getItem('civitas_gold') || '0'); } catch(e) {}
+    await fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+// ── END SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────
+
 const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
 const AI_URL='https://aged-tooth-21e7.jonesolson79.workers.dev';
 const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
@@ -459,9 +532,11 @@ function saveGameToFile() {
 function returnToShell(){try{localStorage.setItem('civitas_returning','1');localStorage.setItem('civitas_last_course','ap_cmp');}catch(e){}window.location.href=CIVITAS_URL;}
 
 window.addEventListener('load',()=>{
- loadStats();
- buildModeGrid();
- document.getElementById('lobby').style.display='flex';
+ _loadProfileFromDB().finally(()=>{
+   loadStats();
+   buildModeGrid();
+   document.getElementById('lobby').style.display='flex';
+ });
 });
 
 function loadStats(){
@@ -808,6 +883,7 @@ function displayResults(){
   const goldAmt=(S.results.mc.pct||0)>70?50:20;
   const c=parseInt(localStorage.getItem('civitas_gold')||'0');
   localStorage.setItem('civitas_gold',c+goldAmt);
+  _pushExamToSupabase(h[h.length-1]);
  }catch(e){}
  
  // Overall grade
