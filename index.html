@@ -7969,10 +7969,25 @@ async function useRefreshStudents(){
   const st=document.getElementById('use-load-status');
   if(st) st.textContent='Loading students…';
   try{
-    const rows=await sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses&order=display_name.asc&limit=500');
-    _useStudentList=(rows||[]).filter(r=>r.full_name).map(r=>({
-      label:r.display_name||r.full_name, fullName:r.full_name, courses:r.courses||[]
-    }));
+    // Fetch from both civitas_profiles (AP courses) and ac_student_profiles (USH)
+    const [civRows, ushRows] = await Promise.all([
+      sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses&order=display_name.asc&limit=500').catch(()=>[]),
+      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name&order=display_name.asc&limit=500').catch(()=>[])
+    ]);
+    const seen = new Set();
+    _useStudentList = [];
+    // Civitas profiles first (have course info)
+    (civRows||[]).filter(r=>r.full_name).forEach(r=>{
+      const key = r.full_name.toLowerCase();
+      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||r.full_name, fullName:r.full_name, courses:r.courses||[]}); }
+    });
+    // USH students from ac_student_profiles (may not be in civitas_profiles)
+    (ushRows||[]).filter(r=>r.display_name||r.full_name).forEach(r=>{
+      const fn = r.full_name||r.display_name;
+      const key = fn.toLowerCase();
+      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||fn, fullName:fn, courses:['hs_ush']}); }
+    });
+    _useStudentList.sort((a,b)=>a.label.localeCompare(b.label));
     if(st) st.textContent=_useStudentList.length+' students loaded';
   }catch(e){ if(st) st.textContent='Error: '+e.message; }
 }
@@ -8024,26 +8039,118 @@ function useSelectStudent(fullName,label){
   document.getElementById('use-load-status').textContent=label+' selected — click Load';
 }
 
+// USH unit ID mapping: civitas shell IDs -> ac_results unit_ids
+const USH_UNIT_ID_MAP = {
+  'ush_u1':'unit1','ush_u2a':'unit2a','ush_u2b':'unit2b',
+  'ush_u3a':'unit3a','ush_u3b':'unit3b','ush_u4a':'unit4a','ush_u4b':'unit4b',
+  'ush_u5a':'unit5a','ush_u5b':'unit5b','ush_u6':'unit6',
+  'ush_u7a':'unit7a','ush_u7b':'unit7b','ush_u8':'unit8',
+  'ush_theme_power':'theme_power','ush_theme_freedom':'theme_freedom',
+  'ush_theme_economy':'theme_economy','ush_theme_conflict':'theme_conflict',
+  'ush_theme_identity':'theme_identity',
+  'ush_eoc':'eoc_practice'
+};
+// USH deck map: civitas shell unit ID -> vocab_best_score key in ac_student_profiles
+const USH_DECK_MAP = {
+  'ush_u1':'unit1_civil_war_reconstruction','ush_u2a':'unit2a_boomtown',
+  'ush_u2b':'unit2b_reform','ush_u3a':'unit3a_empire_rising',
+  'ush_u3b':'unit3b_into_the_trenches','ush_u4a':'unit4a_boom_or_bust',
+  'ush_u4b':'unit4b_crash_recovery','ush_u5a':'unit5a_wwii',
+  'ush_u5b':'unit5b_early_cold_war','ush_u6':'unit7b_civil_rights_movement',
+  'ush_u7a':'unit7a_governing_1960s','ush_u7b':'unit9_vietnam_nixon',
+  'ush_u8':'unit10_america_1980s_present',
+  'ush_theme_power':'theme_power','ush_theme_freedom':'theme_freedom_rights',
+  'ush_theme_economy':'theme_economy_work','ush_theme_conflict':'theme_conflict_change',
+  'ush_theme_identity':'theme_american_identity'
+};
+
 async function useLoadScores(){
   const fullName=document.getElementById('use-student-fullname').value.trim();
   const course=document.getElementById('use-course').value;
-  if(!fullName||!course) return;
+  console.log('[USE] useLoadScores called. fullName:', fullName, 'course:', course);
+  if(!fullName||!course){ console.log('[USE] Bailing — missing fullName or course'); return; }
   const st=document.getElementById('use-load-status');
   st.innerHTML='<span style="color:var(--text3)">Loading from Supabase…</span>';
   try{
-    const profiles=await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=*');
-    if(!profiles||!profiles[0]){st.innerHTML='<span style="color:var(--red2)">No profile found for "'+fullName+'"</span>';return;}
-    _useCurrentProfile=profiles[0];
-    const displayName=profiles[0].display_name||fullName;
-    const frqByDisplay=await sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(displayName)+'&select=frq_id,score&order=score.desc').catch(()=>[]);
-    const frqByFull=displayName!==fullName?await sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(fullName)+'&select=frq_id,score&order=score.desc').catch(()=>[]):[];
-    _useCurrentFrqRows=[...(Array.isArray(frqByDisplay)?frqByDisplay:[]),...(Array.isArray(frqByFull)?frqByFull:[])];
-    _useCurrentCourse=course;
-    useRenderAll();
-    document.getElementById('use-scores-area').style.display='block';
-    useSwitchTab('units');
-    st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+(_useCurrentProfile.display_name||fullName)+'</span>';
+    if(course==='hs_ush'){
+      await useLoadUSHScores(fullName, st);
+    } else {
+      await useLoadCivitasScores(fullName, course, st);
+    }
   }catch(e){st.innerHTML='<span style="color:var(--red2)">Error: '+e.message+'</span>';}
+}
+
+async function useLoadCivitasScores(fullName, course, st){
+  const profiles=await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=*');
+  if(!profiles||!profiles[0]){st.innerHTML='<span style="color:var(--red2)">No profile found for "'+fullName+'"</span>';return;}
+  _useCurrentProfile=profiles[0];
+  const displayName=profiles[0].display_name||fullName;
+  const frqByDisplay=await sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(displayName)+'&select=frq_id,score&order=score.desc').catch(()=>[]);
+  const frqByFull=displayName!==fullName?await sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(fullName)+'&select=frq_id,score&order=score.desc').catch(()=>[]):[];
+  _useCurrentFrqRows=[...(Array.isArray(frqByDisplay)?frqByDisplay:[]),...(Array.isArray(frqByFull)?frqByFull:[])];
+  _useCurrentCourse=course;
+  useRenderAll();
+  document.getElementById('use-scores-area').style.display='block';
+  useSwitchTab('units');
+  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+(displayName)+'</span>';
+}
+
+async function useLoadUSHScores(fullName, st){
+  // USH uses ac_results (keyed by display_name) and ac_student_profiles
+  // First find the student's display name from civitas_profiles or ac_student_profiles
+  let displayName = fullName;
+  const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
+  if(civProf&&civProf[0]) displayName = civProf[0].display_name || fullName;
+
+  // ac_results keyed by display_name ("Nathan K.")
+  // ac_student_profiles has full_name ("Nathan Kuzak") — use that for vocab lookup
+  console.log('[USE] Querying ac_results for display_name:', displayName, '| ac_student_profiles for full_name:', fullName);
+  const [acResults, acProfile] = await Promise.all([
+    sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(displayName)+'&select=unit_id,best_score,best_accuracy,attempts,updated_at&order=unit_id.asc').catch(()=>[]),
+    sfetch('/rest/v1/ac_student_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=vocab_passed,vocab_best_score,period&limit=5').catch(()=>[])
+  ]);
+
+  console.log('[USE] ac_results rows:', acResults?.length, '| ac_student_profiles rows:', acProfile?.length);
+  if(acResults?.length) console.log('[USE] Sample unit_id:', acResults[0].unit_id, 'acc:', acResults[0].best_accuracy);
+  // Build a synthetic profile object in civitas_profiles format
+  // so useRenderAll can work with it
+  const unitProg = {};
+  (acResults||[]).forEach(r => {
+    if(!r.unit_id) return;
+    // Skip vocab_ and test_ rows — handled separately
+    if(r.unit_id.startsWith('vocab_')||r.unit_id.startsWith('test_')) return;
+    unitProg[r.unit_id] = {
+      bestAccuracy: r.best_accuracy||0,
+      mcqScore:     r.best_accuracy||0,
+      completedAt:  r.updated_at||null
+    };
+  });
+
+  // Vocab from ac_student_profiles.vocab_best_score (keyed by deck IDs)
+  let vocabBestRaw = {};
+  (acProfile||[]).forEach(p => {
+    try{ const v=JSON.parse(p.vocab_best_score||'{}'); Object.assign(vocabBestRaw,v); }catch(e){}
+  });
+
+  _useCurrentProfile = {
+    display_name: displayName,
+    full_name: fullName,
+    unit_progress: JSON.stringify(unitProg),
+    vocab_best_score: JSON.stringify(vocabBestRaw),
+    vocab_passed: '{}',
+    frq_progress: '{}',
+    _ush_raw_results: acResults||[],
+    _ush_display_name: displayName,
+    _ush_period: (acProfile&&acProfile[0]&&acProfile[0].period)||''
+  };
+  _useCurrentFrqRows = [];
+  _useCurrentCourse = 'hs_ush';
+
+  useRenderAll();
+  document.getElementById('use-scores-area').style.display='block';
+  useSwitchTab('units');
+  const unitCount = (acResults||[]).filter(r=>!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')).length;
+  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+displayName+' · '+unitCount+' unit results from ac_results</span>';
 }
 
 function useResetEditor(){
@@ -8102,10 +8209,16 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
   const units=USE_COURSE_UNITS[course]||[];
   grid.innerHTML='';
   units.forEach(u=>{
-    const ud=unitProg[u.id]||{};
+    // For USH, unit_progress keys are ac_results ids (unit1, unit2a etc)
+    const ushKey = course==='hs_ush' ? (USH_UNIT_ID_MAP[u.id]||u.id) : u.id;
+    const ud=unitProg[ushKey]||unitProg[u.id]||{};
     // mcqScore is the raw MCQ-only accuracy. bestAccuracy = composite (do NOT use as MCQ fallback)
     const mcq=ud.mcqScore!=null?Math.round(ud.mcqScore):null;
-    const vocab=u.hasVocab||(ud.vocabScore!=null)?(ud.vocabScore!=null?Math.round(ud.vocabScore):(vocabBest[u.id]||null)):null;
+    // For USH, vocab is keyed by deck ID in vocab_best_score
+    const vocabKey = course==='hs_ush' ? (USH_DECK_MAP[u.id]||u.id) : u.id;
+    const vocab=u.hasVocab||(ud.vocabScore!=null)
+      ?(ud.vocabScore!=null?Math.round(ud.vocabScore):(vocabBest[vocabKey]||vocabBest[u.id]||null))
+      :(vocabBest[vocabKey]!=null?vocabBest[vocabKey]:null);
     // frqScore stored on unit_progress is authoritative; fall back to averaging civitas_frq_results
     const unitFRQs=(USE_FRQS[course]||[]).filter(f=>f.unit===u.id);
     let frqPct=ud.frqScore!=null?Math.round(ud.frqScore):null;
@@ -8134,7 +8247,7 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
           <div>
             <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--civitas2);margin-bottom:3px">MCQ %</div>
             <div style="display:flex;align-items:center;gap:4px">
-              <input type="number" min="0" max="100" id="use-mcq-${u.id}" value="${mcq!=null?mcq:''}" placeholder="—"
+              <input type="number" min="0" max="100" id="use-mcq-${u.id}" data-ush-key="${ushKey}" value="${mcq!=null?mcq:''}" placeholder="—"
                 style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 5px;outline:none"
                 oninput="useRecalcCard('${u.id}')"
                 onfocus="this.style.borderColor='var(--civitas)'" onblur="this.style.borderColor='var(--border2)'">
@@ -8319,6 +8432,13 @@ async function useSaveAllScores(){
   st.innerHTML='<span style="color:var(--text3)">Saving…</span>';
   const p=_useCurrentProfile;
   const now=new Date().toISOString();
+
+  // Route to correct save handler based on course
+  if(_useCurrentCourse==='hs_ush'){
+    await useSaveUSHScores(fullName, st, now);
+    return;
+  }
+
   let unitProg={},vocabBest={},vocabPassed={},frqProg={};
   try{unitProg=JSON.parse(p.unit_progress||'{}');}catch(e){}
   try{vocabBest=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
@@ -8443,6 +8563,85 @@ async function useSaveAllScores(){
     st.innerHTML='<span style="color:var(--green2)">✓ Saved — '+changes.length+' change'+(changes.length>1?'s':'')+': '+changes.slice(0,3).join(', ')+(changes.length>3?'…':'')+'</span>';
     notify('✓ Changes saved to Supabase','green');
   }catch(e){st.innerHTML='<span style="color:var(--red2)">❌ '+e.message+'</span>';}
+}
+
+async function useSaveUSHScores(fullName, st, now){
+  const p = _useCurrentProfile;
+  const displayName = p._ush_display_name || p.display_name || fullName;
+  const period = p._ush_period || '';
+  const changes = [];
+  const units = USE_COURSE_UNITS['hs_ush']||[];
+
+  for(const u of units){
+    const mcqEl      = document.getElementById('use-mcq-'+u.id);
+    const overrideEl = document.getElementById('use-override-'+u.id);
+    const ushId      = USH_UNIT_ID_MAP[u.id]||u.id;
+
+    if(mcqEl && mcqEl.value !== ''){
+      const acc = Math.max(0,Math.min(100,parseInt(mcqEl.value)));
+      if(isNaN(acc)) continue;
+      // Check what's currently stored
+      const existing = (p._ush_raw_results||[]).find(r=>r.unit_id===ushId);
+      const oldAcc = existing ? (existing.best_accuracy||0) : 0;
+      if(acc === oldAcc) continue;
+      // Upsert into ac_results
+      const scoreRow = {
+        name:          displayName,
+        period:        period,
+        unit_id:       ushId,
+        best_accuracy: acc,
+        best_score:    existing ? Math.max(existing.best_score||0, acc*10) : acc*10,
+        attempts:      (existing?.attempts||0)+1,
+        updated_at:    now
+      };
+      // If override composite set, store it too
+      if(overrideEl && overrideEl.value !== ''){
+        const ov = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
+        if(!isNaN(ov)) scoreRow.best_accuracy = ov;
+      }
+      try{
+        await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+          method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+          body:JSON.stringify(scoreRow)
+        });
+        changes.push(u.num+': '+oldAcc+'→'+acc+'%');
+      }catch(e){ console.error('USH save error',u.id,e); }
+    }
+  }
+
+  // Vocab — save to ac_student_profiles.vocab_best_score
+  let vocabBestRaw = {};
+  try{ vocabBestRaw = JSON.parse(p.vocab_best_score||'{}'); }catch(e){}
+  let vocabDirty = false;
+  const vocabUnits = USE_VOCAB['hs_ush']||[];
+  vocabUnits.forEach(v=>{
+    const el = document.getElementById('use-voc-'+v.id);
+    if(!el||el.value==='') return;
+    const val = Math.max(0,Math.min(100,parseInt(el.value)));
+    if(isNaN(val)) return;
+    const deckId = USH_DECK_MAP[v.id]||v.id;
+    const old = vocabBestRaw[deckId]||0;
+    if(val===old) return;
+    vocabBestRaw[deckId] = Math.max(val,old);
+    changes.push(v.label+' vocab: '+old+'→'+val+'%');
+    vocabDirty = true;
+  });
+
+  if(vocabDirty){
+    try{
+      await fetch(SUPA_URL+'/rest/v1/ac_student_profiles?on_conflict=display_name,period',{
+        method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+        body:JSON.stringify({display_name:displayName,period:period,vocab_best_score:JSON.stringify(vocabBestRaw),updated_at:now})
+      });
+    }catch(e){ console.error('USH vocab save error',e); }
+  }
+
+  if(!changes.length){
+    st.innerHTML='<span style="color:var(--text3)">No changes to save.</span>';
+  } else {
+    st.innerHTML='<span style="color:var(--green2)">✓ Saved to ac_results — '+changes.join(', ')+'</span>';
+    notify('✓ USH scores saved','green');
+  }
 }
 
 // Initialize on teacher login
