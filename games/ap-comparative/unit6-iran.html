@@ -1050,7 +1050,7 @@ function renderFRQTab() {
     html += '<div id="' + rowId + '" style="border:1px solid ' + (unlocked ? (done ? 'var(--green2)' : tc.color) : 'var(--border2)') + ';border-left:3px solid ' + (unlocked ? (done ? 'var(--green2)' : tc.color) : 'var(--border2)') + ';margin-bottom:8px;background:var(--bg2);opacity:' + (unlocked ? '1' : '.45') + '">';
 
     // Header row - clickable if unlocked
-    html += '<div onclick="' + (unlocked ? 'toggleFRQPanel('' + frq.id + '')' : '') + '" style="padding:14px 18px;cursor:' + (unlocked ? 'pointer' : 'not-allowed') + ';display:flex;align-items:center;gap:14px">';
+        html += '<div data-frqid="' + frq.id + '" class="frq-row-header" style="padding:14px 18px;cursor:' + (unlocked ? 'pointer' : 'not-allowed') + ';display:flex;align-items:center;gap:14px">';
     html += '<div style="flex:1">';
     html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
     html += '<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:' + (unlocked ? tc.color : 'var(--text3)') + '">' + tc.label + '</span>';
@@ -1107,6 +1107,17 @@ function renderFRQTab() {
   });
 
   el.innerHTML = html;
+
+  // Wire row header clicks
+  el.querySelectorAll('.frq-row-header').forEach(function(row) {
+    row.addEventListener('click', function() {
+      const fid = this.getAttribute('data-frqid');
+      const frq = frqs.find(function(f) { return f.id === fid; });
+      const i = frqs.indexOf(frq);
+      const unlocked = i === 0 || getFRQBestScore(frqs[i - 1].id) !== null;
+      if (unlocked) toggleFRQPanel(fid);
+    });
+  });
 
   // Wire events for all FRQs
   frqs.forEach(function(frq) {
