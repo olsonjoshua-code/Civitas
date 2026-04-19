@@ -355,6 +355,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);background-ima
     </div>
   </div>
 </div>
+
+</div>
 <div id="game">
   <div id="game-header">
     <button id="game-back" onclick="exitGame()">&larr; Hub</button>
@@ -398,6 +400,135 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);background-ima
 </div>
 <script>
 const UNIT_ID='apcmp_bi_de';
+
+// ── SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────────
+const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+let _dbLoaded = false;
+let _dbFullName = '';
+let _dbFrqProgress = {};
+
+async function _loadProfileFromDB() {
+  try {
+    const fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const r = await Promise.race([
+      fetch(_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn.trim()) + '&select=*&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (!r.ok) return;
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!p) return;
+    _dbFullName = (p.full_name || fn).trim();
+
+    // Restore round data for this unit
+    const roundCol = 'unit_rounds_' + UNIT_ID;
+    if (p[roundCol]) {
+      try {
+        const dbRounds = JSON.parse(p[roundCol] || '{}');
+        Object.keys(dbRounds).forEach(rk => {
+          const lsKey = 'civitas_' + UNIT_ID + '_' + rk;
+          try {
+            const existing = localStorage.getItem(lsKey);
+            const dbVal = dbRounds[rk];
+            if (!existing || (dbVal.completedAt && JSON.parse(existing).completedAt < dbVal.completedAt)) {
+              localStorage.setItem(lsKey, JSON.stringify(dbVal));
+            }
+          } catch(e) {}
+        });
+      } catch(e) {}
+    }
+
+    // Restore unit_progress
+    if (p.unit_progress && p.unit_progress !== '{}') {
+      try {
+        const dbProg = JSON.parse(p.unit_progress);
+        const existing = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+        Object.keys(dbProg).forEach(k => { existing[k] = dbProg[k]; });
+        localStorage.setItem('civitas_unit_progress', JSON.stringify(existing));
+      } catch(e) {}
+    }
+
+    // Restore gold
+    if (p.gold) {
+      try {
+        const localGold = parseInt(localStorage.getItem('civitas_gold') || '0');
+        if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
+      } catch(e) {}
+    }
+
+    // Restore FRQ scores from frq_progress blob
+    if (p.frq_progress && p.frq_progress !== '{}') {
+      try {
+        const dbFrq = JSON.parse(p.frq_progress);
+        _dbFrqProgress = dbFrq;
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        if (!ss.courseProgress) ss.courseProgress = {};
+        if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
+        const existing = ss.courseProgress.ap_cmp.frqSubmissions || {};
+        Object.keys(dbFrq).forEach(fid => {
+          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+            existing[fid] = dbFrq[fid];
+          }
+        });
+        ss.courseProgress.ap_cmp.frqSubmissions = existing;
+        localStorage.setItem('civitas_state', JSON.stringify(ss));
+      } catch(e) {}
+    }
+
+    // Restore vocab score
+    if (p.vocab_best_score) {
+      try {
+        const vbs = JSON.parse(p.vocab_best_score || '{}');
+        const score = vbs[UNIT_ID] || 0;
+        if (score > 0) {
+          const localScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+          if (score > localScore) localStorage.setItem('civitas_vocab_' + UNIT_ID, score);
+        }
+      } catch(e) {}
+    }
+
+    _dbLoaded = true;
+  } catch(e) {}
+}
+
+async function _pushRoundsToSupabase() {
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const rounds = {};
+    if (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK.rounds) {
+      QUESTION_BANK.rounds.forEach((_, i) => {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      });
+    } else {
+      for (let i = 0; i < 6; i++) {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      }
+    }
+    let unitProg = {};
+    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    const payload = {
+      full_name: fn.trim(),
+      unit_progress: JSON.stringify(unitProg),
+      ['unit_rounds_' + UNIT_ID]: JSON.stringify(rounds),
+      updated_at: new Date().toISOString()
+    };
+    try { payload.gold = parseInt(localStorage.getItem('civitas_gold') || '0'); } catch(e) {}
+    await fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+// ── END SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────
+
 const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
 const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
@@ -572,7 +703,13 @@ PART C: 2 pts: Clear position on which factor MOST explains divergence with spec
 ];
 let G={gold:parseInt(localStorage.getItem('civitas_gold')||'0'),roundIdx:0,questionIdx:0,questions:[],selectedChoice:null,answered:false,sessionCorrect:0,sessionTotal:0};
 window.addEventListener('load',()=>{const fill=document.getElementById('ld-fill');let p=0;const iv=setInterval(()=>{p+=Math.random()*25;if(p>=100){p=100;clearInterval(iv);setTimeout(doneLoading,300);}fill.style.width=p+'%';},120);});
-function doneLoading(){document.getElementById('loading').style.opacity='0';setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);buildRoundCards();loadSavedProgress();}
+function doneLoading(){document.getElementById('loading').style.opacity='0';setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 500);
+  _loadProfileFromDB().finally(() => {
+    document.getElementById('hub').style.display = 'flex';
+    buildRoundCards();
+    loadSavedProgress();
+  });
+}
 function loadSavedProgress(){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');if(prog[UNIT_ID])updateProgressBar(ROUNDS.filter((_,i)=>isRoundComplete(i)).length,ROUNDS.length);}catch(e){}}
 function loadFRQScores(){/* managed by renderFRQTab */}
 
@@ -829,7 +966,9 @@ function selectChoice(id){if(G.answered)return;G.selectedChoice=id;document.quer
 function submitAnswer(){if(!G.selectedChoice||G.answered)return;G.answered=true;const q=G.questions[G.questionIdx];const correct=G.selectedChoice===q.correct;G.sessionTotal++;if(correct){G.sessionCorrect++;const gold=5+(q.difficulty==='challenging'?5:3);G.gold+=gold;spawnGold('+'+gold+' &#x1FA99;');awardGoldToShell(gold,'AP Comp Big Idea DE');}document.querySelectorAll('.choice').forEach(c=>{c.classList.add('answered');const cid=c.id.replace('choice-','');if(cid===q.correct)c.classList.add('correct');else if(cid===G.selectedChoice&&!correct)c.classList.add('wrong');else c.classList.add('dimmed');});if(q.explanation){const qcard=document.getElementById('qcard');if(qcard)qcard.insertAdjacentHTML('beforeend',`<div class="explanation"><strong>${correct?'&#10003; Correct!':'&#10007; Incorrect.'}</strong> ${q.explanation}</div>`);}document.getElementById('btn-next').style.display='block';updateGoldDisplay();}
 function nextQuestion(){G.questionIdx++;if(G.questionIdx>=G.questions.length)finishRound();else{renderQuestion();document.getElementById('question-area').scrollTop=0;}}
 function finishRound(){const acc=G.sessionTotal>0?Math.round(G.sessionCorrect/G.sessionTotal*100):0;try{localStorage.setItem('civitas_'+UNIT_ID+'_r'+G.roundIdx,JSON.stringify({accuracy:acc,correct:G.sessionCorrect,total:G.sessionTotal,completedAt:new Date().toISOString()}));syncProgressToShell(acc);}catch(e){}const icon=acc>=80?'&#11088;':acc>=60?'&#9989;':'&#x1F4CB;';const sc=acc>=80?'var(--green2)':acc>=60?'var(--amber)':'var(--red2)';document.getElementById('question-area').style.display='none';document.getElementById('btn-next').style.display='none';const rc=document.getElementById('round-complete');rc.style.display='flex';document.getElementById('rc-icon').innerHTML=icon;document.getElementById('rc-title').textContent=ROUNDS[G.roundIdx].label;document.getElementById('rc-score').textContent=acc+'%';document.getElementById('rc-score').style.color=sc;document.getElementById('rc-sub').textContent=G.sessionCorrect+'/'+G.sessionTotal+' CORRECT';document.getElementById('rc-stats').innerHTML=`<div class="rc-stat"><div class="rc-stat-val" style="color:${sc}">${acc}%</div><div class="rc-stat-lbl">Accuracy</div></div><div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;const ni=G.roundIdx+1;const nb=document.getElementById('rc-next-btn');if(ni<ROUNDS.length){nb.textContent='Continue to Round '+(ni+1)+' \u2192';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}else{nb.textContent='\u1F3C6 Complete Big Idea';nb.onclick=showUnitComplete;}}
-function syncProgressToShell(acc){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');const prev=prog[UNIT_ID]||{bestAccuracy:0};prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}}
+function syncProgressToShell(acc){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');const prev=prog[UNIT_ID]||{bestAccuracy:0};prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+  _pushRoundsToSupabase();
+}
 function showUnitComplete(){const tc=ROUNDS.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.correct:0);},0);const tq=ROUNDS.reduce((s,_,i)=>{const p=getRoundProgress(i);return s+(p?p.total:0);},0);const ov=tq>0?Math.round(tc/tq*100):0;const grade=ov>=90?'A+':ov>=80?'A':ov>=70?'B':ov>=60?'C':'D';const gc=ov>=80?'var(--green2)':ov>=60?'var(--amber)':'var(--red2)';document.getElementById('round-complete').style.display='none';document.getElementById('unit-complete').style.display='flex';document.getElementById('uc-score').textContent=grade;document.getElementById('uc-score').style.color=gc;document.getElementById('uc-grade').textContent=ov+'% Overall \u00B7 Big Idea Complete';awardGoldToShell(50,'Big Idea: Development & Inequality');spawnGold('+50 &#x1FA99; Big Idea Complete!');syncProgressToShell(ov);}
 function replayUnit(){ROUNDS.forEach((_,i)=>{try{localStorage.removeItem('civitas_'+UNIT_ID+'_r'+i);}catch(e){}});document.getElementById('unit-complete').style.display='none';document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();}
 function exitGame(){document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';buildRoundCards();updateProgressBar(ROUNDS.filter((_,i)=>isRoundComplete(i)).length,ROUNDS.length);}
@@ -1052,6 +1191,8 @@ async function submitUnitFRQ(frqId) {
       localStorage.setItem('civitas_state', JSON.stringify(ss));
     } catch(e) {}
 
+    saveFRQToSupabase(frqId, score, frq.points, frq.type, UNIT_ID);
+
     if (isNew && score > 0) {
       const g = Math.round((FRQ_GOLD[frq.type]||75) * (score/frq.points));
       awardGoldToShell(g, 'FRQ: '+frq.title);
@@ -1112,177 +1253,6 @@ async function submitFRQReport(id, title) {
   } catch(e) { if(s){s.textContent='Failed.';s.style.color='var(--red2)';} }
 }
 
-// ── GAME ENGINE ────────────────────────────────────────────────────────────────
-function startRound(idx) {
-  if (!isRoundComplete(idx - 1) && idx > 0) { notify('Complete Round ' + idx + ' first!'); return; }
-  G.roundIdx = idx;
-  G.questionIdx = 0;
-  G.selectedChoice = null;
-  G.answered = false;
-  G.sessionCorrect = 0;
-  G.sessionTotal = 0;
-  G.roundScores = [];
-
-  const round = QUESTION_BANK.rounds[idx];
-  document.getElementById('hub').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
-  document.getElementById('round-intro').style.display = 'flex';
-  document.getElementById('question-area').style.display = 'none';
-  document.getElementById('round-complete').style.display = 'none';
-  document.getElementById('unit-complete').style.display = 'none';
-  document.getElementById('btn-next').style.display = 'none';
-
-  document.getElementById('ri-icon').textContent = round.icon;
-  document.getElementById('ri-round').textContent = 'ROUND ' + (idx + 1) + ' OF ' + QUESTION_BANK.rounds.length;
-  document.getElementById('ri-title').textContent = round.label;
-  document.getElementById('ri-desc').textContent = round.desc;
-
-  buildPips();
-  updateGoldDisplay();
-}
-
-function buildPips() {
-  const pips = document.getElementById('game-pips');
-  pips.innerHTML = QUESTION_BANK.rounds.map((_, i) => `<div class="gp-pip ${i < G.roundIdx ? 'done' : i === G.roundIdx ? 'active' : ''}"></div>`).join('');
-}
-
-function loadStimulusRound(round) {
-  G.questions = [];
-  const sets = round.sets || [];
-  sets.forEach(set => {
-    set.questions.forEach(q => {
-      G.questions.push({ ...q, _set: set });
-    });
-  });
-  G.questions = shuffle(G.questions);
-  G.questions = shuffleChoices(G.questions);
-  renderQuestion();
-}
-
-// Shuffle answer choices, re-assign letters A-D, update q.correct to match
-function selectChoice(id) {
-  if (G.answered) return;
-  G.selectedChoice = id;
-  document.querySelectorAll('.choice').forEach(c => {
-    c.classList.remove('selected');
-    if (c.id === 'choice-' + id) c.classList.add('selected');
-  });
-  submitAnswer();
-}
-
-function submitAnswer() {
-  if (!G.selectedChoice || G.answered) return;
-  G.answered = true;
-  const q = G.questions[G.questionIdx];
-  const correct = G.selectedChoice === q.correct;
-  G.sessionTotal++;
-  if (correct) {
-    G.sessionCorrect++;
-    const gold = 5 + (q.difficulty === 'challenging' ? 5 : q.difficulty === 'moderate' ? 3 : 1);
-    G.gold += gold;
-    spawnGold('+' + gold + ' 🪙');
-    awardGoldToShell(gold, 'AP Comp Unit 1');
-  }
-
-  document.querySelectorAll('.choice').forEach(c => {
-    c.classList.add('answered');
-    const cid = c.id.replace('choice-', '');
-    if (cid === q.correct) c.classList.add('correct');
-    else if (cid === G.selectedChoice && !correct) c.classList.add('wrong');
-    else c.classList.add('dimmed');
-  });
-
-  const qcard = document.getElementById('qcard');
-  if (qcard && q.explanation) {
-    qcard.insertAdjacentHTML('beforeend', `<div class="explanation"><strong>${correct ? '✓ Correct!' : '✗ Incorrect.'}</strong> ${q.explanation}</div>`);
-  }
-  document.getElementById('btn-next').style.display = 'block';
-  updateGoldDisplay();
-  savePartialProgress();
-}
-
-function nextQuestion() {
-  G.questionIdx++;
-  if (G.questionIdx >= G.questions.length) {
-    finishRound();
-  } else {
-    renderQuestion();
-    document.getElementById('question-area').scrollTop = 0;
-  }
-}
-
-function finishRound() {
-  const accuracy = G.sessionTotal > 0 ? Math.round(G.sessionCorrect / G.sessionTotal * 100) : 0;
-  try {
-    const k = 'civitas_' + UNIT_ID + '_r' + G.roundIdx;
-    localStorage.setItem(k, JSON.stringify({ accuracy, correct: G.sessionCorrect, total: G.sessionTotal, completedAt: new Date().toISOString() }));
-    syncProgressToShell(accuracy);
-  } catch(e) {}
-
-  const icon = accuracy >= 80 ? '⭐' : accuracy >= 60 ? '✅' : '📋';
-  const scoreColor = accuracy >= 80 ? 'var(--green2)' : accuracy >= 60 ? 'var(--amber)' : 'var(--red2)';
-
-  document.getElementById('question-area').style.display = 'none';
-  document.getElementById('btn-next').style.display = 'none';
-  const rc = document.getElementById('round-complete');
-  rc.style.display = 'flex';
-  document.getElementById('rc-icon').textContent = icon;
-  document.getElementById('rc-title').textContent = QUESTION_BANK.rounds[G.roundIdx].label;
-  document.getElementById('rc-score').textContent = accuracy + '%';
-  document.getElementById('rc-score').style.color = scoreColor;
-  document.getElementById('rc-sub').textContent = G.sessionCorrect + ' / ' + G.sessionTotal + ' CORRECT';
-  document.getElementById('rc-stats').innerHTML = `
-    <div class="rc-stat"><div class="rc-stat-val" style="color:${scoreColor}">${accuracy}%</div><div class="rc-stat-lbl">Accuracy</div></div>
-    <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.gold}</div><div class="rc-stat-lbl">Gold Total</div></div>`;
-
-  const nextIdx = G.roundIdx + 1;
-  const hasNext = nextIdx < QUESTION_BANK.rounds.length;
-  const nextBtn = document.getElementById('rc-next-btn');
-  if (hasNext) {
-    nextBtn.textContent = 'Continue to Round ' + (nextIdx + 1) + ' →';
-    nextBtn.onclick = () => {
-      rc.style.display = 'none';
-      startRound(nextIdx);
-    };
-  } else {
-    nextBtn.textContent = '🏆 Complete Unit';
-    nextBtn.onclick = showUnitComplete;
-  }
-}
-
-function syncProgressToShell(accuracy) {
-  try {
-    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-    const prev = prog[UNIT_ID] || { bestAccuracy: 0 };
-    prog[UNIT_ID] = { bestAccuracy: Math.max(prev.bestAccuracy || 0, accuracy), completedAt: new Date().toISOString() };
-    localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
-  } catch(e) {}
-}
-
-function showUnitComplete() {
-  const totalCorrect = QUESTION_BANK.rounds.reduce((sum, _, i) => {
-    const p = getRoundProgress(i);
-    return sum + (p ? p.correct : 0);
-  }, 0);
-  const totalQ = QUESTION_BANK.rounds.reduce((sum, _, i) => {
-    const p = getRoundProgress(i);
-    return sum + (p ? p.total : 0);
-  }, 0);
-  const overall = totalQ > 0 ? Math.round(totalCorrect / totalQ * 100) : 0;
-  const grade = overall >= 90 ? 'A+' : overall >= 80 ? 'A' : overall >= 70 ? 'B' : overall >= 60 ? 'C' : 'D';
-  const gc = overall >= 80 ? 'var(--green2)' : overall >= 60 ? 'var(--amber)' : 'var(--red2)';
-
-  document.getElementById('round-complete').style.display = 'none';
-  const uc = document.getElementById('unit-complete');
-  uc.style.display = 'flex';
-  document.getElementById('uc-score').textContent = grade;
-  document.getElementById('uc-score').style.color = gc;
-  document.getElementById('uc-grade').textContent = overall + '% Overall · Unit 1 Complete';
-
-  awardGoldToShell(50, 'Unit 1 Completion Bonus');
-  spawnGold('+50 🪙 Completion Bonus');
-  syncProgressToShell(overall);
-}
 
 function replayUnit() {
   QUESTION_BANK.rounds.forEach((_, i) => {
@@ -1584,6 +1554,36 @@ function saveGameToFile(){
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
     notify('✓ Progress saved to file!');
   }catch(e){notify('Save failed: '+e.message);}
+}
+
+
+async function saveFRQToSupabase(frqId, score, maxScore, frqType, unitId) {
+  try {
+    const state = JSON.parse(localStorage.getItem('civitas_state')||'{}');
+    const fullName = state.fullName || state.name;
+    const displayName = state.name || fullName;
+    if (!fullName || state.isGuest) return;
+    const now = new Date().toISOString();
+    // Save to civitas_frq_results
+    await fetch(SUPA_URL+'/rest/v1/civitas_frq_results?on_conflict=student_name,frq_id', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({student_name: displayName, full_name: fullName, frq_id: frqId, score, max_score: maxScore, frq_type: frqType, unit: unitId, course_id: 'ap_cmp', submitted_at: now, updated_at: now})
+    });
+    // Also sync frq_progress blob on civitas_profiles
+    const profResp = await fetch(SUPA_URL+'/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=frq_progress', {
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+    const profs = await profResp.json();
+    let frqProg = {};
+    try { frqProg = JSON.parse((profs&&profs[0]&&profs[0].frq_progress)||'{}'); } catch(e) {}
+    frqProg[frqId] = {bestScore: Math.max(score, frqProg[frqId]?.bestScore||0), maxScore, attempts: (frqProg[frqId]?.attempts||0)+1, updatedAt: now};
+    await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({full_name: fullName, frq_progress: JSON.stringify(frqProg), updated_at: now})
+    });
+  } catch(e) { console.warn('Supabase FRQ save failed:', e.message); }
 }
 
 // ── Anti-cheat ────────────────────────────────────────────────────────────────

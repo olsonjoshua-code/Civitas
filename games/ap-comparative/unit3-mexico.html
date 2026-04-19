@@ -475,6 +475,135 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
 <script>
 const UNIT_ID='apcmp_u3';
+
+// ── SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────────
+const _SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+let _dbLoaded = false;
+let _dbFullName = '';
+let _dbFrqProgress = {};
+
+async function _loadProfileFromDB() {
+  try {
+    const fn = localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const r = await Promise.race([
+      fetch(_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn.trim()) + '&select=*&limit=1', {
+        headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (!r.ok) return;
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if (!p) return;
+    _dbFullName = (p.full_name || fn).trim();
+
+    // Restore round data for this unit
+    const roundCol = 'unit_rounds_' + UNIT_ID;
+    if (p[roundCol]) {
+      try {
+        const dbRounds = JSON.parse(p[roundCol] || '{}');
+        Object.keys(dbRounds).forEach(rk => {
+          const lsKey = 'civitas_' + UNIT_ID + '_' + rk;
+          try {
+            const existing = localStorage.getItem(lsKey);
+            const dbVal = dbRounds[rk];
+            if (!existing || (dbVal.completedAt && JSON.parse(existing).completedAt < dbVal.completedAt)) {
+              localStorage.setItem(lsKey, JSON.stringify(dbVal));
+            }
+          } catch(e) {}
+        });
+      } catch(e) {}
+    }
+
+    // Restore unit_progress
+    if (p.unit_progress && p.unit_progress !== '{}') {
+      try {
+        const dbProg = JSON.parse(p.unit_progress);
+        const existing = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+        Object.keys(dbProg).forEach(k => { existing[k] = dbProg[k]; });
+        localStorage.setItem('civitas_unit_progress', JSON.stringify(existing));
+      } catch(e) {}
+    }
+
+    // Restore gold
+    if (p.gold) {
+      try {
+        const localGold = parseInt(localStorage.getItem('civitas_gold') || '0');
+        if (p.gold > localGold) localStorage.setItem('civitas_gold', p.gold);
+      } catch(e) {}
+    }
+
+    // Restore FRQ scores from frq_progress blob
+    if (p.frq_progress && p.frq_progress !== '{}') {
+      try {
+        const dbFrq = JSON.parse(p.frq_progress);
+        _dbFrqProgress = dbFrq;
+        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+        if (!ss.courseProgress) ss.courseProgress = {};
+        if (!ss.courseProgress.ap_cmp) ss.courseProgress.ap_cmp = {};
+        const existing = ss.courseProgress.ap_cmp.frqSubmissions || {};
+        Object.keys(dbFrq).forEach(fid => {
+          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
+            existing[fid] = dbFrq[fid];
+          }
+        });
+        ss.courseProgress.ap_cmp.frqSubmissions = existing;
+        localStorage.setItem('civitas_state', JSON.stringify(ss));
+      } catch(e) {}
+    }
+
+    // Restore vocab score
+    if (p.vocab_best_score) {
+      try {
+        const vbs = JSON.parse(p.vocab_best_score || '{}');
+        const score = vbs[UNIT_ID] || 0;
+        if (score > 0) {
+          const localScore = parseInt(localStorage.getItem('civitas_vocab_' + UNIT_ID) || '0');
+          if (score > localScore) localStorage.setItem('civitas_vocab_' + UNIT_ID, score);
+        }
+      } catch(e) {}
+    }
+
+    _dbLoaded = true;
+  } catch(e) {}
+}
+
+async function _pushRoundsToSupabase() {
+  try {
+    const fn = _dbFullName || localStorage.getItem('civitas_full_name') || localStorage.getItem('civitas_student_name') || '';
+    if (!fn || fn === 'Mr. Olson') return;
+    const rounds = {};
+    if (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK.rounds) {
+      QUESTION_BANK.rounds.forEach((_, i) => {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      });
+    } else {
+      for (let i = 0; i < 6; i++) {
+        const d = localStorage.getItem('civitas_' + UNIT_ID + '_r' + i);
+        if (d) try { rounds['r' + i] = JSON.parse(d); } catch(e) {}
+      }
+    }
+    let unitProg = {};
+    try { unitProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
+    const payload = {
+      full_name: fn.trim(),
+      unit_progress: JSON.stringify(unitProg),
+      ['unit_rounds_' + UNIT_ID]: JSON.stringify(rounds),
+      updated_at: new Date().toISOString()
+    };
+    try { payload.gold = parseInt(localStorage.getItem('civitas_gold') || '0'); } catch(e) {}
+    await fetch(_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': _SUPA_KEY, 'Authorization': 'Bearer ' + _SUPA_KEY, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+// ── END SUPABASE-FIRST BOOTSTRAP ─────────────────────────────────────────────
+
 const CIVITAS_URL=localStorage.getItem('civitas_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
 const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
@@ -817,8 +946,12 @@ window.addEventListener('load',()=>{
 
 function doneLoading(){
   document.getElementById('loading').style.opacity='0';
-  setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('hub').style.display='flex';},500);
-  buildRoundCards();loadSavedProgress();
+  setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 500);
+  _loadProfileFromDB().finally(() => {
+    document.getElementById('hub').style.display = 'flex';
+    buildRoundCards();
+    loadSavedProgress();
+  });
 }
 
 function loadSavedProgress(){
@@ -1294,6 +1427,8 @@ function syncProgressToShell(acc){
     const prev=prog[UNIT_ID]||{bestAccuracy:0};
     prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};
     localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+
+  _pushRoundsToSupabase();
 }
 
 function showUnitComplete(){
@@ -1539,6 +1674,8 @@ async function submitUnitFRQ(frqId) {
       ss.courseProgress.ap_cmp.frqSubmissions[frqId] = ex;
       localStorage.setItem('civitas_state', JSON.stringify(ss));
     } catch(e) {}
+
+    saveFRQToSupabase(frqId, score, frq.points, frq.type, UNIT_ID);
 
     if (isNew && score > 0) {
       const g = Math.round((FRQ_GOLD[frq.type]||75) * (score/frq.points));
@@ -1880,6 +2017,36 @@ function saveGameToFile(){
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
     notify('✓ Progress saved to file!');
   }catch(e){notify('Save failed: '+e.message);}
+}
+
+
+async function saveFRQToSupabase(frqId, score, maxScore, frqType, unitId) {
+  try {
+    const state = JSON.parse(localStorage.getItem('civitas_state')||'{}');
+    const fullName = state.fullName || state.name;
+    const displayName = state.name || fullName;
+    if (!fullName || state.isGuest) return;
+    const now = new Date().toISOString();
+    // Save to civitas_frq_results
+    await fetch(SUPA_URL+'/rest/v1/civitas_frq_results?on_conflict=student_name,frq_id', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({student_name: displayName, full_name: fullName, frq_id: frqId, score, max_score: maxScore, frq_type: frqType, unit: unitId, course_id: 'ap_cmp', submitted_at: now, updated_at: now})
+    });
+    // Also sync frq_progress blob on civitas_profiles
+    const profResp = await fetch(SUPA_URL+'/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=frq_progress', {
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+    const profs = await profResp.json();
+    let frqProg = {};
+    try { frqProg = JSON.parse((profs&&profs[0]&&profs[0].frq_progress)||'{}'); } catch(e) {}
+    frqProg[frqId] = {bestScore: Math.max(score, frqProg[frqId]?.bestScore||0), maxScore, attempts: (frqProg[frqId]?.attempts||0)+1, updatedAt: now};
+    await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({full_name: fullName, frq_progress: JSON.stringify(frqProg), updated_at: now})
+    });
+  } catch(e) { console.warn('Supabase FRQ save failed:', e.message); }
 }
 
 // ── Anti-cheat ────────────────────────────────────────────────────────────────
