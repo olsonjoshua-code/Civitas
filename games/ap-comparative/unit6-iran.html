@@ -791,6 +791,8 @@ async function submitUnitFRQ(frqId){
       ss.courseProgress.ap_cmp.frqSubmissions[frqId]=ex;localStorage.setItem('civitas_state',JSON.stringify(ss));}catch(e){}
     const b=document.getElementById('frq-badge-'+frqId);if(b){b.textContent=score+'/'+frq.maxScore;b.style.display='block';}
     btn.innerHTML='✓ Graded';
+    const nextWrap = document.getElementById('frq-next-btn-wrap-' + frqId);
+    if (nextWrap) nextWrap.style.display = 'block';
     const pct=Math.round(score/frq.maxScore*100);const sc=pct>=80?'var(--green2)':pct>=60?'var(--amber)':'var(--red2)';
     gradeDiv.style.display='block';
     gradeDiv.innerHTML=`<div class="frq-score-banner">
@@ -1012,104 +1014,149 @@ function updateFRQWC(id,el,min) {
 function toggleFRQReport(id) { const f=document.getElementById('frq-report-form-'+id); if(f) f.style.display=f.style.display==='none'?'block':'none'; }
 
 function renderFRQTab() {
-  const el = document.getElementById('frq-hub-content'); if (!el) return;
+  const el = document.getElementById('frq-hub-content');
+  if (!el) return;
+
   const frqs = getUnitFRQs();
-  if (!frqs.length) { el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No FRQs found.</div>'; return; }
-  const types = ['CA','QA','COMP','AE'];
-  let html = '<div style="background:rgba(32,136,120,.07);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
-    + '<strong style="color:var(--teal2)">How it works:</strong> Write your full response in one box, just like the real AP Exam. Submit for AI feedback against the official rubric, then resubmit to improve your score.'
+  if (!frqs.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">No FRQs available.</div>';
+    return;
+  }
+
+  // Determine which FRQ to show sequentially
+  // Find the first one not yet submitted, or the last one if all done
+  let activeIdx = 0;
+  for (let i = 0; i < frqs.length; i++) {
+    if (getFRQBestScore(frqs[i].id) === null) {
+      activeIdx = i;
+      break;
+    }
+    activeIdx = i; // all done — show last one
+  }
+  // If all submitted, show the last one (allow resubmit)
+  const allDone = frqs.every(function(f) { return getFRQBestScore(f.id) !== null; });
+  if (allDone) activeIdx = frqs.length - 1;
+
+  const frq = frqs[activeIdx];
+  const tc = FRQ_TYPE_CONFIG[frq.type] || FRQ_TYPE_CONFIG.CA;
+  const best = getFRQBestScore(frq.id);
+  const pct = best !== null ? Math.round(best / frq.points * 100) : null;
+  const sc = pct === null ? 'var(--text3)' : pct >= 80 ? 'var(--green2)' : pct >= 50 ? 'var(--amber)' : 'var(--red2)';
+  const fb = getFRQFeedback(frq.id);
+
+  // Build progress indicator
+  const progressHtml = '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">'
+    + frqs.map(function(f, i) {
+        const done = getFRQBestScore(f.id) !== null;
+        const active = i === activeIdx;
+        const ftc = FRQ_TYPE_CONFIG[f.type] || FRQ_TYPE_CONFIG.CA;
+        const border = active ? ftc.color : done ? 'var(--green2)' : 'var(--border2)';
+        const color = active ? ftc.color : done ? 'var(--green2)' : 'var(--text3)';
+        const bg = active ? ftc.bg : 'transparent';
+        return '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid '
+          + border + ';color:' + color + ';background:' + bg + '">'
+          + (i + 1) + '. ' + ftc.label + (done ? ' ✓' : '') + '</div>';
+      }).join('')
     + '</div>';
-  types.forEach(function(type) {
-    const typeFrqs = frqs.filter(function(f){return f.type===type;});
-    if (!typeFrqs.length) return;
-    const tc = FRQ_TYPE_CONFIG[type];
-    html += '<div style="font-family:var(--bebas);font-size:11px;color:'+tc.color+';letter-spacing:3px;border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:12px;margin-top:20px">'+tc.label+'</div>';
-    typeFrqs.forEach(function(frq) {
-      const best = getFRQBestScore(frq.id);
-      const pct = best!==null ? Math.round(best/frq.points*100) : null;
-      const sc = pct===null ? 'var(--text3)' : pct>=80 ? 'var(--green2)' : pct>=50 ? 'var(--amber)' : 'var(--red2)';
-      const fb = getFRQFeedback(frq.id);
-      html += '<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+tc.color+';margin-bottom:14px;overflow:hidden">'
-        // Header
-        +'<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
-        +'<div style="font-size:22px">'+(frq.icon||'✍️')+'</div>'
-        +'<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
-        +'<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+tc.color+';background:'+tc.bg+';padding:2px 7px;border:1px solid '+tc.color+'">'+tc.label+'</span>'
-        +'<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">'+frq.points+' pts</span></div>'
-        +'<div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">'+frq.title+'</div></div>'
-        +(pct!==null
-          ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+best+'/'+frq.points+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
-          : '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple2);padding:3px 8px;flex-shrink:0">NOT ATTEMPTED</div>')
-        +'</div>'
-        // Chart if QA
-        +(frq.svgChart ? '<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3)">'+frq.svgChart+'</div>' : '')
-        // Prompt
-        +'<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
-        +'<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line">'+frq.prompt+'</div></div>'
-        // Response box
-        +'<div style="padding:14px 16px">'
-        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
-        +'<textarea id="frq-text-'+frq.id+'" data-frqid="'+frq.id+'" data-minwords="'+tc.minWords+'"'
-        +' style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.75;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
-        +' placeholder="Write your complete response here. Address each part (A, B, C...) in order. You do not need separate boxes, write it all here, just like the real AP Exam.">'+getFRQDraft(frq.id)+'</textarea>'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
-        +'<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-'+frq.id+'">0 words</div>'
-        +'<button data-frqid="'+frq.id+'" id="frq-btn-'+frq.id+'" class="frq-submit-btn"'
-        +' style="border-color:'+tc.color+';color:'+tc.color+'">'
-        +(fb?'&#8634; Resubmit':'&#9889; Submit for AI Grading')+'</button></div></div>'
-        // Feedback area
-        +'<div id="frq-feedback-'+frq.id+'" style="display:'+(fb?'block':'none')+';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">'+(fb||'')+'</div>'
-        // Report
-        +'<div style="padding:6px 16px 10px;border-top:1px solid var(--border)">'
-        +'<button data-frqid="'+frq.id+'" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
-        +'<div id="frq-report-form-'+frq.id+'" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
-        +'<select id="frq-report-type-'+frq.id+'" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
-        +'<option value="">-- Select issue type --</option>'
-        +'<option value="question_confusing">Question is confusing</option>'
-        +'<option value="grading_wrong">AI grading seems incorrect</option>'
-        +'<option value="factual_error">Factual error in prompt</option>'
-        +'<option value="other">Other</option></select>'
-        +'<textarea id="frq-report-note-'+frq.id+'" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
-        +'<div style="display:flex;gap:8px;align-items:center">'
-        +'<button data-frqid="'+frq.id+'" data-frqtitle="'+frq.title+'" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
-        +'<button data-frqid="'+frq.id+'" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
-        +'<div id="frq-report-status-'+frq.id+'" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
-        +'</div></div></div></div>';
-    });
-  });
-  el.innerHTML = html;
+
+  // Build instruction banner
+  const bannerHtml = '<div style="background:rgba(32,136,120,.07);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
+    + '<strong style="color:var(--teal2)">How it works:</strong> One FRQ at a time. Write your complete response addressing all parts (A, B, C...) in one box, just like the real AP Exam. Submit for AI feedback, then move to the next FRQ when ready.'
+    + '</div>';
+
+  // Build the FRQ card
+  const frqHtml = '<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ' + tc.color + ';margin-bottom:14px;overflow:hidden">'
+    // Header
+    + '<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
+    + '<div style="font-size:22px">' + (frq.icon || '✍️') + '</div>'
+    + '<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+    + '<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:' + tc.color + ';background:' + tc.bg + ';padding:2px 7px;border:1px solid ' + tc.color + '">' + tc.label + '</span>'
+    + '<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">' + frq.points + ' pts</span>'
+    + '<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">' + (activeIdx + 1) + ' of ' + frqs.length + '</span>'
+    + '</div>'
+    + '<div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">' + frq.title + '</div></div>'
+    + (pct !== null
+      ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:' + sc + '">' + best + '/' + frq.points + '</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
+      : '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple2);padding:3px 8px;flex-shrink:0">NOT ATTEMPTED</div>')
+    + '</div>'
+    // Prompt
+    + '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+    + '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
+    + '<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line">' + frq.prompt + '</div></div>'
+    // Response box
+    + '<div style="padding:14px 16px">'
+    + '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
+    + '<textarea id="frq-text-' + frq.id + '" data-frqid="' + frq.id + '" data-minwords="' + tc.minWords + '"'
+    + ' style="width:100%;min-height:200px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.75;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
+    + ' placeholder="Write your complete response here. Address each part (A, B, C...) in order.">' + getFRQDraft(frq.id) + '</textarea>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
+    + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-' + frq.id + '">0 words</div>'
+    + '<button data-frqid="' + frq.id + '" id="frq-btn-' + frq.id + '" class="frq-submit-btn"'
+    + ' style="border-color:' + tc.color + ';color:' + tc.color + '">'
+    + (fb ? '&#8634; Resubmit' : '&#9889; Submit for AI Grading') + '</button></div></div>'
+    // Feedback area
+    + '<div id="frq-feedback-' + frq.id + '" style="display:' + (fb ? 'block' : 'none') + ';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">' + (fb || '') + '</div>'
+    // Next FRQ button (shown after grading if not last)
+    + '<div id="frq-next-btn-wrap-' + frq.id + '" style="display:' + (fb && activeIdx < frqs.length - 1 ? 'block' : 'none') + ';padding:14px 16px;border-top:1px solid var(--border);text-align:right">'
+    + '<button onclick="advanceFRQ()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:var(--teal);border:2px solid var(--teal);color:#fff;padding:10px 28px;cursor:pointer">Next FRQ (' + (activeIdx + 2) + ' of ' + frqs.length + ') &#8594;</button>'
+    + '</div>'
+    // Report
+    + '<div style="padding:6px 16px 10px;border-top:1px solid var(--border)">'
+    + '<button data-frqid="' + frq.id + '" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
+    + '<div id="frq-report-form-' + frq.id + '" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
+    + '<select id="frq-report-type-' + frq.id + '" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
+    + '<option value="">-- Select issue type --</option>'
+    + '<option value="question_confusing">Question is confusing</option>'
+    + '<option value="grading_wrong">AI grading seems incorrect</option>'
+    + '<option value="factual_error">Factual error in prompt</option>'
+    + '<option value="other">Other</option></select>'
+    + '<textarea id="frq-report-note-' + frq.id + '" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
+    + '<div style="display:flex;gap:8px;align-items:center">'
+    + '<button data-frqid="' + frq.id + '" data-frqtitle="' + frq.title + '" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
+    + '<button data-frqid="' + frq.id + '" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
+    + '<div id="frq-report-status-' + frq.id + '" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
+    + '</div></div></div></div>';
+
+  el.innerHTML = progressHtml + bannerHtml + frqHtml;
 
   // Wire events
-  el.querySelectorAll('.frq-submit-btn').forEach(function(btn) {
-    const id = btn.getAttribute('data-frqid');
-    const frq = getUnitFRQs().find(function(f){return f.id===id;});
-    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
-    btn.addEventListener('mouseover', function(){ this.style.background=tc.color; this.style.color='#0e1018'; });
-    btn.addEventListener('mouseout', function(){ this.style.background='transparent'; this.style.color=tc.color; });
-    btn.addEventListener('click', function(){ submitUnitFRQ(id); });
+  const btn = el.querySelector('.frq-submit-btn');
+  if (btn) {
+    btn.addEventListener('mouseover', function() { this.style.background = tc.color; this.style.color = '#0e1018'; });
+    btn.addEventListener('mouseout', function() { this.style.background = 'transparent'; this.style.color = tc.color; });
+    btn.addEventListener('click', function() { submitUnitFRQ(frq.id); });
+  }
+
+  el.querySelectorAll('.frq-report-toggle').forEach(function(b) {
+    b.addEventListener('mouseover', function() { this.style.opacity = '1'; });
+    b.addEventListener('mouseout', function() { this.style.opacity = '.6'; });
+    b.addEventListener('click', function() { toggleFRQReport(this.getAttribute('data-frqid')); });
   });
-  el.querySelectorAll('.frq-report-toggle').forEach(function(btn) {
-    btn.addEventListener('mouseover', function(){ this.style.opacity='1'; });
-    btn.addEventListener('mouseout', function(){ this.style.opacity='.6'; });
-    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
+  el.querySelectorAll('.frq-report-submit').forEach(function(b) {
+    b.addEventListener('click', function() { submitFRQReport(this.getAttribute('data-frqid'), this.getAttribute('data-frqtitle')); });
   });
-  el.querySelectorAll('.frq-report-submit').forEach(function(btn) {
-    btn.addEventListener('click', function(){ submitFRQReport(this.getAttribute('data-frqid'), this.getAttribute('data-frqtitle')); });
+  el.querySelectorAll('.frq-report-cancel').forEach(function(b) {
+    b.addEventListener('click', function() { toggleFRQReport(this.getAttribute('data-frqid')); });
   });
-  el.querySelectorAll('.frq-report-cancel').forEach(function(btn) {
-    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
-  });
-  el.querySelectorAll('textarea[data-frqid]').forEach(function(ta) {
+
+  const ta = el.querySelector('textarea[data-frqid]');
+  if (ta) {
     const id = ta.getAttribute('data-frqid');
-    const min = parseInt(ta.getAttribute('data-minwords'))||80;
-    const frq = getUnitFRQs().find(function(f){return f.id===id;});
-    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
-    ta.addEventListener('input', function(){ updateFRQWC(id, this, min); saveFRQDraft(id, this.value); });
-    ta.addEventListener('paste', function(e){ e.preventDefault(); notify('Pasting is disabled on FRQ responses.'); });
-    ta.addEventListener('focus', function(){ this.style.borderColor=tc.color; });
-    ta.addEventListener('blur', function(){ this.style.borderColor='var(--border2)'; });
-  });
+    const min = parseInt(ta.getAttribute('data-minwords')) || 80;
+    ta.addEventListener('input', function() { updateFRQWC(id, this, min); saveFRQDraft(id, this.value); });
+    ta.addEventListener('paste', function(e) { e.preventDefault(); notify('Pasting is disabled on FRQ responses.'); });
+    ta.addEventListener('focus', function() { this.style.borderColor = tc.color; });
+    ta.addEventListener('blur', function() { this.style.borderColor = 'var(--border2)'; });
+    updateFRQWC(id, ta, min);
+  }
+}
+
+function advanceFRQ() {
+  // Called when student clicks Next FRQ after grading
+  // Re-render the tab which will auto-advance to the next unsubmitted FRQ
+  renderFRQTab();
+  const el = document.getElementById('frq-hub-content');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function submitUnitFRQ(frqId) {
@@ -1303,28 +1350,28 @@ async function submitQuestionReport(stem, qId) {
 
 // ── VOCAB TERMS, AP Comparative Gov Unit 1 ───────────────────────────────
 const VOCAB_TERMS = [
-  {term:'State', def:'A permanent political unit with a defined territory, population, government, and sovereignty, distinct from the people who currently hold power.'},
-  {term:'Nation', def:'A large group of people who share a common identity, cultural, ethnic, linguistic, or historical, and may or may not have their own state.'},
-  {term:'Regime', def:'The fundamental rules and norms that determine how political power is gained, exercised, and transferred in a political system.'},
-  {term:'Sovereignty', def:'The supreme authority of a state to govern within its territory and act independently in the international system, free from external control.'},
-  {term:'Legitimacy', def:'The general belief among citizens that a government has the right to exercise power, not just the capacity to do so through force.'},
-  {term:'Democracy', def:'A regime type in which leaders are chosen through competitive elections, civil liberties are protected, and government is accountable to citizens.'},
-  {term:'Authoritarianism', def:'A regime type that restricts political competition and civil liberties, concentrating power in a leader or party without meaningful electoral accountability.'},
-  {term:'Totalitarianism', def:'An extreme form of authoritarianism that seeks to control all aspects of life, including private behavior, culture, and thought, not just political activity.'},
-  {term:'Hybrid Regime', def:'A political system that combines elements of both democratic and authoritarian rule, such as holding elections while restricting genuine political competition.'},
-  {term:'Theocracy', def:'A regime type in which religious leaders hold political authority and religious law forms the basis of governance, Iran\'s Velayat-e Faqih is the key AP example.'},
-  {term:'Federalism', def:'A system in which power is constitutionally divided between a central government and subnational units, with each level having guaranteed areas of authority.'},
-  {term:'Unitary System', def:'A political system in which the central government holds sovereign authority and may delegate but can also revoke powers from subnational governments.'},
-  {term:'Devolution', def:'The transfer of specific powers from a central government to subnational units, as in the UK\'s grant of authority to Scotland, Wales, and Northern Ireland, without creating a federal system.'},
-  {term:'Comparative Method', def:'The systematic study of two or more countries to identify similarities and differences that explain political outcomes, specifically the core methodology of comparative politics.'},
-  {term:'Democratization', def:'The process by which a country transitions from an authoritarian or hybrid regime toward democratic governance, often associated with economic development and a growing middle class.'},
-  {term:'Democratic Backsliding', def:'The gradual erosion of democratic institutions and norms from within a previously democratized country, often by elected leaders using legal means to concentrate power.'},
-  {term:'Traditional Authority', def:'Weber\'s concept of legitimacy based on long-standing custom, inherited status, and historical precedent, as in monarchies where rulers derive authority from dynasty and tradition.'},
-  {term:'Charismatic Authority', def:'Weber\'s concept of legitimacy based on the extraordinary personal appeal or qualities of a leader, followers obey because they believe in the leader\'s exceptional character.'},
-  {term:'Rational-Legal Authority', def:'Weber\'s concept of legitimacy based on established laws, rules, and procedures, specifically the dominant form in modern states where authority derives from offices and institutions, not individuals.'},
-  {term:'Performance Legitimacy', def:'A regime\'s claim to rule based on its ability to deliver results, economic growth, stability, and development, rather than through elections or tradition. Central to the CCP\'s justification for one-party rule.'},
-  {term:'Political Stability', def:'A condition in which a political system is able to maintain order, transfer power peacefully, and govern effectively over time without collapse or major violent disruption.'},
-  {term:'Rule of Law', def:'The principle that all individuals and institutions, including the government itself, are subject to and accountable under the law, a key feature of liberal democracies like the United Kingdom.'}
+  {term:'Velayat-e Faqih', def:'Guardianship of the Islamic Jurist. Khomeini\'s doctrine that a qualified Islamic scholar should govern society until the Hidden Imam\'s return. The theological foundation of the Islamic Republic.'},
+  {term:'Supreme Leader', def:'The highest political and religious authority in Iran. Appointed by the Assembly of Experts. Commands armed forces, appoints Guardian Council members, and sets the general policies of the state.'},
+  {term:'Guardian Council', def:'A 12-member body in Iran (6 clerics appointed by Supreme Leader, 6 jurists) that vets all candidates for elected office and reviews legislation for compliance with Islamic law.'},
+  {term:'Majles', def:'Iran\'s 290-seat unicameral parliament. Directly elected but all candidates vetted by the Guardian Council. Can pass legislation and impeach the president but cannot challenge the Supreme Leader.'},
+  {term:'Assembly of Experts', def:'An elected body of 88 Islamic scholars in Iran with constitutional authority to select and remove the Supreme Leader. Its candidates are vetted by the Guardian Council, creating circular accountability.'},
+  {term:'Expediency Council', def:'An Iranian advisory body that resolves disputes between the Majles and the Guardian Council when they deadlock on legislation. Also advises the Supreme Leader on policy.'},
+  {term:'IRGC', def:'Islamic Revolutionary Guard Corps. A military and economic force in Iran reporting directly to the Supreme Leader. Controls an estimated 20 to 30 percent of Iran\'s economy and enforces the regime internally.'},
+  {term:'Basij', def:'A paramilitary volunteer militia subordinate to the IRGC in Iran. Used for domestic social control, enforcing Islamic moral codes, and suppressing protests such as the 2009 and 2022 uprisings.'},
+  {term:'Hybrid Regime', def:'A political system combining both democratic and authoritarian elements. Iran is the key AP Comparative example: genuine factional elections exist but unelected institutions retain final authority.'},
+  {term:'Theocracy', def:'A regime in which religious leaders hold political authority and religious law forms the basis of governance. Iran is the AP Comparative example of a modern theocratic republic.'},
+  {term:'Rentier State', def:'A state that derives most revenue from natural resource exports rather than citizen taxation. Iran\'s oil dependence weakens the accountability relationship between government and citizens.'},
+  {term:'Competitive Authoritarianism', def:'An authoritarian system with real but constrained electoral competition. Factions genuinely compete but within limits that protect the regime\'s core foundations. Describes Iran\'s factional politics.'},
+  {term:'Green Movement', def:'The 2009 Iranian protest movement triggered by disputed presidential election results showing Ahmadinejad winning over reformist Mousavi. Represented the largest challenge to the Islamic Republic until 2022.'},
+  {term:'Candidate Vetting', def:'The Guardian Council\'s power to disqualify candidates for elected office in Iran. The primary mechanism by which the regime controls electoral outcomes while maintaining the appearance of competitive elections.'},
+  {term:'Reformists', def:'A faction within Iran\'s political system that accepts the Islamic Republic but advocates expanded civil liberties, engagement with the West, and looser social restrictions. Distinguished from hardliners by policy emphasis.'},
+  {term:'Hardliners', def:'A faction within Iran\'s political system that emphasizes strict Islamic governance, confrontational foreign policy, and resistance to Western influence. Distinguished from reformists by policy emphasis, not loyalty to the system.'},
+  {term:'Axis of Resistance', def:'Iran\'s strategic network of proxy forces across the Middle East including Hezbollah in Lebanon, Houthi forces in Yemen, and Iraqi militias. Used to project power and deter US and Israeli military pressure.'},
+  {term:'JCPOA', def:'Joint Comprehensive Plan of Action. The 2015 nuclear agreement between Iran and world powers limiting Iran\'s nuclear program in exchange for sanctions relief. Demonstrated that factional elections in Iran produce real policy differences.'},
+  {term:'Woman Life Freedom', def:'The rallying slogan of the 2022 Iranian protests sparked by Mahsa Amini\'s death in morality police custody. Marked a shift from demanding fair elections to challenging the Islamic Republic\'s core moral authority.'},
+  {term:'Charismatic Authority', def:'Weber\'s concept of legitimacy based on a leader\'s exceptional personal qualities. Khomeini\'s early authority was primarily charismatic; the Islamic Republic has since institutionalized it into rational-legal authority.'},
+  {term:'Theocratic Populism', def:'A form of political legitimacy that defines the true will of the people through alignment with religious values rather than majority preference. Khomeini\'s concept: opponents of the Islamic Republic are not truly the people.'},
+  {term:'1953 Coup', def:'CIA-backed overthrow of elected Iranian Prime Minister Mosaddegh that restored the Shah. The Islamic Republic uses this event to justify anti-Western posture and frame confrontation with the US as patriotic resistance.'}
 ];
 
 // ── FLASHCARD ENGINE ──────────────────────────────────────────────────────────
