@@ -7773,6 +7773,12 @@ const USE_COURSE_UNITS = {
     {id:'apg_u4',  num:'Unit 4', title:'American Political Ideologies',  icon:'🗳️', color:'#4878d0', hasFRQ:true,  hasVocab:true},
     {id:'apg_u5',  num:'Unit 5', title:'Political Participation',        icon:'✊', color:'#4878d0', hasFRQ:true,  hasVocab:true},
     {id:'apg_exam',num:'AP Exam',title:'AP Exam Practice',               icon:'📝', color:'#4878d0', hasFRQ:true,  hasVocab:false},
+    {id:'apg_bi_con', num:'Big Idea',title:'Constitutionalism',            icon:'🏛️', color:'#7060d0', hasFRQ:true,  hasVocab:false},
+    {id:'apg_bi_lor', num:'Big Idea',title:'Liberty & Order',              icon:'⚖️', color:'#7060d0', hasFRQ:true,  hasVocab:false},
+    {id:'apg_bi_pmcd',num:'Big Idea',title:'Competing Interests',          icon:'🤝', color:'#7060d0', hasFRQ:true,  hasVocab:false},
+    {id:'apg_bi_mk',  num:'Big Idea',title:'Civic Participation',          icon:'✊', color:'#7060d0', hasFRQ:true,  hasVocab:false},
+    {id:'apg_bi_mpa', num:'Big Idea',title:'Political Analysis',           icon:'📊', color:'#7060d0', hasFRQ:false, hasVocab:false},
+    {id:'apg_rpg',    num:'Campaign',title:'Civitas RPG',                  icon:'⚔️', color:'#c8a020', hasFRQ:false, hasVocab:false},
   ],
   ap_cmp:[
     {id:'apcmp_u1', num:'Unit 1', title:'Intro to Comparative Politics', icon:'🌐', color:'#38a050', hasFRQ:true, hasVocab:false},
@@ -7812,14 +7818,7 @@ const USE_COURSE_UNITS = {
 };
 
 const USE_EXTRAS = {
-  ap_gov:[
-    {id:'apg_bi_con',  tag:'Big Idea', title:'Constitutionalism',       icon:'🏛️'},
-    {id:'apg_bi_lor',  tag:'Big Idea', title:'Liberty & Order',          icon:'⚖️'},
-    {id:'apg_bi_pmcd', tag:'Big Idea', title:'Competing Interests',      icon:'🤝'},
-    {id:'apg_bi_mk',   tag:'Big Idea', title:'Civic Participation',      icon:'✊'},
-    {id:'apg_bi_mpa',  tag:'Big Idea', title:'Political Analysis',       icon:'📊'},
-    {id:'apg_rpg',     tag:'Campaign', title:'Civitas RPG',              icon:'⚔️'},
-  ],
+  ap_gov:[], // Big Ideas and Campaign now appear as full unit cards
   ap_cmp:[
     {id:'apcmp_bi_pd', tag:'Big Idea', title:'Power & Democracy',        icon:'👑'},
     {id:'apcmp_bi_ci', tag:'Big Idea', title:'Citizens & Society',       icon:'🤝'},
@@ -7902,6 +7901,15 @@ const USE_FRQS = {
     {id:'apg_u5_sc2',type:'SC',unit:'apg_u5',label:'U5 SC-2: SCOTUS Comparison 2',points:4},
     {id:'apg_u5_ae1',type:'AE',unit:'apg_u5',label:'U5 AE-1: Argument Essay 1',points:6},
     {id:'apg_u5_ae2',type:'AE',unit:'apg_u5',label:'U5 AE-2: Argument Essay 2',points:6},
+    // Big Idea theme games
+    {id:'apg_bi_con_ca1',type:'CA',unit:'apg_bi_con',label:'CON CA-1: Constitutionalism',points:3},
+    {id:'apg_bi_con_ae1',type:'AE',unit:'apg_bi_con',label:'CON AE-1: Constitutionalism Essay',points:6},
+    {id:'apg_bi_lor_ca1',type:'CA',unit:'apg_bi_lor',label:'LOR CA-1: Liberty & Order',points:3},
+    {id:'apg_bi_lor_ae1',type:'AE',unit:'apg_bi_lor',label:'LOR AE-1: Liberty & Order Essay',points:6},
+    {id:'apg_bi_pmcd_ca1',type:'CA',unit:'apg_bi_pmcd',label:'PMCD CA-1: Competing Interests',points:3},
+    {id:'apg_bi_pmcd_ae1',type:'AE',unit:'apg_bi_pmcd',label:'PMCD AE-1: Competing Interests Essay',points:6},
+    {id:'apg_bi_mk_ca1',type:'CA',unit:'apg_bi_mk',label:'MK CA-1: Civic Participation',points:3},
+    {id:'apg_bi_mk_ae1',type:'AE',unit:'apg_bi_mk',label:'MK AE-1: Civic Participation Essay',points:6},
   ],
   ap_cmp:[
     {id:'apcmp_u1_frq1',type:'FRQ',unit:'apcmp_u1',label:'U1 — Comparative Method FRQ',points:5},
@@ -8059,9 +8067,23 @@ function useRenderAll(){
   try{vocabBest=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
   try{vocabPassed=JSON.parse(p.vocab_passed||'{}');}catch(e){}
   try{frqProg=JSON.parse(p.frq_progress||'{}');}catch(e){}
+  // AP Gov (and other courses) store vocabScore inside unit_progress[id].vocabScore
+  // Merge those into vocabBest so the vocab tab can read them
+  Object.keys(unitProg).forEach(uid=>{
+    const ud=unitProg[uid];
+    if(ud.vocabScore!=null && ud.vocabScore>0 && (vocabBest[uid]==null||ud.vocabScore>vocabBest[uid])){
+      vocabBest[uid]=ud.vocabScore;
+    }
+    if(ud.vocabScore>=80) vocabPassed[uid]=true;
+  });
+  // FRQ best: civitas_frq_results is authoritative; frq_progress is backup (skip mpe_granted markers)
   const frqBest={};
   _useCurrentFrqRows.forEach(r=>{if((r.score||0)>(frqBest[r.frq_id]||0))frqBest[r.frq_id]=r.score;});
-  Object.keys(frqProg).forEach(fid=>{const bs=frqProg[fid]?.bestScore||0;if(bs>(frqBest[fid]||0))frqBest[fid]=bs;});
+  Object.keys(frqProg).forEach(fid=>{
+    if(fid.endsWith('_mpe_granted')) return; // skip markers
+    const bs=frqProg[fid]?.bestScore||0;
+    if(bs>(frqBest[fid]||0))frqBest[fid]=bs;
+  });
   useRenderUnits(course,unitProg,vocabBest,frqBest);
   useRenderVocab(course,vocabBest,vocabPassed);
   useRenderFRQ(course,frqBest);
@@ -8081,15 +8103,16 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
   grid.innerHTML='';
   units.forEach(u=>{
     const ud=unitProg[u.id]||{};
-    const mcq=Math.round(ud.bestAccuracy||ud.mcqScore||0);
-    const vocab=u.hasVocab?(vocabBest[u.id]||0):0;
+    const mcq=Math.round(ud.mcqScore||ud.bestAccuracy||0);
+    const vocab=u.hasVocab?(ud.vocabScore||vocabBest[u.id]||0):0;
     const unitFRQs=(USE_FRQS[course]||[]).filter(f=>f.unit===u.id);
-    let frqPct=0;
-    if(unitFRQs.length&&u.hasFRQ){
+    let frqPct=Math.round(ud.frqScore||0);
+    if(!frqPct&&unitFRQs.length&&u.hasFRQ){
       const scored=unitFRQs.filter(f=>frqBest[f.id]!=null);
       if(scored.length) frqPct=Math.round(scored.reduce((a,f)=>a+Math.round((frqBest[f.id]/f.points)*100),0)/scored.length);
     }
-    const comp=useGetComposite(mcq,vocab,frqPct,u.hasFRQ,u.hasVocab);
+    // Use stored composite if available, otherwise calculate
+    const comp=ud.composite!=null?Math.round(ud.composite):useGetComposite(mcq,vocab,frqPct,u.hasFRQ,u.hasVocab);
     const tier=useCalcTier(comp);
     const wt=u.hasFRQ&&u.hasVocab?'50% wt':u.hasFRQ?'60% wt':u.hasVocab?'75% wt':'100%';
     const card=document.createElement('div');
@@ -8112,7 +8135,7 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
             <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
           </div>
         </div>
-        ${u.hasVocab?`
+        ${u.hasVocab||ud.vocabScore?`
         <div style="margin-bottom:8px">
           <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between"><span>Vocab Score</span><span>25% wt</span></div>
           <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${vocab>0?`<span style="color:var(--purple2)">${vocab}%</span>${vocab>=80?' <span style="color:var(--green2)">✓ passed</span>':''} — edit in Vocab tab`:'No data — edit in Vocab tab'}</div>
