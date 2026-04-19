@@ -714,95 +714,96 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
           <button class="btn sm red" onclick="teacherLogout()"><span>Log Out</span></button>
         </div>
       
-      <!-- MANUAL PROGRESS EDITOR -->
-      <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
-          <div class="sh" style="font-size:14px;margin-bottom:0">Manual Progress Editor</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Grant unit completions to students who lost progress</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <!-- UNIFIED SCORE EDITOR -->
+      <div id="use-panel" style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
           <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-              <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px">STUDENT</div>
-              <button onclick="populateMPEDropdown()" title="Refresh student list"
-                style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:2px 7px;cursor:pointer;transition:all .15s"
-                onmouseenter="this.style.borderColor='var(--amber)';this.style.color='var(--amber)'" onmouseleave="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↺ REFRESH</button>
-            </div>
+            <div class="sh" style="font-size:14px;margin-bottom:3px">Score Editor</div>
+            <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Select a course, then a student — edit MCQ, Vocab, FRQ, and theme scores</div>
+          </div>
+          <button class="btn xs" onclick="useResetEditor()" style="border-color:var(--border2);color:var(--text3)"><span>✕ Reset</span></button>
+        </div>
+
+        <!-- Course + Student selectors -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">1 — COURSE</div>
+            <select id="use-course" onchange="useOnCourseChange()"
+              style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
+              <option value="">— Select a course —</option>
+              <option value="ap_gov">AP U.S. Government</option>
+              <option value="ap_cmp">AP Comparative Government</option>
+              <option value="ap_sem">AP Seminar</option>
+              <option value="hs_ush">U.S. History</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">2 — STUDENT</div>
             <div style="position:relative">
-              <input id="mpe-search" type="text" placeholder="Type to filter students…"
+              <input id="use-student-search" type="text" placeholder="Select a course first…" disabled
                 style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none;padding-right:28px"
-                onfocus="this.style.borderColor='var(--amber)';document.getElementById('mpe-dropdown').style.display='block';filterMPEDropdown()"
-                oninput="filterMPEDropdown()"
-                onblur="setTimeout(()=>document.getElementById('mpe-dropdown').style.display='none',180)"
+                onfocus="this.style.borderColor='var(--amber)';useShowDropdown()"
+                oninput="useFilterDropdown()"
+                onblur="setTimeout(()=>document.getElementById('use-student-dd').style.display='none',200)"
                 autocomplete="off">
               <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none">▾</span>
-              <div id="mpe-dropdown"
-                style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg2);border:1px solid var(--amber);border-top:none;max-height:180px;overflow-y:auto">
-              </div>
+              <div id="use-student-dd" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg2);border:1px solid var(--amber);border-top:none;max-height:200px;overflow-y:auto"></div>
             </div>
-            <!-- hidden field that holds the actual full_name sent to Supabase -->
-            <input type="hidden" id="mpe-student-name">
-          </div>
-          <div>
-            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">COURSE</div>
-            <select id="mpe-course" onchange="renderMPEUnits()"
-              style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
-              <option value="ap_gov">AP U.S. Government</option>
-              <option value="ap_cmp">AP Comparative Government</option>
-              <option value="ap_sem">AP Seminar</option>
-              <option value="hs_ush">U.S. History</option>
-            </select>
+            <input type="hidden" id="use-student-fullname">
           </div>
         </div>
-        <div id="mpe-units" style="margin-top:12px"></div>
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button class="btn sm" onclick="renderMPEUnits()" style="border-color:var(--amber);color:var(--amber)"><span>↺ Refresh Units</span></button>
-          <button class="btn sm green" onclick="commitManualProgress()" id="mpe-commit-btn"><span>✓ Apply Progress</span></button>
-        </div>
-        <div id="mpe-status" style="margin-top:10px;font-family:var(--dm);font-size:11px"></div>
-      </div>
 
-      <!-- SCORE ADJUSTMENT TOOL -->
-      <div style="background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
-          <div class="sh" style="font-size:14px;margin-bottom:0">Score Adjustment Tool</div>
-          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Select a student to view and edit their MCQ, Vocab, and FRQ scores directly</div>
+        <!-- Load button -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+          <button class="btn sm amber" id="use-load-btn" onclick="useLoadScores()" disabled><span>↓ Load Student Scores</span></button>
+          <button class="btn sm" onclick="useRefreshStudents()" style="border-color:var(--border2);color:var(--text3)"><span>↺ Refresh Students</span></button>
+          <div id="use-load-status" style="font-family:var(--dm);font-size:10px;color:var(--text3);min-height:14px"></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-              <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px">STUDENT</div>
-              <button onclick="populateSADropdown()" title="Refresh student list"
-                style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:2px 7px;cursor:pointer;transition:all .15s"
-                onmouseenter="this.style.borderColor='var(--blue2)';this.style.color='var(--blue2)'" onmouseleave="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">REFRESH</button>
-            </div>
-            <div style="position:relative">
-              <input id="sa-student-search" type="text" placeholder="Type to search students..."
-                style="width:100%;box-sizing:border-box;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none;padding-right:28px"
-                onfocus="this.style.borderColor='var(--blue2)';document.getElementById('sa-dropdown').style.display='block';filterSADropdown()"
-                oninput="filterSADropdown()"
-                onblur="setTimeout(function(){document.getElementById('sa-dropdown').style.display='none'},200)"
-                autocomplete="off">
-              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none">&#9660;</span>
-              <div id="sa-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg2);border:1px solid var(--blue2);border-top:none;max-height:180px;overflow-y:auto"></div>
-            </div>
-            <input type="hidden" id="sa-student-name">
+
+        <!-- Scores area (hidden until loaded) -->
+        <div id="use-scores-area" style="display:none;margin-top:14px">
+
+          <!-- Tab bar -->
+          <div style="display:flex;gap:0;border:1px solid var(--border2);margin-bottom:14px;flex-wrap:wrap">
+            <button class="use-stab active" id="use-tab-units"   onclick="useSwitchTab('units')"  style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:var(--civitas);color:#fff;border:none;cursor:pointer;border-bottom:3px solid var(--civitas2)">📚 Units</button>
+            <button class="use-stab"        id="use-tab-vocab"   onclick="useSwitchTab('vocab')"  style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;color:var(--text3);border:none;border-left:1px solid var(--border2);cursor:pointer;border-bottom:3px solid transparent">📖 Vocab</button>
+            <button class="use-stab"        id="use-tab-frq"     onclick="useSwitchTab('frq')"    style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;color:var(--text3);border:none;border-left:1px solid var(--border2);cursor:pointer;border-bottom:3px solid transparent">✏️ FRQ</button>
+            <button class="use-stab"        id="use-tab-extras"  onclick="useSwitchTab('extras')" style="font-family:var(--bebas);font-size:10px;letter-spacing:2px;padding:6px 14px;background:transparent;color:var(--text3);border:none;border-left:1px solid var(--border2);cursor:pointer;border-bottom:3px solid transparent">🎯 Themes</button>
           </div>
-          <div>
-            <div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">COURSE</div>
-            <select id="sa-course" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:7px 10px;outline:none">
-              <option value="ap_gov">AP U.S. Government</option>
-              <option value="ap_cmp">AP Comparative Government</option>
-              <option value="ap_sem">AP Seminar</option>
-              <option value="hs_ush">U.S. History</option>
-            </select>
+
+          <!-- Units tab -->
+          <div id="use-content-units">
+            <div id="use-unit-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px"></div>
+          </div>
+
+          <!-- Vocab tab -->
+          <div id="use-content-vocab" style="display:none">
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--purple2);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">VOCAB QUIZ SCORES — stored in vocab_best_score · threshold: 80% = passed</div>
+            <div id="use-vocab-rows"></div>
+          </div>
+
+          <!-- FRQ tab -->
+          <div id="use-content-frq" style="display:none">
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--amber);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">FRQ / OPEN ANSWER — stored in civitas_frq_results + frq_progress · enter points scored</div>
+            <div id="use-frq-legend" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+            <div id="use-frq-rows"></div>
+          </div>
+
+          <!-- Extras tab -->
+          <div id="use-content-extras" style="display:none">
+            <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:var(--teal2);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">THEMES · BIG IDEAS · CAMPAIGNS — stored in unit_progress · enter MCQ accuracy %</div>
+            <div id="use-extras-rows"></div>
+          </div>
+
+          <!-- Save bar -->
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border2)">
+            <button class="btn sm green" onclick="useSaveAllScores()"><span>✓ Save All Changes</span></button>
+            <button class="btn sm" onclick="useLoadScores()" style="border-color:var(--border2);color:var(--text3)"><span>↺ Reload</span></button>
+            <div id="use-save-status" style="font-family:var(--dm);font-size:10px;min-height:14px"></div>
           </div>
         </div>
-        <div style="margin-top:10px">
-          <button class="btn sm" onclick="loadStudentScores()" style="border-color:var(--blue2);color:var(--blue2)"><span>&#8595; Load Student Scores</span></button>
-        </div>
-        <div id="sa-scores-container" style="margin-top:14px"></div>
-        <div id="sa-status" style="margin-top:10px;font-family:var(--dm);font-size:11px"></div>
       </div>
 
       <!-- SAVE FILE RESTORE TOOL -->
@@ -5146,6 +5147,7 @@ function showMainView(v){
   if(v==='teacher'){
     if(!IS_TEACHER){showDashboard();return;}
     renderTeacherView();
+    useInit();
   }
 }
 
@@ -7761,849 +7763,593 @@ function resetProfile(){
 
 
 
-// ── TEACHER: MANUAL PROGRESS EDITOR ──────────────────────────────────────────
-const MPE_UNITS = {
-  ap_gov: {
-    units: [
-      {id:'apg_u1', label:'Unit 1 — Foundations of Democracy'},
-      {id:'apg_u2', label:'Unit 2 — Branches of Government'},
-      {id:'apg_u3', label:'Unit 3 — Civil Liberties & Rights'},
-      {id:'apg_u4', label:'Unit 4 — American Political Ideologies'},
-      {id:'apg_u5', label:'Unit 5 — Political Participation'},
-      {id:'apg_u6', label:'Unit 6 — Public Policy'},
-    ],
-    vocab: [
-      {id:'apg_u1', label:'Unit 1 Vocab'},
-      {id:'apg_u2', label:'Unit 2 Vocab'},
-      {id:'apg_u3', label:'Unit 3 Vocab'},
-      {id:'apg_u4', label:'Unit 4 Vocab'},
-      {id:'apg_u5', label:'Unit 5 Vocab'},
-    ],
-    extras: [
-      {id:'apg_bi_con', label:'Big Idea — Constitutionalism'},
-      {id:'apg_bi_lor', label:'Big Idea — Liberty & Order'},
-      {id:'apg_bi_pmcd', label:'Big Idea — Competing Interests'},
-      {id:'apg_bi_mk', label:'Big Idea — Civic Participation'},
-      {id:'apg_bi_mpa', label:'Big Idea — Political Analysis'},
-      {id:'apg_exam_practice', label:'AP Exam Practice'},
-      {id:'apg_rpg', label:'Civitas RPG Campaign'},
-    ]
-  },
-  ap_cmp: {
-    units: [
-      {id:'apcmp_u1', label:'Unit 1 — Introduction to Comparative Politics'},
-      {id:'apcmp_u2', label:'Unit 2 — United Kingdom'},
-      {id:'apcmp_u3', label:'Unit 3 — Mexico'},
-      {id:'apcmp_u4', label:'Unit 4 — Russia'},
-      {id:'apcmp_u5', label:'Unit 5 — China'},
-      {id:'apcmp_u6', label:'Unit 6 — Iran'},
-      {id:'apcmp_u7', label:'Unit 7 — Nigeria'},
-    ],
-    vocab: [],
-    extras: [
-      {id:'apcmp_bi_pd', label:'Big Idea — Power & Democracy'},
-      {id:'apcmp_bi_ci', label:'Big Idea — Citizens & Society'},
-      {id:'apcmp_bi_de', label:'Big Idea — Development & Inequality'},
-      {id:'apcmp_exam', label:'AP Exam Practice'},
-      {id:'apcmp_rpg', label:'Comparative Chronicles RPG'},
-    ]
-  },
-  ap_sem: {
-    units: [
-      {id:'apsem_u1', label:'Unit 1 — The Research Foundation'},
-      {id:'apsem_u2', label:'Unit 2 — Reading Arguments'},
-      {id:'apsem_u3', label:'Unit 3 — Evaluating Sources'},
-      {id:'apsem_u4', label:'Unit 4 — Building Arguments'},
-      {id:'apsem_u5', label:'Unit 5 — Individual Research & the IRR'},
-      {id:'apsem_u6', label:'Unit 6 — Team Collaboration & Presentation'},
-    ],
-    vocab: [],
-    extras: [
-      {id:'apsem_bi_bq', label:'Big Questions Theme'},
-      {id:'apsem_exam', label:'AP Exam Practice'},
-      {id:'apsem_rpg', label:'The Crucible RPG (Campaign)'},
-    ]
-  },
-  hs_ush: {
-    units: [
-      {id:'ush_u1', label:'Unit 1 — A House Divided'},
-      {id:'ush_u2a', label:'Unit 2A — Boomtown Nation'},
-      {id:'ush_u2b', label:'Unit 2B — Age of Reform'},
-      {id:'ush_u3a', label:'Unit 3A — Empire Rising'},
-      {id:'ush_u3b', label:'Unit 3B — Into the Trenches'},
-      {id:'ush_u4a', label:'Unit 4A — Boom or Bust'},
-      {id:'ush_u4b', label:'Unit 4B — Crash & Recovery'},
-      {id:'ush_u5a', label:'Unit 5A — Arsenal of Democracy'},
-      {id:'ush_u5b', label:'Unit 5B — Iron Curtain'},
-      {id:'ush_u6', label:'Unit 6 — Chronicles of Change'},
-      {id:'ush_u7a', label:'Unit 7A — Camelot'},
-      {id:'ush_u7b', label:'Unit 7B — Napalm Dawn'},
-      {id:'ush_u8', label:'Unit 8 — Modern America'},
-    ],
-    vocab: [
-      {id:'ush_u1', label:'Unit 1 Vocab'},
-      {id:'ush_u2a', label:'Unit 2A Vocab'},
-      {id:'ush_u2b', label:'Unit 2B Vocab'},
-      {id:'ush_u3a', label:'Unit 3A Vocab'},
-      {id:'ush_u3b', label:'Unit 3B Vocab'},
-      {id:'ush_u4a', label:'Unit 4A Vocab'},
-      {id:'ush_u4b', label:'Unit 4B Vocab'},
-    ],
-    extras: [
-      {id:'ush_theme_power', label:'Theme — Balance of Power'},
-      {id:'ush_theme_freedom', label:'Theme — Promise of Liberty'},
-      {id:'ush_theme_economy', label:'Theme — Engines of Change'},
-      {id:'ush_theme_conflict', label:'Theme — Conflict & Change'},
-      {id:'ush_theme_identity', label:'Theme — We the People'},
-      {id:'ush_eoc', label:'EOC Practice Test'},
-    ]
-  }
+// ── UNIFIED SCORE EDITOR ──────────────────────────────────────────────────────
+
+const USE_COURSE_UNITS = {
+  ap_gov:[
+    {id:'apg_u1',  num:'Unit 1', title:'Foundations of Democracy',       icon:'📜', color:'#4878d0', hasFRQ:true,  hasVocab:true},
+    {id:'apg_u2',  num:'Unit 2', title:'Interactions Among Branches',    icon:'⚖️', color:'#4878d0', hasFRQ:true,  hasVocab:true},
+    {id:'apg_u3',  num:'Unit 3', title:'Civil Liberties & Civil Rights', icon:'🗽', color:'#4878d0', hasFRQ:true,  hasVocab:true},
+    {id:'apg_u4',  num:'Unit 4', title:'American Political Ideologies',  icon:'🗳️', color:'#4878d0', hasFRQ:true,  hasVocab:true},
+    {id:'apg_u5',  num:'Unit 5', title:'Political Participation',        icon:'✊', color:'#4878d0', hasFRQ:true,  hasVocab:true},
+    {id:'apg_exam',num:'AP Exam',title:'AP Exam Practice',               icon:'📝', color:'#4878d0', hasFRQ:true,  hasVocab:false},
+  ],
+  ap_cmp:[
+    {id:'apcmp_u1', num:'Unit 1', title:'Intro to Comparative Politics', icon:'🌐', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u2', num:'Unit 2', title:'United Kingdom',                icon:'🇬🇧', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u3', num:'Unit 3', title:'Mexico',                        icon:'🇲🇽', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u4', num:'Unit 4', title:'Russia',                        icon:'🇷🇺', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u5', num:'Unit 5', title:'China',                         icon:'🇨🇳', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u6', num:'Unit 6', title:'Iran',                          icon:'🇮🇷', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_u7', num:'Unit 7', title:'Nigeria',                       icon:'🇳🇬', color:'#38a050', hasFRQ:true, hasVocab:false},
+    {id:'apcmp_exam',num:'AP Exam',title:'AP Exam Practice',             icon:'📝', color:'#38a050', hasFRQ:true, hasVocab:false},
+  ],
+  ap_sem:[
+    {id:'apsem_u1', num:'Unit 1', title:'The Research Foundation',   icon:'🔍', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_u2', num:'Unit 2', title:'Reading Arguments',         icon:'📖', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_u3', num:'Unit 3', title:'Evaluating Sources',        icon:'🔬', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_u4', num:'Unit 4', title:'Building Arguments',        icon:'🔨', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_u5', num:'Unit 5', title:'Individual Research & IRR', icon:'📝', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_u6', num:'Unit 6', title:'Team Collaboration',        icon:'🤝', color:'#c8a020', hasFRQ:true, hasVocab:false},
+    {id:'apsem_exam',num:'AP Exam',title:'AP Exam Practice',         icon:'📋', color:'#c8a020', hasFRQ:true, hasVocab:false},
+  ],
+  hs_ush:[
+    {id:'ush_u1',  num:'Unit 1',  title:'A House Divided',        icon:'⚔️', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u2a', num:'Unit 2A', title:'Boomtown Nation',        icon:'🏭', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u2b', num:'Unit 2B', title:'Age of Reform',          icon:'✊', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u3a', num:'Unit 3A', title:'Empire Rising',          icon:'🌐', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u3b', num:'Unit 3B', title:'Into the Trenches',      icon:'🎖️', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u4a', num:'Unit 4A', title:'Boom or Bust',           icon:'📈', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u4b', num:'Unit 4B', title:'Crash & Recovery',       icon:'💸', color:'#c07818', hasFRQ:false, hasVocab:true},
+    {id:'ush_u5a', num:'Unit 5A', title:'Arsenal of Democracy',   icon:'🏭', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_u5b', num:'Unit 5B', title:'Iron Curtain',           icon:'☢️', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_u6',  num:'Unit 6',  title:'Chronicles of Change',   icon:'✊', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_u7a', num:'Unit 7A', title:'Camelot',                icon:'🕊️', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_u7b', num:'Unit 7B', title:'Napalm Dawn',            icon:'🔥', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_u8',  num:'Unit 8',  title:'Modern America',         icon:'🌆', color:'#c07818', hasFRQ:false, hasVocab:false},
+    {id:'ush_eoc', num:'EOC',     title:'Full EOC Practice Test', icon:'📝', color:'#c07818', hasFRQ:false, hasVocab:false},
+  ]
 };
 
-// ── MPE STUDENT DROPDOWN ─────────────────────────────────────────────────────
-let _mpeStudentList = []; // [{label, fullName}]
+const USE_EXTRAS = {
+  ap_gov:[
+    {id:'apg_bi_con',  tag:'Big Idea', title:'Constitutionalism',       icon:'🏛️'},
+    {id:'apg_bi_lor',  tag:'Big Idea', title:'Liberty & Order',          icon:'⚖️'},
+    {id:'apg_bi_pmcd', tag:'Big Idea', title:'Competing Interests',      icon:'🤝'},
+    {id:'apg_bi_mk',   tag:'Big Idea', title:'Civic Participation',      icon:'✊'},
+    {id:'apg_bi_mpa',  tag:'Big Idea', title:'Political Analysis',       icon:'📊'},
+    {id:'apg_rpg',     tag:'Campaign', title:'Civitas RPG',              icon:'⚔️'},
+  ],
+  ap_cmp:[
+    {id:'apcmp_bi_pd', tag:'Big Idea', title:'Power & Democracy',        icon:'👑'},
+    {id:'apcmp_bi_ci', tag:'Big Idea', title:'Citizens & Society',       icon:'🤝'},
+    {id:'apcmp_bi_de', tag:'Big Idea', title:'Development & Inequality', icon:'📈'},
+    {id:'apcmp_rpg',   tag:'Campaign', title:'Comparative Chronicles',   icon:'🌍'},
+  ],
+  ap_sem:[
+    {id:'apsem_bi_bq', tag:'Big Questions', title:'Big Questions Theme', icon:'🌐'},
+    {id:'apsem_rpg',   tag:'Campaign',      title:'The Crucible RPG',    icon:'⚗️'},
+  ],
+  hs_ush:[
+    {id:'ush_theme_power',    tag:'Theme', title:'Balance of Power',    icon:'⚖️'},
+    {id:'ush_theme_freedom',  tag:'Theme', title:'Promise of Liberty',  icon:'🗽'},
+    {id:'ush_theme_economy',  tag:'Theme', title:'Engines of Change',   icon:'⚙️'},
+    {id:'ush_theme_conflict', tag:'Theme', title:'Conflict & Change',   icon:'🔥'},
+    {id:'ush_theme_identity', tag:'Theme', title:'We the People',       icon:'🌎'},
+  ]
+};
 
-function populateMPEDropdown() {
-  // Pull from already-loaded _teacherData if available, otherwise fetch
-  if (_teacherData && _teacherData.length) {
-    _mpeStudentList = _teacherData
-      .map(s => ({ label: s.displayName || s.name || s.fullName, fullName: s.fullName || s.name }))
-      .filter(s => s.fullName)
-      .sort((a, b) => a.label.localeCompare(b.label));
-    filterMPEDropdown();
-    notify('Student list refreshed (' + _mpeStudentList.length + ' students)');
-  } else {
-    // Fallback: fetch directly if teacher view hasn't loaded yet
-    sfetch('/rest/v1/civitas_profiles?select=display_name,full_name&order=display_name.asc&limit=300').then(rows => {
-      _mpeStudentList = (rows || [])
-        .map(r => ({ label: r.display_name || r.full_name, fullName: r.full_name }))
-        .filter(s => s.fullName)
-        .sort((a, b) => a.label.localeCompare(b.label));
-      filterMPEDropdown();
-      notify('Student list loaded (' + _mpeStudentList.length + ' students)');
-    }).catch(() => notify('Could not load students — try Refresh'));
-  }
+const USE_VOCAB = {
+  ap_gov:[
+    {id:'apg_u1', label:'Unit 1 — Foundations'},
+    {id:'apg_u2', label:'Unit 2 — Branches'},
+    {id:'apg_u3', label:'Unit 3 — Civil Liberties'},
+    {id:'apg_u4', label:'Unit 4 — Ideology'},
+    {id:'apg_u5', label:'Unit 5 — Participation'},
+  ],
+  ap_cmp: [],
+  ap_sem: [],
+  hs_ush:[
+    {id:'ush_u1',  label:'Unit 1 — A House Divided'},
+    {id:'ush_u2a', label:'Unit 2A — Boomtown Nation'},
+    {id:'ush_u2b', label:'Unit 2B — Age of Reform'},
+    {id:'ush_u3a', label:'Unit 3A — Empire Rising'},
+    {id:'ush_u3b', label:'Unit 3B — Into the Trenches'},
+    {id:'ush_u4a', label:'Unit 4A — Boom or Bust'},
+    {id:'ush_u4b', label:'Unit 4B — Crash & Recovery'},
+  ]
+};
+
+const USE_FRQS = {
+  ap_gov:[
+    {id:'apg_u1_ca1',type:'CA',unit:'apg_u1',label:'U1 CA-1: Articles & Federalism',points:3},
+    {id:'apg_u1_ca2',type:'CA',unit:'apg_u1',label:'U1 CA-2: Checks & Balances',points:3},
+    {id:'apg_u1_qa1',type:'QA',unit:'apg_u1',label:'U1 QA-1: Trust in Government',points:3},
+    {id:'apg_u1_qa2',type:'QA',unit:'apg_u1',label:'U1 QA-2: Voter Turnout',points:3},
+    {id:'apg_u1_sc1',type:'SC',unit:'apg_u1',label:'U1 SC-1: SCOTUS Comparison 1',points:4},
+    {id:'apg_u1_sc2',type:'SC',unit:'apg_u1',label:'U1 SC-2: SCOTUS Comparison 2',points:4},
+    {id:'apg_u1_ae1',type:'AE',unit:'apg_u1',label:'U1 AE-1: Argument Essay 1',points:6},
+    {id:'apg_u1_ae2',type:'AE',unit:'apg_u1',label:'U1 AE-2: Argument Essay 2',points:6},
+    {id:'apg_u2_ca1',type:'CA',unit:'apg_u2',label:'U2 CA-1: Congress & Lawmaking',points:3},
+    {id:'apg_u2_ca2',type:'CA',unit:'apg_u2',label:'U2 CA-2: Executive Power',points:3},
+    {id:'apg_u2_qa1',type:'QA',unit:'apg_u2',label:'U2 QA-1: Congressional Approval',points:3},
+    {id:'apg_u2_qa2',type:'QA',unit:'apg_u2',label:'U2 QA-2: Presidential Power',points:3},
+    {id:'apg_u2_sc1',type:'SC',unit:'apg_u2',label:'U2 SC-1: SCOTUS Comparison 1',points:4},
+    {id:'apg_u2_sc2',type:'SC',unit:'apg_u2',label:'U2 SC-2: SCOTUS Comparison 2',points:4},
+    {id:'apg_u2_ae1',type:'AE',unit:'apg_u2',label:'U2 AE-1: Argument Essay 1',points:6},
+    {id:'apg_u2_ae2',type:'AE',unit:'apg_u2',label:'U2 AE-2: Argument Essay 2',points:6},
+    {id:'apg_u3_ca1',type:'CA',unit:'apg_u3',label:'U3 CA-1: Civil Liberties',points:3},
+    {id:'apg_u3_ca2',type:'CA',unit:'apg_u3',label:'U3 CA-2: Civil Rights',points:3},
+    {id:'apg_u3_qa1',type:'QA',unit:'apg_u3',label:'U3 QA-1: Rights Data',points:3},
+    {id:'apg_u3_qa2',type:'QA',unit:'apg_u3',label:'U3 QA-2: Liberties Data',points:3},
+    {id:'apg_u3_sc1',type:'SC',unit:'apg_u3',label:'U3 SC-1: SCOTUS Comparison 1',points:4},
+    {id:'apg_u3_sc2',type:'SC',unit:'apg_u3',label:'U3 SC-2: SCOTUS Comparison 2',points:4},
+    {id:'apg_u3_ae1',type:'AE',unit:'apg_u3',label:'U3 AE-1: Argument Essay 1',points:6},
+    {id:'apg_u3_ae2',type:'AE',unit:'apg_u3',label:'U3 AE-2: Argument Essay 2',points:6},
+    {id:'apg_u4_ca1',type:'CA',unit:'apg_u4',label:'U4 CA-1: Political Ideology',points:3},
+    {id:'apg_u4_ca2',type:'CA',unit:'apg_u4',label:'U4 CA-2: Public Opinion',points:3},
+    {id:'apg_u4_qa1',type:'QA',unit:'apg_u4',label:'U4 QA-1: Ideology Data',points:3},
+    {id:'apg_u4_qa2',type:'QA',unit:'apg_u4',label:'U4 QA-2: Opinion Polls',points:3},
+    {id:'apg_u4_sc1',type:'SC',unit:'apg_u4',label:'U4 SC-1: SCOTUS Comparison 1',points:4},
+    {id:'apg_u4_sc2',type:'SC',unit:'apg_u4',label:'U4 SC-2: SCOTUS Comparison 2',points:4},
+    {id:'apg_u4_ae1',type:'AE',unit:'apg_u4',label:'U4 AE-1: Argument Essay 1',points:6},
+    {id:'apg_u4_ae2',type:'AE',unit:'apg_u4',label:'U4 AE-2: Argument Essay 2',points:6},
+    {id:'apg_u5_ca1',type:'CA',unit:'apg_u5',label:'U5 CA-1: Political Participation',points:3},
+    {id:'apg_u5_ca2',type:'CA',unit:'apg_u5',label:'U5 CA-2: Elections & Campaigns',points:3},
+    {id:'apg_u5_qa1',type:'QA',unit:'apg_u5',label:'U5 QA-1: Participation Data',points:3},
+    {id:'apg_u5_qa2',type:'QA',unit:'apg_u5',label:'U5 QA-2: Election Data',points:3},
+    {id:'apg_u5_sc1',type:'SC',unit:'apg_u5',label:'U5 SC-1: SCOTUS Comparison 1',points:4},
+    {id:'apg_u5_sc2',type:'SC',unit:'apg_u5',label:'U5 SC-2: SCOTUS Comparison 2',points:4},
+    {id:'apg_u5_ae1',type:'AE',unit:'apg_u5',label:'U5 AE-1: Argument Essay 1',points:6},
+    {id:'apg_u5_ae2',type:'AE',unit:'apg_u5',label:'U5 AE-2: Argument Essay 2',points:6},
+  ],
+  ap_cmp:[
+    {id:'apcmp_u1_frq1',type:'FRQ',unit:'apcmp_u1',label:'U1 — Comparative Method FRQ',points:5},
+    {id:'apcmp_u2_frq1',type:'FRQ',unit:'apcmp_u2',label:'U2 — United Kingdom FRQ',points:5},
+    {id:'apcmp_u3_frq1',type:'FRQ',unit:'apcmp_u3',label:'U3 — Mexico FRQ',points:5},
+    {id:'apcmp_u4_frq1',type:'FRQ',unit:'apcmp_u4',label:'U4 — Russia FRQ',points:5},
+    {id:'apcmp_u5_frq1',type:'FRQ',unit:'apcmp_u5',label:'U5 — China FRQ',points:5},
+    {id:'apcmp_u6_frq1',type:'FRQ',unit:'apcmp_u6',label:'U6 — Iran FRQ',points:5},
+    {id:'apcmp_u7_frq1',type:'FRQ',unit:'apcmp_u7',label:'U7 — Nigeria FRQ',points:5},
+  ],
+  ap_sem:[
+    {id:'apsem_u1_oa1',type:'OA',unit:'apsem_u1',label:'U1 — QUEST Framework Response',points:4},
+    {id:'apsem_u2_oa1',type:'OA',unit:'apsem_u2',label:'U2 — Rhetorical Analysis',points:4},
+    {id:'apsem_u3_oa1',type:'OA',unit:'apsem_u3',label:'U3 — Source Evaluation',points:4},
+    {id:'apsem_u4_oa1',type:'OA',unit:'apsem_u4',label:'U4 — Argument Essay (IWA)',points:6},
+    {id:'apsem_u5_oa1',type:'OA',unit:'apsem_u5',label:'U5 — IRR Draft Response',points:6},
+    {id:'apsem_u6_oa1',type:'OA',unit:'apsem_u6',label:'U6 — Team Presentation Reflection',points:4},
+  ],
+  hs_ush:[]
+};
+
+const USE_FRQ_COLORS = {
+  CA: {bg:'rgba(72,120,208,.12)',  border:'var(--blue2)',   label:'var(--blue2)'},
+  QA: {bg:'rgba(56,160,80,.10)',   border:'var(--green2)',  label:'var(--green2)'},
+  SC: {bg:'rgba(232,160,32,.10)',  border:'var(--amber)',   label:'var(--amber)'},
+  AE: {bg:'rgba(192,48,48,.10)',   border:'var(--red2)',    label:'var(--red2)'},
+  FRQ:{bg:'rgba(112,96,208,.10)',  border:'var(--purple2)', label:'var(--purple2)'},
+  OA: {bg:'rgba(42,170,152,.10)',  border:'var(--teal2)',   label:'var(--teal2)'},
+};
+const USE_FRQ_NAMES = {CA:'Concept App',QA:'Quantitative',SC:'SCOTUS Comp',AE:'Argument Essay',FRQ:'Free Response',OA:'Open Answer'};
+
+function useCalcTier(c){
+  if(c>=100)return{emoji:'🏛️',label:'Historian',color:'var(--historian)',bg:'rgba(232,208,255,.12)',border:'var(--purple2)'};
+  if(c>=90) return{emoji:'🥇',label:'Gold',     color:'var(--gold)',    bg:'rgba(255,215,0,.1)',   border:'var(--gc)'};
+  if(c>=80) return{emoji:'🥈',label:'Silver',   color:'var(--silver)', bg:'rgba(200,200,216,.08)',border:'var(--silver)'};
+  if(c>=70) return{emoji:'🥉',label:'Bronze',   color:'var(--bronze)', bg:'rgba(205,127,50,.1)',  border:'var(--bronze)'};
+  if(c>=60) return{emoji:'✅',label:'Completed',color:'var(--green2)', bg:'rgba(56,160,80,.08)',  border:'var(--green2)'};
+  if(c>0)   return{emoji:'🔄',label:'Try Again',color:'var(--red2)',   bg:'rgba(192,48,48,.08)',  border:'var(--red2)'};
+  return         {emoji:'⬜',label:'Not played',color:'var(--text3)',  bg:'rgba(255,255,255,.02)',border:'var(--border2)'};
 }
 
-function filterMPEDropdown() {
-  const q = (document.getElementById('mpe-search')?.value || '').toLowerCase();
-  const dd = document.getElementById('mpe-dropdown');
-  if (!dd) return;
-  if (!_mpeStudentList.length) {
-    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No students loaded — click ↺ Refresh</div>';
-    dd.style.display = 'block';
-    return;
-  }
-  const filtered = q
-    ? _mpeStudentList.filter(s => s.label.toLowerCase().includes(q) || s.fullName.toLowerCase().includes(q))
-    : _mpeStudentList;
-  if (!filtered.length) {
-    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No matches</div>';
-  } else {
-    dd.innerHTML = filtered.map(s =>
-      `<div onmousedown="selectMPEStudent('${s.fullName.replace(/'/g,"\\'")}','${s.label.replace(/'/g,"\\'")}') "
+function useGetComposite(mcq,vocab,frq,hasFRQ,hasVocab){
+  if(!hasFRQ&&!hasVocab) return mcq;
+  if(hasFRQ&&hasVocab)   return Math.round(mcq*0.50+vocab*0.25+frq*0.25);
+  if(hasFRQ&&!hasVocab)  return Math.round(mcq*0.60+frq*0.40);
+  return Math.round(mcq*0.75+vocab*0.25);
+}
+
+// State
+let _useStudentList=[];
+let _useCurrentProfile=null;
+let _useCurrentFrqRows=[];
+let _useCurrentCourse='';
+let _useActiveTab='units';
+
+async function useRefreshStudents(){
+  const st=document.getElementById('use-load-status');
+  if(st) st.textContent='Loading students…';
+  try{
+    const rows=await sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses&order=display_name.asc&limit=500');
+    _useStudentList=(rows||[]).filter(r=>r.full_name).map(r=>({
+      label:r.display_name||r.full_name, fullName:r.full_name, courses:r.courses||[]
+    }));
+    if(st) st.textContent=_useStudentList.length+' students loaded';
+  }catch(e){ if(st) st.textContent='Error: '+e.message; }
+}
+
+function useOnCourseChange(){
+  _useCurrentCourse=document.getElementById('use-course').value;
+  const s=document.getElementById('use-student-search');
+  s.disabled=!_useCurrentCourse;
+  s.placeholder=_useCurrentCourse?'Type to search students…':'Select a course first…';
+  s.value='';
+  document.getElementById('use-student-fullname').value='';
+  document.getElementById('use-load-btn').disabled=true;
+  document.getElementById('use-scores-area').style.display='none';
+  document.getElementById('use-load-status').textContent='';
+}
+
+function useShowDropdown(){
+  useFilterDropdown();
+  document.getElementById('use-student-dd').style.display='block';
+}
+
+function useFilterDropdown(){
+  const q=(document.getElementById('use-student-search').value||'').toLowerCase();
+  const course=document.getElementById('use-course').value;
+  const dd=document.getElementById('use-student-dd');
+  let list=_useStudentList;
+  if(course) list=list.filter(s=>!s.courses||!s.courses.length||s.courses.includes(course));
+  if(q) list=list.filter(s=>s.label.toLowerCase().includes(q)||s.fullName.toLowerCase().includes(q));
+  if(!list.length){
+    dd.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No matches</div>';
+  }else{
+    dd.innerHTML=list.slice(0,40).map(s=>
+      `<div onmousedown="useSelectStudent('${s.fullName.replace(/'/g,"\\'")}','${s.label.replace(/'/g,"\\'")}')"
         style="font-family:var(--dm);font-size:11px;color:var(--cream);padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s"
         onmouseenter="this.style.background='rgba(112,96,208,.12)'" onmouseleave="this.style.background='transparent'">
-        ${s.label} <span style="font-size:9px;color:var(--text3);margin-left:4px">${s.fullName !== s.label ? '· ' + s.fullName : ''}</span>
+        ${s.label}
       </div>`
     ).join('');
   }
-  dd.style.display = 'block';
+  dd.style.display='block';
 }
 
-function selectMPEStudent(fullName, label) {
-  document.getElementById('mpe-student-name').value = fullName;
-  document.getElementById('mpe-search').value = label;
-  document.getElementById('mpe-search').style.borderColor = 'var(--green2)';
-  document.getElementById('mpe-dropdown').style.display = 'none';
-  document.getElementById('mpe-status').innerHTML =
-    '<span style="color:var(--green2);font-family:var(--dm);font-size:10px">✓ ' + label + ' selected</span>';
+function useSelectStudent(fullName,label){
+  document.getElementById('use-student-search').value=label;
+  document.getElementById('use-student-search').style.borderColor='var(--green2)';
+  document.getElementById('use-student-fullname').value=fullName;
+  document.getElementById('use-load-btn').disabled=false;
+  document.getElementById('use-student-dd').style.display='none';
+  document.getElementById('use-load-status').textContent=label+' selected — click Load';
 }
 
-function renderMPEUnits() {
-  const course = document.getElementById('mpe-course').value;
-  const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
-  const el = document.getElementById('mpe-units');
+async function useLoadScores(){
+  const fullName=document.getElementById('use-student-fullname').value.trim();
+  const course=document.getElementById('use-course').value;
+  if(!fullName||!course) return;
+  const st=document.getElementById('use-load-status');
+  st.innerHTML='<span style="color:var(--text3)">Loading from Supabase…</span>';
+  try{
+    const [profiles,frqRows]=await Promise.all([
+      sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=*'),
+      sfetch('/rest/v1/civitas_frq_results?student_name=eq.'+encodeURIComponent(fullName)+'&select=frq_id,score&order=score.desc').catch(()=>[])
+    ]);
+    if(!profiles||!profiles[0]){st.innerHTML='<span style="color:var(--red2)">No profile found for "'+fullName+'"</span>';return;}
+    _useCurrentProfile=profiles[0];
+    _useCurrentFrqRows=Array.isArray(frqRows)?frqRows:[];
+    _useCurrentCourse=course;
+    useRenderAll();
+    document.getElementById('use-scores-area').style.display='block';
+    useSwitchTab('units');
+    st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+(_useCurrentProfile.display_name||fullName)+'</span>';
+  }catch(e){st.innerHTML='<span style="color:var(--red2)">Error: '+e.message+'</span>';}
+}
 
-  function renderSection(label, items, color, isCoreUnit) {
-    if (!items || !items.length) return '';
-    return `
-      <div style="font-family:var(--bebas);font-size:9px;color:${color};letter-spacing:2px;margin:10px 0 6px">${label}</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px">
-        ${items.map(u => `
-          <div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">
-            <input type="checkbox" id="mpe-chk-${u.id}" style="cursor:pointer;width:14px;height:14px;flex-shrink:0">
-            <label for="mpe-chk-${u.id}" style="font-family:var(--dm);font-size:10px;color:var(--text2);flex:1;cursor:pointer">${u.label}</label>
-            <div style="display:flex;align-items:center;gap:4px">
-              <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">MCQ</span>
-              <input type="number" id="mpe-acc-${u.id}" min="0" max="100" value="80"
-                style="width:42px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none">
-              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
-              ${isCoreUnit ? `
-              <span style="font-family:var(--dm);font-size:8px;color:var(--purple2);margin-left:4px">FRQ</span>
-              <input type="number" id="mpe-frq-${u.id}" min="0" max="100" placeholder="—"
-                title="FRQ score % (leave blank to skip)"
-                style="width:42px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--purple);color:var(--purple2);padding:3px 5px;text-align:center;outline:none">
-              <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>` : ''}
-            </div>
-          </div>`).join('')}
+function useResetEditor(){
+  document.getElementById('use-scores-area').style.display='none';
+  document.getElementById('use-student-search').value='';
+  document.getElementById('use-student-search').style.borderColor='var(--border2)';
+  document.getElementById('use-student-fullname').value='';
+  document.getElementById('use-load-btn').disabled=true;
+  document.getElementById('use-load-status').textContent='';
+  document.getElementById('use-save-status').textContent='';
+  document.getElementById('use-course').value='';
+  _useCurrentProfile=null;
+  _useCurrentCourse='';
+}
+
+function useRenderAll(){
+  const p=_useCurrentProfile;
+  const course=_useCurrentCourse;
+  let unitProg={},vocabBest={},vocabPassed={},frqProg={};
+  try{unitProg=JSON.parse(p.unit_progress||'{}');}catch(e){}
+  try{vocabBest=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
+  try{vocabPassed=JSON.parse(p.vocab_passed||'{}');}catch(e){}
+  try{frqProg=JSON.parse(p.frq_progress||'{}');}catch(e){}
+  const frqBest={};
+  _useCurrentFrqRows.forEach(r=>{if((r.score||0)>(frqBest[r.frq_id]||0))frqBest[r.frq_id]=r.score;});
+  Object.keys(frqProg).forEach(fid=>{const bs=frqProg[fid]?.bestScore||0;if(bs>(frqBest[fid]||0))frqBest[fid]=bs;});
+  useRenderUnits(course,unitProg,vocabBest,frqBest);
+  useRenderVocab(course,vocabBest,vocabPassed);
+  useRenderFRQ(course,frqBest);
+  useRenderExtras(course,unitProg);
+  // Show/hide tabs based on content
+  const hasVocab=(USE_VOCAB[course]||[]).length>0;
+  const hasFRQ=(USE_FRQS[course]||[]).length>0;
+  const hasExtras=(USE_EXTRAS[course]||[]).length>0;
+  document.getElementById('use-tab-vocab').style.display=hasVocab?'':'none';
+  document.getElementById('use-tab-frq').style.display=hasFRQ?'':'none';
+  document.getElementById('use-tab-extras').style.display=hasExtras?'':'none';
+}
+
+function useRenderUnits(course,unitProg,vocabBest,frqBest){
+  const grid=document.getElementById('use-unit-cards');
+  const units=USE_COURSE_UNITS[course]||[];
+  grid.innerHTML='';
+  units.forEach(u=>{
+    const ud=unitProg[u.id]||{};
+    const mcq=Math.round(ud.bestAccuracy||ud.mcqScore||0);
+    const vocab=u.hasVocab?(vocabBest[u.id]||0):0;
+    const unitFRQs=(USE_FRQS[course]||[]).filter(f=>f.unit===u.id);
+    let frqPct=0;
+    if(unitFRQs.length&&u.hasFRQ){
+      const scored=unitFRQs.filter(f=>frqBest[f.id]!=null);
+      if(scored.length) frqPct=Math.round(scored.reduce((a,f)=>a+Math.round((frqBest[f.id]/f.points)*100),0)/scored.length);
+    }
+    const comp=useGetComposite(mcq,vocab,frqPct,u.hasFRQ,u.hasVocab);
+    const tier=useCalcTier(comp);
+    const wt=u.hasFRQ&&u.hasVocab?'50% wt':u.hasFRQ?'60% wt':u.hasVocab?'75% wt':'100%';
+    const card=document.createElement('div');
+    card.style.cssText='background:var(--bg3);border:1px solid var(--border2);overflow:hidden';
+    card.innerHTML=`
+      <div style="height:58px;display:flex;align-items:center;justify-content:center;font-size:24px;border-bottom:1px solid var(--border);position:relative;background:${u.color}18">
+        ${u.icon}
+        <div id="use-badge-${u.id}" style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:${tier.bg};border:1.5px solid ${tier.border}" title="${tier.label}">${tier.emoji}</div>
+      </div>
+      <div style="padding:10px 12px">
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:2px;color:var(--text3);margin-bottom:2px">${u.num}</div>
+        <div style="font-family:var(--playfair);font-size:12px;color:var(--cream);margin-bottom:10px;line-height:1.3">${u.title}</div>
+        <div style="margin-bottom:8px">
+          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between"><span>MCQ Accuracy</span><span>${wt}</span></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" min="0" max="100" id="use-mcq-${u.id}" value="${mcq||''}" placeholder="—"
+              style="width:58px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 6px;outline:none"
+              oninput="useRecalcCard('${u.id}',${u.hasFRQ},${u.hasVocab})"
+              onfocus="this.style.borderColor='var(--civitas)'" onblur="this.style.borderColor='var(--border2)'">
+            <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+          </div>
+        </div>
+        ${u.hasVocab?`
+        <div style="margin-bottom:8px">
+          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between"><span>Vocab Score</span><span>25% wt</span></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" min="0" max="100" id="use-vocab-${u.id}" value="${vocab||''}" placeholder="—"
+              style="width:58px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 6px;outline:none"
+              oninput="useRecalcCard('${u.id}',${u.hasFRQ},${u.hasVocab})"
+              onfocus="this.style.borderColor='var(--purple2)'" onblur="this.style.borderColor='var(--border2)'">
+            <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+            ${vocab>=80?'<span style="color:var(--green2);font-size:9px">✓ passed</span>':''}
+          </div>
+        </div>`:''}
+        ${u.hasFRQ?`
+        <div style="margin-bottom:8px">
+          <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;color:var(--amber);margin-bottom:3px">FRQ / Open Answer</div>
+          <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">${frqPct>0?`Avg: <span style="color:var(--amber)">${frqPct}%</span> — edit in FRQ tab`:'No submissions — edit in FRQ tab'}</div>
+        </div>`:''}
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1px;color:var(--text3)">COMPOSITE</div>
+            <div id="use-comp-${u.id}" style="font-family:var(--bebas);font-size:18px;color:${tier.color}">${comp}%</div>
+          </div>
+          <div id="use-tier-${u.id}" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid ${tier.border};color:${tier.color};background:${tier.bg}">${tier.emoji} ${tier.label}</div>
+        </div>
       </div>`;
-  }
-
-  el.innerHTML =
-    renderSection('CORE UNITS', data.units, 'var(--civitas2)', true) +
-    renderSection('VOCAB QUIZZES', data.vocab, 'var(--amber)', false) +
-    renderSection('BIG IDEAS / EXAM / CAMPAIGN', data.extras, 'var(--teal2)', false);
-}
-
-async function commitManualProgress() {
-  const studentName = document.getElementById('mpe-student-name').value.trim();
-  const course = document.getElementById('mpe-course').value;
-  const status = document.getElementById('mpe-status');
-  const btn = document.getElementById('mpe-commit-btn');
-
-  if (!studentName) { status.innerHTML = '<span style="color:var(--red2)">Enter a student name.</span>'; return; }
-
-  const data = MPE_UNITS[course] || {units:[], vocab:[], extras:[]};
-  const allItems = [...(data.units||[]), ...(data.vocab||[]), ...(data.extras||[])];
-  const selectedUnits = (data.units||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
-  const selectedVocab = (data.vocab||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
-  const selectedExtras = (data.extras||[]).filter(u => document.getElementById('mpe-chk-' + u.id)?.checked);
-  const allSelected = [...selectedUnits, ...selectedVocab, ...selectedExtras];
-
-  if (!allSelected.length) { status.innerHTML = '<span style="color:var(--red2)">Select at least one item.</span>'; return; }
-
-  btn.disabled = true;
-  status.innerHTML = '<span style="color:var(--text2)">Looking up student...</span>';
-
-  try {
-    const existing = await sfetch('/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*');
-    if (!Array.isArray(existing) || !existing[0]) {
-      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '". Check spelling.</span>';
-      btn.disabled = false; return;
-    }
-    const profile = existing[0];
-    let unitProg = {};
-    let vocabPassed = {};
-    let vocabBestScore = {};
-    try { unitProg = JSON.parse(profile.unit_progress || '{}'); } catch(e) {}
-    try { vocabPassed = JSON.parse(profile.vocab_passed || '{}'); } catch(e) {}
-    try { vocabBestScore = JSON.parse(profile.vocab_best_score || '{}'); } catch(e) {}
-
-    const now = new Date().toISOString();
-    const payload = { full_name: studentName, updated_at: now };
-
-    // Handle core units and extras (go into unit_progress)
-    [...selectedUnits, ...selectedExtras].forEach(u => {
-      const acc = parseInt(document.getElementById('mpe-acc-' + u.id)?.value || '80');
-      const existing_acc = unitProg[u.id]?.bestAccuracy || 0;
-      unitProg[u.id] = {
-        bestAccuracy: Math.max(acc, existing_acc),
-        completedAt: unitProg[u.id]?.completedAt || now
-      };
-      // Campaign unit: also write chaptersComplete so trophy renders correctly
-      if (u.id === 'apsem_rpg') {
-        unitProg[u.id].chaptersComplete = ['ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8'];
-      }
-      // Build round keys for core units
-      if (selectedUnits.find(su => su.id === u.id)) {
-        const rounds = {};
-        for (let i = 0; i < 4; i++) {
-          const rAcc = Math.min(100, acc + Math.floor(Math.random()*10 - 5));
-          rounds['r' + i] = { bestPct: rAcc, bestCorrect: Math.round(rAcc/100*15), bestTotal: 15, attempts: 1, completedAt: now };
-        }
-        payload['unit_rounds_' + u.id] = JSON.stringify(rounds);
-      }
-    });
-    payload.unit_progress = JSON.stringify(unitProg);
-
-    // Handle vocab
-    if (selectedVocab.length) {
-      selectedVocab.forEach(u => {
-        const acc = parseInt(document.getElementById('mpe-acc-' + u.id)?.value || '80');
-        vocabPassed[u.id] = true;
-        vocabBestScore[u.id] = Math.max(acc, vocabBestScore[u.id] || 0);
-      });
-      payload.vocab_passed = JSON.stringify(vocabPassed);
-      payload.vocab_best_score = JSON.stringify(vocabBestScore);
-    }
-
-    // For any core units marked complete, write FRQ score into unit_progress
-    // (frqScore + frqAllDone) so the FRQ medal awards correctly.
-    // If the teacher entered a FRQ %, use that. Otherwise write a minimal
-    // mpe_granted marker so hasAnyFRQSubmitted() doesn't block unit completion.
-    if (selectedUnits.length) {
-      let existingFRQ = {};
-      try { existingFRQ = JSON.parse(profile.frq_progress || '{}'); } catch(e) {}
-      const now2 = new Date().toISOString();
-      let frqDirty = false;
-
-      selectedUnits.forEach(u => {
-        const frqEl = document.getElementById('mpe-frq-' + u.id);
-        const frqPct = frqEl && frqEl.value !== '' ? Math.max(0, Math.min(100, parseInt(frqEl.value))) : null;
-
-        if (frqPct !== null && !isNaN(frqPct)) {
-          // Write frqScore + frqAllDone onto unit_progress so the medal renders immediately
-          if (!unitProg[u.id]) unitProg[u.id] = {};
-          unitProg[u.id].frqScore = frqPct;
-          unitProg[u.id].frqAllDone = true;
-
-          // Write synthetic frq_progress entries for each AP Gov FRQ type
-          // so the unit game also shows scores correctly on load
-          const types = course === 'ap_gov' ? ['CA', 'QA', 'SC', 'AE'] : ['FRQ'];
-          types.forEach(t => {
-            const key = u.id + '_mpe_' + t;
-            const existing = existingFRQ[key] || {};
-            const maxPts = t === 'AE' ? 6 : t === 'SC' ? 4 : 3;
-            const pts = Math.round((frqPct / 100) * maxPts);
-            if (!existing.bestScore || pts > existing.bestScore) {
-              existingFRQ[key] = {
-                bestScore: pts,
-                maxScore: maxPts,
-                attempts: (existing.attempts || 0) + 1,
-                mpeGranted: true,
-                grantedAt: now2,
-                history: (existing.history || []).concat([{ score: pts, ts: Date.now(), teacherAdj: true }])
-              };
-              frqDirty = true;
-            }
-          });
-        } else {
-          // No FRQ score entered — write minimal marker so unit completion isn't blocked
-          const unitFRQKey = u.id + '_mpe_granted';
-          if (!existingFRQ[unitFRQKey]) {
-            existingFRQ[unitFRQKey] = {
-              bestScore: 1, maxScore: 1, attempts: 1,
-              mpeGranted: true, grantedAt: now2,
-              history: [{ score: 1, ts: Date.now() }]
-            };
-            frqDirty = true;
-          }
-        }
-      });
-
-      if (frqDirty) payload.frq_progress = JSON.stringify(existingFRQ);
-    }
-
-    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates'},
-      body: JSON.stringify(payload)
-    });
-
-    if (resp.ok || resp.status === 200 || resp.status === 201) {
-      const itemList = allSelected.map(u => u.label).join(', ');
-      status.innerHTML = '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2)">' +
-        '✓ Updated <strong>' + studentName + '</strong> — marked complete: ' + itemList +
-        '<br><span style="font-size:10px;opacity:.7">Student can recover their profile using "Returning Student" on the title screen.</span></div>';
-      allSelected.forEach(u => { const chk = document.getElementById('mpe-chk-' + u.id); if(chk) chk.checked = false; });
-    } else {
-      throw new Error('Supabase returned ' + resp.status);
-    }
-  } catch(e) {
-    status.innerHTML = '<span style="color:var(--red2)">❌ Error: ' + e.message + '</span>';
-  }
-  btn.disabled = false;
-}
-
-// Initialize MPE on page load
-document.addEventListener('DOMContentLoaded', () => { renderMPEUnits(); populateMPEDropdown(); populateSADropdown(); });
-
-// ── TEACHER: SCORE ADJUSTMENT TOOL ───────────────────────────────────────────
-
-// AP Gov FRQ definitions (id, unit, type, label, max points)
-const SA_FRQS = {
-  ap_gov: [
-    {id:'apg_u1_ca1', unit:'apg_u1', type:'CA', label:'U1 CA-1: Articles & Federalism', points:3},
-    {id:'apg_u1_ca2', unit:'apg_u1', type:'CA', label:'U1 CA-2: Checks & Balances', points:3},
-    {id:'apg_u1_qa1', unit:'apg_u1', type:'QA', label:'U1 QA-1: Trust in Government', points:3},
-    {id:'apg_u1_qa2', unit:'apg_u1', type:'QA', label:'U1 QA-2: Voter Turnout', points:3},
-    {id:'apg_u1_sc1', unit:'apg_u1', type:'SC', label:'U1 SC-1: SCOTUS Comparison 1', points:4},
-    {id:'apg_u1_sc2', unit:'apg_u1', type:'SC', label:'U1 SC-2: SCOTUS Comparison 2', points:4},
-    {id:'apg_u1_ae1', unit:'apg_u1', type:'AE', label:'U1 AE-1: Argument Essay 1', points:6},
-    {id:'apg_u1_ae2', unit:'apg_u1', type:'AE', label:'U1 AE-2: Argument Essay 2', points:6},
-    {id:'apg_u2_ca1', unit:'apg_u2', type:'CA', label:'U2 CA-1: Congress & Lawmaking', points:3},
-    {id:'apg_u2_ca2', unit:'apg_u2', type:'CA', label:'U2 CA-2: Executive Power', points:3},
-    {id:'apg_u2_qa1', unit:'apg_u2', type:'QA', label:'U2 QA-1: Congressional Approval', points:3},
-    {id:'apg_u2_qa2', unit:'apg_u2', type:'QA', label:'U2 QA-2: Presidential Power', points:3},
-    {id:'apg_u2_sc1', unit:'apg_u2', type:'SC', label:'U2 SC-1: SCOTUS Comparison 1', points:4},
-    {id:'apg_u2_sc2', unit:'apg_u2', type:'SC', label:'U2 SC-2: SCOTUS Comparison 2', points:4},
-    {id:'apg_u2_ae1', unit:'apg_u2', type:'AE', label:'U2 AE-1: Argument Essay 1', points:6},
-    {id:'apg_u2_ae2', unit:'apg_u2', type:'AE', label:'U2 AE-2: Argument Essay 2', points:6},
-    {id:'apg_u3_ca1', unit:'apg_u3', type:'CA', label:'U3 CA-1: Civil Liberties', points:3},
-    {id:'apg_u3_ca2', unit:'apg_u3', type:'CA', label:'U3 CA-2: Civil Rights', points:3},
-    {id:'apg_u3_qa1', unit:'apg_u3', type:'QA', label:'U3 QA-1: Rights Data', points:3},
-    {id:'apg_u3_qa2', unit:'apg_u3', type:'QA', label:'U3 QA-2: Liberties Data', points:3},
-    {id:'apg_u3_sc1', unit:'apg_u3', type:'SC', label:'U3 SC-1: SCOTUS Comparison 1', points:4},
-    {id:'apg_u3_sc2', unit:'apg_u3', type:'SC', label:'U3 SC-2: SCOTUS Comparison 2', points:4},
-    {id:'apg_u3_ae1', unit:'apg_u3', type:'AE', label:'U3 AE-1: Argument Essay 1', points:6},
-    {id:'apg_u3_ae2', unit:'apg_u3', type:'AE', label:'U3 AE-2: Argument Essay 2', points:6},
-    {id:'apg_u4_ca1', unit:'apg_u4', type:'CA', label:'U4 CA-1: Political Ideology', points:3},
-    {id:'apg_u4_ca2', unit:'apg_u4', type:'CA', label:'U4 CA-2: Public Opinion', points:3},
-    {id:'apg_u4_qa1', unit:'apg_u4', type:'QA', label:'U4 QA-1: Ideology Data', points:3},
-    {id:'apg_u4_qa2', unit:'apg_u4', type:'QA', label:'U4 QA-2: Opinion Polls', points:3},
-    {id:'apg_u4_sc1', unit:'apg_u4', type:'SC', label:'U4 SC-1: SCOTUS Comparison 1', points:4},
-    {id:'apg_u4_sc2', unit:'apg_u4', type:'SC', label:'U4 SC-2: SCOTUS Comparison 2', points:4},
-    {id:'apg_u4_ae1', unit:'apg_u4', type:'AE', label:'U4 AE-1: Argument Essay 1', points:6},
-    {id:'apg_u4_ae2', unit:'apg_u4', type:'AE', label:'U4 AE-2: Argument Essay 2', points:6},
-    {id:'apg_u5_ca1', unit:'apg_u5', type:'CA', label:'U5 CA-1: Political Participation', points:3},
-    {id:'apg_u5_ca2', unit:'apg_u5', type:'CA', label:'U5 CA-2: Elections & Campaigns', points:3},
-    {id:'apg_u5_qa1', unit:'apg_u5', type:'QA', label:'U5 QA-1: Participation Data', points:3},
-    {id:'apg_u5_qa2', unit:'apg_u5', type:'QA', label:'U5 QA-2: Election Data', points:3},
-    {id:'apg_u5_sc1', unit:'apg_u5', type:'SC', label:'U5 SC-1: SCOTUS Comparison 1', points:4},
-    {id:'apg_u5_sc2', unit:'apg_u5', type:'SC', label:'U5 SC-2: SCOTUS Comparison 2', points:4},
-    {id:'apg_u5_ae1', unit:'apg_u5', type:'AE', label:'U5 AE-1: Argument Essay 1', points:6},
-    {id:'apg_u5_ae2', unit:'apg_u5', type:'AE', label:'U5 AE-2: Argument Essay 2', points:6},
-  ]
-};
-
-// MCQ units per course
-const SA_MCQ_UNITS = {
-  ap_gov: [
-    {id:'apg_u1', label:'Unit 1', sub:'Foundations of Democracy'},
-    {id:'apg_u2', label:'Unit 2', sub:'Branches of Government'},
-    {id:'apg_u3', label:'Unit 3', sub:'Civil Liberties & Rights'},
-    {id:'apg_u4', label:'Unit 4', sub:'American Political Ideologies'},
-    {id:'apg_u5', label:'Unit 5', sub:'Political Participation'},
-    {id:'apg_bi_con',  label:'Big Idea: CON',  sub:'Constitutionalism'},
-    {id:'apg_bi_lor',  label:'Big Idea: LOR',  sub:'Liberty & Order'},
-    {id:'apg_bi_pmcd', label:'Big Idea: PMCD', sub:'Competing Interests'},
-    {id:'apg_bi_mk',   label:'Big Idea: MK',   sub:'Civic Participation'},
-    {id:'apg_bi_mpa',  label:'Big Idea: MPA',  sub:'Political Analysis'},
-  ],
-  ap_cmp: [
-    {id:'apcmp_u1', label:'Unit 1', sub:'Intro to Comparative'},
-    {id:'apcmp_u2', label:'Unit 2', sub:'United Kingdom'},
-    {id:'apcmp_u3', label:'Unit 3', sub:'Mexico'},
-    {id:'apcmp_u4', label:'Unit 4', sub:'Russia'},
-    {id:'apcmp_u5', label:'Unit 5', sub:'China'},
-    {id:'apcmp_u6', label:'Unit 6', sub:'Iran'},
-    {id:'apcmp_u7', label:'Unit 7', sub:'Nigeria'},
-  ],
-  ap_sem: [
-    {id:'apsem_u1', label:'Unit 1', sub:'Research Foundation'},
-    {id:'apsem_u2', label:'Unit 2', sub:'Reading Arguments'},
-    {id:'apsem_u3', label:'Unit 3', sub:'Evaluating Sources'},
-    {id:'apsem_u4', label:'Unit 4', sub:'Building Arguments'},
-    {id:'apsem_u5', label:'Unit 5', sub:'Individual Research'},
-    {id:'apsem_u6', label:'Unit 6', sub:'Team Collaboration'},
-  ],
-  hs_ush: [
-    {id:'ush_u1', label:'Unit 1', sub:'A House Divided'},
-    {id:'ush_u2a', label:'Unit 2A', sub:'Boomtown Nation'},
-    {id:'ush_u2b', label:'Unit 2B', sub:'Age of Reform'},
-    {id:'ush_u3a', label:'Unit 3A', sub:'Empire Rising'},
-    {id:'ush_u3b', label:'Unit 3B', sub:'Into the Trenches'},
-    {id:'ush_u4a', label:'Unit 4A', sub:'Boom or Bust'},
-    {id:'ush_u4b', label:'Unit 4B', sub:'Crash & Recovery'},
-    {id:'ush_u5a', label:'Unit 5A', sub:'Arsenal of Democracy'},
-    {id:'ush_u5b', label:'Unit 5B', sub:'Iron Curtain'},
-    {id:'ush_u6',  label:'Unit 6',  sub:'Chronicles of Change'},
-    {id:'ush_u7a', label:'Unit 7A', sub:'Camelot'},
-    {id:'ush_u7b', label:'Unit 7B', sub:'Napalm Dawn'},
-    {id:'ush_u8',  label:'Unit 8',  sub:'Modern America'},
-  ]
-};
-
-// Vocab units per course
-const SA_VOCAB_UNITS = {
-  ap_gov: [
-    {id:'apg_u1', label:'Unit 1', sub:'Foundations'},
-    {id:'apg_u2', label:'Unit 2', sub:'Branches'},
-    {id:'apg_u3', label:'Unit 3', sub:'Civil Liberties'},
-    {id:'apg_u4', label:'Unit 4', sub:'Ideology'},
-    {id:'apg_u5', label:'Unit 5', sub:'Participation'},
-  ],
-  hs_ush: [
-    {id:'ush_u1',  label:'Unit 1',  sub:'A House Divided'},
-    {id:'ush_u2a', label:'Unit 2A', sub:'Boomtown Nation'},
-    {id:'ush_u2b', label:'Unit 2B', sub:'Age of Reform'},
-    {id:'ush_u3a', label:'Unit 3A', sub:'Empire Rising'},
-    {id:'ush_u3b', label:'Unit 3B', sub:'Into the Trenches'},
-    {id:'ush_u4a', label:'Unit 4A', sub:'Boom or Bust'},
-    {id:'ush_u4b', label:'Unit 4B', sub:'Crash & Recovery'},
-  ]
-};
-
-// FRQ type badge colors
-const SA_FRQ_COLORS = {
-  CA: {bg:'rgba(72,120,208,.15)', border:'var(--blue2)', label:'var(--blue2)'},
-  QA: {bg:'rgba(42,170,80,.12)',  border:'var(--green2)',label:'var(--green2)'},
-  SC: {bg:'rgba(232,160,32,.12)', border:'var(--amber)', label:'var(--amber)'},
-  AE: {bg:'rgba(192,48,48,.12)',  border:'var(--red2)',  label:'var(--red2)'},
-};
-
-let _saStudentList = [];
-let _saCurrentProfile = null; // raw Supabase profile row
-let _saCurrentFrqRows = [];   // rows from civitas_frq_results for this student
-
-function populateSADropdown() {
-  if (_teacherData && _teacherData.length) {
-    _saStudentList = _teacherData
-      .map(s => ({ label: s.displayName || s.name || s.fullName, fullName: s.fullName || s.name }))
-      .filter(s => s.fullName)
-      .sort((a, b) => a.label.localeCompare(b.label));
-    filterSADropdown();
-    notify('Student list refreshed (' + _saStudentList.length + ')');
-  } else {
-    sfetch('/rest/v1/civitas_profiles?select=display_name,full_name&order=display_name.asc&limit=300').then(rows => {
-      _saStudentList = (rows || [])
-        .map(r => ({ label: r.display_name || r.full_name, fullName: r.full_name }))
-        .filter(s => s.fullName)
-        .sort((a, b) => a.label.localeCompare(b.label));
-      filterSADropdown();
-      notify('Loaded ' + _saStudentList.length + ' students');
-    }).catch(() => notify('Could not load students — try Refresh'));
-  }
-}
-
-function filterSADropdown() {
-  const q = (document.getElementById('sa-student-search')?.value || '').toLowerCase();
-  const dd = document.getElementById('sa-dropdown');
-  if (!dd) return;
-  if (!_saStudentList.length) {
-    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No students loaded — click Refresh</div>';
-    dd.style.display = 'block'; return;
-  }
-  const filtered = q ? _saStudentList.filter(s => s.label.toLowerCase().includes(q) || s.fullName.toLowerCase().includes(q)) : _saStudentList;
-  if (!filtered.length) {
-    dd.innerHTML = '<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 10px;font-style:italic">No matches</div>';
-  } else {
-    dd.innerHTML = filtered.map(s =>
-      '<div onmousedown="selectSAStudent(\'' + s.fullName.replace(/'/g,"\\'") + '\',\'' + s.label.replace(/'/g,"\\'") + '\')" ' +
-      'style="font-family:var(--dm);font-size:11px;color:var(--cream);padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s" ' +
-      'onmouseenter="this.style.background=\'rgba(72,120,208,.12)\'" onmouseleave="this.style.background=\'transparent\'">' +
-      s.label + (s.fullName !== s.label ? ' <span style="font-size:9px;color:var(--text3)">· ' + s.fullName + '</span>' : '') +
-      '</div>'
-    ).join('');
-  }
-  dd.style.display = 'block';
-}
-
-function selectSAStudent(fullName, label) {
-  document.getElementById('sa-student-name').value = fullName;
-  document.getElementById('sa-student-search').value = label;
-  document.getElementById('sa-student-search').style.borderColor = 'var(--green2)';
-  document.getElementById('sa-dropdown').style.display = 'none';
-  document.getElementById('sa-status').innerHTML =
-    '<span style="color:var(--green2);font-family:var(--dm);font-size:10px">&#10003; ' + label + ' selected — click Load Student Scores</span>';
-  document.getElementById('sa-scores-container').innerHTML = '';
-  _saCurrentProfile = null; _saCurrentFrqRows = [];
-}
-
-async function loadStudentScores() {
-  const studentName = document.getElementById('sa-student-name').value.trim();
-  const course = document.getElementById('sa-course').value;
-  const status = document.getElementById('sa-status');
-  const container = document.getElementById('sa-scores-container');
-  if (!studentName) { status.innerHTML = '<span style="color:var(--red2)">Select a student first.</span>'; return; }
-  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Loading...</span>';
-  container.innerHTML = '';
-  try {
-    const profResp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(studentName) + '&select=*', {
-      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
-    });
-    if (!profResp.ok) throw new Error('Profile fetch failed: HTTP ' + profResp.status + ' — ' + await profResp.text());
-    const profiles = await profResp.json();
-    if (!Array.isArray(profiles) || !profiles[0]) {
-      status.innerHTML = '<span style="color:var(--red2)">No profile found for "' + studentName + '". Try clicking Refresh to reload the student list.</span>'; return;
-    }
-    const displayName = profiles[0].display_name || studentName;
-    const frqResp = await fetch(SUPA_URL + '/rest/v1/civitas_frq_results?student_name=eq.' + encodeURIComponent(displayName) + '&select=frq_id,score&order=score.desc', {
-      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
-    });
-    const frqRows = frqResp.ok ? await frqResp.json() : [];
-    _saCurrentProfile = profiles[0];
-    _saCurrentFrqRows = Array.isArray(frqRows) ? frqRows : [];
-    renderSAScores(course);
-    status.innerHTML = '<span style="color:var(--text3);font-family:var(--dm);font-size:9px">Loaded ' + displayName + ' — edit any value and click Apply All Changes.</span>';
-  } catch(e) {
-    status.innerHTML = '<span style="color:var(--red2)">&#10007; Load error: ' + e.message + '</span>';
-  }
-}
-
-function renderSAScores(course) {
-  const p = _saCurrentProfile;
-  const container = document.getElementById('sa-scores-container');
-  if (!p) return;
-
-  let unitProg = {};
-  let vocabBest = {};
-  try { unitProg = JSON.parse(p.unit_progress || '{}'); } catch(e) {}
-  try { vocabBest = JSON.parse(p.vocab_best_score || '{}'); } catch(e) {}
-
-  // Best FRQ score per frq_id from civitas_frq_results
-  const frqBest = {};
-  _saCurrentFrqRows.forEach(r => { if ((r.score || 0) > (frqBest[r.frq_id] || 0)) frqBest[r.frq_id] = r.score; });
-  // Also check frq_progress (backup storage)
-  let frqProgress = {};
-  try { frqProgress = JSON.parse(p.frq_progress || '{}'); } catch(e) {}
-  Object.keys(frqProgress).forEach(fid => {
-    const bs = frqProgress[fid]?.bestScore || 0;
-    if (bs > (frqBest[fid] || 0)) frqBest[fid] = bs;
+    grid.appendChild(card);
   });
-
-  const mcqUnits = SA_MCQ_UNITS[course] || [];
-  const vocabUnits = SA_VOCAB_UNITS[course] || [];
-  const frqDefs = SA_FRQS[course] || [];
-
-  // FRQ by unit for grouping
-  const frqByUnit = {};
-  frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
-
-  function tierLabel(score, min) {
-    if (score >= 100) return '<span style="color:#e8d0ff;font-family:var(--bebas);font-size:9px">HISTORIAN</span>';
-    if (score >= 90)  return '<span style="color:#ffd700;font-family:var(--bebas);font-size:9px">GOLD</span>';
-    if (score >= 75)  return '<span style="color:#d8d8e8;font-family:var(--bebas);font-size:9px">SILVER</span>';
-    if (score >= 60)  return '<span style="color:#cd7f32;font-family:var(--bebas);font-size:9px">BRONZE</span>';
-    if (score >= min) return '<span style="color:#38a050;font-family:var(--bebas);font-size:9px">PASSED</span>';
-    return '<span style="color:var(--text3);font-family:var(--bebas);font-size:9px">—</span>';
-  }
-
-  let html = '';
-
-  // ── MCQ SECTION ──
-  if (mcqUnits.length) {
-    html += '<div style="margin-bottom:18px">';
-    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--civitas2);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#9876; MCQ SCORES (unit_progress.bestAccuracy)</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">';
-    mcqUnits.forEach(u => {
-      const ud = unitProg[u.id];
-      const current = ud ? Math.round(ud.bestAccuracy || ud.mcqScore || 0) : null;
-      const badge = current !== null ? tierLabel(current, 60) : '<span style="color:var(--text3);font-size:9px;font-family:var(--dm)">No data</span>';
-      html += '<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">';
-      html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:10px;color:var(--cream)">' + u.label + ' <span style="font-size:9px;color:var(--text3)">' + u.sub + '</span></div>';
-      html += '<div style="margin-top:2px">' + badge + '</div></div>';
-      html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
-      html += '<input type="number" id="sa-mcq-' + u.id + '" min="0" max="100" value="' + (current !== null ? current : '') + '" placeholder="—" ';
-      html += 'style="width:50px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
-      html += 'onfocus="this.style.borderColor=\'var(--civitas)\'" onblur="this.style.borderColor=\'var(--border2)\'">';
-      html += '<span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>';
-      html += '</div></div>';
-    });
-    html += '</div></div>';
-  }
-
-  // ── VOCAB SECTION ──
-  if (vocabUnits.length) {
-    html += '<div style="margin-bottom:18px">';
-    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--purple2);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#128218; VOCAB SCORES (vocab_best_score, threshold 80%)</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">';
-    vocabUnits.forEach(u => {
-      const current = vocabBest[u.id] || null;
-      const badge = current !== null ? tierLabel(current, 80) : '<span style="color:var(--text3);font-size:9px;font-family:var(--dm)">No data</span>';
-      html += '<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px">';
-      html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:10px;color:var(--cream)">' + u.label + ' <span style="font-size:9px;color:var(--text3)">' + u.sub + '</span></div>';
-      html += '<div style="margin-top:2px">' + badge + '</div></div>';
-      html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
-      html += '<input type="number" id="sa-vocab-' + u.id + '" min="0" max="100" value="' + (current !== null ? current : '') + '" placeholder="—" ';
-      html += 'style="width:50px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
-      html += 'onfocus="this.style.borderColor=\'var(--civitas)\'" onblur="this.style.borderColor=\'var(--border2)\'">';
-      html += '<span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>';
-      html += '</div></div>';
-    });
-    html += '</div></div>';
-  }
-
-  // ── FRQ SECTION ──
-  if (frqDefs.length) {
-    html += '<div style="margin-bottom:18px">';
-    html += '<div style="font-family:var(--bebas);font-size:11px;color:var(--amber);letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2)">&#9998; FRQ SCORES (points scored / max points)</div>';
-    // Legend
-    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">';
-    Object.entries(SA_FRQ_COLORS).forEach(([type, c]) => {
-      html += '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:' + c.label + ';padding:2px 8px;border:1px solid ' + c.border + ';background:' + c.bg + '">' + type + ' · ' + ({CA:'Concept App',QA:'Quantitative',SC:'SCOTUS Comp',AE:'Argument Essay'}[type]) + '</div>';
-    });
-    html += '</div>';
-
-    // Group by unit
-    Object.entries(frqByUnit).forEach(([unitId, frqs]) => {
-      const unitLabel = mcqUnits.find(u => u.id === unitId);
-      html += '<div style="margin-bottom:12px">';
-      html += '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:5px">' + (unitLabel ? unitLabel.label + ' — ' + unitLabel.sub : unitId) + '</div>';
-      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:5px">';
-      frqs.forEach(f => {
-        const c = SA_FRQ_COLORS[f.type] || SA_FRQ_COLORS.CA;
-        const currentPts = frqBest[f.id] || null;
-        const currentPct = currentPts !== null ? Math.round((currentPts / f.points) * 100) : null;
-        html += '<div style="background:' + c.bg + ';border:1px solid ' + c.border + '44;padding:7px 10px;display:flex;align-items:center;gap:8px">';
-        html += '<div style="flex-shrink:0;font-family:var(--bebas);font-size:10px;color:' + c.label + ';letter-spacing:1px;min-width:24px">' + f.type + '</div>';
-        html += '<div style="flex:1;min-width:0"><div style="font-family:var(--dm);font-size:9px;color:var(--cream);line-height:1.3">' + f.label + '</div>';
-        html += '<div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:1px">Max: ' + f.points + ' pts' + (currentPct !== null ? ' · Current: ' + currentPts + '/' + f.points + ' (' + currentPct + '%)' : ' · No submission') + '</div></div>';
-        html += '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">';
-        html += '<input type="number" id="sa-frq-' + f.id + '" min="0" max="' + f.points + '" value="' + (currentPts !== null ? currentPts : '') + '" placeholder="—" ';
-        html += 'style="width:44px;font-family:var(--dm);font-size:10px;background:var(--bg2);border:1px solid ' + c.border + '66;color:var(--cream);padding:3px 5px;text-align:center;outline:none" ';
-        html += 'onfocus="this.style.borderColor=\'' + c.border + '\'" onblur="this.style.borderColor=\'' + c.border + '66\'">';
-        html += '<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">/' + f.points + '</span>';
-        html += '</div></div>';
-      });
-      html += '</div></div>';
-    });
-    html += '</div>';
-  }
-
-  // Apply button
-  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;padding-top:12px;border-top:1px solid var(--border2)">';
-  html += '<button class="btn sm green" onclick="commitSAScores()"><span>&#10003; Apply All Changes</span></button>';
-  html += '<button class="btn sm" onclick="loadStudentScores()" style="border-color:var(--border2);color:var(--text3)"><span>&#8635; Reload</span></button>';
-  html += '</div>';
-
-  container.innerHTML = html;
 }
 
-async function commitSAScores() {
-  const studentName = document.getElementById('sa-student-name').value.trim();
-  const course = document.getElementById('sa-course').value;
-  const status = document.getElementById('sa-status');
+function useRecalcCard(uid,hasFRQ,hasVocab){
+  const mcq=parseInt(document.getElementById('use-mcq-'+uid)?.value||0)||0;
+  const vocab=hasVocab?(parseInt(document.getElementById('use-vocab-'+uid)?.value||0)||0):0;
+  const comp=useGetComposite(mcq,vocab,0,false,hasVocab);
+  const tier=useCalcTier(comp);
+  const ce=document.getElementById('use-comp-'+uid);
+  const te=document.getElementById('use-tier-'+uid);
+  const be=document.getElementById('use-badge-'+uid);
+  if(ce){ce.textContent=comp+'%';ce.style.color=tier.color;}
+  if(te){te.textContent=tier.emoji+' '+tier.label;te.style.color=tier.color;te.style.borderColor=tier.border;te.style.background=tier.bg;}
+  if(be){be.textContent=tier.emoji;be.style.background=tier.bg;be.style.borderColor=tier.border;}
+}
 
-  if (!studentName || !_saCurrentProfile) {
-    status.innerHTML = '<span style="color:var(--red2)">Load a student first.</span>'; return;
-  }
+function useRenderVocab(course,vocabBest,vocabPassed){
+  const el=document.getElementById('use-vocab-rows');
+  const vocab=USE_VOCAB[course]||[];
+  if(!vocab.length){el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 0">No vocab quizzes for this course.</div>';return;}
+  el.innerHTML=vocab.map(v=>{
+    const cur=vocabBest[v.id]!=null?vocabBest[v.id]:null;
+    const passed=cur>=80||vocabPassed[v.id];
+    const tier=useCalcTier(cur||0);
+    return `<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--dm);font-size:11px;color:var(--cream)">${v.label}</div>
+        <div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px">${cur!=null?cur+'% current · threshold 80%':'No data yet'}${passed?' · <span style="color:var(--green2)">✓ passed</span>':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <input type="number" min="0" max="100" id="use-voc-${v.id}" value="${cur!=null?cur:''}" placeholder="—"
+          style="width:48px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 6px;outline:none"
+          onfocus="this.style.borderColor='var(--purple2)'" onblur="this.style.borderColor='var(--border2)'">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+        <span style="font-size:11px;margin-left:2px">${cur?tier.emoji:'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const p = _saCurrentProfile;
-  let unitProg = {};
-  let vocabBest = {};
-  let vocabPassed = {};
-  let frqProgress = {};
-  try { unitProg = JSON.parse(p.unit_progress || '{}'); } catch(e) {}
-  try { vocabBest = JSON.parse(p.vocab_best_score || '{}'); } catch(e) {}
-  try { vocabPassed = JSON.parse(p.vocab_passed || '{}'); } catch(e) {}
-  try { frqProgress = JSON.parse(p.frq_progress || '{}'); } catch(e) {}
+function useRenderFRQ(course,frqBest){
+  const frqs=USE_FRQS[course]||[];
+  const legEl=document.getElementById('use-frq-legend');
+  const el=document.getElementById('use-frq-rows');
+  if(!frqs.length){el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 0">No FRQ or open answer submissions for this course.</div>';legEl.innerHTML='';return;}
+  const types=[...new Set(frqs.map(f=>f.type))];
+  legEl.innerHTML=types.map(t=>{const c=USE_FRQ_COLORS[t]||USE_FRQ_COLORS.FRQ;return`<div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;padding:2px 8px;border:1px solid ${c.border};background:${c.bg};color:${c.label}">${t} · ${USE_FRQ_NAMES[t]||t}</div>`;}).join('');
+  const byUnit={};
+  frqs.forEach(f=>{if(!byUnit[f.unit])byUnit[f.unit]=[];byUnit[f.unit].push(f);});
+  const units=USE_COURSE_UNITS[course]||[];
+  el.innerHTML=Object.entries(byUnit).map(([uid,uFRQs])=>{
+    const u=units.find(x=>x.id===uid);
+    return`<div style="margin-bottom:16px">
+      <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:${u?u.color:'var(--civitas2)'};padding-bottom:4px;border-bottom:1px solid var(--border2);margin-bottom:7px;display:flex;align-items:center;gap:5px">
+        <span>${u?u.icon:''}</span><span>${u?u.num+' — '+u.title:uid}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:5px">
+        ${uFRQs.map(f=>{
+          const c=USE_FRQ_COLORS[f.type]||USE_FRQ_COLORS.FRQ;
+          const curPts=frqBest[f.id]!=null?frqBest[f.id]:null;
+          const curPct=curPts!=null?Math.round((curPts/f.points)*100):null;
+          const tier=curPct!=null?useCalcTier(curPct):null;
+          return`<div style="background:${c.bg};border:1px solid ${c.border}44;padding:7px 10px;display:flex;align-items:center;gap:7px">
+            <div style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;color:${c.label};flex-shrink:0;min-width:26px">${f.type}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:var(--dm);font-size:10px;color:var(--cream);line-height:1.3">${f.label}</div>
+              <div style="font-family:var(--dm);font-size:8px;color:var(--text3);margin-top:1px">Max: ${f.points} pts${curPts!=null?' · '+curPts+'/'+f.points+' ('+curPct+'%)':' · No submission'}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+              <input type="number" min="0" max="${f.points}" id="use-frq-${f.id}" value="${curPts!=null?curPts:''}" placeholder="—"
+                style="width:42px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid ${c.border}66;color:var(--cream);padding:4px 5px;outline:none"
+                onfocus="this.style.borderColor='${c.border}'" onblur="this.style.borderColor='${c.border}66'">
+              <span style="font-family:var(--dm);font-size:8px;color:var(--text3)">/${f.points}</span>
+              ${tier?`<span style="font-size:10px">${tier.emoji}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const now = new Date().toISOString();
-  const payload = { full_name: studentName, updated_at: now };
-  const changed = [];
-  let unitProgDirty = false;
-  let vocabDirty = false;
-  let frqProgressDirty = false;
+function useRenderExtras(course,unitProg){
+  const el=document.getElementById('use-extras-rows');
+  const extras=USE_EXTRAS[course]||[];
+  if(!extras.length){el.innerHTML='<div style="font-family:var(--dm);font-size:10px;color:var(--text3);padding:8px 0">No extras for this course.</div>';return;}
+  el.innerHTML=extras.map(e=>{
+    const ud=unitProg[e.id]||{};
+    const cur=Math.round(ud.bestAccuracy||ud.mcqScore||0);
+    const tier=useCalcTier(cur);
+    return`<div style="background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <span style="font-size:18px;flex-shrink:0">${e.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--dm);font-size:11px;color:var(--cream)">${e.title}</div>
+        <div style="font-family:var(--bebas);font-size:8px;letter-spacing:1px;color:var(--text3);margin-top:2px">${e.tag}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <input type="number" min="0" max="100" id="use-ext-${e.id}" value="${cur||''}" placeholder="—"
+          style="width:48px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:4px 6px;outline:none"
+          onfocus="this.style.borderColor='var(--teal2)'" onblur="this.style.borderColor='var(--border2)'">
+        <span style="font-family:var(--dm);font-size:9px;color:var(--text3)">%</span>
+        <span style="font-size:11px;margin-left:2px">${cur?tier.emoji:'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  // ── MCQ scores → unit_progress.bestAccuracy ──
-  const mcqUnits = SA_MCQ_UNITS[course] || [];
-  mcqUnits.forEach(u => {
-    const el = document.getElementById('sa-mcq-' + u.id);
-    if (!el || el.value === '') return;
-    const newScore = Math.max(0, Math.min(100, parseInt(el.value)));
-    if (isNaN(newScore)) return;
-    const existing = unitProg[u.id] || {};
-    const oldScore = Math.round(existing.bestAccuracy || existing.mcqScore || 0);
-    if (newScore === oldScore) return;
-    unitProg[u.id] = Object.assign({}, existing, {
-      bestAccuracy: newScore,
-      mcqScore: newScore,
-      completedAt: existing.completedAt || (newScore > 0 ? now : null)
+function useSwitchTab(tab){
+  _useActiveTab=tab;
+  ['units','vocab','frq','extras'].forEach(t=>{
+    document.getElementById('use-content-'+t).style.display=t===tab?'block':'none';
+    const btn=document.getElementById('use-tab-'+t);
+    if(!btn) return;
+    if(t===tab){btn.style.background='var(--civitas)';btn.style.color='#fff';btn.style.borderBottom='3px solid var(--civitas2)';}
+    else{btn.style.background='transparent';btn.style.color='var(--text3)';btn.style.borderBottom='3px solid transparent';}
+  });
+}
+
+async function useSaveAllScores(){
+  const fullName=document.getElementById('use-student-fullname').value.trim();
+  const course=_useCurrentCourse;
+  const st=document.getElementById('use-save-status');
+  if(!fullName||!_useCurrentProfile){st.innerHTML='<span style="color:var(--red2)">Load a student first.</span>';return;}
+  st.innerHTML='<span style="color:var(--text3)">Saving…</span>';
+  const p=_useCurrentProfile;
+  const now=new Date().toISOString();
+  let unitProg={},vocabBest={},vocabPassed={},frqProg={};
+  try{unitProg=JSON.parse(p.unit_progress||'{}');}catch(e){}
+  try{vocabBest=JSON.parse(p.vocab_best_score||'{}');}catch(e){}
+  try{vocabPassed=JSON.parse(p.vocab_passed||'{}');}catch(e){}
+  try{frqProg=JSON.parse(p.frq_progress||'{}');}catch(e){}
+  const payload={full_name:fullName,updated_at:now};
+  const changes=[];
+  let unitDirty=false,vocabDirty=false,frqDirty=false;
+  // MCQ units
+  (USE_COURSE_UNITS[course]||[]).forEach(u=>{
+    const el=document.getElementById('use-mcq-'+u.id);
+    if(!el||el.value==='') return;
+    const v=Math.max(0,Math.min(100,parseInt(el.value)));
+    if(isNaN(v)) return;
+    const old=Math.round((unitProg[u.id]||{}).bestAccuracy||0);
+    if(v===old) return;
+    unitProg[u.id]=Object.assign({},unitProg[u.id]||{},{bestAccuracy:v,mcqScore:v,completedAt:(unitProg[u.id]||{}).completedAt||(v>0?now:null)});
+    changes.push(u.num+' MCQ: '+old+'→'+v+'%');
+    unitDirty=true;
+  });
+  // Vocab
+  (USE_VOCAB[course]||[]).forEach(v=>{
+    const el=document.getElementById('use-voc-'+v.id);
+    if(!el||el.value==='') return;
+    const val=Math.max(0,Math.min(100,parseInt(el.value)));
+    if(isNaN(val)) return;
+    const old=vocabBest[v.id]||0;
+    if(val===old) return;
+    vocabBest[v.id]=Math.max(val,old);
+    if(val>=80) vocabPassed[v.id]=true;
+    changes.push(v.label+' vocab: '+old+'→'+val+'%');
+    vocabDirty=true;
+  });
+  // Extras
+  (USE_EXTRAS[course]||[]).forEach(e=>{
+    const el=document.getElementById('use-ext-'+e.id);
+    if(!el||el.value==='') return;
+    const v=Math.max(0,Math.min(100,parseInt(el.value)));
+    if(isNaN(v)) return;
+    const old=Math.round((unitProg[e.id]||{}).bestAccuracy||0);
+    if(v===old) return;
+    unitProg[e.id]=Object.assign({},unitProg[e.id]||{},{bestAccuracy:v,mcqScore:v,completedAt:(unitProg[e.id]||{}).completedAt||(v>0?now:null)});
+    changes.push(e.title+': '+old+'→'+v+'%');
+    unitDirty=true;
+  });
+  // FRQ
+  const frqToUpsert=[];
+  (USE_FRQS[course]||[]).forEach(f=>{
+    const el=document.getElementById('use-frq-'+f.id);
+    if(!el||el.value==='') return;
+    const pts=Math.max(0,Math.min(f.points,parseInt(el.value)));
+    if(isNaN(pts)) return;
+    const old=_useCurrentFrqRows.find(r=>r.frq_id===f.id)?.score||0;
+    if(pts===old) return;
+    const pct=Math.round((pts/f.points)*100);
+    frqToUpsert.push({student_name:p.display_name||fullName,frq_id:f.id,score:pts,updated_at:now});
+    frqProg[f.id]=Object.assign({},frqProg[f.id]||{},{bestScore:Math.max(pts,frqProg[f.id]?.bestScore||0),maxScore:f.points,attempts:(frqProg[f.id]?.attempts||0)+1,teacherAdj:true,updatedAt:now});
+    changes.push(f.label+': '+old+'→'+pts+'/'+f.points+' ('+pct+'%)');
+    frqDirty=true;
+  });
+  if(!changes.length){st.innerHTML='<span style="color:var(--text3)">No changes to save.</span>';return;}
+  if(unitDirty) payload.unit_progress=JSON.stringify(unitProg);
+  if(vocabDirty){payload.vocab_best_score=JSON.stringify(vocabBest);payload.vocab_passed=JSON.stringify(vocabPassed);}
+  if(frqDirty) payload.frq_progress=JSON.stringify(frqProg);
+  try{
+    const r=await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name',{
+      method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},body:JSON.stringify(payload)
     });
-    if (!unitProg[u.id].completedAt && newScore > 0) unitProg[u.id].completedAt = now;
-    changed.push(u.label + ' MCQ: ' + oldScore + '% → ' + newScore + '%');
-    unitProgDirty = true;
-  });
-
-  // ── Vocab scores → vocab_best_score + vocab_passed ──
-  const vocabUnits = SA_VOCAB_UNITS[course] || [];
-  vocabUnits.forEach(u => {
-    const el = document.getElementById('sa-vocab-' + u.id);
-    if (!el || el.value === '') return;
-    const newScore = Math.max(0, Math.min(100, parseInt(el.value)));
-    if (isNaN(newScore)) return;
-    const oldScore = vocabBest[u.id] || 0;
-    if (newScore === oldScore) return;
-    vocabBest[u.id] = newScore;
-    if (newScore >= 80) vocabPassed[u.id] = true;
-    else delete vocabPassed[u.id];
-    changed.push(u.label + ' Vocab: ' + oldScore + '% → ' + newScore + '%');
-    vocabDirty = true;
-  });
-
-  // ── FRQ scores → frq_progress only (frq_results uses INSERT per submission) ──
-  const frqDefs = SA_FRQS[course] || [];
-  const frqByUnit = {};
-  frqDefs.forEach(f => { if (!frqByUnit[f.unit]) frqByUnit[f.unit] = []; frqByUnit[f.unit].push(f); });
-  const affectedUnits = new Set();
-
-  frqDefs.forEach(f => {
-    const el = document.getElementById('sa-frq-' + f.id);
-    if (!el || el.value === '') return;
-    const newPts = Math.max(0, Math.min(f.points, parseInt(el.value)));
-    if (isNaN(newPts)) return;
-    const existing = frqProgress[f.id] || {};
-    const oldPts = existing.bestScore || 0;
-    if (newPts === oldPts) return;
-    frqProgress[f.id] = {
-      bestScore: newPts,
-      maxScore: f.points,
-      attempts: (existing.attempts || 0) + 1,
-      history: (existing.history || []).concat([{ score: newPts, ts: Date.now(), teacherAdj: true }])
-    };
-    affectedUnits.add(f.unit);
-    const pct = Math.round((newPts / f.points) * 100);
-    const oldPct = Math.round((oldPts / f.points) * 100);
-    changed.push(f.label.split(':')[0] + ': ' + oldPts + '/' + f.points + ' → ' + newPts + '/' + f.points + ' (' + pct + '%)');
-    frqProgressDirty = true;
-  });
-
-  // Recompute frqScore + frqAllDone on unit_progress for any affected units
-  if (frqProgressDirty) {
-    affectedUnits.forEach(uid => {
-      const unitFrqs = frqByUnit[uid] || [];
-      const typeBest = {};
-      unitFrqs.forEach(f => {
-        const pts = frqProgress[f.id] ? frqProgress[f.id].bestScore : 0;
-        const pct = Math.round((pts / f.points) * 100);
-        if (!(f.type in typeBest) || pct > typeBest[f.type]) typeBest[f.type] = pct;
+    if(!r.ok) throw new Error('Profile save: HTTP '+r.status);
+    for(const row of frqToUpsert){
+      await fetch(SUPA_URL+'/rest/v1/civitas_frq_results?on_conflict=student_name,frq_id',{
+        method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},body:JSON.stringify(row)
       });
-      const typesPresent = Object.keys(typeBest);
-      const allTypes = ['CA', 'QA', 'SC', 'AE'];
-      const frqAllDone = course === 'ap_gov' ? allTypes.every(t => typesPresent.includes(t)) : typesPresent.length > 0;
-      const frqScore = typesPresent.length > 0
-        ? Math.round(typesPresent.reduce((a, t) => a + typeBest[t], 0) / typesPresent.length)
-        : 0;
-      if (!unitProg[uid]) unitProg[uid] = {};
-      unitProg[uid].frqScore = frqScore;
-      unitProg[uid].frqAllDone = frqAllDone;
-      unitProgDirty = true;
-    });
-  }
-
-  if (!changed.length) {
-    status.innerHTML = '<span style="color:var(--amber);font-family:var(--dm);font-size:10px">No changes detected. Make sure you edited a value that differs from the current score.</span>';
-    return;
-  }
-
-  if (unitProgDirty) payload.unit_progress = JSON.stringify(unitProg);
-  if (vocabDirty) { payload.vocab_best_score = JSON.stringify(vocabBest); payload.vocab_passed = JSON.stringify(vocabPassed); }
-  if (frqProgressDirty) payload.frq_progress = JSON.stringify(frqProgress);
-
-  status.innerHTML = '<span style="color:var(--text2);font-family:var(--dm);font-size:10px">Saving ' + changed.length + ' change(s)...</span>';
-
-  try {
-    const resp = await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify(payload)
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error('Supabase ' + resp.status + ': ' + errText.slice(0, 120));
     }
-
-    status.innerHTML =
-      '<div style="padding:10px;background:rgba(42,170,80,.1);border:1px solid var(--green);color:var(--green2);font-family:var(--dm);font-size:11px">' +
-      '&#10003; Saved for <strong>' + (p.display_name || studentName) + '</strong>:<br>' +
-      changed.map(c => '&nbsp;&nbsp;&#183; ' + c).join('<br>') +
-      '<br><div style="font-size:9px;color:var(--text3);margin-top:6px;padding:6px;background:rgba(255,255,255,.04);border:1px solid var(--border)">&#9432; Student will see updated scores after they use <strong>Returning Student</strong> on the title screen to re-sync their profile from Supabase.</div>' +
-      '</div>';
-
-    // Refresh display with new values
-    _saCurrentProfile = null; _saCurrentFrqRows = [];
-    await loadStudentScores();
-  } catch(e) {
-    status.innerHTML = '<span style="color:var(--red2);font-family:var(--dm);font-size:11px">&#10007; Save failed: ' + e.message + '</span>';
-  }
+    _useCurrentProfile={..._useCurrentProfile,...payload};
+    st.innerHTML='<span style="color:var(--green2)">✓ Saved — '+changes.length+' change'+(changes.length>1?'s':'')+': '+changes.slice(0,3).join(', ')+(changes.length>3?'…':'')+'</span>';
+    notify('✓ Changes saved to Supabase','green');
+  }catch(e){st.innerHTML='<span style="color:var(--red2)">❌ '+e.message+'</span>';}
 }
-// Wire up SA dropdown population alongside MPE on DOMContentLoaded
-// (appended to existing listener at bottom of file)
 
-// ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────
+// Initialize on teacher login
+function useInit(){
+  useRefreshStudents();
+}
+
+// ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────// ── TEACHER: SAVE FILE RESTORE TOOL ──────────────────────────────────────────
 function clearImportJSON() {
   document.getElementById('import-json-input').value = '';
   document.getElementById('import-preview').innerHTML = '';
