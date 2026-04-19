@@ -355,7 +355,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       <div class="sh">Vocabulary Quiz</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <div style="flex:1"><div style="font-family:var(--bebas);font-size:13px;color:var(--purple2);letter-spacing:2px;margin-bottom:4px">Vocab Check &middot; 20 Questions</div>
-        <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6">Score 80%+ to earn a <strong style="color:var(--purple2)">Vocab Medal</strong> and 75 gold.</div></div>
+        <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6">Score 80%+ to earn a <strong style="color:var(--purple2)">Vocab Medal</strong> and 75 gold.</div>
+        <div id="vocab-best-score-display" style="font-family:var(--bebas);font-size:11px;letter-spacing:1px;color:var(--text3);margin-top:4px"></div></div>
         <button onclick="startVocabQuiz()" style="font-family:var(--bebas);font-size:13px;letter-spacing:2px;background:transparent;border:1.5px solid var(--purple);color:var(--purple2);padding:10px 22px;cursor:pointer;flex-shrink:0;transition:all .2s" onmouseover="this.style.background='var(--purple)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--purple2)'">START QUIZ</button>
       </div>
       <div id="vq-area"></div>
@@ -672,6 +673,15 @@ function doneLoading(){
 function loadSavedProgress(){
   try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
     if(prog[UNIT_ID])updateProgressBar(QUESTION_BANK.rounds.filter((_,i)=>isRoundComplete(i)).length,QUESTION_BANK.rounds.length);}catch(e){}
+  // Show previous vocab score
+  try{
+    const vs=parseInt(localStorage.getItem('civitas_vocab_'+UNIT_ID)||'0');
+    const vd=document.getElementById('vocab-best-score-display');
+    if(vd&&vs>0){
+      const vc=vs>=80?'var(--green2)':vs>=60?'var(--amber)':'var(--red2)';
+      vd.innerHTML='<span style="color:'+vc+'">Best: '+vs+'%</span>'+(vs>=80?' <span style="color:var(--green2)">&#127894; Medal earned</span>':'');
+    }
+  }catch(e){}
   
 }
 function loadFRQScores(){/* managed by renderFRQTab */}
@@ -686,7 +696,7 @@ function updateProgressBar(done,total){
   document.getElementById('prog-fill').style.width=Math.round(doneSteps/totalSteps*100)+'%';
   document.getElementById('prog-text').textContent=doneSteps+' / '+totalSteps+' Steps Complete';
 }
-function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')renderFRQTab();}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='play')buildRoundCards();if(name==='frq')renderFRQTab();}
 function buildRoundCards(){
   document.getElementById('round-cards').innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
     const prog=getRoundProgress(i);const done=prog!==null;const locked=i>0&&!isRoundComplete(i-1);
@@ -1153,26 +1163,17 @@ function renderFRQTab() {
       b.addEventListener('click', function() { toggleFRQReport(frq.id); });
     });
 
-    // Auto-expand if this is the active (first unlocked undone) FRQ
-    const i = frqs.indexOf(frq);
-    const unlocked = i === 0 || getFRQBestScore(frqs[i - 1].id) !== null;
-    const done = getFRQBestScore(frq.id) !== null;
-    if (unlocked && !done) {
-      // Auto-open the first unlocked undone FRQ
-      const panelEl = document.getElementById('frq-panel-' + frq.id);
-      if (panelEl && frqs.findIndex(function(f, idx) {
-        return idx === i && (idx === 0 || getFRQBestScore(frqs[idx-1].id) !== null) && getFRQBestScore(f.id) === null;
-      }) !== -1) {
-        // Only auto-open the FIRST unlocked undone one
-        const firstUnlocked = frqs.find(function(f, idx) {
-          return (idx === 0 || getFRQBestScore(frqs[idx-1].id) !== null) && getFRQBestScore(f.id) === null;
-        });
-        if (firstUnlocked && firstUnlocked.id === frq.id) {
-          panelEl.style.display = 'block';
-        }
-      }
-    }
   });
+
+  // Auto-open the first unlocked undone FRQ (run once after loop)
+  const firstToOpen = frqs.find(function(f, idx) {
+    const unlocked = idx === 0 || getFRQBestScore(frqs[idx - 1].id) !== null;
+    return unlocked && getFRQBestScore(f.id) === null;
+  });
+  if (firstToOpen) {
+    const panelEl = document.getElementById('frq-panel-' + firstToOpen.id);
+    if (panelEl) panelEl.style.display = 'block';
+  }
 }
 
 function toggleFRQPanel(frqId) {
