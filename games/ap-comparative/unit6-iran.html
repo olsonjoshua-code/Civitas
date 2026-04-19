@@ -927,10 +927,67 @@ function finishRound(){
   else{nb.textContent='🏆 Complete Unit';nb.onclick=showUnitComplete;}
 }
 function syncProgressToShell(acc){
-  try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
-    const prev=prog[UNIT_ID]||{bestAccuracy:0};
-    prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};
-    localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+  try{
+    const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    const prev=prog[UNIT_ID]||{};
+
+    // Calculate MCQ score: average of all completed rounds
+    const roundScores=[];
+    QUESTION_BANK.rounds.forEach((_,i)=>{
+      try{const r=JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+i)||'null');
+        if(r&&r.accuracy!=null)roundScores.push(r.accuracy);}catch(e){}
+    });
+    const mcqScore=roundScores.length>0?Math.round(roundScores.reduce((a,b)=>a+b,0)/roundScores.length):0;
+
+    // Vocab score
+    const vocabScore=parseInt(localStorage.getItem('civitas_vocab_'+UNIT_ID)||'0');
+
+    // FRQ score: average of submitted FRQs
+    let frqScore=null;
+    try{
+      const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
+      const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};
+      // Get all unit FRQ ids
+      const unitFrqIds=UNIT_FRQS.map(function(f){return f.id;});
+      const submitted=unitFrqIds.filter(function(id){return subs[id]&&subs[id].bestScore>0;});
+      if(submitted.length>0){
+        const totalEarned=submitted.reduce(function(s,id){return s+(subs[id].bestScore||0);},0);
+        const totalMax=submitted.reduce(function(s,id){
+          const frq=UNIT_FRQS.find(function(f){return f.id===id;});
+          return s+(frq?frq.points:4);
+        },0);
+        frqScore=totalMax>0?Math.round(totalEarned/totalMax*100):0;
+      }
+    }catch(e){}
+
+    // Composite: MCQ 50%, Vocab 25%, FRQ 25%
+    // Only include FRQ if submitted
+    let composite;
+    if(frqScore!==null){
+      composite=Math.round(mcqScore*0.5+vocabScore*0.25+frqScore*0.25);
+    } else {
+      // No FRQ yet — weight MCQ 67%, Vocab 33%
+      composite=Math.round(mcqScore*0.67+vocabScore*0.33);
+    }
+
+    const trophy=composite>=100?'historian':composite>=90?'gold':composite>=80?'silver':composite>=70?'bronze':composite>=60?'completed':'tryagain';
+
+    prog[UNIT_ID]={
+      bestAccuracy:Math.max(prev.bestAccuracy||0,acc),
+      mcqScore:mcqScore,
+      vocabScore:vocabScore,
+      frqScore:frqScore,
+      frqAllDone:frqScore!==null&&UNIT_FRQS.every(function(f){
+        try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
+          const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};
+          return subs[f.id]&&subs[f.id].bestScore>0;}catch(e){return false;}
+      }),
+      composite:composite,
+      trophy:trophy,
+      completedAt:prev.completedAt||new Date().toISOString()
+    };
+    localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
+  }catch(e){}
 
   _pushRoundsToSupabase();
 }
@@ -1238,6 +1295,7 @@ async function submitUnitFRQ(frqId) {
     } catch(e) {}
 
     saveFRQToSupabase(frqId, score, frq.points, frq.type, UNIT_ID);
+    syncProgressToShell(score);
 
     if (isNew && score > 0) {
       const g = Math.round((FRQ_GOLD[frq.type]||75) * (score/frq.points));
@@ -1553,7 +1611,7 @@ function renderVocabQuizComplete() {
   try {
     const key = 'civitas_vocab_' + UNIT_ID;
     const prev = parseInt(localStorage.getItem(key) || '0');
-    if (pct > prev) localStorage.setItem(key, pct);
+    if (pct > prev) { localStorage.setItem(key, pct); syncProgressToShell(pct); }
     if (passed && prev < 80) {
       const cur = parseInt(localStorage.getItem('civitas_gold') || '0');
       localStorage.setItem('civitas_gold', cur + 75);
