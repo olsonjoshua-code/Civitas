@@ -321,6 +321,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 16px;display:flex;gap:12px;align-items:flex-start"><div style="font-size:14px;flex-shrink:0">✍️</div><div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.65"><strong style="color:var(--cream)">Argument Essay:</strong> Is democracy the only legitimate form of government? China (performance legitimacy, 75-year stability) vs. UK (democratic legitimacy surviving crises). The key argument: performance legitimacy is contingent (erodes when growth slows) while democratic legitimacy survives poor performance through accountability mechanisms.</div></div>
       </div>
 
+    </div>
     <div id="tab-vocab" class="hub-panel">
       <div class="sh">Vocabulary Flashcards</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);padding:24px 28px;text-align:center;margin-bottom:20px">
@@ -831,7 +832,7 @@ function updateProgressBar(done,total){
   document.getElementById('prog-fill').style.width=Math.round(doneSteps/totalSteps*100)+'%';
   document.getElementById('prog-text').textContent=doneSteps+' / '+totalSteps+' Steps Complete';
 }
-function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='frq')renderFRQTab();}
+function switchTab(name,btn){document.querySelectorAll('.hub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hub-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='play')buildRoundCards();if(name==='frq')renderFRQTab();}
 
 function buildRoundCards(){
   document.getElementById('round-cards').innerHTML=QUESTION_BANK.rounds.map((r,i)=>{
@@ -1221,7 +1222,56 @@ function finishRound(){
   if(ni<QUESTION_BANK.rounds.length){nb.textContent='Continue to Round '+(ni+1)+' →';nb.onclick=()=>{rc.style.display='none';startRound(ni);};}
   else{nb.textContent='🏆 Complete Big Idea';nb.onclick=showUnitComplete;}
 }
-function syncProgressToShell(acc){try{const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');const prev=prog[UNIT_ID]||{bestAccuracy:0};prog[UNIT_ID]={bestAccuracy:Math.max(prev.bestAccuracy||0,acc),completedAt:new Date().toISOString()};localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));}catch(e){}
+function syncProgressToShell(acc){
+  try{
+    const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    const prev=prog[UNIT_ID]||{};
+
+    // Calculate MCQ score: average of all completed rounds
+    const roundScores=[];
+    QUESTION_BANK.rounds.forEach((_,i)=>{
+      try{const r=JSON.parse(localStorage.getItem('civitas_'+UNIT_ID+'_r'+i)||'null');
+        if(r&&r.accuracy!=null)roundScores.push(r.accuracy);}catch(e){}
+    });
+    const mcqScore=roundScores.length>0?Math.round(roundScores.reduce((a,b)=>a+b,0)/roundScores.length):0;
+
+    // Vocab score
+    const vocabScore=parseInt(localStorage.getItem('civitas_vocab_'+UNIT_ID)||'0');
+
+    // FRQ score: earned points out of ALL possible points (unsubmitted = 0)
+    // This gives partial credit for what was completed
+    let frqScore=0;
+    let anyFrqSubmitted=false;
+    try{
+      const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');
+      const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};
+      const totalMax=UNIT_FRQS.reduce(function(s,f){return s+f.points;},0);
+      const totalEarned=UNIT_FRQS.reduce(function(s,f){
+        if(subs[f.id]&&subs[f.id].bestScore>0){anyFrqSubmitted=true;}
+        return s+(subs[f.id]?subs[f.id].bestScore||0:0);
+      },0);
+      frqScore=totalMax>0?Math.round(totalEarned/totalMax*100):0;
+    }catch(e){}
+
+    // Composite: MCQ 50%, Vocab 25%, FRQ 25%
+    // Always include FRQ (0 if nothing submitted yet)
+    const composite=Math.round(mcqScore*0.67+frqScore*0.33);
+
+    const trophy=composite>=100?'historian':composite>=90?'gold':composite>=80?'silver':composite>=70?'bronze':composite>=60?'completed':'tryagain';
+
+    prog[UNIT_ID]={
+      bestAccuracy:Math.max(prev.bestAccuracy||0,acc),
+      mcqScore:mcqScore,
+      vocabScore:vocabScore,
+      frqScore:frqScore,
+      frqAllDone:anyFrqSubmitted&&UNIT_FRQS.every(function(f){try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');const subs=(ss.courseProgress&&ss.courseProgress.ap_cmp&&ss.courseProgress.ap_cmp.frqSubmissions)||{};return subs[f.id]&&subs[f.id].bestScore>0;}catch(e){return false;}}),
+      composite:composite,
+      trophy:trophy,
+      completedAt:prev.completedAt||new Date().toISOString()
+    };
+    localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
+  }catch(e){}
+
   _pushRoundsToSupabase();
 }
 function showUnitComplete(){
@@ -1304,105 +1354,159 @@ function updateFRQWC(id,el,min) {
 function toggleFRQReport(id) { const f=document.getElementById('frq-report-form-'+id); if(f) f.style.display=f.style.display==='none'?'block':'none'; }
 
 function renderFRQTab() {
-  const el = document.getElementById('frq-hub-content'); if (!el) return;
+  const el = document.getElementById('frq-hub-content');
+  if (!el) return;
+
   const frqs = getUnitFRQs();
-  if (!frqs.length) { el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">No FRQs found.</div>'; return; }
-  const types = ['CA','QA','COMP','AE'];
-  let html = '<div style="background:rgba(32,136,120,.07);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:14px 18px;margin-bottom:18px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.7">'
-    + '<strong style="color:var(--teal2)">How it works:</strong> Write your full response in one box, just like the real AP Exam. Submit for AI feedback against the official rubric, then resubmit to improve your score.'
-    + '</div>';
-  types.forEach(function(type) {
-    const typeFrqs = frqs.filter(function(f){return f.type===type;});
-    if (!typeFrqs.length) return;
-    const tc = FRQ_TYPE_CONFIG[type];
-    html += '<div style="font-family:var(--bebas);font-size:11px;color:'+tc.color+';letter-spacing:3px;border-bottom:1px solid var(--border2);padding-bottom:5px;margin-bottom:12px;margin-top:20px">'+tc.label+'</div>';
-    typeFrqs.forEach(function(frq) {
-      const best = getFRQBestScore(frq.id);
-      const pct = best!==null ? Math.round(best/frq.points*100) : null;
-      const sc = pct===null ? 'var(--text3)' : pct>=80 ? 'var(--green2)' : pct>=50 ? 'var(--amber)' : 'var(--red2)';
-      const fb = getFRQFeedback(frq.id);
-      html += '<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+tc.color+';margin-bottom:14px;overflow:hidden">'
-        // Header
-        +'<div style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px">'
-        +'<div style="font-size:22px">'+(frq.icon||'✍️')+'</div>'
-        +'<div style="flex:1"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
-        +'<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+tc.color+';background:'+tc.bg+';padding:2px 7px;border:1px solid '+tc.color+'">'+tc.label+'</span>'
-        +'<span style="font-family:var(--dm);font-size:8px;color:var(--text3)">'+frq.points+' pts</span></div>'
-        +'<div style="font-family:var(--playfair);font-size:13px;color:var(--cream)">'+frq.title+'</div></div>'
-        +(pct!==null
-          ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+best+'/'+frq.points+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
-          : '<div style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:var(--purple2);border:1px solid var(--purple2);padding:3px 8px;flex-shrink:0">NOT ATTEMPTED</div>')
-        +'</div>'
-        // Chart if QA
-        +(frq.svgChart ? '<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3)">'+frq.svgChart+'</div>' : '')
-        // Prompt
-        +'<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>'
-        +'<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line">'+frq.prompt+'</div></div>'
-        // Response box
-        +'<div style="padding:14px 16px">'
-        +'<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>'
-        +'<textarea id="frq-text-'+frq.id+'" data-frqid="'+frq.id+'" data-minwords="'+tc.minWords+'"'
-        +' style="width:100%;min-height:180px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.75;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
-        +' placeholder="Write your complete response here. Address each part (A, B, C...) in order. You do not need separate boxes, write it all here, just like the real AP Exam.">'+getFRQDraft(frq.id)+'</textarea>'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">'
-        +'<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-'+frq.id+'">0 words</div>'
-        +'<button data-frqid="'+frq.id+'" id="frq-btn-'+frq.id+'" class="frq-submit-btn"'
-        +' style="border-color:'+tc.color+';color:'+tc.color+'">'
-        +(fb?'&#8634; Resubmit':'&#9889; Submit for AI Grading')+'</button></div></div>'
-        // Feedback area
-        +'<div id="frq-feedback-'+frq.id+'" style="display:'+(fb?'block':'none')+';padding:14px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">'+(fb||'')+'</div>'
-        // Report
-        +'<div style="padding:6px 16px 10px;border-top:1px solid var(--border)">'
-        +'<button data-frqid="'+frq.id+'" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
-        +'<div id="frq-report-form-'+frq.id+'" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
-        +'<select id="frq-report-type-'+frq.id+'" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
-        +'<option value="">-- Select issue type --</option>'
-        +'<option value="question_confusing">Question is confusing</option>'
-        +'<option value="grading_wrong">AI grading seems incorrect</option>'
-        +'<option value="factual_error">Factual error in prompt</option>'
-        +'<option value="other">Other</option></select>'
-        +'<textarea id="frq-report-note-'+frq.id+'" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
-        +'<div style="display:flex;gap:8px;align-items:center">'
-        +'<button data-frqid="'+frq.id+'" data-frqtitle="'+frq.title+'" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
-        +'<button data-frqid="'+frq.id+'" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
-        +'<div id="frq-report-status-'+frq.id+'" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
-        +'</div></div></div></div>';
-    });
+  if (!frqs.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">No FRQs available.</div>';
+    return;
+  }
+
+  // Determine unlock state: each FRQ unlocks after the previous one is submitted
+  // First FRQ is always unlocked; subsequent ones unlock after previous is graded
+  const unlockStates = frqs.map(function(f, i) {
+    if (i === 0) return true;
+    return getFRQBestScore(frqs[i - 1].id) !== null;
   });
+
+  // Banner
+  let html = '<div style="background:rgba(32,136,120,.06);border:1px solid var(--teal);border-left:3px solid var(--teal2);padding:12px 18px;margin-bottom:16px;font-family:var(--dm);font-size:10px;color:var(--text2);line-height:1.6">'
+    + '<strong style="color:var(--teal2)">One FRQ per type.</strong> Complete each to unlock the next. Submit for AI feedback — resubmit anytime to improve your score.'
+    + '</div>';
+
+  // FRQ list rows
+  frqs.forEach(function(frq, i) {
+    const tc = FRQ_TYPE_CONFIG[frq.type] || FRQ_TYPE_CONFIG.CA;
+    const unlocked = unlockStates[i];
+    const best = getFRQBestScore(frq.id);
+    const pct = best !== null ? Math.round(best / frq.points * 100) : null;
+    const sc = pct === null ? tc.color : pct >= 80 ? 'var(--green2)' : pct >= 50 ? 'var(--amber)' : 'var(--red2)';
+    const done = best !== null;
+
+    const rowId = 'frq-row-' + frq.id;
+    const panelId = 'frq-panel-' + frq.id;
+
+    html += '<div id="' + rowId + '" style="border:1px solid ' + (unlocked ? (done ? 'var(--green2)' : tc.color) : 'var(--border2)') + ';border-left:3px solid ' + (unlocked ? (done ? 'var(--green2)' : tc.color) : 'var(--border2)') + ';margin-bottom:8px;background:var(--bg2);opacity:' + (unlocked ? '1' : '.45') + '">';
+
+    // Header row - clickable if unlocked
+        html += '<div data-frqid="' + frq.id + '" class="frq-row-header" style="padding:14px 18px;cursor:' + (unlocked ? 'pointer' : 'not-allowed') + ';display:flex;align-items:center;gap:14px">';
+    html += '<div style="flex:1">';
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
+    html += '<span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:' + (unlocked ? tc.color : 'var(--text3)') + '">' + tc.label + '</span>';
+    html += '<span style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;color:' + (unlocked ? (done ? 'var(--green2)' : tc.color) : 'var(--text3)') + '">';
+    html += unlocked ? (done ? '&#10003; DONE' : '&#9654; UNLOCKED') : '&#128274; LOCKED';
+    html += '</span></div>';
+    html += '<div style="font-family:var(--playfair);font-size:14px;color:' + (unlocked ? 'var(--cream)' : 'var(--text3)') + ';font-weight:' + (unlocked ? '700' : '400') + '">' + frq.title + '</div>';
+    html += '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:2px">' + frq.points + ' pts &middot; ' + (unlocked ? (done ? 'click to review or resubmit' : 'click to open') : 'complete the previous FRQ to unlock') + '</div>';
+    html += '</div>';
+    if (done) {
+      html += '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:22px;color:' + sc + '">' + best + '/' + frq.points + '</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>';
+    }
+    html += '</div>'; // header row
+
+    // Expandable panel (hidden by default, shown when clicked)
+    const fb = getFRQFeedback(frq.id);
+    html += '<div id="' + panelId + '" style="display:none;border-top:1px solid var(--border)">';
+    // Prompt
+    html += '<div style="padding:14px 18px;border-bottom:1px solid var(--border)">';
+    html += '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">THE PROMPT</div>';
+    html += '<div style="font-family:var(--crimson);font-size:14px;color:var(--text);line-height:1.8;white-space:pre-line">' + frq.prompt + '</div></div>';
+    // Response
+    html += '<div style="padding:14px 18px">';
+    html += '<div style="font-family:var(--bebas);font-size:9px;color:var(--text3);letter-spacing:3px;margin-bottom:8px">YOUR RESPONSE</div>';
+    html += '<textarea id="frq-text-' + frq.id + '" data-frqid="' + frq.id + '" data-minwords="' + tc.minWords + '"'
+      + ' style="width:100%;min-height:200px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);font-family:var(--crimson);font-size:14px;line-height:1.75;padding:12px;outline:none;resize:vertical;transition:border-color .2s;box-sizing:border-box"'
+      + ' placeholder="Write your complete response here. Address each part (A, B, C...) in order.">' + getFRQDraft(frq.id) + '</textarea>';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">';
+    html += '<div style="font-family:var(--dm);font-size:9px;color:var(--text3)" id="frq-wc-' + frq.id + '">0 words</div>';
+    html += '<button data-frqid="' + frq.id + '" id="frq-btn-' + frq.id + '" class="frq-submit-btn" style="border-color:' + tc.color + ';color:' + tc.color + '">'
+      + (fb ? '&#8634; Resubmit' : '&#9889; Submit for AI Grading') + '</button>';
+    html += '</div></div>';
+    // Feedback
+    html += '<div id="frq-feedback-' + frq.id + '" style="display:' + (fb ? 'block' : 'none') + ';padding:14px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.2)">' + (fb || '') + '</div>';
+    // Report
+    html += '<div style="padding:6px 18px 10px;border-top:1px solid var(--border)">'
+      + '<button data-frqid="' + frq.id + '" class="frq-report-toggle" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer;opacity:.6">&#9873; Report an issue</button>'
+      + '<div id="frq-report-form-' + frq.id + '" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border2);padding:12px">'
+      + '<select id="frq-report-type-' + frq.id + '" style="width:100%;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;margin-bottom:8px;outline:none">'
+      + '<option value="">-- Select issue type --</option>'
+      + '<option value="question_confusing">Question is confusing</option>'
+      + '<option value="grading_wrong">AI grading seems incorrect</option>'
+      + '<option value="factual_error">Factual error in prompt</option>'
+      + '<option value="other">Other</option></select>'
+      + '<textarea id="frq-report-note-' + frq.id + '" placeholder="Describe the issue (optional)..." style="width:100%;min-height:60px;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 8px;outline:none;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>'
+      + '<div style="display:flex;gap:8px;align-items:center">'
+      + '<button data-frqid="' + frq.id + '" data-frqtitle="' + frq.title + '" class="frq-report-submit" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:transparent;border:1px solid var(--amber);color:var(--amber);padding:5px 14px;cursor:pointer">Submit Report</button>'
+      + '<button data-frqid="' + frq.id + '" class="frq-report-cancel" style="font-family:var(--dm);font-size:9px;color:var(--text3);background:transparent;border:none;cursor:pointer">Cancel</button>'
+      + '<div id="frq-report-status-' + frq.id + '" style="font-family:var(--dm);font-size:9px;color:var(--green2)"></div>'
+      + '</div></div></div>';
+
+    html += '</div>'; // panel
+    html += '</div>'; // row
+  });
+
   el.innerHTML = html;
 
-  // Wire events
-  el.querySelectorAll('.frq-submit-btn').forEach(function(btn) {
-    const id = btn.getAttribute('data-frqid');
-    const frq = getUnitFRQs().find(function(f){return f.id===id;});
-    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
-    btn.addEventListener('mouseover', function(){ this.style.background=tc.color; this.style.color='#0e1018'; });
-    btn.addEventListener('mouseout', function(){ this.style.background='transparent'; this.style.color=tc.color; });
-    btn.addEventListener('click', function(){ submitUnitFRQ(id); });
+  // Wire row header clicks
+  el.querySelectorAll('.frq-row-header').forEach(function(row) {
+    row.addEventListener('click', function() {
+      const fid = this.getAttribute('data-frqid');
+      const frq = frqs.find(function(f) { return f.id === fid; });
+      const i = frqs.indexOf(frq);
+      const unlocked = i === 0 || getFRQBestScore(frqs[i - 1].id) !== null;
+      if (unlocked) toggleFRQPanel(fid);
+    });
   });
-  el.querySelectorAll('.frq-report-toggle').forEach(function(btn) {
-    btn.addEventListener('mouseover', function(){ this.style.opacity='1'; });
-    btn.addEventListener('mouseout', function(){ this.style.opacity='.6'; });
-    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
+
+  // Wire events for all FRQs
+  frqs.forEach(function(frq) {
+    const tc = FRQ_TYPE_CONFIG[frq.type] || FRQ_TYPE_CONFIG.CA;
+
+    const btn = document.getElementById('frq-btn-' + frq.id);
+    if (btn) {
+      btn.addEventListener('mouseover', function() { this.style.background = tc.color; this.style.color = '#0e1018'; });
+      btn.addEventListener('mouseout', function() { this.style.background = 'transparent'; this.style.color = tc.color; });
+      btn.addEventListener('click', function() { submitUnitFRQ(frq.id); });
+    }
+
+    const ta = document.getElementById('frq-text-' + frq.id);
+    if (ta) {
+      const min = parseInt(ta.getAttribute('data-minwords')) || 80;
+      ta.addEventListener('input', function() { updateFRQWC(frq.id, this, min); saveFRQDraft(frq.id, this.value); });
+      ta.addEventListener('paste', function(e) { e.preventDefault(); notify('Pasting is disabled on FRQ responses.'); });
+      ta.addEventListener('focus', function() { this.style.borderColor = tc.color; });
+      ta.addEventListener('blur', function() { this.style.borderColor = 'var(--border2)'; });
+      updateFRQWC(frq.id, ta, min);
+    }
+
+    const panel = document.getElementById('frq-report-form-' + frq.id);
+    el.querySelectorAll('[data-frqid="' + frq.id + '"].frq-report-toggle').forEach(function(b) {
+      b.addEventListener('mouseover', function() { this.style.opacity = '1'; });
+      b.addEventListener('mouseout', function() { this.style.opacity = '.6'; });
+      b.addEventListener('click', function() { toggleFRQReport(frq.id); });
+    });
+    el.querySelectorAll('[data-frqid="' + frq.id + '"].frq-report-submit').forEach(function(b) {
+      b.addEventListener('click', function() { submitFRQReport(frq.id, frq.title); });
+    });
+    el.querySelectorAll('[data-frqid="' + frq.id + '"].frq-report-cancel').forEach(function(b) {
+      b.addEventListener('click', function() { toggleFRQReport(frq.id); });
+    });
+
   });
-  el.querySelectorAll('.frq-report-submit').forEach(function(btn) {
-    btn.addEventListener('click', function(){ submitFRQReport(this.getAttribute('data-frqid'), this.getAttribute('data-frqtitle')); });
-  });
-  el.querySelectorAll('.frq-report-cancel').forEach(function(btn) {
-    btn.addEventListener('click', function(){ toggleFRQReport(this.getAttribute('data-frqid')); });
-  });
-  el.querySelectorAll('textarea[data-frqid]').forEach(function(ta) {
-    const id = ta.getAttribute('data-frqid');
-    const min = parseInt(ta.getAttribute('data-minwords'))||80;
-    const frq = getUnitFRQs().find(function(f){return f.id===id;});
-    const tc = frq ? (FRQ_TYPE_CONFIG[frq.type]||FRQ_TYPE_CONFIG.CA) : FRQ_TYPE_CONFIG.CA;
-    ta.addEventListener('input', function(){ updateFRQWC(id, this, min); saveFRQDraft(id, this.value); });
-    ta.addEventListener('paste', function(e){ e.preventDefault(); notify('Pasting is disabled on FRQ responses.'); });
-    ta.addEventListener('focus', function(){ this.style.borderColor=tc.color; });
-    ta.addEventListener('blur', function(){ this.style.borderColor='var(--border2)'; });
-  });
+
 }
+
+function toggleFRQPanel(frqId) {
+  const panel = document.getElementById('frq-panel-' + frqId);
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function advanceFRQ() {
+  renderFRQTab();
+}
+
 
 async function submitUnitFRQ(frqId) {
   const frqs = getUnitFRQs();
@@ -1457,6 +1561,7 @@ async function submitUnitFRQ(frqId) {
     } catch(e) {}
 
     saveFRQToSupabase(frqId, score, frq.points, frq.type, UNIT_ID);
+    syncProgressToShell(score);
 
     if (isNew && score > 0) {
       const g = Math.round((FRQ_GOLD[frq.type]||75) * (score/frq.points));
@@ -1772,7 +1877,7 @@ function renderVocabQuizComplete() {
   try {
     const key = 'civitas_vocab_' + UNIT_ID;
     const prev = parseInt(localStorage.getItem(key) || '0');
-    if (pct > prev) localStorage.setItem(key, pct);
+    if (pct > prev) { localStorage.setItem(key, pct); syncProgressToShell(pct); }
     if (passed && prev < 80) {
       const cur = parseInt(localStorage.getItem('civitas_gold') || '0');
       localStorage.setItem('civitas_gold', cur + 75);
