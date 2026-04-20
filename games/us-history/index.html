@@ -4463,7 +4463,7 @@ function drawLbTable(sts,period){
 function printCert(uid){
   const u=UNIT_DATA.find(x=>x.id===uid);
   if(!u){notify('Unit not found!');return;}
-  const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(uid);
+  const {mcqScore,vocabScore,frqScore,frqRaw,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(uid);
   if(!mcqAttempted){notify('Play this unit first!');return;}
   const tier=allAttempted?calcTier(composite):'inprogress';
   const tc=TIER_COLOR[tier].replace('var(--gold)','#ffd700').replace('var(--silver)','#c8c8d8').replace('var(--bronze)','#cd7f32').replace('var(--green2)','#38a050').replace('var(--red2)','#e04040').replace('var(--historian)','#e8d0ff').replace('var(--text3)','#584840');
@@ -4516,10 +4516,10 @@ function printCert(uid){
       <div class="comp-box">
         <div class="comp-label">OPEN ANSWER</div>
         <div class="comp-score" style="color:${frqAttempted?'#1a7a6a':'#aaa'}">${frqAttempted?frqScore+'%':'—'}</div>
-        <div class="comp-weight">Weight: 25%</div>
+        <div class="comp-weight">Weight: 25%${frqAttempted&&frqScore>frqRaw?` · Raw ${frqRaw}%`:''}</div>
       </div>
     </div>
-    <div style="font-size:9px;color:#aaa;margin-bottom:8px;font-family:'Inter',sans-serif">MCQ 50% · Vocab 25% · Open Answer 25% · Incomplete sections scored as 0%</div>
+    <div style="font-size:9px;color:#aaa;margin-bottom:8px;font-family:'Inter',sans-serif">MCQ 50% · Vocab 25% · Open Answer 25% · Incomplete sections scored as 0%${frqAttempted&&frqScore>frqRaw?` · Open Answer curved (avg ${FRQ_CURVE_TARGET}% = 100%)`:''}</div>
     <div class="divider"></div>
     <div class="sigs">
       <div><div class="sig-line"></div><div class="sig-name">${S.name}</div><div class="sig-title">STUDENT${S.period?' · PERIOD '+S.period:''}</div></div>
