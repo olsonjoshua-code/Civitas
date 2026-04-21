@@ -8098,7 +8098,7 @@ async function useLoadUSHScores(fullName, st){
   // USH uses ac_results (keyed by display_name) and ac_student_profiles
   // First find the student's display name from civitas_profiles or ac_student_profiles
   let displayName = fullName;
-  const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
+  const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name,unit_progress,frq_progress,vocab_best_score,vocab_passed&limit=1').catch(()=>[]);
   if(civProf&&civProf[0]) displayName = civProf[0].display_name || fullName;
 
   // ac_results keyed by display_name ("Nathan K.")
@@ -8111,13 +8111,28 @@ async function useLoadUSHScores(fullName, st){
 
   console.log('[USE] ac_results rows:', acResults?.length, '| ac_student_profiles rows:', acProfile?.length);
   if(acResults?.length) console.log('[USE] Sample unit_id:', acResults[0].unit_id, 'acc:', acResults[0].best_accuracy);
+
+  // FIX: pull teacher-override data from civitas_profiles (unit_progress has frqScore,
+  // vocabScore, composite overrides with teacherAdj:true). Previously the editor only
+  // read ac_results, so FRQ/vocab/composite overrides round-tripped as blank.
+  let civUnitProgress = {};
+  let civFrqProgress = {};
+  let civVocabBest = {};
+  let civVocabPassed = {};
+  if(civProf && civProf[0]){
+    try{ civUnitProgress = JSON.parse(civProf[0].unit_progress||'{}'); }catch(e){}
+    try{ civFrqProgress  = JSON.parse(civProf[0].frq_progress||'{}');  }catch(e){}
+    try{ civVocabBest    = JSON.parse(civProf[0].vocab_best_score||'{}'); }catch(e){}
+    try{ civVocabPassed  = JSON.parse(civProf[0].vocab_passed||'{}'); }catch(e){}
+  }
+
   // Build a synthetic profile object in civitas_profiles format
   // so useRenderAll can work with it
   const unitProg = {};
   (acResults||[]).forEach(r => {
     if(!r.unit_id) return;
     // Skip vocab_ and test_ rows — handled separately
-    if(r.unit_id.startsWith('vocab_')||r.unit_id.startsWith('test_')) return;
+    if(r.unit_id.startsWith('vocab_')||r.unit_id.startsWith('test_')||r.unit_id.endsWith('_frq')) return;
     unitProg[r.unit_id] = {
       bestAccuracy: r.best_accuracy||0,
       mcqScore:     r.best_accuracy||0,
@@ -8125,19 +8140,70 @@ async function useLoadUSHScores(fullName, st){
     };
   });
 
+  // FIX: merge civitas_profiles.unit_progress ON TOP of the ac_results-derived data.
+  // unit_progress is keyed by editor unit_id (u.id — e.g. 'ush_u7b'), ac_results is
+  // keyed by the ushId (e.g. 'unit7b'). The renderer tries both keys so we store under
+  // the editor-id key for override fields.
+  Object.keys(civUnitProgress).forEach(editorId => {
+    const ov = civUnitProgress[editorId];
+    if(!ov) return;
+    // Find the ac_results-equivalent id for this editor id
+    const ushId = (typeof USH_UNIT_ID_MAP !== 'undefined' && USH_UNIT_ID_MAP[editorId]) ? USH_UNIT_ID_MAP[editorId] : editorId;
+    // Start from whatever we already have under either key
+    const merged = Object.assign({}, unitProg[ushId]||{}, unitProg[editorId]||{}, ov);
+    // Store under the editor-id key so useRenderUnits finds override fields
+    unitProg[editorId] = merged;
+    // Also mirror into the ushId key so the MCQ input still shows the ac_results value
+    // if no override is set there
+    if (ushId !== editorId) {
+      unitProg[ushId] = Object.assign({}, unitProg[ushId]||{}, merged);
+    }
+  });
+
+  // FIX: include civitas_profiles FRQ aggregate for fallback display
+  // (primary FRQ value comes from unit_progress[id].frqScore now)
+
+  // FIX: pull FRQ composite from ac_results _frq rows AND from civitas_profiles frq_progress
+  // (per-question namespaced keys like ush_u7b_questions). If unit_progress.frqScore
+  // isn't set from a teacher override, fall back to the _frq row's best_accuracy.
+  (acResults||[]).forEach(r => {
+    if(!r.unit_id || !r.unit_id.endsWith('_frq')) return;
+    const baseUshId = r.unit_id.replace(/_frq$/, ''); // e.g. 'unit7b'
+    // Find the editor id that maps to this ushId
+    let editorId = null;
+    if (typeof USH_UNIT_ID_MAP !== 'undefined') {
+      for (const k of Object.keys(USH_UNIT_ID_MAP)) {
+        if (USH_UNIT_ID_MAP[k] === baseUshId) { editorId = k; break; }
+      }
+    }
+    if (!editorId) editorId = baseUshId;
+    const existing = unitProg[editorId] || {};
+    if (existing.frqScore == null) {
+      unitProg[editorId] = Object.assign({}, existing, {
+        frqScore: r.best_accuracy||0,
+        frqAllDone: (r.best_accuracy||0) > 0
+      });
+    }
+  });
+
   // Vocab from ac_student_profiles.vocab_best_score (keyed by deck IDs)
+  // then overlay civitas_profiles (teacher overrides win)
   let vocabBestRaw = {};
+  let vocabPassedRaw = {};
   (acProfile||[]).forEach(p => {
     try{ const v=JSON.parse(p.vocab_best_score||'{}'); Object.assign(vocabBestRaw,v); }catch(e){}
+    try{ const vp=JSON.parse(p.vocab_passed||'{}'); Object.assign(vocabPassedRaw,vp); }catch(e){}
   });
+  Object.assign(vocabBestRaw, civVocabBest);      // civitas_profiles overrides win
+  Object.assign(vocabPassedRaw, civVocabPassed);  // civitas_profiles overrides win
 
   _useCurrentProfile = {
     display_name: displayName,
     full_name: fullName,
     unit_progress: JSON.stringify(unitProg),
     vocab_best_score: JSON.stringify(vocabBestRaw),
-    vocab_passed: '{}',
-    frq_progress: '{}',
+    vocab_passed: JSON.stringify(vocabPassedRaw),
+    frq_progress: JSON.stringify(civFrqProgress),
     _ush_raw_results: acResults||[],
     _ush_display_name: displayName,
     _ush_period: (acProfile&&acProfile[0]&&acProfile[0].period)||''
@@ -8149,7 +8215,8 @@ async function useLoadUSHScores(fullName, st){
   document.getElementById('use-scores-area').style.display='block';
   useSwitchTab('units');
   const unitCount = (acResults||[]).filter(r=>!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')).length;
-  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+displayName+' · '+unitCount+' unit results from ac_results</span>';
+  const overrideCount = Object.values(civUnitProgress).filter(u=>u&&u.teacherAdj).length;
+  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+displayName+' · '+unitCount+' ac_results, '+overrideCount+' teacher overrides</span>';
 }
 
 function useResetEditor(){
