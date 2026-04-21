@@ -2861,8 +2861,9 @@ async function fullRefreshFromSupabase() {
           try {
             const vp = JSON.parse(p.vocab_passed || '{}');
             const vbs = JSON.parse(p.vocab_best_score || '{}');
-            Object.keys(vp).forEach(k => { if(vp[k]) S.vocabPassed[k] = true; });
-            Object.keys(vbs).forEach(k => { if(k[0]!=='_') S.vocabBestScore[k] = Math.max(vbs[k]||0, S.vocabBestScore[k]||0); });
+            // FIX: override wins — teacher can raise OR lower. Replace rather than max-clamp.
+            Object.keys(vp).forEach(k => { S.vocabPassed[k] = !!vp[k]; });
+            Object.keys(vbs).forEach(k => { if(k[0]!=='_') S.vocabBestScore[k] = vbs[k]||0; });
           } catch(e) {}
           if (p.gold) S.gold = Math.max(S.gold||0, p.gold);
           // Also update civitas_state so next boot has fresh data
@@ -2870,8 +2871,9 @@ async function fullRefreshFromSupabase() {
             const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
             if (!civ.vocabPassed) civ.vocabPassed = {};
             if (!civ.vocabBestScore) civ.vocabBestScore = {};
-            Object.keys(S.vocabPassed).forEach(k => { civ.vocabPassed[k] = true; });
-            Object.keys(S.vocabBestScore).forEach(k => { civ.vocabBestScore[k] = Math.max(S.vocabBestScore[k]||0, civ.vocabBestScore[k]||0); });
+            // FIX: mirror authoritative Supabase values, not Math.max
+            Object.keys(S.vocabPassed).forEach(k => { civ.vocabPassed[k] = !!S.vocabPassed[k]; });
+            Object.keys(S.vocabBestScore).forEach(k => { civ.vocabBestScore[k] = S.vocabBestScore[k]||0; });
             if (p.gold) civ.gold = Math.max(p.gold, civ.gold||0);
             localStorage.setItem('civitas_state', JSON.stringify(civ));
           } catch(e) {}
@@ -2880,6 +2882,8 @@ async function fullRefreshFromSupabase() {
     } catch(e) {}
 
     // 2. Also merge from civitas_state (local Civitas shell cache)
+    // NOTE: step 1 above is the authoritative source (Supabase civitas_profiles).
+    // Only fill in keys that step 1 didn't already set — do NOT overwrite with local.
     try {
       const civRaw = localStorage.getItem('civitas_state');
       if (civRaw) {
@@ -2887,9 +2891,11 @@ async function fullRefreshFromSupabase() {
         if (civ && civ.vocabPassed) {
           if (!S.vocabPassed) S.vocabPassed = {};
           if (!S.vocabBestScore) S.vocabBestScore = {};
-          Object.keys(civ.vocabPassed).forEach(k => { if(civ.vocabPassed[k]) S.vocabPassed[k] = true; });
+          Object.keys(civ.vocabPassed).forEach(k => {
+            if (!(k in S.vocabPassed) && civ.vocabPassed[k]) S.vocabPassed[k] = true;
+          });
           Object.keys(civ.vocabBestScore||{}).forEach(k => {
-            S.vocabBestScore[k] = Math.max(civ.vocabBestScore[k]||0, S.vocabBestScore[k]||0);
+            if (!(k in S.vocabBestScore)) S.vocabBestScore[k] = civ.vocabBestScore[k]||0;
           });
         }
         if (civ.gold) S.gold = Math.max(S.gold||0, civ.gold);
@@ -2928,8 +2934,9 @@ async function syncFromSupabase(){
           const vbs = JSON.parse(profile.vocab_best_score||'{}');
           if(!S.vocabPassed) S.vocabPassed={};
           if(!S.vocabBestScore) S.vocabBestScore={};
-          Object.keys(vp).forEach(k=>{ if(vp[k]) S.vocabPassed[k]=true; });
-          Object.keys(vbs).forEach(k=>{ if(k[0]!=='_') S.vocabBestScore[k]=Math.max(vbs[k]||0,S.vocabBestScore[k]||0); });
+          // FIX: override wins — mirror server values, don't max-clamp
+          Object.keys(vp).forEach(k=>{ S.vocabPassed[k]=!!vp[k]; });
+          Object.keys(vbs).forEach(k=>{ if(k[0]!=='_') S.vocabBestScore[k]=vbs[k]||0; });
           saveS();
           renderVocabMedals();
         }catch(e){}
@@ -2942,25 +2949,39 @@ async function syncFromSupabase(){
   _trophyData=rows;
   let changed=false;
   if(!S.frqResults)S.frqResults={};
+  // FIX: "override wins" — teacher edits in the score editor should apply
+  // even if they LOWER the score. Rebuild unitsCompleted and frqResults
+  // from the authoritative ac_results rows instead of only appending.
+  const newUnitsCompleted = [];
   rows.forEach(r=>{
+    if(!r.unit_id) return;
     // Only add real unit games to unitsCompleted — not vocab or test rows
-    if(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')&&!r.unit_id.endsWith('_frq')&&!S.unitsCompleted.includes(r.unit_id)&&r.best_accuracy>=60){
-      S.unitsCompleted.push(r.unit_id);changed=true;
+    if(!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')&&!r.unit_id.endsWith('_frq')&&r.best_accuracy>=60){
+      if(!newUnitsCompleted.includes(r.unit_id)) newUnitsCompleted.push(r.unit_id);
     }
-    // Restore FRQ results from Supabase
+    // Restore FRQ results from Supabase — teacher override wins
     if(r.unit_id.endsWith('_frq')){
       const uid=r.unit_id.replace('_frq','');
       const score=r.best_accuracy||0;
       const tier=getFRQTier(score);
       const existing=S.frqResults[uid];
-      const existingScore=existing?(existing.composite!==undefined?existing.composite:existing.score)||0:0;
-      if(score>existingScore){
-        // Preserve questions array if present, just update composite
-        S.frqResults[uid]=Object.assign({},existing||{},{composite:score,score,tier});
-        changed=true;
-      }
+      // Preserve questions array if present, replace composite with authoritative server value
+      S.frqResults[uid]=Object.assign({},existing||{},{composite:score,score,tier});
+      changed=true;
     }
   });
+  // Replace unitsCompleted only if the server actually has data — never wipe if
+  // ac_results query came back empty (e.g. network hiccup returning [])
+  if(rows.length){
+    // Preserve any locally-earned unit_id that isn't in ac_results yet (e.g. just finished offline)
+    (S.unitsCompleted||[]).forEach(uid=>{
+      if(!newUnitsCompleted.includes(uid) && !rows.find(r=>r.unit_id===uid)) newUnitsCompleted.push(uid);
+    });
+    if(JSON.stringify((S.unitsCompleted||[]).slice().sort())!==JSON.stringify(newUnitsCompleted.slice().sort())){
+      S.unitsCompleted=newUnitsCompleted;
+      changed=true;
+    }
+  }
   // Always refresh HUD after sync so EOC rating reflects loaded data
   updateHUD();
   awardBadges();checkUnlocks();
