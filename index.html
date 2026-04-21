@@ -8775,26 +8775,28 @@ async function useSaveUSHScores(fullName, st, now){
       if(!isNaN(fv)) {
         const existing = unitProgressPatch[u.id] || {};
         const oldFrq = Math.round(existing.frqScore||0);
+        // FIX: always mirror FRQ to ac_results when value is set, even if unchanged.
+        // This ensures the _frq row exists in ac_results so the History Shell cert
+        // can read it (teacher may load a student, see FRQ=77, and save again to
+        // re-sync — that must still write the ac_results row).
+        frqOverride = fv;
         if(fv !== oldFrq) {
-          frqOverride = fv;
           changes.push(u.num+' FRQ: '+oldFrq+'→'+fv+'%');
-          // FIX: also mirror FRQ override to ac_results under {ushId}_frq so the
-          // History Shell cert (which reads ac_results, not civitas_profiles) can see it.
-          try {
-            await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
-              method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
-              body:JSON.stringify({
-                name:          displayName,
-                period:        period,
-                unit_id:       ushId+'_frq',
-                best_accuracy: fv,
-                best_score:    fv,
-                cards:         fv>=90?'gold':fv>=80?'silver':fv>=70?'bronze':'none',
-                updated_at:    now
-              })
-            });
-          } catch(e){ console.error('USH FRQ ac_results mirror error',u.id,e); }
         }
+        try {
+          await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+            method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+            body:JSON.stringify({
+              name:          displayName,
+              period:        period,
+              unit_id:       ushId+'_frq',
+              best_accuracy: fv,
+              best_score:    fv,
+              cards:         fv>=90?'gold':fv>=80?'silver':fv>=70?'bronze':'none',
+              updated_at:    now
+            })
+          });
+        } catch(e){ console.error('USH FRQ ac_results mirror error',u.id,e); }
       }
     }
 
