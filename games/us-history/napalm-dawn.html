@@ -3120,23 +3120,11 @@ function saveFRQResultToSupabase(score, tier) {
         updated_at: new Date().toISOString()
       })
     });
-    // Also push frq_progress to civitas_profiles for cross-device sync
-    const fullName = P ? (P.fullName || P.name) : name;
-    if (fullName && fullName !== 'Guest') {
-      try {
-        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
-        const frqProgress = (ss.courseProgress && ss.courseProgress[CIV_COURSE] && ss.courseProgress[CIV_COURSE].frqSubmissions) || {};
-        fetch(supaUrl + '/rest/v1/civitas_profiles?on_conflict=full_name', {
-          method: 'POST',
-          headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({
-            full_name: fullName,
-            frq_progress: JSON.stringify(frqProgress),
-            updated_at: new Date().toISOString()
-          })
-        });
-      } catch(e) {}
-    }
+    // HOTFIX: cross-device frq_progress push disabled.
+    // The previous code read from civitas_state.courseProgress[CIV_COURSE].frqSubmissions,
+    // which is never populated, so every FRQ submit was overwriting Supabase with {}.
+    // Proper per-question sync will be restored in the follow-up patch.
+    // The ac_results composite row above still saves correctly.
   } catch(e) {}
 }
 
@@ -4070,7 +4058,9 @@ function pushLessonProgress(acc) {
             courses:         JSON.stringify(existingCourses),
             unit_progress:   JSON.stringify(unitProgress),
             course_progress: JSON.stringify(courseProgress),
-            frq_progress:    JSON.stringify((()=>{try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');return (ss.courseProgress&&ss.courseProgress[CIV_COURSE]&&ss.courseProgress[CIV_COURSE].frqSubmissions)||{};}catch(e){return {};}})()),
+            // HOTFIX: frq_progress removed from this payload.
+            // Lesson saves must never touch FRQ data — the previous code
+            // was overwriting Supabase frq_progress with {} every lesson.
             updated_at:      new Date().toISOString()
           })
         }
