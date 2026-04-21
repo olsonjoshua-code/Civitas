@@ -3179,15 +3179,17 @@ async function saveFRQResultToSupabase(score, tier) {
     if (!supaUrl || !supaH) return;
 
     // 1. Push composite to ac_results (leaderboard / History Shell sync)
+    // FIX: removed 'cards: tier' — ac_results.cards is INTEGER, not text, and
+    // sending a tier string caused Supabase to 400 the whole row, silently.
+    // Also: previous hand-patch had hardcoded 'unit1_frq' — use UNIT_ID instead.
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify({
         name, period,
-        unit_id: 'unit1_frq',
+        unit_id: UNIT_ID + '_frq',
         best_accuracy: score,
         best_score: score,
-        cards: tier || 'none',
         updated_at: new Date().toISOString()
       })
     }).catch(()=>{});
