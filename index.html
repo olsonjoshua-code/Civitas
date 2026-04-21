@@ -8465,6 +8465,8 @@ async function useSaveAllScores(){
       if(!isNaN(v) && v !== Math.round(existing.mcqScore||0)) {
         patch.mcqScore = v;
         patch.bestAccuracy = v; // keep bestAccuracy in sync for leaderboard reads
+        patch.teacherAdj = true; // FIX: flag so unit game knows to honor override
+        patch.updatedAt = now;
         patch.completedAt = existing.completedAt || (v>0?now:null);
         changes.push(u.num+' MCQ: '+(existing.mcqScore||0)+'→'+v+'%');
         changed = true;
@@ -8475,9 +8477,10 @@ async function useSaveAllScores(){
       const v = Math.max(0,Math.min(100,parseInt(vocabEl.value)));
       if(!isNaN(v) && v !== Math.round(existing.vocabScore||0)) {
         patch.vocabScore = v;
-        // Also sync to top-level vocab blobs
-        vocabBest[u.id] = Math.max(v, vocabBest[u.id]||0);
-        if(v >= 80) vocabPassed[u.id] = true;
+        patch.teacherAdj = true;
+        // FIX: override wins — replace, don't Math.max with previous value
+        vocabBest[u.id] = v;
+        vocabPassed[u.id] = v >= 80;
         changes.push(u.num+' Vocab: '+(existing.vocabScore||0)+'→'+v+'%');
         changed = true; vocabDirty = true;
       }
@@ -8488,6 +8491,8 @@ async function useSaveAllScores(){
       if(!isNaN(v) && v !== Math.round(existing.frqScore||0)) {
         patch.frqScore = v;
         patch.frqAllDone = true;
+        patch.teacherAdj = true; // FIX: flag so unit game honors override
+        patch.updatedAt = now;
         // Sync to frq_progress as well
         const fkey = u.id+'_unit_frq';
         frqProg[fkey] = Object.assign({},frqProg[fkey]||{},{bestScore:v,maxScore:100,teacherAdj:true,updatedAt:now});
@@ -8500,6 +8505,8 @@ async function useSaveAllScores(){
       const v = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
       if(!isNaN(v) && v !== Math.round(existing.composite||0)) {
         patch.composite = v;
+        patch.teacherAdj = true; // FIX: flag so unit game honors override
+        patch.updatedAt = now;
         patch.trophy = v>=100?'historian':v>=90?'gold':v>=80?'silver':v>=70?'bronze':v>=60?'completed':'tryagain';
         changes.push(u.num+' Composite override: '+(existing.composite||0)+'→'+v+'%');
         changed = true;
@@ -8516,8 +8523,9 @@ async function useSaveAllScores(){
     if(isNaN(val)) return;
     const old=vocabBest[v.id]||0;
     if(val===old) return;
-    vocabBest[v.id]=Math.max(val,old);
-    if(val>=80) vocabPassed[v.id]=true;
+    // FIX: override wins — replace instead of Math.max
+    vocabBest[v.id]=val;
+    vocabPassed[v.id]=val>=80;
     changes.push(v.label+' vocab: '+old+'→'+val+'%');
     vocabDirty=true;
   });
@@ -8544,7 +8552,8 @@ async function useSaveAllScores(){
     if(pts===old) return;
     const pct=Math.round((pts/f.points)*100);
     frqToUpsert.push({student_name:p.display_name||fullName,frq_id:f.id,score:pts,updated_at:now});
-    frqProg[f.id]=Object.assign({},frqProg[f.id]||{},{bestScore:Math.max(pts,frqProg[f.id]?.bestScore||0),maxScore:f.points,attempts:(frqProg[f.id]?.attempts||0)+1,teacherAdj:true,updatedAt:now});
+    // FIX: override wins — replace bestScore, don't Math.max with previous
+    frqProg[f.id]=Object.assign({},frqProg[f.id]||{},{bestScore:pts,maxScore:f.points,attempts:(frqProg[f.id]?.attempts||0)+1,teacherAdj:true,updatedAt:now});
     changes.push(f.label+': '+old+'→'+pts+'/'+f.points+' ('+pct+'%)');
     frqDirty=true;
   });
@@ -8575,46 +8584,96 @@ async function useSaveUSHScores(fullName, st, now){
   const changes = [];
   const units = USE_COURSE_UNITS['hs_ush']||[];
 
+  // FIX: collect unit_progress overrides so we can write them to civitas_profiles
+  // in a single merged payload at the end. Unit games read civitas_profiles.unit_progress
+  // on boot and honor teacherAdj:true.
+  let unitProgressPatch = {};
+  let unitProgressDirty = false;
+  // Pre-load existing unit_progress so we merge rather than clobber other units
+  try {
+    const existingProfileResp = await fetch(
+      SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=unit_progress,vocab_best_score,vocab_passed&limit=1',
+      { headers: SUPA_H }
+    );
+    const rows = await existingProfileResp.json();
+    if (rows && rows[0]) {
+      try { unitProgressPatch = JSON.parse(rows[0].unit_progress || '{}'); } catch(e){}
+    }
+  } catch(e) {}
+
   for(const u of units){
     const mcqEl      = document.getElementById('use-mcq-'+u.id);
     const overrideEl = document.getElementById('use-override-'+u.id);
     const ushId      = USH_UNIT_ID_MAP[u.id]||u.id;
+    let mcqOverride = null;
+    let compositeOverride = null;
 
     if(mcqEl && mcqEl.value !== ''){
       const acc = Math.max(0,Math.min(100,parseInt(mcqEl.value)));
-      if(isNaN(acc)) continue;
-      // Check what's currently stored
-      const existing = (p._ush_raw_results||[]).find(r=>r.unit_id===ushId);
-      const oldAcc = existing ? (existing.best_accuracy||0) : 0;
-      if(acc === oldAcc) continue;
-      // Upsert into ac_results
-      const scoreRow = {
-        name:          displayName,
-        period:        period,
-        unit_id:       ushId,
-        best_accuracy: acc,
-        best_score:    existing ? Math.max(existing.best_score||0, acc*10) : acc*10,
-        attempts:      (existing?.attempts||0)+1,
-        updated_at:    now
-      };
-      // If override composite set, store it too
-      if(overrideEl && overrideEl.value !== ''){
-        const ov = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
-        if(!isNaN(ov)) scoreRow.best_accuracy = ov;
+      if(!isNaN(acc)) {
+        // Check what's currently stored
+        const existing = (p._ush_raw_results||[]).find(r=>r.unit_id===ushId);
+        const oldAcc = existing ? (existing.best_accuracy||0) : 0;
+        if(acc !== oldAcc) {
+          mcqOverride = acc;
+          // FIX: override wins — write acc directly, not Math.max(existing, acc*10)
+          const scoreRow = {
+            name:          displayName,
+            period:        period,
+            unit_id:       ushId,
+            best_accuracy: acc,
+            best_score:    acc*10,
+            attempts:      (existing?.attempts||0)+1,
+            updated_at:    now
+          };
+          try{
+            await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+              method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+              body:JSON.stringify(scoreRow)
+            });
+            changes.push(u.num+' MCQ: '+oldAcc+'→'+acc+'%');
+          }catch(e){ console.error('USH save error',u.id,e); }
+        }
       }
-      try{
-        await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
-          method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
-          body:JSON.stringify(scoreRow)
-        });
-        changes.push(u.num+': '+oldAcc+'→'+acc+'%');
-      }catch(e){ console.error('USH save error',u.id,e); }
+    }
+
+    if(overrideEl && overrideEl.value !== ''){
+      const ov = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
+      if(!isNaN(ov)) {
+        compositeOverride = ov;
+        const existing = unitProgressPatch[u.id] || {};
+        if (Math.round(existing.composite||0) !== ov) {
+          changes.push(u.num+' Composite override: '+(existing.composite||0)+'→'+ov+'%');
+        }
+      }
+    }
+
+    // Build unit_progress entry if we have ANY override for this unit
+    if (mcqOverride !== null || compositeOverride !== null) {
+      const existing = unitProgressPatch[u.id] || {};
+      const patch = Object.assign({}, existing, {
+        teacherAdj: true,
+        updatedAt: now,
+        bestAccuracy: mcqOverride !== null ? mcqOverride : existing.bestAccuracy,
+        completedAt: existing.completedAt || now
+      });
+      if (mcqOverride !== null) patch.mcqScore = mcqOverride;
+      if (compositeOverride !== null) {
+        patch.composite = compositeOverride;
+        patch.trophy = compositeOverride>=100?'historian':compositeOverride>=90?'gold':compositeOverride>=80?'silver':compositeOverride>=70?'bronze':compositeOverride>=60?'completed':'tryagain';
+      }
+      unitProgressPatch[u.id] = patch;
+      unitProgressDirty = true;
     }
   }
 
-  // Vocab — save to ac_student_profiles.vocab_best_score
+  // Vocab — save to BOTH ac_student_profiles AND civitas_profiles
+  // FIX: Napalm Dawn reads civitas_profiles.vocab_best_score, not ac_student_profiles,
+  // so we must write both to make overrides visible to the unit game.
   let vocabBestRaw = {};
   try{ vocabBestRaw = JSON.parse(p.vocab_best_score||'{}'); }catch(e){}
+  let vocabPassedRaw = {};
+  try{ vocabPassedRaw = JSON.parse(p.vocab_passed||'{}'); }catch(e){}
   let vocabDirty = false;
   const vocabUnits = USE_VOCAB['hs_ush']||[];
   vocabUnits.forEach(v=>{
@@ -8625,7 +8684,20 @@ async function useSaveUSHScores(fullName, st, now){
     const deckId = USH_DECK_MAP[v.id]||v.id;
     const old = vocabBestRaw[deckId]||0;
     if(val===old) return;
-    vocabBestRaw[deckId] = Math.max(val,old);
+    // FIX: override wins — replace, don't Math.max
+    vocabBestRaw[deckId] = val;
+    vocabPassedRaw[deckId] = val >= 80;
+    // Also write under the raw unit id so older code paths find it
+    vocabBestRaw[v.id] = val;
+    vocabPassedRaw[v.id] = val >= 80;
+    // And per-unit vocabScore on unit_progress
+    const existing = unitProgressPatch[v.id] || {};
+    unitProgressPatch[v.id] = Object.assign({}, existing, {
+      teacherAdj: true,
+      updatedAt: now,
+      vocabScore: val
+    });
+    unitProgressDirty = true;
     changes.push(v.label+' vocab: '+old+'→'+val+'%');
     vocabDirty = true;
   });
@@ -8636,14 +8708,30 @@ async function useSaveUSHScores(fullName, st, now){
         method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
         body:JSON.stringify({display_name:displayName,period:period,vocab_best_score:JSON.stringify(vocabBestRaw),updated_at:now})
       });
-    }catch(e){ console.error('USH vocab save error',e); }
+    }catch(e){ console.error('USH vocab save error (ac_student_profiles)',e); }
+  }
+
+  // Write unit_progress + vocab to civitas_profiles so unit games pick up overrides
+  if (unitProgressDirty || vocabDirty) {
+    try {
+      const civPayload = { full_name: fullName, updated_at: now };
+      if (unitProgressDirty) civPayload.unit_progress = JSON.stringify(unitProgressPatch);
+      if (vocabDirty) {
+        civPayload.vocab_best_score = JSON.stringify(vocabBestRaw);
+        civPayload.vocab_passed = JSON.stringify(vocabPassedRaw);
+      }
+      await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name',{
+        method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+        body:JSON.stringify(civPayload)
+      });
+    } catch(e) { console.error('USH civitas_profiles save error',e); }
   }
 
   if(!changes.length){
     st.innerHTML='<span style="color:var(--text3)">No changes to save.</span>';
   } else {
-    st.innerHTML='<span style="color:var(--green2)">✓ Saved to ac_results — '+changes.join(', ')+'</span>';
-    notify('✓ USH scores saved','green');
+    st.innerHTML='<span style="color:var(--green2)">✓ Saved — '+changes.join(', ')+'</span>';
+    notify('✓ USH scores saved (override will apply when student next loads unit)','green');
   }
 }
 
