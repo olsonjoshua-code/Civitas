@@ -2778,7 +2778,7 @@ function showScreen(id) {
 function getCompositeScore() {
   // MCQ — average of all completed lessons
   const lessonScores = Object.values(P.lessonBestScores || {});
-  const mcqScore = lessonScores.length
+  let mcqScore = lessonScores.length
     ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
     : 0;
 
@@ -2822,15 +2822,40 @@ function getCompositeScore() {
     }
   } catch(e) {}
 
+  // FIX: Apply teacher overrides — "override wins" for all three categories.
+  // Overrides are written to ac_shell_state.teacherOverride by restoreProgressFromCivitas.
+  let overrideApplied = false;
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    const ov = shell.teacherOverride;
+    if (ov) {
+      if (typeof ov.mcqScore === 'number')   { mcqScore   = ov.mcqScore;   overrideApplied = true; }
+      if (typeof ov.vocabScore === 'number') { vocabScore = ov.vocabScore; overrideApplied = true; }
+      if (typeof ov.frqScore === 'number')   { frqScore   = ov.frqScore; frqAllDone = true; overrideApplied = true; }
+    }
+  } catch(e) {}
+
+  // Make mcqScore writable if it was declared as const upstream
+  // (we also need the composite to recompute after override).
+
   // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
-  const composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
+  let composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
+  // Full composite override if teacher set it
+  try {
+    const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (shell.teacherOverride && typeof shell.teacherOverride.composite === 'number') {
+      composite = shell.teacherOverride.composite;
+      overrideApplied = true;
+    }
+  } catch(e) {}
 
   return { mcqScore, vocabScore, frqScore, composite,
-    mcqAttempted: lessonScores.length > 0,
+    mcqAttempted: lessonScores.length > 0 || overrideApplied,
     vocabAttempted: vocabScore > 0,
     frqAttempted: frqScore > 0,
     frqAllDone,
-    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqAllDone
+    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqAllDone,
+    teacherOverride: overrideApplied
   };
 }
 
@@ -3192,6 +3217,9 @@ async function saveFRQResultToSupabase(score, tier) {
     if (!supaUrl || !supaH) return;
 
     // 1. Push composite to ac_results (leaderboard / History Shell sync)
+    // FIX: removed 'cards: tier' — ac_results.cards is INTEGER, not text, and
+    // sending a tier string caused Supabase to 400 the whole row, silently
+    // dropping every in-game FRQ submission.
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
@@ -3200,7 +3228,6 @@ async function saveFRQResultToSupabase(score, tier) {
         unit_id: UNIT_ID + '_frq',
         best_accuracy: score,
         best_score: score,
-        cards: tier || 'none',
         updated_at: new Date().toISOString()
       })
     }).catch(()=>{});
