@@ -8119,9 +8119,24 @@ async function useLoadCivitasScores(fullName, course, st){
 async function useLoadUSHScores(fullName, st){
   // USH uses ac_results (keyed by display_name) and ac_student_profiles
   // First find the student's display name from civitas_profiles or ac_student_profiles
-  let displayName = fullName;
+  // FIX: fall back to "First L." derivation when civitas_profiles.display_name is null,
+  // so we look up ac_results under "Jacob R." not "Jacob Rodriguez"
+  function deriveDisplayName(fn){
+    if (!fn) return '';
+    const parts = fn.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    return parts[0] + ' ' + parts[parts.length-1][0] + '.';
+  }
+  let displayName = deriveDisplayName(fullName);
   const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name,unit_progress,frq_progress,vocab_best_score,vocab_passed&limit=1').catch(()=>[]);
-  if(civProf&&civProf[0]) displayName = civProf[0].display_name || fullName;
+  if(civProf&&civProf[0] && civProf[0].display_name) displayName = civProf[0].display_name;
+  // Also try ac_student_profiles as a fallback source for display_name
+  if (!displayName || displayName === fullName) {
+    try {
+      const asp = await sfetch('/rest/v1/ac_student_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
+      if (asp && asp[0] && asp[0].display_name) displayName = asp[0].display_name;
+    } catch(e) {}
+  }
 
   // ac_results keyed by display_name ("Nathan K.")
   // ac_student_profiles has full_name ("Nathan Kuzak") — use that for vocab lookup
@@ -8668,7 +8683,18 @@ async function useSaveAllScores(){
 
 async function useSaveUSHScores(fullName, st, now){
   const p = _useCurrentProfile;
-  const displayName = p._ush_display_name || p.display_name || fullName;
+  // FIX: derive a proper display_name even when profile.display_name is null.
+  // ac_results is keyed by display name ("Jacob R."), not full name ("Jacob Rodriguez").
+  // If we fall back to fullName we create duplicate rows the game never reads.
+  function deriveDisplayName(fn){
+    if (!fn) return '';
+    const parts = fn.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    return parts[0] + ' ' + parts[parts.length-1][0] + '.';
+  }
+  const displayName = p._ush_display_name
+    || p.display_name
+    || deriveDisplayName(fullName);
   const period = p._ush_period || '';
   const changes = [];
   const units = USE_COURSE_UNITS['hs_ush']||[];
@@ -8752,6 +8778,22 @@ async function useSaveUSHScores(fullName, st, now){
         if(fv !== oldFrq) {
           frqOverride = fv;
           changes.push(u.num+' FRQ: '+oldFrq+'→'+fv+'%');
+          // FIX: also mirror FRQ override to ac_results under {ushId}_frq so the
+          // History Shell cert (which reads ac_results, not civitas_profiles) can see it.
+          try {
+            await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+              method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+              body:JSON.stringify({
+                name:          displayName,
+                period:        period,
+                unit_id:       ushId+'_frq',
+                best_accuracy: fv,
+                best_score:    fv,
+                cards:         fv>=90?'gold':fv>=80?'silver':fv>=70?'bronze':'none',
+                updated_at:    now
+              })
+            });
+          } catch(e){ console.error('USH FRQ ac_results mirror error',u.id,e); }
         }
       }
     }
