@@ -8603,9 +8603,13 @@ async function useSaveUSHScores(fullName, st, now){
 
   for(const u of units){
     const mcqEl      = document.getElementById('use-mcq-'+u.id);
+    const vocabCardEl= document.getElementById('use-vocab-'+u.id);  // FIX: per-card vocab input
+    const frqPctEl   = document.getElementById('use-frq-pct-'+u.id);// FIX: per-card FRQ input
     const overrideEl = document.getElementById('use-override-'+u.id);
     const ushId      = USH_UNIT_ID_MAP[u.id]||u.id;
     let mcqOverride = null;
+    let vocabOverride = null;
+    let frqOverride = null;
     let compositeOverride = null;
 
     if(mcqEl && mcqEl.value !== ''){
@@ -8637,6 +8641,32 @@ async function useSaveUSHScores(fullName, st, now){
       }
     }
 
+    // FIX: per-card vocab input (was never read before)
+    if(vocabCardEl && vocabCardEl.value !== ''){
+      const v = Math.max(0,Math.min(100,parseInt(vocabCardEl.value)));
+      if(!isNaN(v)) {
+        const existing = unitProgressPatch[u.id] || {};
+        const oldVocab = Math.round(existing.vocabScore||0);
+        if(v !== oldVocab) {
+          vocabOverride = v;
+          changes.push(u.num+' Vocab: '+oldVocab+'→'+v+'%');
+        }
+      }
+    }
+
+    // FIX: per-card FRQ input (was never read before)
+    if(frqPctEl && frqPctEl.value !== ''){
+      const fv = Math.max(0,Math.min(100,parseInt(frqPctEl.value)));
+      if(!isNaN(fv)) {
+        const existing = unitProgressPatch[u.id] || {};
+        const oldFrq = Math.round(existing.frqScore||0);
+        if(fv !== oldFrq) {
+          frqOverride = fv;
+          changes.push(u.num+' FRQ: '+oldFrq+'→'+fv+'%');
+        }
+      }
+    }
+
     if(overrideEl && overrideEl.value !== ''){
       const ov = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
       if(!isNaN(ov)) {
@@ -8649,7 +8679,7 @@ async function useSaveUSHScores(fullName, st, now){
     }
 
     // Build unit_progress entry if we have ANY override for this unit
-    if (mcqOverride !== null || compositeOverride !== null) {
+    if (mcqOverride !== null || vocabOverride !== null || frqOverride !== null || compositeOverride !== null) {
       const existing = unitProgressPatch[u.id] || {};
       const patch = Object.assign({}, existing, {
         teacherAdj: true,
@@ -8657,24 +8687,56 @@ async function useSaveUSHScores(fullName, st, now){
         bestAccuracy: mcqOverride !== null ? mcqOverride : existing.bestAccuracy,
         completedAt: existing.completedAt || now
       });
-      if (mcqOverride !== null) patch.mcqScore = mcqOverride;
+      if (mcqOverride !== null)   patch.mcqScore   = mcqOverride;
+      if (vocabOverride !== null) patch.vocabScore = vocabOverride;
+      if (frqOverride !== null) {
+        patch.frqScore    = frqOverride;
+        patch.frqAllDone  = true;
+      }
       if (compositeOverride !== null) {
         patch.composite = compositeOverride;
         patch.trophy = compositeOverride>=100?'historian':compositeOverride>=90?'gold':compositeOverride>=80?'silver':compositeOverride>=70?'bronze':compositeOverride>=60?'completed':'tryagain';
       }
       unitProgressPatch[u.id] = patch;
       unitProgressDirty = true;
+
+      // FIX: also mirror per-card vocab override into top-level vocab blobs so
+      // unit game reads it under the deck key it expects.
+      if (vocabOverride !== null) {
+        const deckKey = (typeof USH_DECK_MAP !== 'undefined' && USH_DECK_MAP[u.id]) ? USH_DECK_MAP[u.id] : u.id;
+        try {
+          const vb = JSON.parse(p.vocab_best_score||'{}');
+          const vp = JSON.parse(p.vocab_passed||'{}');
+          vb[deckKey] = vocabOverride;
+          vb[u.id]    = vocabOverride;
+          vp[deckKey] = vocabOverride >= 80;
+          vp[u.id]    = vocabOverride >= 80;
+          p.vocab_best_score = JSON.stringify(vb);
+          p.vocab_passed = JSON.stringify(vp);
+        } catch(e) {}
+      }
     }
   }
 
   // Vocab — save to BOTH ac_student_profiles AND civitas_profiles
-  // FIX: Napalm Dawn reads civitas_profiles.vocab_best_score, not ac_student_profiles,
-  // so we must write both to make overrides visible to the unit game.
+  // FIX: Napalm Dawn and other unit games read civitas_profiles.vocab_best_score,
+  // not ac_student_profiles, so we must write both to make overrides visible.
+  // Also: per-card vocab overrides from the loop above have already been mirrored
+  // into p.vocab_best_score / p.vocab_passed — we start from those updated values.
   let vocabBestRaw = {};
   try{ vocabBestRaw = JSON.parse(p.vocab_best_score||'{}'); }catch(e){}
   let vocabPassedRaw = {};
   try{ vocabPassedRaw = JSON.parse(p.vocab_passed||'{}'); }catch(e){}
+  // vocabDirty starts true if the per-card loop above wrote any vocab overrides.
+  // We detect that by checking whether unitProgressPatch has any vocabScore fields we just set.
   let vocabDirty = false;
+  for (const uid in unitProgressPatch) {
+    const up = unitProgressPatch[uid];
+    if (up && up.teacherAdj && typeof up.vocabScore === 'number') {
+      vocabDirty = true;
+      break;
+    }
+  }
   const vocabUnits = USE_VOCAB['hs_ush']||[];
   vocabUnits.forEach(v=>{
     const el = document.getElementById('use-voc-'+v.id);
