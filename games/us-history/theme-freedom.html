@@ -2193,26 +2193,46 @@ async function restoreProgressFromCivitas(fullName) {
       }
     } catch(e) {}
 
-    // Restore FRQ submission scores from Supabase
+    // FIX: Restore FRQ per-question state from Supabase into
+    // ac_shell_state.frqResults['theme_liberty'] (the actual location the
+    // game reads from), not into the unused civitas_state.frqSubmissions.
+    // Data is stored under the namespaced key 'ush_theme_freedom_questions' to avoid
+    // collisions with the AP course FRQ schema that shares the same column.
     try {
       if (profile.frq_progress && profile.frq_progress !== '{}') {
         const dbFrq = JSON.parse(profile.frq_progress);
-        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
-        if (!ss.courseProgress) ss.courseProgress = {};
-        if (!ss.courseProgress[CIV_COURSE]) ss.courseProgress[CIV_COURSE] = { frqSubmissions:{} };
-        if (!ss.courseProgress[CIV_COURSE].frqSubmissions) ss.courseProgress[CIV_COURSE].frqSubmissions = {};
-        const existing = ss.courseProgress[CIV_COURSE].frqSubmissions;
-        Object.keys(dbFrq).forEach(fid => {
-          if (!existing[fid] || dbFrq[fid].bestScore > (existing[fid].bestScore || 0)) {
-            existing[fid] = dbFrq[fid];
+        const ushQs = dbFrq['ush_theme_freedom_questions'];
+        if (ushQs && Array.isArray(ushQs.questions) && ushQs.questions.length) {
+          const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+          if (!state.frqResults) state.frqResults = {};
+          const local = state.frqResults['theme_liberty'] || { questions: [] };
+          const localQs = local.questions || [];
+          // Merge per-question: take whichever has a higher score (server vs local)
+          const merged = [];
+          const maxLen = Math.max(ushQs.questions.length, localQs.length);
+          for (let i = 0; i < maxLen; i++) {
+            const s = ushQs.questions[i];
+            const l = localQs[i];
+            if (s && l) {
+              merged[i] = (l.score || 0) >= (s.score || 0) ? l : s;
+            } else {
+              merged[i] = l || s;
+            }
           }
-        });
-        ss.courseProgress[CIV_COURSE].frqSubmissions = existing;
-        localStorage.setItem('civitas_state', JSON.stringify(ss));
+          state.frqResults['theme_liberty'] = Object.assign({}, local, {
+            questions: merged,
+            composite: ushQs.composite || local.composite,
+            compositeTier: ushQs.compositeTier || local.compositeTier,
+            score: ushQs.composite || local.score
+          });
+          localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+          console.log('FRQ progress restored from Supabase — questions:', merged.length);
+        }
       }
-    } catch(e) {}
+    } catch(e) { console.log('FRQ restore failed', e); }
 
     // Restore vocab scores from Supabase into SHELL_KEY
+    // FIX: teacher overrides win — removed Math.max clamp that ignored lower overrides
     try {
       if (profile.vocab_passed || profile.vocab_best_score) {
         const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
@@ -2220,18 +2240,41 @@ async function restoreProgressFromCivitas(fullName) {
         if (!state.vocabBestScore) state.vocabBestScore = {};
         const dbPassed = JSON.parse(profile.vocab_passed || '{}');
         const dbBest   = JSON.parse(profile.vocab_best_score || '{}');
-        // Supabase wins
-        Object.keys(dbPassed).forEach(k => { if (dbPassed[k]) state.vocabPassed[k] = true; });
+        // Supabase wins — teacher can raise OR lower scores
+        Object.keys(dbPassed).forEach(k => { state.vocabPassed[k] = !!dbPassed[k]; });
         Object.keys(dbBest).forEach(k => {
-          state.vocabBestScore[k] = Math.max(dbBest[k] || 0, state.vocabBestScore[k] || 0);
+          state.vocabBestScore[k] = dbBest[k] || 0;
         });
         localStorage.setItem(SHELL_KEY, JSON.stringify(state));
       }
     } catch(e) {}
 
+    // FIX: Apply teacher overrides from unit_progress[CIV_UNIT_ID]
+    // The Civitas score editor writes MCQ/FRQ/Vocab overrides here with teacherAdj:true.
+    // Override wins for all three categories.
+    try {
+      if (profile.unit_progress && profile.unit_progress !== '{}') {
+        const up = JSON.parse(profile.unit_progress);
+        const myUnit = up[CIV_UNIT_ID];
+        if (myUnit && myUnit.teacherAdj) {
+          const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+          if (!state.teacherOverride) state.teacherOverride = {};
+          if (typeof myUnit.mcqScore === 'number')   state.teacherOverride.mcqScore   = myUnit.mcqScore;
+          if (typeof myUnit.vocabScore === 'number') state.teacherOverride.vocabScore = myUnit.vocabScore;
+          if (typeof myUnit.frqScore === 'number')   state.teacherOverride.frqScore   = myUnit.frqScore;
+          if (typeof myUnit.composite === 'number')  state.teacherOverride.composite  = myUnit.composite;
+          state.teacherOverride.updatedAt = myUnit.updatedAt || new Date().toISOString();
+          localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+          console.log('Teacher overrides applied for', CIV_UNIT_ID, state.teacherOverride);
+        }
+      }
+    } catch(e) { console.log('teacher override restore failed', e); }
+
     // Re-render hub task cards now that all data is restored
     try { if (typeof renderHubTaskCards === 'function') renderHubTaskCards(); } catch(e) {}
     try { if (typeof renderHubTrophySection === 'function') renderHubTrophySection(); } catch(e) {}
+    try { if (typeof renderPlayTabSummary === 'function') renderPlayTabSummary(); } catch(e) {}
+    try { if (typeof renderFRQPanel === 'function' && document.getElementById('frq-panel-content')) renderFRQPanel(); } catch(e) {}
 
   } catch(e) { console.log('restoreProgressFromCivitas failed', e); }
 }
@@ -2863,7 +2906,12 @@ function showFRQResult(result, answer, question) {
   }
 }
 
-function saveFRQResultToSupabase(score, tier) {
+// FIX: cross-device FRQ sync now reads the ACTUAL local FRQ state
+// (ac_shell_state.frqResults['theme_liberty'].questions[]) and pushes
+// the full questions array to civitas_profiles.frq_progress under a
+// namespaced key 'ush_theme_freedom_questions' so we don't collide with the AP course
+// FRQ schema that shares the same column.
+async function saveFRQResultToSupabase(score, tier) {
   try {
     const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     const name = state.name;
@@ -2872,37 +2920,82 @@ function saveFRQResultToSupabase(score, tier) {
     const supaUrl = typeof AC_SUPA_URL !== 'undefined' ? AC_SUPA_URL : null;
     const supaH = typeof AC_HEADERS !== 'undefined' ? AC_HEADERS : null;
     if (!supaUrl || !supaH) return;
-    // Push to ac_results (leaderboard)
+
+    // 1. Push composite to ac_results (leaderboard / History Shell sync)
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify({
         name, period,
-        unit_id: 'unit1_frq',
+        unit_id: UNIT_ID + '_frq',
         best_accuracy: score,
         best_score: score,
         cards: tier || 'none',
         updated_at: new Date().toISOString()
       })
-    });
-    // Also push frq_progress to civitas_profiles for cross-device sync
-    const fullName = P ? (P.fullName || P.name) : name;
-    if (fullName && fullName !== 'Guest') {
-      try {
-        const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
-        const frqProgress = (ss.courseProgress && ss.courseProgress[CIV_COURSE] && ss.courseProgress[CIV_COURSE].frqSubmissions) || {};
-        fetch(supaUrl + '/rest/v1/civitas_profiles?on_conflict=full_name', {
-          method: 'POST',
-          headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({
-            full_name: fullName,
-            frq_progress: JSON.stringify(frqProgress),
-            updated_at: new Date().toISOString()
-          })
-        });
-      } catch(e) {}
+    }).catch(()=>{});
+
+    // 2. Push full per-question FRQ data to civitas_profiles for cross-device restore
+    const fullName = (typeof P !== 'undefined' && P) ? (P.fullName || P.name) : name;
+    if (!fullName || fullName === 'Guest') return;
+
+    const localFrq = (state.frqResults && state.frqResults['theme_liberty']) || null;
+    if (!localFrq || !localFrq.questions || !localFrq.questions.length) return;
+
+    // Fetch existing frq_progress so we don't stomp other units' data
+    let existingProgress = {};
+    try {
+      const r = await fetch(
+        supaUrl + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=frq_progress&limit=1',
+        {headers: supaH}
+      );
+      const rows = await r.json();
+      if (rows && rows[0] && rows[0].frq_progress) {
+        try { existingProgress = JSON.parse(rows[0].frq_progress) || {}; } catch(e) { existingProgress = {}; }
+      }
+    } catch(e) {}
+
+    // Merge: take best-score-per-question between server and local
+    const serverQs = (existingProgress['ush_theme_freedom_questions'] && existingProgress['ush_theme_freedom_questions'].questions) || [];
+    const mergedQs = [];
+    const maxLen = Math.max(serverQs.length, localFrq.questions.length);
+    for (let i = 0; i < maxLen; i++) {
+      const s = serverQs[i];
+      const l = localFrq.questions[i];
+      if (s && l) {
+        mergedQs[i] = (l.score || 0) >= (s.score || 0) ? l : s;
+      } else {
+        mergedQs[i] = l || s;
+      }
     }
-  } catch(e) {}
+    existingProgress['ush_theme_freedom_questions'] = {
+      questions: mergedQs,
+      composite: localFrq.composite || score,
+      compositeTier: localFrq.compositeTier || tier,
+      updatedAt: new Date().toISOString()
+    };
+
+    await fetch(supaUrl + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        full_name: fullName,
+        frq_progress: JSON.stringify(existingProgress),
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
+
+    // Also write mergedQs back to local so a fresh device that just got
+    // higher server data reflects it immediately
+    if (serverQs.length) {
+      const ss = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+      if (!ss.frqResults) ss.frqResults = {};
+      ss.frqResults['theme_liberty'] = Object.assign({}, ss.frqResults['theme_liberty'] || {}, {
+        questions: mergedQs
+      });
+      localStorage.setItem(SHELL_KEY, JSON.stringify(ss));
+    }
+  } catch(e) { console.log('saveFRQResultToSupabase failed', e); }
 }
 
 // Push vocab results to civitas_profiles for cross-device sync
@@ -3835,7 +3928,9 @@ function pushLessonProgress(acc) {
             courses:         JSON.stringify(existingCourses),
             unit_progress:   JSON.stringify(unitProgress),
             course_progress: JSON.stringify(courseProgress),
-            frq_progress:    JSON.stringify((()=>{try{const ss=JSON.parse(localStorage.getItem('civitas_state')||'{}');return (ss.courseProgress&&ss.courseProgress[CIV_COURSE]&&ss.courseProgress[CIV_COURSE].frqSubmissions)||{};}catch(e){return {};}})()),
+            // FIX: frq_progress removed from this payload.
+            // Lesson saves must never touch FRQ data — the previous code
+            // was overwriting Supabase frq_progress with {} every lesson.
             updated_at:      new Date().toISOString()
           })
         }
