@@ -2859,7 +2859,11 @@ function renderHubTrophySection() {
   if (!scores.length) { el.style.display = 'none'; return; }
   el.style.display = 'block';
 
-  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, allAttempted } = getCompositeScore();
+  const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, frqAllDone, allAttempted } = getCompositeScore();
+  const frqTotal = typeof UNIT_FRQS !== 'undefined' ? UNIT_FRQS.length : (typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : 0);
+  const frqDone = typeof UNIT_FRQS !== 'undefined'
+    ? UNIT_FRQS.filter(f => getFRQBestScore(f.id) !== null).length
+    : (() => { try { const s=JSON.parse(localStorage.getItem(SHELL_KEY)||'{}'); return ((s.frqResults&&s.frqResults[UNIT_ID]&&s.frqResults[UNIT_ID].questions)||[]).length; } catch(e){ return 0; } })();
   const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'var(--amber)', icon:'⏳'};
 
   function subBar(score, attempted, color) {
