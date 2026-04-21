@@ -8901,9 +8901,19 @@ async function useSaveUSHScores(fullName, st, now){
 
   if(vocabDirty){
     try{
-      await fetch(SUPA_URL+'/rest/v1/ac_student_profiles?on_conflict=display_name,period',{
+      // FIX: ac_student_profiles unique constraint is (full_name, period), not
+      // (display_name, period). Using the wrong conflict target 400s the whole write.
+      // Also need to include full_name in the body.
+      await fetch(SUPA_URL+'/rest/v1/ac_student_profiles?on_conflict=full_name,period',{
         method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
-        body:JSON.stringify({display_name:displayName,period:period,vocab_best_score:JSON.stringify(vocabBestRaw),updated_at:now})
+        body:JSON.stringify({
+          full_name: fullName,
+          display_name: displayName,
+          period: period,
+          vocab_best_score: JSON.stringify(vocabBestRaw),
+          vocab_passed: JSON.stringify(vocabPassedRaw),
+          updated_at: now
+        })
       });
     }catch(e){ console.error('USH vocab save error (ac_student_profiles)',e); }
   }
