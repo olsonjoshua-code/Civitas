@@ -7970,22 +7970,44 @@ async function useRefreshStudents(){
   try{
     // Fetch from both civitas_profiles (AP courses) and ac_student_profiles (USH)
     const [civRows, ushRows] = await Promise.all([
-      sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses&order=display_name.asc&limit=500').catch(()=>[]),
-      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name&order=display_name.asc&limit=500').catch(()=>[])
+      sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses,updated_at&order=display_name.asc&limit=500').catch(()=>[]),
+      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,updated_at&order=display_name.asc&limit=500').catch(()=>[])
     ]);
-    const seen = new Set();
-    _useStudentList = [];
+    // FIX: dedupe by display_name + period (case-insensitive) rather than full_name alone.
+    // Same display_name in the same period almost certainly = same student, even if
+    // full_name has a typo (e.g. "Rodriguez" vs "Rodroguez"). When duplicates exist,
+    // keep the row with the most recent updated_at so stale typos don't win.
+    const byKey = new Map(); // dedupKey -> {entry, updatedAt}
+    function consider(entry, updatedAt){
+      const labelKey = (entry.label||'').toLowerCase().trim();
+      const periodKey = (entry.period||'').toString().trim();
+      // Primary dedupe key: label + period. Fall back to fullName if no label.
+      const key = labelKey ? (labelKey+'|'+periodKey) : ('fn:'+(entry.fullName||'').toLowerCase());
+      const existing = byKey.get(key);
+      if (!existing || (updatedAt||'') > (existing.updatedAt||'')) {
+        byKey.set(key, {entry, updatedAt: updatedAt||''});
+      }
+    }
     // Civitas profiles first (have course info)
     (civRows||[]).filter(r=>r.full_name).forEach(r=>{
-      const key = r.full_name.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||r.full_name, fullName:r.full_name, courses:r.courses||[]}); }
+      consider({
+        label: r.display_name||r.full_name,
+        fullName: r.full_name,
+        period: '',
+        courses: r.courses||[]
+      }, r.updated_at);
     });
-    // USH students from ac_student_profiles (may not be in civitas_profiles)
+    // USH students from ac_student_profiles
     (ushRows||[]).filter(r=>r.display_name||r.full_name).forEach(r=>{
       const fn = r.full_name||r.display_name;
-      const key = fn.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||fn, fullName:fn, courses:['hs_ush']}); }
+      consider({
+        label: r.display_name||fn,
+        fullName: fn,
+        period: r.period||'',
+        courses: ['hs_ush']
+      }, r.updated_at);
     });
+    _useStudentList = Array.from(byKey.values()).map(v=>v.entry);
     _useStudentList.sort((a,b)=>a.label.localeCompare(b.label));
     if(st) st.textContent=_useStudentList.length+' students loaded';
   }catch(e){ if(st) st.textContent='Error: '+e.message; }
