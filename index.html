@@ -7970,22 +7970,44 @@ async function useRefreshStudents(){
   try{
     // Fetch from both civitas_profiles (AP courses) and ac_student_profiles (USH)
     const [civRows, ushRows] = await Promise.all([
-      sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses&order=display_name.asc&limit=500').catch(()=>[]),
-      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name&order=display_name.asc&limit=500').catch(()=>[])
+      sfetch('/rest/v1/civitas_profiles?select=display_name,full_name,courses,updated_at&order=display_name.asc&limit=500').catch(()=>[]),
+      sfetch('/rest/v1/ac_student_profiles?select=display_name,full_name,period,updated_at&order=display_name.asc&limit=500').catch(()=>[])
     ]);
-    const seen = new Set();
-    _useStudentList = [];
+    // FIX: dedupe by display_name + period (case-insensitive) rather than full_name alone.
+    // Same display_name in the same period almost certainly = same student, even if
+    // full_name has a typo (e.g. "Rodriguez" vs "Rodroguez"). When duplicates exist,
+    // keep the row with the most recent updated_at so stale typos don't win.
+    const byKey = new Map(); // dedupKey -> {entry, updatedAt}
+    function consider(entry, updatedAt){
+      const labelKey = (entry.label||'').toLowerCase().trim();
+      const periodKey = (entry.period||'').toString().trim();
+      // Primary dedupe key: label + period. Fall back to fullName if no label.
+      const key = labelKey ? (labelKey+'|'+periodKey) : ('fn:'+(entry.fullName||'').toLowerCase());
+      const existing = byKey.get(key);
+      if (!existing || (updatedAt||'') > (existing.updatedAt||'')) {
+        byKey.set(key, {entry, updatedAt: updatedAt||''});
+      }
+    }
     // Civitas profiles first (have course info)
     (civRows||[]).filter(r=>r.full_name).forEach(r=>{
-      const key = r.full_name.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||r.full_name, fullName:r.full_name, courses:r.courses||[]}); }
+      consider({
+        label: r.display_name||r.full_name,
+        fullName: r.full_name,
+        period: '',
+        courses: r.courses||[]
+      }, r.updated_at);
     });
-    // USH students from ac_student_profiles (may not be in civitas_profiles)
+    // USH students from ac_student_profiles
     (ushRows||[]).filter(r=>r.display_name||r.full_name).forEach(r=>{
       const fn = r.full_name||r.display_name;
-      const key = fn.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); _useStudentList.push({label:r.display_name||fn, fullName:fn, courses:['hs_ush']}); }
+      consider({
+        label: r.display_name||fn,
+        fullName: fn,
+        period: r.period||'',
+        courses: ['hs_ush']
+      }, r.updated_at);
     });
+    _useStudentList = Array.from(byKey.values()).map(v=>v.entry);
     _useStudentList.sort((a,b)=>a.label.localeCompare(b.label));
     if(st) st.textContent=_useStudentList.length+' students loaded';
   }catch(e){ if(st) st.textContent='Error: '+e.message; }
@@ -8097,9 +8119,24 @@ async function useLoadCivitasScores(fullName, course, st){
 async function useLoadUSHScores(fullName, st){
   // USH uses ac_results (keyed by display_name) and ac_student_profiles
   // First find the student's display name from civitas_profiles or ac_student_profiles
-  let displayName = fullName;
-  const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
-  if(civProf&&civProf[0]) displayName = civProf[0].display_name || fullName;
+  // FIX: fall back to "First L." derivation when civitas_profiles.display_name is null,
+  // so we look up ac_results under "Jacob R." not "Jacob Rodriguez"
+  function deriveDisplayName(fn){
+    if (!fn) return '';
+    const parts = fn.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    return parts[0] + ' ' + parts[parts.length-1][0] + '.';
+  }
+  let displayName = deriveDisplayName(fullName);
+  const civProf = await sfetch('/rest/v1/civitas_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name,unit_progress,frq_progress,vocab_best_score,vocab_passed&limit=1').catch(()=>[]);
+  if(civProf&&civProf[0] && civProf[0].display_name) displayName = civProf[0].display_name;
+  // Also try ac_student_profiles as a fallback source for display_name
+  if (!displayName || displayName === fullName) {
+    try {
+      const asp = await sfetch('/rest/v1/ac_student_profiles?full_name=eq.'+encodeURIComponent(fullName)+'&select=display_name&limit=1').catch(()=>[]);
+      if (asp && asp[0] && asp[0].display_name) displayName = asp[0].display_name;
+    } catch(e) {}
+  }
 
   // ac_results keyed by display_name ("Nathan K.")
   // ac_student_profiles has full_name ("Nathan Kuzak") — use that for vocab lookup
@@ -8111,13 +8148,28 @@ async function useLoadUSHScores(fullName, st){
 
   console.log('[USE] ac_results rows:', acResults?.length, '| ac_student_profiles rows:', acProfile?.length);
   if(acResults?.length) console.log('[USE] Sample unit_id:', acResults[0].unit_id, 'acc:', acResults[0].best_accuracy);
+
+  // FIX: pull teacher-override data from civitas_profiles (unit_progress has frqScore,
+  // vocabScore, composite overrides with teacherAdj:true). Previously the editor only
+  // read ac_results, so FRQ/vocab/composite overrides round-tripped as blank.
+  let civUnitProgress = {};
+  let civFrqProgress = {};
+  let civVocabBest = {};
+  let civVocabPassed = {};
+  if(civProf && civProf[0]){
+    try{ civUnitProgress = JSON.parse(civProf[0].unit_progress||'{}'); }catch(e){}
+    try{ civFrqProgress  = JSON.parse(civProf[0].frq_progress||'{}');  }catch(e){}
+    try{ civVocabBest    = JSON.parse(civProf[0].vocab_best_score||'{}'); }catch(e){}
+    try{ civVocabPassed  = JSON.parse(civProf[0].vocab_passed||'{}'); }catch(e){}
+  }
+
   // Build a synthetic profile object in civitas_profiles format
   // so useRenderAll can work with it
   const unitProg = {};
   (acResults||[]).forEach(r => {
     if(!r.unit_id) return;
     // Skip vocab_ and test_ rows — handled separately
-    if(r.unit_id.startsWith('vocab_')||r.unit_id.startsWith('test_')) return;
+    if(r.unit_id.startsWith('vocab_')||r.unit_id.startsWith('test_')||r.unit_id.endsWith('_frq')) return;
     unitProg[r.unit_id] = {
       bestAccuracy: r.best_accuracy||0,
       mcqScore:     r.best_accuracy||0,
@@ -8125,19 +8177,70 @@ async function useLoadUSHScores(fullName, st){
     };
   });
 
+  // FIX: merge civitas_profiles.unit_progress ON TOP of the ac_results-derived data.
+  // unit_progress is keyed by editor unit_id (u.id — e.g. 'ush_u7b'), ac_results is
+  // keyed by the ushId (e.g. 'unit7b'). The renderer tries both keys so we store under
+  // the editor-id key for override fields.
+  Object.keys(civUnitProgress).forEach(editorId => {
+    const ov = civUnitProgress[editorId];
+    if(!ov) return;
+    // Find the ac_results-equivalent id for this editor id
+    const ushId = (typeof USH_UNIT_ID_MAP !== 'undefined' && USH_UNIT_ID_MAP[editorId]) ? USH_UNIT_ID_MAP[editorId] : editorId;
+    // Start from whatever we already have under either key
+    const merged = Object.assign({}, unitProg[ushId]||{}, unitProg[editorId]||{}, ov);
+    // Store under the editor-id key so useRenderUnits finds override fields
+    unitProg[editorId] = merged;
+    // Also mirror into the ushId key so the MCQ input still shows the ac_results value
+    // if no override is set there
+    if (ushId !== editorId) {
+      unitProg[ushId] = Object.assign({}, unitProg[ushId]||{}, merged);
+    }
+  });
+
+  // FIX: include civitas_profiles FRQ aggregate for fallback display
+  // (primary FRQ value comes from unit_progress[id].frqScore now)
+
+  // FIX: pull FRQ composite from ac_results _frq rows AND from civitas_profiles frq_progress
+  // (per-question namespaced keys like ush_u7b_questions). If unit_progress.frqScore
+  // isn't set from a teacher override, fall back to the _frq row's best_accuracy.
+  (acResults||[]).forEach(r => {
+    if(!r.unit_id || !r.unit_id.endsWith('_frq')) return;
+    const baseUshId = r.unit_id.replace(/_frq$/, ''); // e.g. 'unit7b'
+    // Find the editor id that maps to this ushId
+    let editorId = null;
+    if (typeof USH_UNIT_ID_MAP !== 'undefined') {
+      for (const k of Object.keys(USH_UNIT_ID_MAP)) {
+        if (USH_UNIT_ID_MAP[k] === baseUshId) { editorId = k; break; }
+      }
+    }
+    if (!editorId) editorId = baseUshId;
+    const existing = unitProg[editorId] || {};
+    if (existing.frqScore == null) {
+      unitProg[editorId] = Object.assign({}, existing, {
+        frqScore: r.best_accuracy||0,
+        frqAllDone: (r.best_accuracy||0) > 0
+      });
+    }
+  });
+
   // Vocab from ac_student_profiles.vocab_best_score (keyed by deck IDs)
+  // then overlay civitas_profiles (teacher overrides win)
   let vocabBestRaw = {};
+  let vocabPassedRaw = {};
   (acProfile||[]).forEach(p => {
     try{ const v=JSON.parse(p.vocab_best_score||'{}'); Object.assign(vocabBestRaw,v); }catch(e){}
+    try{ const vp=JSON.parse(p.vocab_passed||'{}'); Object.assign(vocabPassedRaw,vp); }catch(e){}
   });
+  Object.assign(vocabBestRaw, civVocabBest);      // civitas_profiles overrides win
+  Object.assign(vocabPassedRaw, civVocabPassed);  // civitas_profiles overrides win
 
   _useCurrentProfile = {
     display_name: displayName,
     full_name: fullName,
     unit_progress: JSON.stringify(unitProg),
     vocab_best_score: JSON.stringify(vocabBestRaw),
-    vocab_passed: '{}',
-    frq_progress: '{}',
+    vocab_passed: JSON.stringify(vocabPassedRaw),
+    frq_progress: JSON.stringify(civFrqProgress),
     _ush_raw_results: acResults||[],
     _ush_display_name: displayName,
     _ush_period: (acProfile&&acProfile[0]&&acProfile[0].period)||''
@@ -8149,7 +8252,8 @@ async function useLoadUSHScores(fullName, st){
   document.getElementById('use-scores-area').style.display='block';
   useSwitchTab('units');
   const unitCount = (acResults||[]).filter(r=>!r.unit_id.startsWith('vocab_')&&!r.unit_id.startsWith('test_')).length;
-  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+displayName+' · '+unitCount+' unit results from ac_results</span>';
+  const overrideCount = Object.values(civUnitProgress).filter(u=>u&&u.teacherAdj).length;
+  st.innerHTML='<span style="color:var(--green2)">✓ Loaded — '+displayName+' · '+unitCount+' ac_results, '+overrideCount+' teacher overrides</span>';
 }
 
 function useResetEditor(){
@@ -8579,7 +8683,18 @@ async function useSaveAllScores(){
 
 async function useSaveUSHScores(fullName, st, now){
   const p = _useCurrentProfile;
-  const displayName = p._ush_display_name || p.display_name || fullName;
+  // FIX: derive a proper display_name even when profile.display_name is null.
+  // ac_results is keyed by display name ("Jacob R."), not full name ("Jacob Rodriguez").
+  // If we fall back to fullName we create duplicate rows the game never reads.
+  function deriveDisplayName(fn){
+    if (!fn) return '';
+    const parts = fn.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    return parts[0] + ' ' + parts[parts.length-1][0] + '.';
+  }
+  const displayName = p._ush_display_name
+    || p.display_name
+    || deriveDisplayName(fullName);
   const period = p._ush_period || '';
   const changes = [];
   const units = USE_COURSE_UNITS['hs_ush']||[];
@@ -8603,9 +8718,13 @@ async function useSaveUSHScores(fullName, st, now){
 
   for(const u of units){
     const mcqEl      = document.getElementById('use-mcq-'+u.id);
+    const vocabCardEl= document.getElementById('use-vocab-'+u.id);  // FIX: per-card vocab input
+    const frqPctEl   = document.getElementById('use-frq-pct-'+u.id);// FIX: per-card FRQ input
     const overrideEl = document.getElementById('use-override-'+u.id);
     const ushId      = USH_UNIT_ID_MAP[u.id]||u.id;
     let mcqOverride = null;
+    let vocabOverride = null;
+    let frqOverride = null;
     let compositeOverride = null;
 
     if(mcqEl && mcqEl.value !== ''){
@@ -8637,6 +8756,52 @@ async function useSaveUSHScores(fullName, st, now){
       }
     }
 
+    // FIX: per-card vocab input (was never read before)
+    if(vocabCardEl && vocabCardEl.value !== ''){
+      const v = Math.max(0,Math.min(100,parseInt(vocabCardEl.value)));
+      if(!isNaN(v)) {
+        const existing = unitProgressPatch[u.id] || {};
+        const oldVocab = Math.round(existing.vocabScore||0);
+        if(v !== oldVocab) {
+          vocabOverride = v;
+          changes.push(u.num+' Vocab: '+oldVocab+'→'+v+'%');
+        }
+      }
+    }
+
+    // FIX: per-card FRQ input (was never read before)
+    if(frqPctEl && frqPctEl.value !== ''){
+      const fv = Math.max(0,Math.min(100,parseInt(frqPctEl.value)));
+      if(!isNaN(fv)) {
+        const existing = unitProgressPatch[u.id] || {};
+        const oldFrq = Math.round(existing.frqScore||0);
+        // FIX: always mirror FRQ to ac_results when value is set, even if unchanged.
+        // This ensures the _frq row exists in ac_results so the History Shell cert
+        // can read it (teacher may load a student, see FRQ=77, and save again to
+        // re-sync — that must still write the ac_results row).
+        frqOverride = fv;
+        if(fv !== oldFrq) {
+          changes.push(u.num+' FRQ: '+oldFrq+'→'+fv+'%');
+        }
+        try {
+          // NOTE: 'cards' column on ac_results is INTEGER, not text. Don't send a tier
+          // string here — the whole row gets rejected with a 400 if you do.
+          // Also omit 'trophy' for the same safety (we don't need to set it).
+          await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
+            method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
+            body:JSON.stringify({
+              name:          displayName,
+              period:        period,
+              unit_id:       ushId+'_frq',
+              best_accuracy: fv,
+              best_score:    fv,
+              updated_at:    now
+            })
+          });
+        } catch(e){ console.error('USH FRQ ac_results mirror error',u.id,e); }
+      }
+    }
+
     if(overrideEl && overrideEl.value !== ''){
       const ov = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
       if(!isNaN(ov)) {
@@ -8649,7 +8814,7 @@ async function useSaveUSHScores(fullName, st, now){
     }
 
     // Build unit_progress entry if we have ANY override for this unit
-    if (mcqOverride !== null || compositeOverride !== null) {
+    if (mcqOverride !== null || vocabOverride !== null || frqOverride !== null || compositeOverride !== null) {
       const existing = unitProgressPatch[u.id] || {};
       const patch = Object.assign({}, existing, {
         teacherAdj: true,
@@ -8657,24 +8822,56 @@ async function useSaveUSHScores(fullName, st, now){
         bestAccuracy: mcqOverride !== null ? mcqOverride : existing.bestAccuracy,
         completedAt: existing.completedAt || now
       });
-      if (mcqOverride !== null) patch.mcqScore = mcqOverride;
+      if (mcqOverride !== null)   patch.mcqScore   = mcqOverride;
+      if (vocabOverride !== null) patch.vocabScore = vocabOverride;
+      if (frqOverride !== null) {
+        patch.frqScore    = frqOverride;
+        patch.frqAllDone  = true;
+      }
       if (compositeOverride !== null) {
         patch.composite = compositeOverride;
         patch.trophy = compositeOverride>=100?'historian':compositeOverride>=90?'gold':compositeOverride>=80?'silver':compositeOverride>=70?'bronze':compositeOverride>=60?'completed':'tryagain';
       }
       unitProgressPatch[u.id] = patch;
       unitProgressDirty = true;
+
+      // FIX: also mirror per-card vocab override into top-level vocab blobs so
+      // unit game reads it under the deck key it expects.
+      if (vocabOverride !== null) {
+        const deckKey = (typeof USH_DECK_MAP !== 'undefined' && USH_DECK_MAP[u.id]) ? USH_DECK_MAP[u.id] : u.id;
+        try {
+          const vb = JSON.parse(p.vocab_best_score||'{}');
+          const vp = JSON.parse(p.vocab_passed||'{}');
+          vb[deckKey] = vocabOverride;
+          vb[u.id]    = vocabOverride;
+          vp[deckKey] = vocabOverride >= 80;
+          vp[u.id]    = vocabOverride >= 80;
+          p.vocab_best_score = JSON.stringify(vb);
+          p.vocab_passed = JSON.stringify(vp);
+        } catch(e) {}
+      }
     }
   }
 
   // Vocab — save to BOTH ac_student_profiles AND civitas_profiles
-  // FIX: Napalm Dawn reads civitas_profiles.vocab_best_score, not ac_student_profiles,
-  // so we must write both to make overrides visible to the unit game.
+  // FIX: Napalm Dawn and other unit games read civitas_profiles.vocab_best_score,
+  // not ac_student_profiles, so we must write both to make overrides visible.
+  // Also: per-card vocab overrides from the loop above have already been mirrored
+  // into p.vocab_best_score / p.vocab_passed — we start from those updated values.
   let vocabBestRaw = {};
   try{ vocabBestRaw = JSON.parse(p.vocab_best_score||'{}'); }catch(e){}
   let vocabPassedRaw = {};
   try{ vocabPassedRaw = JSON.parse(p.vocab_passed||'{}'); }catch(e){}
+  // vocabDirty starts true if the per-card loop above wrote any vocab overrides.
+  // We detect that by checking whether unitProgressPatch has any vocabScore fields we just set.
   let vocabDirty = false;
+  for (const uid in unitProgressPatch) {
+    const up = unitProgressPatch[uid];
+    if (up && up.teacherAdj && typeof up.vocabScore === 'number') {
+      vocabDirty = true;
+      break;
+    }
+  }
   const vocabUnits = USE_VOCAB['hs_ush']||[];
   vocabUnits.forEach(v=>{
     const el = document.getElementById('use-voc-'+v.id);
