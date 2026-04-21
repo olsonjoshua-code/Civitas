@@ -8784,6 +8784,9 @@ async function useSaveUSHScores(fullName, st, now){
           changes.push(u.num+' FRQ: '+oldFrq+'→'+fv+'%');
         }
         try {
+          // NOTE: 'cards' column on ac_results is INTEGER, not text. Don't send a tier
+          // string here — the whole row gets rejected with a 400 if you do.
+          // Also omit 'trophy' for the same safety (we don't need to set it).
           await fetch(SUPA_URL+'/rest/v1/ac_results?on_conflict=name,period,unit_id',{
             method:'POST',headers:{...SUPA_H,Prefer:'resolution=merge-duplicates'},
             body:JSON.stringify({
@@ -8792,7 +8795,6 @@ async function useSaveUSHScores(fullName, st, now){
               unit_id:       ushId+'_frq',
               best_accuracy: fv,
               best_score:    fv,
-              cards:         fv>=90?'gold':fv>=80?'silver':fv>=70?'bronze':'none',
               updated_at:    now
             })
           });
