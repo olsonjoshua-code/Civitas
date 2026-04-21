@@ -3629,16 +3629,17 @@ function renderFRQResult(result, answer){
 
 async function saveFRQToSupabase(unitId,score,tier){
   try{
+    // FIX: removed 'cards: tier' — ac_results.cards is INTEGER, not text,
+    // and sending a tier string caused Supabase to 400 the whole row silently.
+    // Also removed 'course' which isn't a column on ac_results.
     await sfetch('/rest/v1/ac_results?on_conflict=name,period,unit_id',{
       method:'POST',
       headers:{'Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify({
         name:S.name,
         unit_id:unitId+'_frq',
-        course:'us_history',
         best_accuracy:score,
         best_score:score,
-        cards:tier||'none',
         period:S.period||'',
         updated_at:new Date().toISOString()
       })
