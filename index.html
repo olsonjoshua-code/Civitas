@@ -6407,10 +6407,33 @@ function printUnitTrophyCert(unitId) {
   try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
   var up = progress[unitId] || {};
   var pct = Math.min(100, up.composite ?? up.bestAccuracy ?? 0);
-  var mcqScore = up.mcqScore || 0;
-  var frqScore = up.frqScore || 0;
-  var vocabScore = up.vocabScore || 0;
+  // FIX: the unit_progress blob sometimes only contains {bestAccuracy, completedAt}
+  // (when the theme game writes partial progress during gameplay). In that case
+  // up.mcqScore / up.frqScore are undefined, and the cert showed 0%/0% next to a
+  // non-zero composite. Derive reasonable sub-scores:
+  //  • If subscores are stored, use them.
+  //  • For AP Gov themes: composite = MCQ*0.67 + FRQ*0.33, so if we know composite
+  //    and frqAllDone, we can infer. If FRQ wasn't done, composite ≈ MCQ*0.67,
+  //    so MCQ ≈ composite/0.67 (clamped to bestAccuracy or 100).
+  //  • Simpler fallback: if mcqScore is missing, assume it equals bestAccuracy
+  //    (themes store MCQ as bestAccuracy in partial-save paths).
   var isTheme = unitId.startsWith('apg_bi');
+  var hasSubScores = (typeof up.mcqScore === 'number') || (typeof up.frqScore === 'number');
+  var mcqScore, frqScore;
+  if (hasSubScores) {
+    mcqScore = up.mcqScore || 0;
+    frqScore = up.frqScore || 0;
+  } else if (isTheme) {
+    // Infer: composite = MCQ*0.67 + FRQ*0.33. With no FRQ info, assume MCQ = bestAccuracy
+    // and FRQ = 0, which matches the typical partial-save scenario.
+    mcqScore = up.bestAccuracy ?? pct;
+    frqScore = 0;
+  } else {
+    // Non-theme fallback
+    mcqScore = up.mcqScore || up.bestAccuracy || 0;
+    frqScore = up.frqScore || 0;
+  }
+  var vocabScore = up.vocabScore || 0;
   var studentName = S.name || S.fullName || localStorage.getItem('civitas_student_name') || 'Student';
   var period = S.courses && S.courses[0] ? S.courses[0].period : '';
   var date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
@@ -6462,7 +6485,7 @@ function printUnitTrophyCert(unitId) {
     + '<div style="font-family:\'DM Sans\',sans-serif;font-size:8px;color:#8a6a2a;letter-spacing:.08em;margin-bottom:4px">' + weightingNote + '</div>'
     + '<div class="divider"></div>'
     + '<div class="sigs">'
-    + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period ? ' - PERIOD ' + period : '') + '</div></div>'
+    + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period && period !== 'teacher' && period !== 'guest' ? ' - PERIOD ' + period : '') + '</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">' + date + '</div><div class="sig-title">DATE COMPLETED</div></div>'
     + '</div></div>'
