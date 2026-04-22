@@ -1373,7 +1373,12 @@ function getCompositeScore() {
   // FRQ score — from theme FRQ save key
   const frq1Raw = parseInt(localStorage.getItem('civitas_frq_lor_frq1') || '0');
   const frq2Raw = parseInt(localStorage.getItem('civitas_frq_lor_frq2') || '0');
-  const frqScore = Math.round((frq1Raw + frq2Raw) / 6 * 100); // 6 total points
+  // FIX: FRQ1 is max 3 (Concept Application), FRQ2 is max 6 (Argument Essay).
+  // Total max = 9, not 6. Previous `/6*100` made perfect 3+6=9 render as 150%.
+  const _frq1Max = (typeof FRQ_RUBRICS !== "undefined" && FRQ_RUBRICS.frq1) ? FRQ_RUBRICS.frq1.maxScore : 3;
+  const _frq2Max = (typeof FRQ_RUBRICS !== "undefined" && FRQ_RUBRICS.frq2) ? FRQ_RUBRICS.frq2.maxScore : 6;
+  const _frqTotalMax = _frq1Max + _frq2Max;
+  const frqScore = _frqTotalMax > 0 ? Math.min(100, Math.round((frq1Raw + frq2Raw) / _frqTotalMax * 100)) : 0;
   const frqAttempted = frq1Raw > 0 || frq2Raw > 0;
   const frqAllDone = frq1Raw > 0 && frq2Raw > 0; // both submitted
 
@@ -1523,8 +1528,12 @@ function renderThemeFRQTab() {
 
   var summaryHtml = '';
   if (submitted > 0) {
+    // FIX: use each FRQ's own maxScore from FRQ_RUBRICS rather than hardcoded /6.
+    var _f1m = (FRQ_RUBRICS && FRQ_RUBRICS.frq1) ? FRQ_RUBRICS.frq1.maxScore : 3;
+    var _f2m = (FRQ_RUBRICS && FRQ_RUBRICS.frq2) ? FRQ_RUBRICS.frq2.maxScore : 6;
+    var _fTotMax = _f1m + _f2m;
     var totalEarned = scores.frq1 + scores.frq2;
-    var composite = Math.round(totalEarned / 6 * 100);
+    var composite = _fTotMax > 0 ? Math.min(100, Math.round(totalEarned / _fTotMax * 100)) : 0;
     var tc = composite>=90?'var(--gold)':composite>=75?'#c8c8d8':composite>=60?'#cd7f32':'var(--amber)';
     summaryHtml = '<div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+tc+';padding:10px 14px;margin-bottom:14px">'
       + '<div style="font-family:var(--bebas);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:2px">FRQ PROGRESS — '+submitted+'/2 COMPLETE</div>'
@@ -1540,7 +1549,10 @@ function renderThemeFRQTab() {
     var label = FRQ_LABELS[fid];
     var rd = FRQ_RUBRICS[fid];
     var title = rd ? rd.title : fid;
-    var pct = isAnswered ? Math.round(score / 3 * 100) : null;
+    // FIX: use this FRQ's own maxScore (3 for frq1, 6 for frq2) rather than
+    // hardcoded /3 which made FRQ2 perfect (6/3*100) render as 200%.
+    var _rowMax = rd && rd.maxScore ? rd.maxScore : 3;
+    var pct = isAnswered ? Math.min(100, Math.round(score / _rowMax * 100)) : null;
     var sc = pct===null?color:pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
 
     if (isAnswered) {
@@ -1548,7 +1560,7 @@ function renderThemeFRQTab() {
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
         + '<div><span style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:'+color+'">'+label+'</span>'
         + '<div style="font-family:var(--playfair);font-size:13px;color:var(--cream);margin-top:4px">'+title+'</div></div>'
-        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/3</div>'
+        + '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:'+sc+'">'+score+'/'+_rowMax+'</div>'
         + '<div style="font-family:var(--dm);font-size:7px;color:var(--text3)">'+pct+'%</div></div></div>'
         + '<button data-fid="'+fid+'" class="theme-frq-open" style="font-family:var(--bebas);font-size:9px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:3px 10px;cursor:pointer">↺ Resubmit to improve</button>'
         + '</div>';
