@@ -5611,21 +5611,22 @@ function renderCourseUnits(){
     const done=doneFromState||doneFromLS;
     // For Big Idea themes use composite score; for units use bestAccuracy
     const _ud = unitProg[u.id];
-    // FIX: recompute composite from subscores when the stored composite is
-    // unreliable (old partial-save bug could store bestAccuracy=100 from MCQ
-    // alone while FRQs were never done — true composite would be 67, not 100).
-    // If subscores are stored, trust them. Otherwise fall back to composite/bestAccuracy.
+    // FIX: match cert/trophy-grid logic — if subscores are stored use them,
+    // otherwise infer MCQ=bestAccuracy and FRQ=0 (the partial-save scenario).
+    // Then compute composite from those subscores so all three surfaces agree.
     let _unitAccRaw = null;
     if (_ud) {
       if (u.isBigIdea) {
         const _hasSub = (typeof _ud.mcqScore === 'number') || (typeof _ud.frqScore === 'number');
+        let _m, _f;
         if (_hasSub) {
-          const _m = _ud.mcqScore || 0;
-          const _f = _ud.frqScore || 0;
-          _unitAccRaw = Math.round(_m * 0.67 + _f * 0.33);
+          _m = _ud.mcqScore || 0;
+          _f = _ud.frqScore || 0;
         } else {
-          _unitAccRaw = _ud.composite ?? _ud.bestAccuracy ?? null;
+          _m = _ud.bestAccuracy || 0;
+          _f = 0;
         }
+        _unitAccRaw = Math.round(_m * 0.67 + _f * 0.33);
       } else {
         _unitAccRaw = _ud.bestAccuracy ?? null;
       }
@@ -6347,17 +6348,22 @@ function renderBigIdeaTrophies() {
     + BIG_IDEAS.map(function(bi) {
       var p = prog[bi.id];
       var done = p && p.completedAt;
-      // FIX: recompute from subscores when stored (old partial-save bug put MCQ
-      // as bestAccuracy without FRQ, making 100% look like a full composite).
+      // FIX: match the cert's logic exactly — if subscores are stored use them,
+      // otherwise infer MCQ from bestAccuracy and assume FRQ=0 (partial-save case).
+      // Then always compute composite from the (possibly inferred) subscores.
+      // This keeps the card, dashboard tile, and cert all showing the same number.
       var pct;
       if (done) {
         var _hasSub = (typeof p.mcqScore === 'number') || (typeof p.frqScore === 'number');
+        var _m, _f;
         if (_hasSub) {
-          var _m = p.mcqScore || 0, _f = p.frqScore || 0;
-          pct = Math.min(100, Math.round(_m * 0.67 + _f * 0.33));
+          _m = p.mcqScore || 0;
+          _f = p.frqScore || 0;
         } else {
-          pct = Math.min(100, p.composite ?? p.bestAccuracy ?? 0);
+          _m = p.bestAccuracy || 0;
+          _f = 0;
         }
+        pct = Math.min(100, Math.round(_m * 0.67 + _f * 0.33));
       } else {
         pct = null;
       }
