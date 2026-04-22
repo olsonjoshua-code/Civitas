@@ -5611,8 +5611,26 @@ function renderCourseUnits(){
     const done=doneFromState||doneFromLS;
     // For Big Idea themes use composite score; for units use bestAccuracy
     const _ud = unitProg[u.id];
-    const _unitAccRaw = _ud ? (u.isBigIdea ? (_ud.composite ?? _ud.bestAccuracy ?? null) : (_ud.bestAccuracy ?? null)) : null;
-    // FIX: defensive clamp to [0,100]. Stale AP Gov theme data had stored composites
+    // FIX: recompute composite from subscores when the stored composite is
+    // unreliable (old partial-save bug could store bestAccuracy=100 from MCQ
+    // alone while FRQs were never done — true composite would be 67, not 100).
+    // If subscores are stored, trust them. Otherwise fall back to composite/bestAccuracy.
+    let _unitAccRaw = null;
+    if (_ud) {
+      if (u.isBigIdea) {
+        const _hasSub = (typeof _ud.mcqScore === 'number') || (typeof _ud.frqScore === 'number');
+        if (_hasSub) {
+          const _m = _ud.mcqScore || 0;
+          const _f = _ud.frqScore || 0;
+          _unitAccRaw = Math.round(_m * 0.67 + _f * 0.33);
+        } else {
+          _unitAccRaw = _ud.composite ?? _ud.bestAccuracy ?? null;
+        }
+      } else {
+        _unitAccRaw = _ud.bestAccuracy ?? null;
+      }
+    }
+    // Defensive clamp to [0,100]. Stale AP Gov theme data had stored composites
     // like 115% / 117% (theme-game FRQ math bug). Display must never exceed 100.
     const unitAcc = _unitAccRaw === null ? null : Math.min(100, Math.max(0, Math.round(_unitAccRaw)));
     const unitTrophyColor=unitAcc===null?null:unitAcc===100?'var(--purple2)':unitAcc>=90?'var(--gold)':unitAcc>=75?'#c8c8d8':unitAcc>=60?'#cd7f32':'var(--green2)';
@@ -6329,7 +6347,20 @@ function renderBigIdeaTrophies() {
     + BIG_IDEAS.map(function(bi) {
       var p = prog[bi.id];
       var done = p && p.completedAt;
-      var pct = done ? Math.min(100, p.composite ?? p.bestAccuracy ?? 0) : null;
+      // FIX: recompute from subscores when stored (old partial-save bug put MCQ
+      // as bestAccuracy without FRQ, making 100% look like a full composite).
+      var pct;
+      if (done) {
+        var _hasSub = (typeof p.mcqScore === 'number') || (typeof p.frqScore === 'number');
+        if (_hasSub) {
+          var _m = p.mcqScore || 0, _f = p.frqScore || 0;
+          pct = Math.min(100, Math.round(_m * 0.67 + _f * 0.33));
+        } else {
+          pct = Math.min(100, p.composite ?? p.bestAccuracy ?? 0);
+        }
+      } else {
+        pct = null;
+      }
       var t = done ? biTier(pct) : null;
       return '<div class="trophy-card" style="border-top:3px solid ' + (done ? bi.color : 'var(--border)') + ';animation:none">'
         + '<div class="trophy-era" style="height:52px;font-size:22px">' + (done ? t.icon : bi.icon)
@@ -6406,11 +6437,34 @@ function printUnitTrophyCert(unitId) {
   var progress = {};
   try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
   var up = progress[unitId] || {};
-  var pct = Math.min(100, up.composite ?? up.bestAccuracy ?? 0);
-  var mcqScore = up.mcqScore || 0;
-  var frqScore = up.frqScore || 0;
-  var vocabScore = up.vocabScore || 0;
   var isTheme = unitId.startsWith('apg_bi');
+  // FIX: the unit_progress blob sometimes only contains {bestAccuracy, completedAt}
+  // (old partial-save bug). Derive subscores + recompute composite so the numbers
+  // on the cert are always mathematically consistent.
+  //  • If subscores are stored, use them and recompute composite from them.
+  //  • Otherwise for themes: assume bestAccuracy = MCQ (that's what old partial
+  //    saves stored) and FRQ = 0 (if no FRQ data, student didn't do them).
+  //    Then composite = MCQ*0.67 + FRQ*0.33.
+  var hasSubScores = (typeof up.mcqScore === 'number') || (typeof up.frqScore === 'number');
+  var mcqScore, frqScore, vocabScore = up.vocabScore || 0;
+  if (hasSubScores) {
+    mcqScore = up.mcqScore || 0;
+    frqScore = up.frqScore || 0;
+  } else if (isTheme) {
+    mcqScore = up.bestAccuracy || 0;
+    frqScore = 0;
+  } else {
+    mcqScore = up.mcqScore || up.bestAccuracy || 0;
+    frqScore = up.frqScore || 0;
+  }
+  // Recompute composite from displayed subscores so cert math is always consistent.
+  // AP Gov themes: MCQ 67% + FRQ 33%. Regular units: MCQ 50% + Vocab 25% + FRQ 25%.
+  var pct;
+  if (isTheme) {
+    pct = Math.min(100, Math.round(mcqScore * 0.67 + frqScore * 0.33));
+  } else {
+    pct = Math.min(100, Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25));
+  }
   var studentName = S.name || S.fullName || localStorage.getItem('civitas_student_name') || 'Student';
   var period = S.courses && S.courses[0] ? S.courses[0].period : '';
   var date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
@@ -6462,7 +6516,7 @@ function printUnitTrophyCert(unitId) {
     + '<div style="font-family:\'DM Sans\',sans-serif;font-size:8px;color:#8a6a2a;letter-spacing:.08em;margin-bottom:4px">' + weightingNote + '</div>'
     + '<div class="divider"></div>'
     + '<div class="sigs">'
-    + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period ? ' - PERIOD ' + period : '') + '</div></div>'
+    + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period && period !== 'teacher' && period !== 'guest' ? ' - PERIOD ' + period : '') + '</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">' + date + '</div><div class="sig-title">DATE COMPLETED</div></div>'
     + '</div></div>'
