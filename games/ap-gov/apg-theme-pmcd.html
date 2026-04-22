@@ -1465,11 +1465,35 @@ function showRoundComplete() {
       return r ? r.bestPct : null;
     }).filter(p=>p!==null);
     const runningAvg = allRoundPcts.length > 0 ? Math.round(allRoundPcts.reduce((a,b)=>a+b,0)/allRoundPcts.length) : 0;
+    // FIX: merge with existing so we don't nuke mcqScore/frqScore/composite.
+    // Also compute the full composite score so bestAccuracy (what the shell reads
+    // for the dashboard tile) = composite, not MCQ-only. Previously a student who
+    // only did MCQ rounds had bestAccuracy=100 stored, so the dashboard tile AND
+    // the cert both showed 100% composite — even though the true composite with
+    // 0% FRQ is only 67%.
     const prog2 = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-    if (!prog2[UNIT_ID] || runningAvg > (prog2[UNIT_ID].bestAccuracy || 0) || !prog2[UNIT_ID].completedAt) {
-      prog2[UNIT_ID] = { bestAccuracy: runningAvg, completedAt: new Date().toISOString() };
-      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog2));
+    let _compNow;
+    try {
+      const _cs = (typeof getCompositeScore === 'function') ? getCompositeScore() : null;
+      if (_cs) {
+        const _existing = prog2[UNIT_ID] || {};
+        prog2[UNIT_ID] = Object.assign({}, _existing, {
+          bestAccuracy: Math.max(_cs.composite, _existing.bestAccuracy || 0),
+          composite: Math.max(_cs.composite, _existing.composite || 0),
+          mcqScore: Math.max(_cs.mcqScore, _existing.mcqScore || 0),
+          frqScore: Math.max(_cs.frqScore, _existing.frqScore || 0),
+          completedAt: _existing.completedAt || new Date().toISOString()
+        });
+        _compNow = _cs.composite;
+      }
+    } catch(e) {}
+    if (_compNow === undefined) {
+      // Fallback to legacy behavior if getCompositeScore isn't available yet
+      if (!prog2[UNIT_ID] || runningAvg > (prog2[UNIT_ID].bestAccuracy || 0) || !prog2[UNIT_ID].completedAt) {
+        prog2[UNIT_ID] = Object.assign({}, prog2[UNIT_ID] || {}, { bestAccuracy: runningAvg, completedAt: new Date().toISOString() });
+      }
     }
+    localStorage.setItem('civitas_unit_progress', JSON.stringify(prog2));
   } catch(e) {}
   const goldEarned = Math.round(pct/100*80);
   if (goldEarned > 0) awardGoldToShell(goldEarned, 'PMCD: '+round.label);
@@ -1508,10 +1532,27 @@ function showRoundComplete() {
       }).filter((p,i) => getRoundProgress(i) !== null);
       const overallPct = roundPcts.length > 0 ? Math.round(roundPcts.reduce((a,b)=>a+b,0)/roundPcts.length) : 0;
       try {
+        // FIX: merge with existing blob and use getCompositeScore() so bestAccuracy
+        // reflects the full composite (not just MCQ avg). See comment on the mid-round
+        // partial save above for full explanation.
         const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-        if (!prog[UNIT_ID] || overallPct > (prog[UNIT_ID].bestAccuracy || 0)) {
-          prog[UNIT_ID] = { bestAccuracy: overallPct, completedAt: new Date().toISOString() };
+        const _cs = (typeof getCompositeScore === 'function') ? getCompositeScore() : null;
+        if (_cs) {
+          const _existing = prog[UNIT_ID] || {};
+          prog[UNIT_ID] = Object.assign({}, _existing, {
+            bestAccuracy: Math.max(_cs.composite, _existing.bestAccuracy || 0),
+            composite: Math.max(_cs.composite, _existing.composite || 0),
+            mcqScore: Math.max(_cs.mcqScore, _existing.mcqScore || 0),
+            frqScore: Math.max(_cs.frqScore, _existing.frqScore || 0),
+            completedAt: _existing.completedAt || new Date().toISOString()
+          });
           localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+        } else {
+          // Fallback to legacy behavior if getCompositeScore isn't available
+          if (!prog[UNIT_ID] || overallPct > (prog[UNIT_ID].bestAccuracy || 0)) {
+            prog[UNIT_ID] = Object.assign({}, prog[UNIT_ID] || {}, { bestAccuracy: overallPct, completedAt: new Date().toISOString() });
+            localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+          }
         }
       } catch(e) {}
       syncProgressToCloud();
