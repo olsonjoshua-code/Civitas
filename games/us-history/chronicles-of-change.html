@@ -3370,6 +3370,11 @@ function startFRQ(idx) {
     const w = ta.value.trim().split(/\s+/).filter(Boolean).length;
     document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '') + ' · ';
   };
+  const submitBtn = document.getElementById('frq-submit-btn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span>Submit for AI Grading →</span>';
+  }
   setTimeout(() => document.getElementById('frq-answer-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 
@@ -3461,13 +3466,13 @@ function showFRQResult(result, answer, question) {
   }
   saveFRQState(frqState);
 
-  // Show next question button if there's one unlocked
-  const nextIdx = frqState.questions.length; // after save, this is the next index
+  // Keep students anchored on the menu after grading so the saved score is the stable state
+  const nextIdx = FRQ_QUESTIONS_U1.findIndex((_, i) => !frqState.questions[i]);
   const wrap = document.getElementById('frq-next-btn-wrap');
-  if (wrap && nextIdx < FRQ_QUESTIONS_U1.length) {
-    wrap.innerHTML = `<button class="btn full" onclick="startFRQ(${nextIdx})" style="border-color:var(--amber);color:var(--amber);margin-top:6px;font-size:14px;padding:14px;letter-spacing:3px"><span>Next Question →</span></button>`;
+  if (wrap && nextIdx !== -1) {
+    wrap.innerHTML = '';
   } else if (wrap) {
-    wrap.innerHTML = `<div style="font-family:var(--dm);font-size:9px;color:var(--green2);text-align:center;margin-top:8px;padding:8px;border:1px solid var(--green2)">✓ All questions complete!</div>`;
+    wrap.innerHTML = `<div style=\"font-family:var(--dm);font-size:9px;color:var(--green2);text-align:center;margin-top:8px;padding:8px;border:1px solid var(--green2)\">✓ All questions complete!</div>`;
   }
 }
 
@@ -3552,14 +3557,16 @@ async function saveFRQResultToSupabase(score, tier) {
       })
     }).catch(()=>{});
 
-    // Also write mergedQs back to local so a fresh device that just got
-    // higher server data reflects it immediately
-    if (serverQs.length) {
+    // Also write merged FRQ data back to local so restored scores/tier show immediately
+    if (serverQs.length || mergedQs.length) {
       const ss = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       if (!ss.frqResults) ss.frqResults = {};
       ss.frqResults['unit6'] = Object.assign({}, ss.frqResults['unit6'] || {}, {
-        questions: mergedQs
+        questions: mergedQs,
+        composite: ((existingProgress['ush_u6_questions']||{}).composite || localFrq.composite || score),
+        compositeTier: ((existingProgress['ush_u6_questions']||{}).compositeTier || localFrq.compositeTier || tier)
       });
+      if (ss.frqResults['unit6'].composite === undefined) ss.frqResults['unit6'].composite = localFrq.composite || score;
       localStorage.setItem(SHELL_KEY, JSON.stringify(ss));
     }
   } catch(e) { console.log('saveFRQResultToSupabase failed', e); }
