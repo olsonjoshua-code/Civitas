@@ -2554,7 +2554,14 @@ function startFRQ(idx) {
   document.getElementById('frq-result-section').style.display = 'none';
   document.getElementById('frq-selected-display').textContent = FRQ_QUESTIONS_U1[idx];
   const ta = document.getElementById('frq-textarea');
+  const btn = document.getElementById('frq-submit-btn');
   ta.value = '';
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Submit for AI Grading →</span>';
+  }
+  const wc = document.getElementById('frq-word-count');
+  if (wc) wc.innerHTML = '0 words · <span style="color:var(--text3);font-size:7px;letter-spacing:1px">⚠ PASTE DISABLED — TYPE YOUR OWN RESPONSE</span>';
   ta.oninput = () => {
     const w = ta.value.trim().split(/\s+/).filter(Boolean).length;
     document.getElementById('frq-word-count').textContent = w + ' word' + (w !== 1 ? 's' : '') + ' · ';
@@ -2650,11 +2657,13 @@ function showFRQResult(result, answer, question) {
   }
   saveFRQState(frqState);
 
-  // Show next question button if there's one unlocked
-  const nextIdx = frqState.questions.length; // after save, this is the next index
+  // Return students to the FRQ menu instead of auto-advancing into the next prompt.
+  // This prevents the submit button from carrying over its old "grading" state and
+  // keeps the score/menu view as the stable handoff point after each submission.
+  const nextIdx = FRQ_QUESTIONS_U1.findIndex((_, i) => !frqState.questions[i]);
   const wrap = document.getElementById('frq-next-btn-wrap');
-  if (wrap && nextIdx < FRQ_QUESTIONS_U1.length) {
-    wrap.innerHTML = `<button class="btn full" onclick="startFRQ(${nextIdx})" style="border-color:var(--amber);color:var(--amber);margin-top:6px;font-size:14px;padding:14px;letter-spacing:3px"><span>Next Question →</span></button>`;
+  if (wrap && nextIdx !== -1) {
+    wrap.innerHTML = `<button class="btn full" onclick="renderFRQPanel()" style="border-color:var(--amber);color:var(--amber);margin-top:6px;font-size:14px;padding:14px;letter-spacing:3px"><span>Return to Question Menu →</span></button>`;
   } else if (wrap) {
     wrap.innerHTML = `<div style="font-family:var(--dm);font-size:9px;color:var(--green2);text-align:center;margin-top:8px;padding:8px;border:1px solid var(--green2)">✓ All questions complete!</div>`;
   }
@@ -2747,7 +2756,10 @@ async function saveFRQResultToSupabase(score, tier) {
       const ss = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       if (!ss.frqResults) ss.frqResults = {};
       ss.frqResults['unit1'] = Object.assign({}, ss.frqResults['unit1'] || {}, {
-        questions: mergedQs
+        questions: mergedQs,
+        composite: existingProgress['ush_u1_questions'].composite,
+        compositeTier: existingProgress['ush_u1_questions'].compositeTier,
+        score: existingProgress['ush_u1_questions'].composite
       });
       localStorage.setItem(SHELL_KEY, JSON.stringify(ss));
     }
