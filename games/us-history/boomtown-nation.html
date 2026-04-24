@@ -2410,7 +2410,7 @@ async function restoreProgressFromCivitas(fullName) {
       if (P.lessonsCompleted.length) {
         saveP(); // persist restored state to localStorage
         console.log('Progress restored from civitas_profiles — lessons done:', P.lessonsCompleted);
-        try { renderLessonMap(); } catch(e) {}
+        try { sanitizeCurrentUnitProgress(); saveP(); renderUnitHub(); } catch(e) {}
       }
     } catch(e) {}
 
@@ -2508,6 +2508,7 @@ function loadSavedUnit() {
 }
 
 function saveP() {
+  try { if (typeof sanitizeCurrentUnitProgress === 'function') sanitizeCurrentUnitProgress(); } catch(e) {}
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch(e) {}
 }
 
@@ -2867,7 +2868,7 @@ function switchHubTab(tabId, btnEl) {
 }
 
 const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
-const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html';
+const UNIT_GAME_URL = window.location.href.split('#')[0];
 const USH_SHELL_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
 
 function launchFlashcardsFromTab() {
@@ -2886,7 +2887,7 @@ function updateFlashcardStatus() {
     const _legS = JSON.parse(localStorage.getItem('ac_shell_state') || '{}');
     const state = { vocabPassed: Object.assign({}, _legS.vocabPassed||{}, _civS.vocabPassed||{}), vocabBestScore: {} };
     Object.keys(Object.assign({}, _legS.vocabBestScore||{}, _civS.vocabBestScore||{})).forEach(k => { state.vocabBestScore[k] = Math.max((_civS.vocabBestScore||{})[k]||0, (_legS.vocabBestScore||{})[k]||0); });
-    const studied = state.flashcardsStudied && state.flashcardsStudied['unit1'];
+    const studied = state.flashcardsStudied && state.flashcardsStudied['unit2a_boomtown'];
     el.textContent = studied ? '✓ You have studied this deck before.' : 'Not yet studied.';
     el.style.color = studied ? 'var(--teal2)' : 'var(--text3)';
   } catch(e) {}
@@ -2921,7 +2922,7 @@ const FRQ_QUESTIONS_U1 = [
 ];
 
 // ── FRQ System — Sequential, Per-Question Scoring ─────────────────────
-// Storage: ac_shell_state.frqResults.unit1 = {
+// Storage: ac_shell_state.frqResults.unit2a = {
 //   questions: [ {q, score, tier, answer, date}, ... ],  // one per answered question
 //   composite: <avg score>,
 //   compositeT ier: <tier>
@@ -3099,7 +3100,7 @@ Be generous — if the student clearly understands the concept, give them the be
 
 Respond ONLY with valid JSON, no other text:
 {"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2 sentences max: acknowledge what they know, suggest ONE specific thing to add next time — never mention spelling or grammar>"}`,
-        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
+        messages: [{ role: 'user', content: `Unit: The Gilded Age and Industrial America (1865–1900)\nTopics: westward expansion, Native American policy, farmers and Populism, industrialization, entrepreneurs, big business, labor conditions, and the labor movement\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
       })
     });
     const data = await resp.json();
@@ -3362,7 +3363,39 @@ function isLessonUnlocked(idx) {
   return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
 }
 
+// Keep this unit's MCQ progress sequential and isolated from other unit games.
+// This prevents old/cross-unit saved data from making later sections appear complete
+// while earlier required sections are still locked.
+function sanitizeCurrentUnitProgress() {
+  if (!P || !Array.isArray(LESSONS)) return false;
+  let changed = false;
+  const validIds = LESSONS.map(l => l.id);
+  const validSet = new Set(validIds);
+  if (!Array.isArray(P.lessonsCompleted)) { P.lessonsCompleted = []; changed = true; }
+  if (!P.lessonBestScores || typeof P.lessonBestScores !== 'object') { P.lessonBestScores = {}; changed = true; }
+
+  const completedSet = new Set((P.lessonsCompleted || []).filter(id => validSet.has(id)));
+  const cleanCompleted = [];
+  for (const lesson of LESSONS) {
+    if (completedSet.has(lesson.id)) cleanCompleted.push(lesson.id);
+    else break;
+  }
+
+  if (cleanCompleted.join('|') !== P.lessonsCompleted.join('|')) {
+    P.lessonsCompleted = cleanCompleted;
+    changed = true;
+  }
+
+  const allowed = new Set(cleanCompleted);
+  if (LESSONS[cleanCompleted.length]) allowed.add(LESSONS[cleanCompleted.length].id);
+  Object.keys(P.lessonBestScores).forEach(id => {
+    if (!allowed.has(id)) { delete P.lessonBestScores[id]; changed = true; }
+  });
+  return changed;
+}
+
 function renderUnitHub() {
+  sanitizeCurrentUnitProgress();
   updateHUD();
 
   // ── Player banner ──────────────────────────
@@ -4626,7 +4659,7 @@ window.addEventListener('storage', e => {
     try {
       const newState = JSON.parse(e.newValue);
       const oldState = JSON.parse(e.oldValue || '{}');
-      const dk = 'unit1_civil_war_reconstruction';
+      const dk = 'unit2a_boomtown';
       const newVocab = newState.vocabBestScore && newState.vocabBestScore[dk];
       const oldVocab = oldState.vocabBestScore && oldState.vocabBestScore[dk];
       if (newVocab && newVocab !== oldVocab) {
@@ -4651,10 +4684,10 @@ function checkVocabReturn() {
     // If we set ac_unit_game_return, the shell loaded instead of the unit game
     // after flashcards — redirect back to the unit game
     const unitReturn = localStorage.getItem('ac_unit_game_return');
-    if (unitReturn && unitReturn.includes('house-divided')) {
+    if (unitReturn && (unitReturn.includes('boomtown') || unitReturn.includes('ironandgold') || unitReturn === UNIT_GAME_URL)) {
       localStorage.removeItem('ac_unit_game_return');
       // Don't redirect if we're already on the unit game
-      if (!window.location.href.includes('house-divided')) {
+      if (!window.location.href.includes('boomtown') && !window.location.href.includes('ironandgold')) {
         window.location.href = unitReturn;
         return;
       }
@@ -4666,12 +4699,12 @@ function checkVocabReturn() {
     if (!raw) return;
     localStorage.removeItem('ac_vocab_result');
     const d = JSON.parse(raw);
-    if (!d || d.deckId !== 'unit1') return;
+    if (!d || d.deckId !== 'unit2a_boomtown') return;
     const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     if (!state.vocabPassed) state.vocabPassed = {};
     if (!state.vocabBestScore) state.vocabBestScore = {};
-    if (d.passed) state.vocabPassed['unit1'] = true;
-    if (d.score !== undefined) state.vocabBestScore['unit1'] = Math.max(d.score, state.vocabBestScore['unit1'] || 0);
+    if (d.passed) state.vocabPassed['unit2a_boomtown'] = true;
+    if (d.score !== undefined) state.vocabBestScore['unit2a_boomtown'] = Math.max(d.score, state.vocabBestScore['unit2a_boomtown'] || 0);
     localStorage.setItem(SHELL_KEY, JSON.stringify(state));
     // Push vocab to civitas_profiles so it syncs across devices
     pushVocabToSupabase(state.vocabPassed, state.vocabBestScore);
@@ -4685,7 +4718,7 @@ window.addEventListener('storage', e => {
     try {
       const newState = JSON.parse(e.newValue);
       const oldState = JSON.parse(e.oldValue || '{}');
-      const dk = 'unit1_civil_war_reconstruction';
+      const dk = 'unit2a_boomtown';
       const newVocab = newState.vocabBestScore && newState.vocabBestScore[dk];
       const oldVocab = oldState.vocabBestScore && oldState.vocabBestScore[dk];
       if (newVocab && newVocab !== oldVocab) {
