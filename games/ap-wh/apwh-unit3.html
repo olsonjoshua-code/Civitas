@@ -218,7 +218,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
         <div class="hub-meta-item">🎯 Pacing: <span>~8 – 11 class periods</span></div>
       </div>
     </div>
-    <button class="back-btn" onclick="goBack()">← All Units</button>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
   </div>
 
   <!-- Tab bar -->
@@ -874,15 +874,15 @@ function switchTab(name, btn){
 //  NAV
 // ════════════════════════════════════════════════════════════════════
 function goBack(){
-  // Returns to the Civitas shell course hub
-  try{ localStorage.setItem('civitas_returning','1'); }catch(e){}
-  const shellUrl = 'https://olsonjoshua-code.github.io/Civitas/';
-  // If we came from the shell, just go back; otherwise navigate to shell
-  if(document.referrer && document.referrer.indexOf('Civitas')>-1){
-    history.back();
-  } else {
-    window.location.href = shellUrl;
-  }
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
 }
 
 
