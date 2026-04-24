@@ -2255,6 +2255,7 @@ async function restoreProgressFromCivitas(fullName) {
       }
 
       if (P.lessonsCompleted.length) {
+        sanitizeCurrentUnitProgress();
         saveP(); // persist restored state to localStorage
         console.log('Progress restored from civitas_profiles — lessons done:', P.lessonsCompleted);
         try { renderLessonMap(); } catch(e) {}
@@ -2714,7 +2715,7 @@ function switchHubTab(tabId, btnEl) {
 }
 
 const FC_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/flashcards.html';
-const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/house-divided.html';
+const UNIT_GAME_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/empire-rising.html';
 const USH_SHELL_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
 
 function launchFlashcardsFromTab() {
@@ -2944,7 +2945,7 @@ Be generous — if the student clearly understands the concept, give them the be
 
 Respond ONLY with valid JSON, no other text:
 {"score": <0-100>, "tier": "<gold|silver|bronze|none>", "feedback": "<2 sentences max: acknowledge what they know, suggest ONE specific thing to add next time — never mention spelling or grammar>"}`,
-        messages: [{ role: 'user', content: `Unit: Civil War and Reconstruction (1861–1877)\nTopics: Civil War, 13th-15th Amendments, Freedmen's Bureau, Radical Reconstruction, Sharecropping, Compromise of 1877\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
+        messages: [{ role: 'user', content: `Unit: American Imperialism (1890s–1920s)\nTopics: expansionism, Spanish-American War, imperialism, annexation, Panama Canal, overseas territories, and debates over American power\n\nQuestion: ${question}\n\nStudent Answer: ${answer}` }]
       })
     });
     const data = await resp.json();
@@ -3207,7 +3208,41 @@ function isLessonUnlocked(idx) {
   return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
 }
 
+
+function sanitizeCurrentUnitProgress() {
+  if (!P || !Array.isArray(LESSONS)) return false;
+  let changed = false;
+  const validIds = LESSONS.map(l => l.id);
+  const validSet = new Set(validIds);
+  if (!Array.isArray(P.lessonsCompleted)) { P.lessonsCompleted = []; changed = true; }
+  if (!P.lessonBestScores || typeof P.lessonBestScores !== 'object') { P.lessonBestScores = {}; changed = true; }
+
+  // Keep only lessons from this unit, and only in the required order.
+  // This prevents old/cross-unit/corrupt saves from showing later lessons complete
+  // while earlier lessons remain locked.
+  const completedSet = new Set((P.lessonsCompleted || []).filter(id => validSet.has(id)));
+  const cleanCompleted = [];
+  for (const lesson of LESSONS) {
+    if (completedSet.has(lesson.id)) cleanCompleted.push(lesson.id);
+    else break;
+  }
+
+  if (cleanCompleted.join('|') !== P.lessonsCompleted.join('|')) {
+    P.lessonsCompleted = cleanCompleted;
+    changed = true;
+  }
+
+  // Keep scores only for completed lessons and the current next unlocked lesson.
+  const allowed = new Set(cleanCompleted);
+  if (LESSONS[cleanCompleted.length]) allowed.add(LESSONS[cleanCompleted.length].id);
+  Object.keys(P.lessonBestScores).forEach(id => {
+    if (!allowed.has(id)) { delete P.lessonBestScores[id]; changed = true; }
+  });
+  return changed;
+}
+
 function renderUnitHub() {
+  if (sanitizeCurrentUnitProgress()) saveP();
   updateHUD();
 
   // ── Player banner ──────────────────────────
