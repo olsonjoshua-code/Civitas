@@ -1921,7 +1921,7 @@ async function restoreProgressFromCivitas(fullName) {
       if (P.lessonsCompleted.length) {
         saveP(); // persist restored state to localStorage
         console.log('Progress restored from civitas_profiles — lessons done:', P.lessonsCompleted);
-        try { renderLessonMap(); } catch(e) {}
+        try { sanitizeCurrentUnitProgress(); saveP(); renderUnitHub(); } catch(e) {}
       }
     } catch(e) {}
 
@@ -2019,6 +2019,7 @@ function loadSavedUnit() {
 }
 
 function saveP() {
+  try { if (typeof sanitizeCurrentUnitProgress === 'function') sanitizeCurrentUnitProgress(); } catch(e) {}
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); } catch(e) {}
 }
 
@@ -2872,7 +2873,39 @@ function isLessonUnlocked(idx) {
   return P.lessonsCompleted.includes(LESSONS[idx - 1].id);
 }
 
+// Keep this unit's MCQ progress sequential and isolated from other unit games.
+// This prevents old/cross-unit saved data from making later sections appear complete
+// while earlier required sections are still locked.
+function sanitizeCurrentUnitProgress() {
+  if (!P || !Array.isArray(LESSONS)) return false;
+  let changed = false;
+  const validIds = LESSONS.map(l => l.id);
+  const validSet = new Set(validIds);
+  if (!Array.isArray(P.lessonsCompleted)) { P.lessonsCompleted = []; changed = true; }
+  if (!P.lessonBestScores || typeof P.lessonBestScores !== 'object') { P.lessonBestScores = {}; changed = true; }
+
+  const completedSet = new Set((P.lessonsCompleted || []).filter(id => validSet.has(id)));
+  const cleanCompleted = [];
+  for (const lesson of LESSONS) {
+    if (completedSet.has(lesson.id)) cleanCompleted.push(lesson.id);
+    else break;
+  }
+
+  if (cleanCompleted.join('|') !== P.lessonsCompleted.join('|')) {
+    P.lessonsCompleted = cleanCompleted;
+    changed = true;
+  }
+
+  const allowed = new Set(cleanCompleted);
+  if (LESSONS[cleanCompleted.length]) allowed.add(LESSONS[cleanCompleted.length].id);
+  Object.keys(P.lessonBestScores).forEach(id => {
+    if (!allowed.has(id)) { delete P.lessonBestScores[id]; changed = true; }
+  });
+  return changed;
+}
+
 function renderUnitHub() {
+  sanitizeCurrentUnitProgress();
   updateHUD();
 
   // ── Player banner ──────────────────────────
