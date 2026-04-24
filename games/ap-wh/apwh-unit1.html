@@ -74,6 +74,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 
 /* ── ACTIVITY CARDS (Play tab) ── */
 .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:920px){.activity-grid.cols-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.activity-grid.cols-3{grid-template-columns:1fr}}
 .activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
 .activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
 .activity-card-strip{height:3px;width:100%}
@@ -244,13 +247,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
       </div>
 
       <div class="sh">CORE CONTENT — Topics 1.1 to 1.6</div>
-      <div class="activity-grid" id="round-cards-core"></div>
+      <div class="activity-grid cols-3" id="round-cards-core"></div>
 
       <div class="sh">SYNTHESIS &amp; SKILLS — Topic 1.7 and Beyond</div>
-      <div class="activity-grid" id="round-cards-skills"></div>
+      <div class="activity-grid cols-3" id="round-cards-skills"></div>
 
       <div class="sh">ASSESSMENT — Free Response Practice</div>
-      <div class="activity-grid" id="round-cards-frq"></div>
+      <div class="activity-grid cols-3" id="round-cards-frq"></div>
 
     </div>
 
@@ -766,8 +769,30 @@ const VOCAB = {
 // ════════════════════════════════════════════════════════════════════
 //  STATE & STORAGE
 // ════════════════════════════════════════════════════════════════════
-const STORAGE_KEY = 'apwh_unit1_progress';
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_unit1_progress';            // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_u1';            // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_u1';           // Supabase column for in-progress drafts
+
 let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
 
 function loadState(){
   try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
@@ -775,9 +800,63 @@ function loadState(){
 }
 function saveState(){
   try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
 }
 function getRoundProgress(roundId){
   return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
 }
 
 
@@ -887,6 +966,8 @@ function goBack(){
 //  BOOT
 // ════════════════════════════════════════════════════════════════════
 function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
   let pct = 0;
   const bar = document.getElementById('ld-fill');
   const tick = setInterval(() => {
@@ -902,6 +983,14 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
         }, 400);
       }, 200);
     } else {
