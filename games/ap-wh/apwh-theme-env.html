@@ -1,1 +1,959 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme: Humans & Environment — AP World History · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Crimson + Bronze — manuscripts & imperial seals */
+  --bg:#1a0a0a;--bg2:#2a1212;--bg3:#3a1c1c;--panel:#241010;
+  --border:#3a1a1a;--border2:#5a2828;
+  --acc:#a83838;--acc2:#c84848;--acc3:#e06a6a;            /* crimson */
+  --bronze:#d4a847;--bronze2:#e8c060;--bronze3:#f4d878;   /* bronze */
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --blue:#4878d0;--blue2:#6898e8;
+  --orange:#e08840;--orange2:#f0a058;
+  --text:#f0e4d4;--text2:#a89888;--text3:#5a4838;--cream:#f4ede0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(168,56,56,.10) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(212,168,71,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--bronze2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .2s;width:0}
+
+/* ── HUB ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(168,56,56,.18) 0%,rgba(26,10,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,71,.025) 40px,rgba(212,168,71,.025) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(93,186,122,.55)) drop-shadow(0 0 8px rgba(168,56,56,.35));position:relative}
+.hub-hero{border-left:4px solid rgba(93,186,122,.5)}
+.hub-hero-info{flex:1;position:relative}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--bronze2);letter-spacing:3px;margin-bottom:6px;opacity:.85}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:640px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--bronze2);font-weight:500}
+.back-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;position:relative}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── TABS ── */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;white-space:nowrap}
+.hub-tab:hover{color:var(--bronze2)}
+.hub-tab.active{color:var(--bronze2);border-bottom-color:var(--bronze)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* ── ACTIVITY CARDS (Play tab) ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px;color:var(--bronze2)}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.activity-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.activity-card-meta-tag{font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;padding:2px 6px;border:1px solid;border-radius:2px}
+.tag-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2)}
+.tag-gov{border-color:rgba(72,120,208,.4);color:var(--blue2)}
+.tag-ecn{border-color:rgba(245,200,66,.4);color:var(--gc)}
+.tag-sio{border-color:rgba(104,152,232,.4);color:#8898d8}
+.tag-tec{border-color:rgba(144,128,224,.4);color:var(--purple2)}
+.tag-env{border-color:rgba(64,200,112,.4);color:var(--green2)}
+
+/* ── BRIEFING / OVERVIEW shared ── */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;margin-top:24px}
+.sh::before{content:'';width:3px;height:14px;background:var(--bronze);display:block}
+.sh:first-of-type{margin-top:0}
+.b-card{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;margin-bottom:14px}
+.b-card p{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.85;margin-bottom:10px}
+.b-card p:last-child{margin-bottom:0}
+.b-card strong{color:var(--cream);font-weight:600}
+.b-card em{color:var(--bronze2);font-style:italic}
+.b-tip{padding:11px 15px;background:rgba(168,56,56,.08);border-left:3px solid var(--acc);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-tip strong{color:var(--acc3);font-weight:600}
+.b-key{padding:11px 15px;background:rgba(212,168,71,.08);border-left:3px solid var(--bronze);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-key strong{color:var(--bronze2);font-weight:600}
+.b-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;margin-bottom:8px}
+.b-mini{background:var(--bg3);border:1px solid var(--border2);padding:12px 14px}
+.b-mini-label{font-family:var(--bebas);font-size:11px;color:var(--bronze2);letter-spacing:1.5px;margin-bottom:4px}
+.b-mini-text{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6}
+.b-mini-text strong{color:var(--cream)}
+.b-source{padding:14px 18px;background:rgba(58,28,28,.6);border-left:3px solid var(--bronze);
+  margin-bottom:14px;font-family:var(--crimson);font-size:13px;font-style:italic;color:var(--text2);line-height:1.75}
+.b-source-attr{display:block;margin-top:8px;font-family:var(--dm);font-size:10px;color:var(--bronze2);font-style:normal;letter-spacing:1px}
+
+.theme-pill{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:2px;margin-right:4px;border:1px solid}
+.tp-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2);background:rgba(224,136,64,.08)}
+.tp-gov{border-color:rgba(72,120,208,.4);color:var(--blue2);background:rgba(72,120,208,.08)}
+.tp-ecn{border-color:rgba(245,200,66,.4);color:var(--gc);background:rgba(245,200,66,.08)}
+.tp-sio{border-color:rgba(104,152,232,.4);color:#8898d8;background:rgba(104,152,232,.08)}
+.tp-tec{border-color:rgba(144,128,224,.4);color:var(--purple2);background:rgba(144,128,224,.08)}
+.tp-env{border-color:rgba(64,200,112,.4);color:var(--green2);background:rgba(64,200,112,.08)}
+
+/* ── VOCAB ── */
+.vocab-info{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:16px 20px;margin-bottom:20px}
+.vocab-info-title{font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px}
+.vocab-info-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
+.vocab-region-header{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.vocab-region-header:first-of-type{margin-top:0}
+.vocab-region-icon{font-size:18px}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.vocab-card{background:var(--bg2);border:1px solid var(--border);padding:11px 14px;cursor:pointer;transition:all .15s;position:relative}
+.vocab-card:hover{border-color:var(--bronze);background:var(--bg3)}
+.vocab-card-term{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600;margin-bottom:3px}
+.vocab-card-def{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;display:none}
+.vocab-card.flipped .vocab-card-def{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.vocab-card-hint{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── OVERVIEW ── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:20px 26px;margin-bottom:20px}
+.ov-hero-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.ov-hero-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7}
+.ov-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);padding:14px;text-align:center}
+.ov-stat-val{font-family:var(--bebas);font-size:24px;color:var(--bronze2);letter-spacing:1px}
+.ov-stat-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.ov-topics{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ov-topic{background:var(--bg2);border:1px solid var(--border);padding:14px 18px;display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center}
+.ov-topic-num{font-family:var(--bebas);font-size:18px;color:var(--bronze2);letter-spacing:2px}
+.ov-topic-info{}
+.ov-topic-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:3px}
+.ov-topic-obj{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+.ov-topic-themes{display:flex;gap:4px;flex-wrap:wrap}
+.ov-skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ov-skill{background:var(--bg2);border:1px solid var(--border);padding:13px 16px;border-left:3px solid var(--bronze)}
+.ov-skill-name{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--bronze2);margin-bottom:3px}
+.ov-skill-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;margin-bottom:18px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-label span{color:var(--bronze2)}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:760px){
+  .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
+  .hub-hero-icon{font-size:40px}
+  .hub-content{padding:16px 18px 60px}
+  .hub-tab{padding:10px 14px;font-size:10px}
+  .hub-meta{gap:10px}
+  .hub-meta-item{font-size:8px}
+  .activity-grid{grid-template-columns:1fr}
+  .ov-topic{grid-template-columns:50px 1fr;gap:10px}
+  .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════════════════ -->
+<div id="loading">
+  <div class="ld-icon">🌱</div>
+  <div class="ld-title">ENVIRONMENT</div>
+  <div class="ld-sub">Theme · 1200 — Present</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     UNIT HUB
+════════════════════════════════════════════════════════════════════ -->
+<div id="hub">
+
+  <!-- Hero header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">🌱</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP WORLD HISTORY · THEME</div>
+      <div class="hub-title">Humans &amp; Environment</div>
+      <div class="hub-desc">A cross-period synthesis of <strong>how people have shaped the natural world &mdash; and how the natural world has shaped people</strong> from 1200 to the present. Trace the Black Death, the Columbian Exchange, the Great Dying, industrial pollution, the Dust Bowl, Chernobyl, and the climate crisis. <strong>The Columbian Exchange alone is one of the most-tested events on the AP exam.</strong> Use this for synthesis &mdash; SAQs, DBQs, and especially LEQs that ask you to argue across periods. <em>Best used as April/May exam prep after completing Units 1&ndash;9.</em></div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Periods Covered: <span>All 9 Units</span></div>
+        <div class="hub-meta-item">🎯 Theme Code: <span>ENV</span></div>
+        <div class="hub-meta-item">🌱 Focus: <span>Disease, agriculture, exchange, pollution, climate</span></div>
+        <div class="hub-meta-item">⚖️ Format: <span>9 rounds + LEQ synthesis</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📊 Overview</button>
+  </div>
+
+  <div class="hub-content">
+
+    <!-- ═══════════════════════════════════════════════════
+         PLAY TAB
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-play" class="hub-panel active">
+
+      <!-- Progress bar -->
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-pct">0 / 12 ROUNDS</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="sh">ERA CHECKS — Environment Across the Periods</div>
+      <div class="activity-grid" id="round-cards-core"></div>
+
+      <div class="sh">SYNTHESIS — Cross-Period Comparison &amp; CCOT</div>
+      <div class="activity-grid" id="round-cards-skills"></div>
+
+      <div class="sh">ASSESSMENT — Thematic LEQ Practice</div>
+      <div class="activity-grid" id="round-cards-frq"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         BRIEFING TAB — fully written, CED-aligned
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-briefing" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Briefing — Humans &amp; Environment (ENV)</div>
+        <div class="vocab-info-desc">This is a <strong>cross-period synthesis</strong> of how humans have reshaped the natural world &mdash; and how the natural world has reshaped humans &mdash; from 1200 to the present. Unlike the unit briefings (which walk you through a single era), this briefing follows ONE thread &mdash; <em>environment</em> &mdash; across all 800 years. Use it to prepare for thematic LEQs, DBQs, and any AP exam question asking you to argue across periods. The dominant reasoning skills are <strong>Causation</strong> and <strong>Continuity and Change Over Time (CCOT)</strong>.</div>
+      </div>
+
+      <!-- ════ CCOT FRAMING ════ -->
+      <div class="sh">The Big Story: How Humans and the Environment Shaped Each Other From 1200 to Present</div>
+      <div class="b-card">
+        <p>Across 800 years, the relationship between humans and their environment moved through three rough phases: dependence (humans largely at the mercy of climate, soil, and disease), exchange (the long-distance movement of plants, animals, and pathogens reshaping every continent), and dominance (industrial humans now altering Earth's atmosphere, oceans, and biosphere on a planetary scale). Yet several <strong>continuities</strong> persisted throughout. Here is the master narrative the AP exam expects you to be able to construct:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 1: DISEASE TRAVELS WITH TRADE</div>
+            <div class="b-mini-text">Wherever humans connect, pathogens follow. The Black Death rode the Mongol-era Silk Roads; smallpox rode Spanish ships; HIV and COVID-19 rode jet aircraft. Trade routes have always been disease routes.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 2: AGRICULTURE DRIVES POPULATION</div>
+            <div class="b-mini-text">Champa rice (Song China), New World potatoes/maize (post-1492 Eurasia), and Borlaug\'s Green Revolution wheats (1950s+) all drove population booms. The relationship between food technology and demographic capacity is constant across periods.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 3: HUMANS RESHAPE LANDSCAPES</div>
+            <div class="b-mini-text">Terraced rice paddies, deforested European hills for shipbuilding, plantation monoculture in the Caribbean, urban sprawl, megadams, factory farms &mdash; in every era humans transform the land they inhabit, just at different scales and with different tools.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 4: ENVIRONMENT SHAPES HUMANS BACK</div>
+            <div class="b-mini-text">The Little Ice Age weakened states; the 1815 Tambora eruption produced the "year without a summer"; Hurricane Katrina (2005) revealed deep social fault lines. Even in the industrial age, the environment is no passive backdrop.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-card">
+        <p>And the <strong>changes</strong> &mdash; the major transitions in the human-environment relationship:</p>
+        <p>&bull; <strong>From local to hemispheric to global ecologies.</strong> 1200: most plants, animals, and pathogens stayed within their continents. 1492+: the Columbian Exchange unified Old and New World ecosystems forever. 2000+: globalized supply chains, invasive species, and atmospheric chemistry are planet-scale.<br>
+        &bull; <strong>From organic to fossil-fueled energy.</strong> Pre-industrial societies ran on muscle, wind, water, and biomass &mdash; energy flows that recycled within a generation. After ~1769 (Watt) and especially after ~1860 (oil), humans tap stored solar energy from millions of years past, releasing accumulated carbon back into the atmosphere.<br>
+        &bull; <strong>From a few hundred million to ~8 billion people.</strong> Global population in 1200: ~400 million. In 1800: ~1 billion. In 1950: ~2.5 billion. In 2024: ~8.1 billion. The pressure on land, water, and biodiversity scales with population.<br>
+        &bull; <strong>From local pollution to planetary climate change.</strong> A medieval tannery polluted one stream. An industrial city polluted a river. The 21st-century human civilization is altering global atmospheric chemistry, ocean pH, and ice-cap mass on a scale visible from orbit.</p>
+      </div>
+
+      <!-- ════ ERA 1: 1200–1450 ════ -->
+      <div class="sh">Era 1 (1200&ndash;1450): The Black Death and the Little Ice Age</div>
+      <div class="b-card">
+        <p><strong>From Unit 1 (Global Tapestry):</strong> The 14th century saw two of the most consequential environmental events of the pre-modern world &mdash; both with global reach.</p>
+        <p>&bull; <strong>The Little Ice Age (~1300&ndash;1850).</strong> A long stretch of cooler-than-average global temperatures, especially harsh in the 1300s. Crop failures, famine, and weakened immune systems set the stage for the Black Death. The Greenland Norse colonies died out; Northern European agricultural frontiers retreated; Ming China saw repeated dynasty-shaking famines.<br>
+        &bull; <strong>The Black Death (1347&ndash;52).</strong> The bubonic plague (<em>Yersinia pestis</em>) had likely circulated in Central Asian rodent populations for centuries. Mongol-era Silk Road connectivity spread it from Central Asia to Crimea (1346, the famous siege of Caffa) to the Mediterranean to all of Europe and North Africa. Killed an estimated <strong>30&ndash;60% of Europe\'s population</strong> in 5 years. Egypt and parts of the Islamic world lost similar proportions. China and India also suffered, though documentation is thinner.</p>
+        <p>The Black Death is the AP exam\'s textbook example of how a connected world is also a contagious world. Its consequences were enormous: severe labor shortages reshaped European feudalism (workers could demand higher wages), set off peasant revolts (the English Peasants\' Revolt 1381), accelerated the decline of serfdom in Western Europe (while strengthening it in Eastern Europe), and produced the Flagellant movement and waves of antisemitic violence as terrified populations sought scapegoats.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>From Unit 2 (Networks of Exchange):</strong> Beyond disease, this era saw critical agricultural and ecological exchanges that flowed along the trade networks.</p>
+        <p>&bull; <strong>Champa rice</strong> &mdash; a fast-ripening, drought-resistant rice strain that arrived in Song China from Vietnam (Champa) in the 11th century, with its impact maturing in the 12th&ndash;14th centuries. Two harvests per year became possible. Chinese population roughly doubled between 1000 and 1300, fundamentally reshaping East Asian demography.<br>
+        &bull; <strong>Bananas to Africa</strong> &mdash; bananas (originally Southeast Asian) had reached Africa via Indian Ocean trade in earlier periods, but their cultivation kept expanding into the Bantu agricultural frontier, supporting population growth in sub-Saharan Africa.<br>
+        &bull; <strong>Sugar cultivation</strong> moved across the Mediterranean (Egypt, Cyprus, Sicily) and reached the Atlantic islands (Madeira, S&atilde;o Tom&eacute;) by the 15th century &mdash; the prelude to the Caribbean plantation system that would emerge after 1492.<br>
+        &bull; <strong>Eurasian rangelands</strong> were transformed by Mongol pastoralism. The vast Mongol herds reshaped grassland ecologies; the Mongol-era hunt (the <em>nerge</em>) was practiced on near-industrial scales.</p>
+      </div>
+
+      <!-- ════ ERA 2A: 1450–1750 LAND EMPIRES ════ -->
+      <div class="sh">Era 2A (1450&ndash;1750): A Briefer Note on Land Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 3 (Land-Based Empires):</strong> The CED for Unit 3 emphasizes governance, religion, and military technology more than environment, and the AP exam reflects that. There is less unit-specific environmental content for this period than for any other era. <em>Don\'t skip it on essays</em> &mdash; but expect to reach mainly for the maritime/Columbian Exchange material in Era 2B and the broader continuities here.</p>
+        <p>That said, several land-empire environmental threads do matter and can show up in synthesis questions:</p>
+        <p>&bull; <strong>Deforestation for shipbuilding and fuel.</strong> Both the Ottomans and Mughals required massive timber for fleets, palaces, and gun-carriage manufacture. The Mediterranean basin, already deforested in classical times, was further stripped. The Ming and Qing similarly stripped large areas for fuel and construction.<br>
+        &bull; <strong>The Russian frontier.</strong> Russian expansion into Siberia (begun in the 1580s by the Stroganov family, accelerated under Peter the Great) was driven by the fur trade. Sable, ermine, and beaver populations were heavily reduced; the ecological frontier moved steadily eastward toward the Pacific.<br>
+        &bull; <strong>Little Ice Age peaks.</strong> The Maunder Minimum (~1645&ndash;1715), a period of low solar activity within the broader Little Ice Age, brought severe winters across the northern hemisphere. Frozen Thames frost fairs in London, harsh harvests under Louis XIV, dynastic crisis in late Ming China.<br>
+        &bull; <strong>Manchu Qing expansion</strong> in the 17th and 18th centuries opened agricultural frontiers in formerly pastoral or forested regions of Central Asia, Manchuria, and Yunnan, displacing both wildlife and indigenous populations.</p>
+      </div>
+
+      <!-- ════ ERA 2B: COLUMBIAN EXCHANGE (4 cards as specified) ════ -->
+      <div class="sh">Era 2B (1450&ndash;1750): The Columbian Exchange &mdash; The Most Important Environmental Event in Modern History</div>
+      <div class="b-card">
+        <p><strong>From Unit 4 (Transoceanic Interconnections):</strong> The Columbian Exchange &mdash; the post-1492 transfer of plants, animals, pathogens, and people between the Eastern and Western Hemispheres &mdash; is arguably the most consequential environmental event in human history, and it is the single most-tested topic in this entire theme. The AP exam expects deep familiarity.</p>
+        <p>For 12,000 years before 1492, the ecologies of the Americas and Eurasia/Africa had developed in near-total isolation. Different plants, different animals, different diseases. After Columbus, those two worlds were joined &mdash; and there was no putting them back.</p>
+        <p>The exchange ran in <strong>both directions</strong>, and the AP exam wants you to be able to argue specifics in either direction:</p>
+        <p>&bull; <strong>From the Americas to Eurasia/Africa: maize, potatoes, sweet potatoes, manioc (cassava), tomatoes, peppers, peanuts, vanilla, cacao, tobacco, turkeys, and rubber.</strong><br>
+        &bull; <strong>From Eurasia/Africa to the Americas: wheat, rice, sugar, bananas, citrus fruits, coffee, horses, cattle, pigs, sheep, goats, chickens &mdash; AND smallpox, measles, influenza, typhus, malaria, yellow fever, and many other pathogens.</strong></p>
+      </div>
+      <div class="b-card">
+        <p><strong>The Great Dying.</strong> The catastrophic side of the exchange was the disease half. Indigenous peoples of the Americas had never been exposed to smallpox, measles, influenza, or typhus &mdash; they had no immunity. The pathogens that arrived with Columbus and his successors triggered what historians now call <em>the largest demographic catastrophe in human history</em>.</p>
+        <p>Estimates vary, but most scholars now accept that the population of the Americas in 1491 was somewhere between 60 and 100 million. By 1600, it had fallen by an estimated <strong>~90%</strong>. The collapse came primarily from disease, not direct violence (though violence and forced labor mattered too). Smallpox preceded Cort&eacute;s into the Aztec heartland and arrived in the Andes ahead of Pizarro &mdash; meaning Spanish conquistadors fought populations already devastated.</p>
+        <p>Specific examples to know:</p>
+        <p>&bull; <strong>Hispaniola</strong> &mdash; the Ta&iacute;no population was nearly wiped out within a generation of Columbus\'s arrival.<br>
+        &bull; <strong>Tenochtitl&aacute;n</strong> &mdash; a smallpox outbreak in 1520, between Cort&eacute;s\'s defeat at <em>La Noche Triste</em> and his return, fatally weakened Aztec defenses.<br>
+        &bull; <strong>Inca Empire</strong> &mdash; Huayna Capac himself died of an Old World disease (likely smallpox or measles) before Pizarro\'s arrival, triggering the civil war between Atahualpa and Hu&aacute;scar that left the empire vulnerable.<br>
+        &bull; Recent scholarship suggests the depopulation was so vast that abandoned American farmland reforested at a scale large enough to <em>measurably reduce atmospheric CO<sub>2</sub></em>, possibly contributing to the Little Ice Age cool period of the late 1500s.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>The agricultural transformation of Eurasia and Africa.</strong> American crops &mdash; especially maize, potatoes, and sweet potatoes &mdash; turned out to thrive in soils and climates where Old World grains struggled. The result was a sustained Eurasian/African population boom from roughly 1600 onward.</p>
+        <p>&bull; <strong>The potato</strong> reshaped Northern Europe. Calories per acre roughly tripled compared to wheat or rye. The Irish, Northern French, German, and Russian populations all expanded substantially on potato cultivation. The vulnerability that came with this monoculture became visible in the <strong>Irish Potato Famine (1845&ndash;52)</strong>, when potato blight killed ~1 million and forced ~1 million more to emigrate.<br>
+        &bull; <strong>Maize</strong> spread to southern Europe (especially Italy, where it produced polenta culture), to West Africa (where it became a major staple), and to China (where it allowed cultivation of upland soils that were unsuited to rice).<br>
+        &bull; <strong>Sweet potatoes</strong> were carried by Spanish galleons to the Philippines and from there to Ming/Qing China; they helped fuel the Qing population doubling from ~150 million in 1700 to ~300 million by 1800.<br>
+        &bull; <strong>Manioc (cassava)</strong> became a staple across sub-Saharan Africa and parts of Southeast Asia, valued for its drought tolerance.</p>
+        <p>And in the other direction, <strong>horses transformed the Americas</strong>. Reintroduced by the Spanish (horses had gone extinct in the Americas roughly 10,000 years earlier), they became central to the Plains Indian cultures of North America (Comanche, Lakota, Cheyenne) and the gauchos of the South American pampas. Cattle and pigs spread across the Americas, often as feral populations transforming local ecosystems before settlers even arrived.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>Plantation monoculture and its environmental costs.</strong> The Atlantic plantation complex &mdash; sugar in the Caribbean and Brazil, tobacco in Virginia, cotton in the U.S. South &mdash; was a new kind of human-environment relationship: vast acreages of a single cash crop, worked by coerced labor, oriented entirely toward distant European markets.</p>
+        <p>&bull; <strong>Sugar</strong> was the original. The Caribbean was systematically deforested. Topsoil eroded; soil fertility crashed; planters moved to fresh islands when the old ones were exhausted. Estimated calorie-per-acre yields were enormous, but maintained only through massive labor and ecological inputs.<br>
+        &bull; <strong>Mercury and silver mining</strong> at Potos&iacute; (modern Bolivia, peak production ~1545&ndash;1650) and Zacatecas (Mexico) used the patio process &mdash; mercury amalgamation &mdash; that contaminated entire watersheds. Indigenous and African enslaved laborers worked under deadly conditions; the Cerro Rico of Potos&iacute; is sometimes called "the mountain that ate men."<br>
+        &bull; <strong>Beaver populations</strong> across the eastern North American forests were nearly exterminated by ~1700 to supply the European hat-making industry. The disappearance of beaver dams substantially altered hydrology and forest ecology across vast areas.<br>
+        &bull; <strong>Sea otter and seal populations</strong> in the North Pacific and Antarctic were similarly devastated by Russian, American, and European fur and oil hunters.</p>
+        <p>The Columbian Exchange and its plantation complex are why this era looms so large in the ENV theme: they are the moment when humans first reshaped continental and oceanic ecologies in irreversible ways. Many AP DBQs and LEQs use this material. Master it.</p>
+      </div>
+
+      <!-- ════ ERA 3: 1750–1900 ════ -->
+      <div class="sh">Era 3 (1750&ndash;1900): The Industrial Revolution Transforms the Land</div>
+      <div class="b-card">
+        <p><strong>From Units 5&ndash;6 (Revolutions and Consequences of Industrialization):</strong> The Industrial Revolution turned local environmental damage into regional, then continental, then increasingly planetary problems. For the first time in human history, atmospheric chemistry began to register the effects of human activity.</p>
+        <p>&bull; <strong>Coal smoke and urban pollution.</strong> Manchester, Birmingham, and London became famous for their "pea-soup" smogs. The 1800s saw the first systematic studies of urban air pollution. Average urban life expectancies in industrial Britain were measurably lower than in the surrounding countryside &mdash; one of the first quantified human costs of industrial pollution.<br>
+        &bull; <strong>Coal mining</strong> reshaped landscapes from Wales to Pennsylvania to the Donbas. Mountains were cut, valleys filled with slag, rivers blackened by mine runoff.<br>
+        &bull; <strong>Deforestation accelerated.</strong> Industrial demand for fuel, ship timber, and railroad ties stripped forests across Europe, North America, and increasingly Asia. The American eastern hardwood forest was reduced to a fraction of its pre-1800 extent by 1900.<br>
+        &bull; <strong>Urbanization.</strong> The percentage of humans living in cities crossed historic thresholds. London passed 1 million in 1800; New York and Tokyo soon followed. By 1900, dozens of cities had millions of inhabitants, all requiring intensive food, water, and waste-disposal systems.<br>
+        &bull; <strong>Industrial agriculture</strong> began in the form of mechanized plowing (John Deere\'s steel plow, 1837), barbed wire (1874) enclosing the American Great Plains, and synthetic fertilizers (Justus von Liebig\'s nitrogen-phosphorus-potassium chemistry, 1840s).<br>
+        &bull; <strong>The buffalo (American bison)</strong> were reduced from an estimated 30&ndash;60 million in 1800 to about 1,000 by the 1880s &mdash; a deliberate policy to undermine Plains Indian resistance.<br>
+        &bull; <strong>Sanitation revolutions</strong> &mdash; London\'s Great Stink (1858) led to the construction of Joseph Bazalgette\'s sewer system (1859&ndash;75), a model copied worldwide. John Snow\'s 1854 cholera mapping of Broad Street pump established environmental epidemiology.</p>
+        <p>The era also saw the first conservation responses: Yellowstone (1872, world\'s first national park), the Sierra Club (John Muir, 1892), the U.S. Forest Service (1905). The realization that industrial society could destroy the environment it depended on began here.</p>
+      </div>
+
+      <!-- ════ ERA 4: 1900–1945 ════ -->
+      <div class="sh">Era 4 (1900&ndash;1945): The Dust Bowl and Industrial-Scale War</div>
+      <div class="b-card">
+        <p><strong>From Unit 7 (Global Conflict):</strong> The first half of the 20th century saw catastrophic environmental events tied to industrial agriculture, the world wars, and the dawn of the atomic age.</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">THE DUST BOWL (1930s)</div>
+            <div class="b-mini-text">Decades of plowing the deep-rooted prairie grasses of the U.S. Great Plains, combined with severe drought, sent topsoil into the wind. "Black Sunday" (April 14, 1935) carried dust as far as Washington D.C. ~2.5 million people fled the affected states. Inspired the New Deal\'s Soil Conservation Service.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">WWI ENVIRONMENTAL DAMAGE</div>
+            <div class="b-mini-text">Trench warfare turned the Western Front\'s landscape into a churned wasteland. Belgian Flanders fields are still being cleared of unexploded ordnance over a century later (the "iron harvest"). Verdun\'s "Zone Rouge" remained too contaminated to farm well into the 21st century.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">WWII ENVIRONMENTAL DAMAGE</div>
+            <div class="b-mini-text">Strategic bombing leveled European and Japanese cities; firebombing (Hamburg, Dresden, Tokyo) burned forests and farmland. The Pacific island campaigns devastated coral reefs and tropical ecosystems. Petroleum infrastructure was a deliberate target.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">ATOMIC AGE BEGINS (1945)</div>
+            <div class="b-mini-text">Hiroshima and Nagasaki introduced not only a new weapon but a new kind of environmental contamination: radioactive fallout. Within a decade, Pacific atoll nuclear tests (Bikini, Enewetak) produced contamination that displaced indigenous Marshallese populations for generations.</div>
+          </div>
+        </div>
+        <p><strong>Soviet collectivization (1928&ndash;33)</strong> deserves a special mention. Stalin\'s forced collectivization combined human and environmental catastrophe: millions of "kulaks" deported, livestock slaughtered (kulaks killed their own animals rather than surrender them), and the Holodomor famine (1932&ndash;33) killed an estimated 3.5&ndash;5 million in Ukraine. State-driven attempts to industrialize agriculture also degraded huge areas of Central Asian and Siberian land.</p>
+      </div>
+
+      <!-- ════ ERA 5: COLD WAR ════ -->
+      <div class="sh">Era 5 (1945&ndash;1991): Postwar Boom, Modern Environmentalism</div>
+      <div class="b-card">
+        <p><strong>From Unit 8 (Cold War &amp; Decolonization):</strong> The postwar boom in the developed world &mdash; combined with rapid industrialization in newly independent states and the Soviet bloc &mdash; produced the first wave of recognizably modern environmental disasters and movements.</p>
+        <p>&bull; <strong>The Green Revolution (~1950s&ndash;70s).</strong> Norman Borlaug\'s high-yield, disease-resistant wheat varieties &mdash; combined with chemical fertilizers, pesticides, and irrigation &mdash; tripled agricultural yields in Mexico, India, and elsewhere. Saved hundreds of millions from famine. Costs: groundwater depletion (the Indian Punjab is a textbook example), pesticide runoff, soil salinization, and dependence on petroleum-derived inputs.<br>
+        &bull; <strong>Rachel Carson\'s <em>Silent Spring</em> (1962)</strong> &mdash; documented the ecological damage from DDT and other pesticides, especially their effect on bird populations. Often credited with launching the modern environmental movement. Led to the U.S. EPA (1970) and the U.S. ban on DDT (1972).<br>
+        &bull; <strong>The first Earth Day (April 22, 1970)</strong> &mdash; ~20 million Americans participated. The U.S. Clean Air Act (1970), Clean Water Act (1972), and Endangered Species Act (1973) followed quickly.<br>
+        &bull; <strong>Bhopal (Dec 2&ndash;3, 1984)</strong> &mdash; a Union Carbide pesticide plant in India released methyl isocyanate gas; ~5,000 killed in the immediate aftermath, perhaps 15,000+ in subsequent years, hundreds of thousands of injuries. The worst industrial accident in history; a textbook case of multinational corporate negligence in the developing world.<br>
+        &bull; <strong>Chernobyl (April 26, 1986)</strong> &mdash; the worst nuclear power accident in history, in Soviet Ukraine. Radioactive fallout spread across Europe; ~350,000 people permanently displaced. The "Exclusion Zone" remains largely uninhabited. Helped accelerate the Soviet collapse by exposing the system\'s lethal opacity.<br>
+        &bull; <strong>The Aral Sea</strong> &mdash; once the world\'s 4th-largest inland body of water, it shrank by 90%+ from the 1960s onward as Soviet Central Asian planners diverted its feeder rivers (Amu Darya, Syr Darya) for cotton irrigation. A textbook case of Soviet-era environmental disaster.<br>
+        &bull; <strong>Ozone depletion and the Montreal Protocol (1987).</strong> Scientists in the 1970s and 80s discovered that chlorofluorocarbons (CFCs &mdash; refrigerants and aerosols) were destroying the stratospheric ozone layer that protects Earth from UV radiation. The Antarctic "ozone hole" was identified in 1985. <strong>The Montreal Protocol (1987) banned CFCs internationally and is the most successful environmental treaty in history.</strong> The ozone layer is now slowly recovering.</p>
+      </div>
+
+      <!-- ════ ERA 6: PRESENT ════ -->
+      <div class="sh">Era 6 (1991&ndash;Present): The Climate Crisis</div>
+      <div class="b-card">
+        <p><strong>From Unit 9 (Globalization):</strong> The defining environmental issue of the contemporary era is anthropogenic climate change &mdash; the warming of Earth\'s atmosphere caused by human emissions of greenhouse gases (mainly CO<sub>2</sub> and methane), primarily from burning fossil fuels.</p>
+        <p>The science was first articulated by Svante Arrhenius (1896), but the scale of consequences became clear only in the late 20th century. Major milestones:</p>
+        <p>&bull; <strong>The IPCC (Intergovernmental Panel on Climate Change), founded 1988</strong> &mdash; UN-mandated body that synthesizes climate science. Its reports (every ~6 years) are the gold standard. Won the Nobel Peace Prize in 2007.<br>
+        &bull; <strong>The Earth Summit (Rio, 1992)</strong> &mdash; produced the UN Framework Convention on Climate Change (UNFCCC), the legal foundation for all subsequent climate treaties.<br>
+        &bull; <strong>The Kyoto Protocol (1997)</strong> &mdash; first major international agreement requiring emissions cuts. The U.S. signed but never ratified; China and India had no binding commitments as developing countries.<br>
+        &bull; <strong>The Paris Agreement (Dec 2015)</strong> &mdash; nearly all countries pledged voluntary "nationally determined contributions" to limit warming to "well below 2&deg;C, preferably 1.5&deg;C." A diplomatic milestone, though current pledges fall short of the targets.<br>
+        &bull; <strong>Greta Thunberg and youth climate activism (2018+)</strong> &mdash; the Fridays for Future school strike movement spread globally. Climate became a generational political issue.<br>
+        &bull; <strong>The renewable energy revolution</strong> &mdash; solar photovoltaic costs dropped ~90% from 2010&ndash;2020. Wind and solar are now cheaper than coal in most markets. The energy transition that may define the 21st century is underway, though not yet at the pace required.<br>
+        &bull; <strong>Biodiversity collapse.</strong> Conservation biologists describe the present as the "Sixth Mass Extinction" &mdash; species loss rates are estimated at 100&ndash;1,000 times background levels. Tropical deforestation (Amazon, Indonesia, Congo) is a primary driver.<br>
+        &bull; <strong>Pandemic environments.</strong> COVID-19 (2020+), like SARS, MERS, and HIV before it, originated in wildlife-human contact zones and spread globally via jet aircraft. Pandemics are increasingly understood as environmental as well as medical events.<br>
+        &bull; <strong>Climate-driven migration and conflict</strong> &mdash; from Syrian drought (2006&ndash;10) to Pacific island sea-level rise to Sahel droughts &mdash; are now widely cited as security and humanitarian issues.</p>
+      </div>
+
+      <!-- ════ THE BIG QUESTIONS ════ -->
+      <div class="sh">The Big Questions for AP Synthesis</div>
+      <div class="b-card">
+        <p>The AP exam often asks thematic LEQ questions that span multiple periods. Here are the most-tested environment prompts and how to think about them:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">DISEASE AND CONNECTION</div>
+            <div class="b-mini-text"><strong>"Compare the role of disease across two periods."</strong> Try: Black Death (1347&ndash;52, killing 30&ndash;60% of Europe) vs. the Great Dying (~90% of Indigenous Americans, 1492&ndash;1600) vs. 21st-c. pandemics (HIV, SARS, COVID-19). Each shows the dark side of connectivity.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">AGRICULTURAL TRANSFORMATIONS</div>
+            <div class="b-mini-text"><strong>"How did new crops or agricultural systems reshape societies?"</strong> Try: Champa rice in Song China (population doubling); American crops in post-1492 Eurasia/Africa (potato in Northern Europe, sweet potato in Qing China); Borlaug\'s Green Revolution wheats (1950s+).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">EXCHANGE AND ITS COSTS</div>
+            <div class="b-mini-text"><strong>"Compare the environmental effects of two different exchange networks."</strong> Try: Indian Ocean networks (1200&ndash;1450, including Champa rice diffusion) vs. the Columbian Exchange (1492+, with the Great Dying and the plantation complex).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">INDUSTRY AND THE ENVIRONMENT</div>
+            <div class="b-mini-text"><strong>"How did industrialization change the human-environment relationship?"</strong> Try: 19th-c. coal pollution + deforestation + buffalo extermination; 20th-c. Dust Bowl + Bhopal + Chernobyl; 21st-c. anthropogenic climate change.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tip"><strong>How to use this Briefing:</strong> Read it ALL before taking the rounds. The Columbian Exchange section is the heart of this theme &mdash; spend extra time on it. The rounds will test you on era-by-era detail, but the LEQ rounds will demand you weave the whole 800-year arc. Bookmark the "Big Questions" cards above &mdash; they\'re your essay-writing playbook.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB TAB — CED Required Examples
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-vocab" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Vocabulary — Environment Across All Periods</div>
+        <div class="vocab-info-desc">Click any term to flip and reveal the definition. These terms span all 9 units and are the most essential for the ENV theme &mdash; the diseases, exchanges, agricultural systems, and ecological events most likely to appear in thematic synthesis questions on the AP exam.</div>
+      </div>
+
+      <div id="vocab-content"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB QUIZ TAB — placeholder for now
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-quiz" class="hub-panel">
+      <div class="vocab-info">
+        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
+        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
+        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         OVERVIEW TAB — fully written
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-overview" class="hub-panel">
+
+      <div class="ov-hero">
+        <div class="ov-hero-title">Theme: Humans &amp; Environment, 1200&ndash;Present</div>
+        <div class="ov-hero-desc">A cross-period synthesis of how humans have reshaped the natural world &mdash; and how the natural world has reshaped humans &mdash; from disease and crops to climate change. <strong>The Columbian Exchange is the single most-tested topic in this theme.</strong> Every unit features ENV examples; this game pulls them together for thematic LEQ practice and exam synthesis.</div>
+      </div>
+
+      <div class="ov-stat-grid">
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">UNITS COVERED</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">800</div><div class="ov-stat-label">YEARS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">~50</div><div class="ov-stat-label">VOCAB TERMS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">ROUNDS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">CCOT</div><div class="ov-stat-label">CORE SKILL</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">LEQ</div><div class="ov-stat-label">FOCUS FORMAT</div></div>
+      </div>
+
+      <div class="sh">Environment Across the Units &mdash; Your Roadmap</div>
+      <div class="ov-topics">
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U1</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Tapestry (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">The Black Death (1347&ndash;52), killing 30&ndash;60% of Europe and similar fractions of the Islamic world. Little Ice Age (~1300&ndash;1850). Champa rice double-cropping fueling Song China population doubling. Mongol pastoralism reshaping Eurasian rangelands.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U2</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Networks of Exchange (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Trade routes as disease routes &mdash; the Black Death traveling Mongol-era Silk Roads. Bananas spreading into the Bantu agricultural frontier. Sugar cultivation moving across the Mediterranean to Atlantic islands (Madeira, S&atilde;o Tom&eacute;).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U3</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Land-Based Empires (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Limited specific environmental coverage in this unit. Threads to know: deforestation for shipbuilding (Ottoman, Ming), Russian fur-trade frontier into Siberia, Maunder Minimum within the Little Ice Age, Manchu Qing opening agricultural frontiers in Central Asia and Manchuria.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U4</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Transoceanic Interconnections (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">The Columbian Exchange &mdash; the most important environmental event in modern history. The Great Dying (~90% of Indigenous Americans, 1492&ndash;1600). American crops (potato, maize, sweet potato) reshaping Eurasia/Africa. Plantation monoculture (Caribbean sugar). Potos&iacute; mercury contamination.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U5</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Revolutions (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Industrial Revolution\'s first environmental costs. Coal smoke and urban pollution (Manchester, London "pea-soup" smogs). Coal-mining landscapes. Industrial population growth shifting people from farms to cities. Sweet potato and maize fueling Qing China population doubling 1700&ndash;1800.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U6</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Consequences of Industrialization (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Continued deforestation (American eastern hardwood forest collapse). Industrial agriculture: steel plow (1837), barbed wire (1874), synthetic fertilizers. American buffalo reduced from ~30&ndash;60 million to ~1,000 by 1880s. Irish Potato Famine (1845&ndash;52). Sanitation revolutions: London\'s Bazalgette sewers; John Snow on cholera. First conservation: Yellowstone (1872), Sierra Club (1892).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U7</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Conflict (1900&ndash;1945)</div>
+            <div class="ov-topic-obj">The Dust Bowl (1930s). WWI trench warfare environmental damage (Verdun "Zone Rouge," Belgian "iron harvest"). WWII strategic bombing leveling cities; Pacific island campaigns devastating coral reefs. Soviet collectivization and the Holodomor famine (1932&ndash;33). The Trinity test (1945) and the dawn of radioactive contamination.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U8</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Cold War &amp; Decolonization (1945&ndash;1991)</div>
+            <div class="ov-topic-obj">Green Revolution (Borlaug). Rachel Carson\'s Silent Spring (1962). U.S. EPA (1970), first Earth Day (1970). Bhopal disaster (1984). Chernobyl (1986). Aral Sea collapse from Soviet cotton irrigation. Montreal Protocol (1987) banning CFCs &mdash; the most successful environmental treaty in history. Pacific atoll nuclear testing.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U9</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Globalization (1900&ndash;Present)</div>
+            <div class="ov-topic-obj">Anthropogenic climate change. IPCC (1988), Earth Summit (Rio 1992), Kyoto Protocol (1997), Paris Agreement (2015). Greta Thunberg and Fridays for Future (2018+). Renewable energy revolution (solar PV down ~90% 2010&ndash;2020). "Sixth Mass Extinction" biodiversity collapse. Pandemic environments: SARS, HIV, COVID-19.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-env">ENV</span></div>
+        </div>
+      </div>
+
+      <div class="sh">CCOT Skills This Theme Develops</div>
+      <div class="ov-skills">
+        <div class="ov-skill"><div class="ov-skill-name">CONTINUITY &amp; CHANGE OVER TIME (CCOT)</div><div class="ov-skill-desc">The central skill. Identify what stayed the same and what changed across 800 years. Continuities: disease travels with trade, agriculture drives population, humans reshape landscapes, environment shapes humans back. Changes: from local to hemispheric to global ecologies; from organic to fossil-fueled energy; from a few hundred million to ~8 billion people; from local pollution to planetary climate change.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">CAUSATION CHAINS</div><div class="ov-skill-desc">Long causal chains across periods: Mongol-era connectivity &rarr; Silk Road plague diffusion &rarr; Black Death (1347+) &rarr; European labor shortages &rarr; decline of serfdom in Western Europe. Or: Columbian Exchange &rarr; Great Dying &rarr; need for plantation labor &rarr; Atlantic slave trade.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">COMPARISON ACROSS PERIODS</div><div class="ov-skill-desc">Direct cross-period comparison &mdash; e.g., Black Death (1347&ndash;52) vs. Great Dying (1492&ndash;1600) vs. 21st-c. pandemics. Or: Champa rice in Song China vs. American crops in early-modern Eurasia vs. Borlaug\'s Green Revolution &mdash; three different ways food technology drove population booms.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">ARGUMENTATION (LEQ-focused)</div><div class="ov-skill-desc">Build a thesis claim about environment across periods, support it with three specific examples drawn from at least two different units, qualify with counterevidence, conclude with synthesis.</div></div>
+      </div>
+
+      <div class="b-tip"><strong>How to use this theme game:</strong> Best deployed in <strong>April or May right before the AP exam</strong>, after students have mastered Units 1&ndash;9. The Columbian Exchange round is the heart of this theme &mdash; spend extra time there. Each "Era Check" round tests detail recall; the Comparison and CCOT rounds test synthesis; the LEQ Synthesis round is full essay practice with rubric scoring. Treat it like a final review tool that ties together everything from the year.</div>
+
+    </div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  AP WORLD HISTORY — THEME: HUMANS & ENVIRONMENT (ENV)
+//  Cross-period synthesis tool — best used April/May for AP exam prep
+// ════════════════════════════════════════════════════════════════════
+
+const UNIT_ID = 'apwh_th_env';
+const UNIT_TITLE = 'Theme: Humans & Environment';
+
+// ── ROUNDS ────────────────────────────────────────────────────────────
+// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+const ROUNDS = [
+  // ── Era Checks (chronological detail recall) ──
+  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Black Death & Little Ice Age', icon:'🦠', themes:['ENV'],
+   desc:'The Black Death (1347–52) traveling Mongol-era Silk Roads; killing 30–60% of Europe and Egypt. Little Ice Age (~1300–1850). Champa rice double-cropping fueling Song China population doubling. Drawn from Units 1–2.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Land Empires (briefer)', icon:'🌲', themes:['ENV'],
+   desc:'Less unit-specific environmental content; CED emphasizes governance and military for Unit 3. Threads to know: deforestation for shipbuilding, Russian fur-trade frontier into Siberia, Maunder Minimum, Manchu Qing agricultural frontiers. Drawn from Unit 3.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: The Columbian Exchange', icon:'🌽', themes:['ENV'],
+   desc:'The most important environmental event in modern history. Plant and animal exchange (potato, maize, sweet potato, manioc → Eurasia/Africa; wheat, sugar, horses, cattle → Americas). The Great Dying (~90% Indigenous depopulation). Plantation monoculture and Potosí mercury contamination. Drawn from Unit 4.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Industrial Costs', icon:'🏭', themes:['ENV'],
+   desc:'Industrial Revolution\'s environmental costs. Coal smoke in Manchester and London. Deforestation. Industrial agriculture (steel plow, barbed wire, synthetic fertilizers). Buffalo near-extinction. Irish Potato Famine (1845–52). Bazalgette sewers; John Snow on cholera. Yellowstone (1872). Drawn from Units 5–6.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Dust Bowl & War', icon:'🌪️', themes:['ENV'],
+   desc:'The Dust Bowl (1930s, "Black Sunday" 1935). WWI Verdun "Zone Rouge" and Belgian "iron harvest." WWII strategic bombing and Pacific island devastation. Soviet collectivization and the Holodomor (1932–33). The Trinity test (1945) and the dawn of radioactive contamination. Drawn from Unit 7.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Greens, Disasters & Climate', icon:'🌍', themes:['ENV'],
+   desc:'Green Revolution (Borlaug). Silent Spring (1962), EPA (1970), Earth Day (1970). Bhopal (1984), Chernobyl (1986), Aral Sea, Montreal Protocol (1987). Anthropogenic climate change. IPCC (1988), Rio (1992), Kyoto (1997), Paris Agreement (2015). Drawn from Units 8–9.',
+   type:'mcq', questions:12, group:'core'},
+
+  // ── Synthesis Rounds ──
+  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['ENV'],
+   desc:'Direct cross-period comparison questions. Compare disease events (Black Death vs. Great Dying vs. COVID-19), agricultural transformations (Champa rice vs. American crops vs. Green Revolution), or industrial pollution scales (Manchester smog vs. Bhopal/Chernobyl vs. global climate change).',
+   type:'comparison', questions:8, group:'skills'},
+  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['ENV'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in the human-environment relationship from 1200 to present. Argumentation 6.B with three specific examples per claim.',
+   type:'ccot', questions:6, group:'skills'},
+
+  // ── LEQ Synthesis ──
+  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['ENV'],
+   desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which the Columbian Exchange transformed the world environment" or "Compare the role of disease in two different periods." 800–1000 word target.',
+   type:'leq', questions:1, group:'frq'},
+];
+
+// ── VOCABULARY (cross-period environment terms) ─────────────────
+// Organized by ERA so students can review chronologically OR by category
+const VOCAB = {
+  'Era 1 (1200–1450) — Plague & Climate': {icon:'🦠', terms:[
+    {term:'Black Death (1347–52)', def:'Bubonic plague (Yersinia pestis) outbreak that killed an estimated 30–60% of Europe\'s population in 5 years and similar fractions in Egypt and the Islamic world. Spread along Mongol-era Silk Roads. The textbook example of how connection enables contagion.'},
+    {term:'Yersinia pestis', def:'Bacterium that causes bubonic, pneumonic, and septicemic plague. Lived endemically in Central Asian rodent populations; reached Europe via the Mongol siege of Caffa (1346) and Genoese trade ships.'},
+    {term:'Siege of Caffa (1346)', def:'Mongol forces besieging the Genoese trading post in Crimea reportedly catapulted plague-infected corpses over the walls. Genoese ships then carried the disease to Mediterranean ports, accelerating the European outbreak.'},
+    {term:'Little Ice Age (~1300–1850)', def:'Long stretch of cooler-than-average global temperatures, with severe phases in the 1300s and the Maunder Minimum (~1645–1715). Crop failures and weakened immune systems contributed to plague vulnerability; Greenland Norse colonies died out.'},
+    {term:'English Peasants\' Revolt (1381)', def:'Major uprising following the Black Death. Labor shortages had increased peasant bargaining power; landlords tried to roll wages back. Crushed militarily but accelerated the long-term decline of serfdom in Western Europe.'},
+    {term:'Champa Rice', def:'Fast-ripening, drought-resistant rice variety introduced from Vietnam (Champa) to Song China in the 11th century, with major demographic effects in the 12th–14th centuries. Allowed double-cropping; helped fuel China\'s population doubling between 1000 and 1300.'},
+    {term:'Bantu Banana Frontier', def:'Bananas (originally Southeast Asian) reached Africa via Indian Ocean trade routes in earlier periods; their cultivation continued to spread into the Bantu agricultural frontier through 1200–1450, supporting sub-Saharan population growth.'},
+    {term:'Mongol Pastoralism', def:'Mongol nomadic herding reshaped vast Eurasian rangelands. Massive horse and sheep herds; the seasonal hunt (the nerge) was practiced on near-industrial scales.'},
+  ]},
+  'Era 2 (1450–1750) — The Columbian Exchange': {icon:'🌽', terms:[
+    {term:'Columbian Exchange', def:'Post-1492 transfer of plants, animals, pathogens, and people between the Eastern and Western Hemispheres. The most consequential environmental event in modern history; the heart of the AP ENV theme.'},
+    {term:'The Great Dying', def:'Catastrophic depopulation of Indigenous Americas (1492–1600). Population fell from an estimated 60–100 million to roughly 10 million — about 90% — primarily from Old World diseases (smallpox, measles, influenza, typhus) against which Indigenous peoples had no immunity.'},
+    {term:'Smallpox', def:'Old World viral disease. Devastated the Aztecs (1520 outbreak before Cortés\'s second siege of Tenochtitlán) and the Inca (Huayna Capac died of it before Pizarro\'s arrival). Single most lethal pathogen of the Great Dying.'},
+    {term:'Potato', def:'Andean crop that transformed Northern Europe after ~1600. Calories per acre roughly tripled compared to wheat. Fueled population booms in Ireland, Northern France, Germany, and Russia. Vulnerability exposed by the Irish Potato Famine (1845–52).'},
+    {term:'Maize (Corn)', def:'Mesoamerican crop that spread to southern Europe (polenta culture in Italy), West Africa (where it became a major staple), and China (allowing cultivation of upland soils unsuited to rice).'},
+    {term:'Sweet Potato', def:'American crop carried by Spanish galleons to the Philippines and from there to Ming/Qing China. Helped fuel the Qing population doubling from ~150 million in 1700 to ~300 million by 1800.'},
+    {term:'Manioc (Cassava)', def:'Drought-tolerant American root crop that became a staple across sub-Saharan Africa and parts of Southeast Asia. Carried by Portuguese trade.'},
+    {term:'Horses (reintroduced)', def:'Brought back to the Americas by Spanish conquistadors after a ~10,000-year absence. Became central to Plains Indian cultures (Comanche, Lakota, Cheyenne) and South American gaucho/llanero societies.'},
+    {term:'Cattle &amp; Pigs in the Americas', def:'European livestock spread across the Americas, often as feral populations transforming local ecosystems before settlers even arrived. Reshaped soils, plants, and food systems on a continental scale.'},
+    {term:'Plantation Monoculture', def:'Vast acreages of a single cash crop (sugar, tobacco, cotton, indigo, coffee), worked by coerced labor for European markets. Sugar in the Caribbean and Brazil was the original; topsoil eroded and planters moved to fresh islands as fertility crashed.'},
+    {term:'Sugar Cultivation', def:'The sugar plantation complex drove deforestation across the Caribbean, devastated soil fertility, and created the demographic engine of the Atlantic slave trade. Most environmentally destructive cash crop of the era.'},
+    {term:'Potosí (Cerro Rico)', def:'Massive silver mountain in modern Bolivia, peak production ~1545–1650. The patio process (mercury amalgamation) contaminated entire watersheds. Indigenous and African enslaved laborers worked under deadly conditions; sometimes called "the mountain that ate men."'},
+    {term:'Beaver Extermination', def:'North American beaver populations were nearly wiped out by ~1700 to supply the European hat-making industry. Loss of beaver dams substantially altered hydrology and forest ecology across vast areas.'},
+    {term:'Maunder Minimum (~1645–1715)', def:'Period of low solar activity within the Little Ice Age. Severe winters across the northern hemisphere; frost fairs on a frozen Thames; harsh harvests under Louis XIV; dynastic crisis in late Ming China.'},
+  ]},
+  'Era 3 (1750–1900) — Industrial Costs': {icon:'🏭', terms:[
+    {term:'Coal Smoke / "Pea-Soup" Smog', def:'Industrial coal burning produced the famous black smogs of Manchester, Birmingham, and London. The first systematic studies of urban air pollution emerged in the 1800s. Urban industrial life expectancy was measurably lower than rural.'},
+    {term:'Industrial Deforestation', def:'Industrial demand for fuel, ship timber, and railroad ties stripped forests across Europe, North America, and Asia. The American eastern hardwood forest was reduced to a fraction of its pre-1800 extent by 1900.'},
+    {term:'Steel Plow (John Deere, 1837)', def:'Allowed efficient plowing of the dense, root-bound soil of the American Great Plains. A century of intensive plowing destroyed the prairie root systems and set the stage for the 1930s Dust Bowl.'},
+    {term:'Barbed Wire (1874)', def:'Joseph Glidden\'s patent. Allowed cheap fencing of the Great Plains and the end of the open-range cattle era. Enclosed millions of acres of formerly common land.'},
+    {term:'Synthetic Fertilizers', def:'Justus von Liebig\'s 1840s nitrogen-phosphorus-potassium chemistry made artificial fertilizers possible. Foundation of modern industrial agriculture and the later 20th-century Green Revolution.'},
+    {term:'Buffalo (American Bison) Extermination', def:'Reduced from an estimated 30–60 million in 1800 to about 1,000 by the 1880s. Partly market hunting for hides and tongues; explicitly U.S. policy to undermine Plains Indian resistance.'},
+    {term:'Irish Potato Famine (1845–52)', def:'Potato blight devastated Ireland\'s monoculture-dependent population. Roughly 1 million died and 1 million emigrated. Textbook example of the dangers of monoculture and a cautionary case for dependence on a single Columbian-Exchange crop.'},
+    {term:'London\'s Great Stink (1858)', def:'Hot summer made the polluted Thames unbearable. Led to the construction of Joseph Bazalgette\'s sewer system (1859–75), a model copied worldwide. Foundation of modern urban sanitation.'},
+    {term:'John Snow / Broad Street Pump (1854)', def:'British physician\'s mapping of cholera cases identified a contaminated water pump as the source of a London outbreak. Established environmental epidemiology as a discipline.'},
+    {term:'Yellowstone (1872)', def:'World\'s first national park, established by U.S. Congress. Foundation of the modern conservation movement and a model copied worldwide.'},
+    {term:'Sierra Club / John Muir (1892)', def:'Founded by naturalist John Muir to protect U.S. wilderness areas, especially Yosemite. Foundational organization of the U.S. environmental movement.'},
+  ]},
+  'Era 4 (1900–1945) — Dust Bowl & War': {icon:'🌪️', terms:[
+    {term:'The Dust Bowl (1930s)', def:'Decades of plowing the deep-rooted prairie grasses of the U.S. Great Plains, combined with severe drought, sent topsoil into the wind. "Black Sunday" (April 14, 1935) carried dust as far as Washington D.C. ~2.5 million people fled the affected states.'},
+    {term:'Black Sunday (April 14, 1935)', def:'Worst single dust storm of the Dust Bowl. A wall of dust thousands of feet high swept across the Great Plains; observers reported total darkness at midday. Galvanized New Deal soil-conservation policy.'},
+    {term:'Soil Conservation Service (1935)', def:'New Deal agency created in response to the Dust Bowl. Promoted contour plowing, terracing, cover crops, and shelterbelts. One of the first major federal environmental agencies in the world.'},
+    {term:'Verdun "Zone Rouge"', def:'Area of the WWI Western Front so contaminated with unexploded ordnance, human remains, and toxic chemicals that it was deemed unsafe for habitation or agriculture. Some sections remain restricted into the 21st century.'},
+    {term:'Belgian "Iron Harvest"', def:'Ongoing collection of unexploded WWI munitions from Belgian and French farmland. Over a century later, farmers still uncover thousands of shells per year; many remain dangerous.'},
+    {term:'Holodomor (1932–33)', def:'Stalin\'s forced collectivization combined with grain seizures produced a famine in Ukraine that killed an estimated 3.5–5 million people. Often cited as a deliberate political-environmental catastrophe; recognized as genocide by many states.'},
+    {term:'Trinity Test (July 16, 1945)', def:'First detonation of a nuclear weapon, in New Mexico. The dawn of radioactive contamination as a category of environmental harm. Three weeks later, atomic bombs were dropped on Hiroshima and Nagasaki.'},
+    {term:'Bikini &amp; Enewetak Atolls', def:'U.S. Pacific testing grounds for nuclear weapons after WWII. Marshallese populations were displaced for generations; Bikini Atoll remains uninhabitable due to radioactive contamination.'},
+  ]},
+  'Era 5–6 (1945–Present) — Modern Environmentalism &amp; Climate': {icon:'🌍', terms:[
+    {term:'Green Revolution', def:'Norman Borlaug\'s high-yield, disease-resistant wheat varieties — combined with chemical fertilizers, pesticides, and irrigation — tripled agricultural yields in Mexico, India, and elsewhere from the 1950s–70s. Saved hundreds of millions from famine; costs include groundwater depletion and pesticide runoff.'},
+    {term:'Silent Spring (Rachel Carson, 1962)', def:'Documented the ecological damage from DDT and other pesticides, especially their effect on bird populations. Often credited with launching the modern environmental movement. Led to the U.S. EPA (1970) and the U.S. ban on DDT (1972).'},
+    {term:'U.S. EPA (1970)', def:'Environmental Protection Agency, established under President Nixon. Consolidated federal environmental regulation; enforced the Clean Air Act (1970), Clean Water Act (1972), and Endangered Species Act (1973).'},
+    {term:'First Earth Day (April 22, 1970)', def:'~20 million Americans participated. Catalyzed the legislative wave of 1970–73 (EPA, Clean Air Act, Clean Water Act, ESA). Now observed in over 190 countries.'},
+    {term:'Bhopal Disaster (Dec 1984)', def:'A Union Carbide pesticide plant in India released methyl isocyanate gas. ~5,000 killed in immediate aftermath, perhaps 15,000+ in subsequent years, hundreds of thousands of injuries. The worst industrial accident in history.'},
+    {term:'Chernobyl (April 26, 1986)', def:'Worst nuclear power accident in history, in Soviet Ukraine. Reactor 4 exploded during a safety test. Radioactive fallout spread across Europe; ~350,000 people permanently displaced. Helped accelerate the Soviet collapse by exposing the system\'s lethal opacity.'},
+    {term:'Aral Sea Collapse', def:'Once the world\'s 4th-largest inland body of water, it shrank by 90%+ from the 1960s onward as Soviet Central Asian planners diverted its feeder rivers (Amu Darya, Syr Darya) for cotton irrigation. Textbook case of Soviet-era environmental disaster.'},
+    {term:'Ozone Hole', def:'Region of severe stratospheric ozone depletion over Antarctica, identified in 1985. Caused by chlorofluorocarbons (CFCs) used as refrigerants and aerosols. Allowed harmful UV radiation through.'},
+    {term:'Montreal Protocol (1987)', def:'International treaty banning CFCs. The most successful environmental treaty in history — the ozone layer is now slowly recovering. The model for what climate diplomacy could look like.'},
+    {term:'IPCC (1988)', def:'Intergovernmental Panel on Climate Change. UN-mandated body that synthesizes climate science. Its assessment reports (every ~6 years) are the gold standard. Won the Nobel Peace Prize in 2007.'},
+    {term:'Earth Summit (Rio, 1992)', def:'UN Conference on Environment and Development. Produced the UN Framework Convention on Climate Change (UNFCCC), the legal foundation for all subsequent climate treaties.'},
+    {term:'Kyoto Protocol (1997)', def:'First major international agreement requiring emissions cuts. The U.S. signed but never ratified; China and India had no binding commitments as developing countries. Limited practical effect but established the diplomatic framework.'},
+    {term:'Paris Agreement (Dec 2015)', def:'Nearly all countries pledged voluntary "nationally determined contributions" to limit warming to "well below 2°C, preferably 1.5°C." A diplomatic milestone, though current pledges fall short of the targets.'},
+    {term:'Greta Thunberg / Fridays for Future (2018+)', def:'Swedish teenager whose school strike for climate sparked a global youth movement. Climate became a defining generational political issue.'},
+    {term:'Sixth Mass Extinction', def:'Conservation biologists\' term for the present era. Species loss rates are estimated at 100–1,000 times background levels. Tropical deforestation (Amazon, Indonesia, Congo) is a primary driver.'},
+    {term:'COVID-19 (2020+)', def:'Coronavirus pandemic that originated in wildlife-human contact zones and spread globally via jet aircraft. Like SARS, MERS, and HIV before it, treated by historians as both a medical and an environmental event.'},
+    {term:'Anthropocene', def:'Proposed geological epoch defined by human impact on Earth\'s atmosphere, oceans, biodiversity, and geology. Disputed start date — candidates include the Columbian Exchange, the Industrial Revolution, or the Trinity test (1945).'},
+  ]},
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE & STORAGE
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_theme_env_progress';        // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_th_env';        // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_th_env';       // Supabase column for in-progress drafts
+
+let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+  catch(e){return{};}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
+}
+function getRoundProgress(roundId){
+  return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Play tab activity cards
+// ════════════════════════════════════════════════════════════════════
+function renderRoundCards(){
+  const groups = {core:[],skills:[],frq:[]};
+  ROUNDS.forEach(r => groups[r.group].push(r));
+
+  document.getElementById('round-cards-core').innerHTML  = groups.core.map(roundCard).join('');
+  document.getElementById('round-cards-skills').innerHTML = groups.skills.map(roundCard).join('');
+  document.getElementById('round-cards-frq').innerHTML  = groups.frq.map(roundCard).join('');
+
+  // Progress
+  const completed = ROUNDS.filter(r => {
+    const p = getRoundProgress(r.id);
+    return p && p.completed;
+  }).length;
+  const pct = Math.round((completed / ROUNDS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = completed + ' / ' + ROUNDS.length + ' ROUNDS';
+}
+
+function roundCard(r){
+  const prog = getRoundProgress(r.id);
+  const done = prog && prog.completed;
+  const accent = done ? 'var(--green2)' : 'var(--bronze)';
+  const themesHTML = r.themes.map(t =>
+    `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+  const badge = done
+    ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+  const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
+  return `
+    <div class="activity-card" onclick="launchRound('${r.id}')">
+      <div class="activity-card-strip" style="background:${accent}"></div>
+      <div class="activity-card-body">
+        ${badge}
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${r.num} · TOPIC ${r.topic} · ${label.toUpperCase()}</div>
+        <div class="activity-card-title">${r.title}</div>
+        <div class="activity-card-meta">${themesHTML}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action">▶ ${done ? 'Replay' : 'Begin'} Round</div>
+      </div>
+    </div>`;
+}
+
+function launchRound(roundId){
+  // Phase 2 will wire in the actual question runner.
+  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Humans & Environment theme.');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Vocab tab
+// ════════════════════════════════════════════════════════════════════
+function renderVocab(){
+  const el = document.getElementById('vocab-content');
+  let html = '';
+  Object.keys(VOCAB).forEach(region => {
+    const data = VOCAB[region];
+    html += `<div class="vocab-region-header"><span class="vocab-region-icon">${data.icon}</span> ${region}</div>`;
+    html += '<div class="vocab-grid">';
+    data.terms.forEach(t => {
+      html += `<div class="vocab-card" onclick="this.classList.toggle('flipped')">
+        <div class="vocab-card-term">${t.term}</div>
+        <div class="vocab-card-def">${t.def}</div>
+        <div class="vocab-card-hint">click to reveal</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════
+function goBack(){
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const tick = setInterval(() => {
+    pct += 12 + Math.random() * 14;
+    if (pct >= 100) {
+      pct = 100;
+      bar.style.width = '100%';
+      clearInterval(tick);
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('hub').style.display = 'flex';
+          renderRoundCards();
+          renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
+        }, 400);
+      }, 200);
+    } else {
+      bar.style.width = pct + '%';
+    }
+  }, 90);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+</body>
+</html>
