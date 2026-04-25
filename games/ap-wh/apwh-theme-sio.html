@@ -1,1 +1,981 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme: Social Interactions & Organization — AP World History · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Crimson + Bronze — manuscripts & imperial seals */
+  --bg:#1a0a0a;--bg2:#2a1212;--bg3:#3a1c1c;--panel:#241010;
+  --border:#3a1a1a;--border2:#5a2828;
+  --acc:#a83838;--acc2:#c84848;--acc3:#e06a6a;            /* crimson */
+  --bronze:#d4a847;--bronze2:#e8c060;--bronze3:#f4d878;   /* bronze */
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --blue:#4878d0;--blue2:#6898e8;
+  --orange:#e08840;--orange2:#f0a058;
+  --text:#f0e4d4;--text2:#a89888;--text3:#5a4838;--cream:#f4ede0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(168,56,56,.10) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(212,168,71,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--bronze2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .2s;width:0}
+
+/* ── HUB ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(168,56,56,.18) 0%,rgba(26,10,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,71,.025) 40px,rgba(212,168,71,.025) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(104,152,232,.55)) drop-shadow(0 0 8px rgba(168,56,56,.35));position:relative}
+.hub-hero{border-left:4px solid rgba(104,152,232,.5)}
+.hub-hero-info{flex:1;position:relative}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--bronze2);letter-spacing:3px;margin-bottom:6px;opacity:.85}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:640px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--bronze2);font-weight:500}
+.back-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;position:relative}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── TABS ── */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;white-space:nowrap}
+.hub-tab:hover{color:var(--bronze2)}
+.hub-tab.active{color:var(--bronze2);border-bottom-color:var(--bronze)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* ── ACTIVITY CARDS (Play tab) ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px;color:var(--bronze2)}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.activity-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.activity-card-meta-tag{font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;padding:2px 6px;border:1px solid;border-radius:2px}
+.tag-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2)}
+.tag-gov{border-color:rgba(72,120,208,.4);color:var(--blue2)}
+.tag-ecn{border-color:rgba(245,200,66,.4);color:var(--gc)}
+.tag-sio{border-color:rgba(104,152,232,.4);color:#8898d8}
+.tag-tec{border-color:rgba(144,128,224,.4);color:var(--purple2)}
+.tag-env{border-color:rgba(64,200,112,.4);color:var(--green2)}
+
+/* ── BRIEFING / OVERVIEW shared ── */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;margin-top:24px}
+.sh::before{content:'';width:3px;height:14px;background:var(--bronze);display:block}
+.sh:first-of-type{margin-top:0}
+.b-card{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;margin-bottom:14px}
+.b-card p{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.85;margin-bottom:10px}
+.b-card p:last-child{margin-bottom:0}
+.b-card strong{color:var(--cream);font-weight:600}
+.b-card em{color:var(--bronze2);font-style:italic}
+.b-tip{padding:11px 15px;background:rgba(168,56,56,.08);border-left:3px solid var(--acc);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-tip strong{color:var(--acc3);font-weight:600}
+.b-key{padding:11px 15px;background:rgba(212,168,71,.08);border-left:3px solid var(--bronze);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-key strong{color:var(--bronze2);font-weight:600}
+.b-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;margin-bottom:8px}
+.b-mini{background:var(--bg3);border:1px solid var(--border2);padding:12px 14px}
+.b-mini-label{font-family:var(--bebas);font-size:11px;color:var(--bronze2);letter-spacing:1.5px;margin-bottom:4px}
+.b-mini-text{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6}
+.b-mini-text strong{color:var(--cream)}
+.b-source{padding:14px 18px;background:rgba(58,28,28,.6);border-left:3px solid var(--bronze);
+  margin-bottom:14px;font-family:var(--crimson);font-size:13px;font-style:italic;color:var(--text2);line-height:1.75}
+.b-source-attr{display:block;margin-top:8px;font-family:var(--dm);font-size:10px;color:var(--bronze2);font-style:normal;letter-spacing:1px}
+
+.theme-pill{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:2px;margin-right:4px;border:1px solid}
+.tp-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2);background:rgba(224,136,64,.08)}
+.tp-gov{border-color:rgba(72,120,208,.4);color:var(--blue2);background:rgba(72,120,208,.08)}
+.tp-ecn{border-color:rgba(245,200,66,.4);color:var(--gc);background:rgba(245,200,66,.08)}
+.tp-sio{border-color:rgba(104,152,232,.4);color:#8898d8;background:rgba(104,152,232,.08)}
+.tp-tec{border-color:rgba(144,128,224,.4);color:var(--purple2);background:rgba(144,128,224,.08)}
+.tp-env{border-color:rgba(64,200,112,.4);color:var(--green2);background:rgba(64,200,112,.08)}
+
+/* ── VOCAB ── */
+.vocab-info{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:16px 20px;margin-bottom:20px}
+.vocab-info-title{font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px}
+.vocab-info-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
+.vocab-region-header{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.vocab-region-header:first-of-type{margin-top:0}
+.vocab-region-icon{font-size:18px}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.vocab-card{background:var(--bg2);border:1px solid var(--border);padding:11px 14px;cursor:pointer;transition:all .15s;position:relative}
+.vocab-card:hover{border-color:var(--bronze);background:var(--bg3)}
+.vocab-card-term{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600;margin-bottom:3px}
+.vocab-card-def{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;display:none}
+.vocab-card.flipped .vocab-card-def{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.vocab-card-hint{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── OVERVIEW ── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:20px 26px;margin-bottom:20px}
+.ov-hero-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.ov-hero-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7}
+.ov-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);padding:14px;text-align:center}
+.ov-stat-val{font-family:var(--bebas);font-size:24px;color:var(--bronze2);letter-spacing:1px}
+.ov-stat-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.ov-topics{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ov-topic{background:var(--bg2);border:1px solid var(--border);padding:14px 18px;display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center}
+.ov-topic-num{font-family:var(--bebas);font-size:18px;color:var(--bronze2);letter-spacing:2px}
+.ov-topic-info{}
+.ov-topic-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:3px}
+.ov-topic-obj{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+.ov-topic-themes{display:flex;gap:4px;flex-wrap:wrap}
+.ov-skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ov-skill{background:var(--bg2);border:1px solid var(--border);padding:13px 16px;border-left:3px solid var(--bronze)}
+.ov-skill-name{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--bronze2);margin-bottom:3px}
+.ov-skill-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;margin-bottom:18px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-label span{color:var(--bronze2)}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:760px){
+  .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
+  .hub-hero-icon{font-size:40px}
+  .hub-content{padding:16px 18px 60px}
+  .hub-tab{padding:10px 14px;font-size:10px}
+  .hub-meta{gap:10px}
+  .hub-meta-item{font-size:8px}
+  .activity-grid{grid-template-columns:1fr}
+  .ov-topic{grid-template-columns:50px 1fr;gap:10px}
+  .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════════════════ -->
+<div id="loading">
+  <div class="ld-icon">👥</div>
+  <div class="ld-title">SOCIAL</div>
+  <div class="ld-sub">Theme · 1200 — Present</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     UNIT HUB
+════════════════════════════════════════════════════════════════════ -->
+<div id="hub">
+
+  <!-- Hero header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">👥</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP WORLD HISTORY · THEME</div>
+      <div class="hub-title">Social Interactions &amp; Organization</div>
+      <div class="hub-desc">A cross-period synthesis of <strong>how human societies organized themselves &mdash; by class, gender, race, religion, and group identity</strong> from 1200 to the present. Trace caste hierarchies, scholar-gentry, the casta system, industrial-era class formation, women\'s suffrage, civil rights, and 21st-century identity politics. Use this for synthesis &mdash; SAQs, DBQs, and especially LEQs that ask you to argue across periods. <em>Best used as April/May exam prep after completing Units 1&ndash;9.</em></div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Periods Covered: <span>All 9 Units</span></div>
+        <div class="hub-meta-item">🎯 Theme Code: <span>SIO</span></div>
+        <div class="hub-meta-item">👥 Focus: <span>Class, gender, race, identity, mobility</span></div>
+        <div class="hub-meta-item">⚖️ Format: <span>9 rounds + LEQ synthesis</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📊 Overview</button>
+  </div>
+
+  <div class="hub-content">
+
+    <!-- ═══════════════════════════════════════════════════
+         PLAY TAB
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-play" class="hub-panel active">
+
+      <!-- Progress bar -->
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-pct">0 / 12 ROUNDS</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="sh">ERA CHECKS — Social Hierarchies Across the Periods</div>
+      <div class="activity-grid" id="round-cards-core"></div>
+
+      <div class="sh">SYNTHESIS — Cross-Period Comparison &amp; CCOT</div>
+      <div class="activity-grid" id="round-cards-skills"></div>
+
+      <div class="sh">ASSESSMENT — Thematic LEQ Practice</div>
+      <div class="activity-grid" id="round-cards-frq"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         BRIEFING TAB — fully written, CED-aligned
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-briefing" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Briefing — Social Interactions &amp; Organization (SIO)</div>
+        <div class="vocab-info-desc">This is a <strong>cross-period synthesis</strong> of how human societies organized themselves &mdash; by class, gender, race, religion, and group identity &mdash; from 1200 to the present. Unlike the unit briefings (which walk you through a single era), this briefing follows ONE thread &mdash; <em>social structure</em> &mdash; across all 800 years. Use it to prepare for thematic LEQs, DBQs, and any AP exam question asking you to compare hierarchies or trace social change across periods. The dominant reasoning skills are <strong>Continuity and Change Over Time (CCOT)</strong> and <strong>Comparison</strong>.</div>
+      </div>
+
+      <!-- ════ CCOT FRAMING ════ -->
+      <div class="sh">The Big Story: How Societies Organized Themselves From 1200 to Present</div>
+      <div class="b-card">
+        <p>Across 800 years, the categories that humans used to organize themselves transformed almost beyond recognition. A peasant in 1200 lived in a world organized by birth, religion, and lord. A worker in 2024 navigates class, race, gender, sexuality, nationality, and a dozen other identities &mdash; many of which would have been unrecognizable to that medieval peasant. Yet several <strong>continuities</strong> persisted throughout. Here is the master narrative the AP exam expects you to be able to construct:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 1: HIERARCHY</div>
+            <div class="b-mini-text">Every complex society in every era stratified its members by some combination of birth, occupation, gender, race, or religion. The categories changed; the fact of hierarchy did not.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 2: GENDER</div>
+            <div class="b-mini-text">Patriarchy &mdash; male dominance over public life and family authority &mdash; was nearly universal in 1200 and remains powerful today, though contested. The specific form (foot-binding, purdah, coverture, the wage gap) shifted; the structural fact persisted.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 3: COERCED LABOR</div>
+            <div class="b-mini-text">Forced labor in some form &mdash; serfdom, slavery, indentured servitude, debt peonage, prison labor, modern human trafficking &mdash; has existed in every era. Its scale and legitimacy changed; its presence has not vanished.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 4: RESISTANCE</div>
+            <div class="b-mini-text">Every system of social hierarchy has produced resistance &mdash; from peasant revolts to slave revolts, from suffragists to civil rights marchers to LGBTQ+ activists. Power generates counter-power in every period.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-card">
+        <p>And the <strong>changes</strong> &mdash; the major transitions in how societies were organized:</p>
+        <p>&bull; <strong>From birth-based to (formally) merit-based status.</strong> 1200: most societies assigned status by birth (caste, lineage, slave/free). Today: most societies formally promise merit-based mobility, though structural inequality persists.<br>
+        &bull; <strong>From religious to secular framings of community.</strong> 1200: most people belonged to a religious community (Christendom, Dar al-Islam, the Hindu cosmos). 2000: nation-states, citizenship, and increasingly secular identities dominate.<br>
+        &bull; <strong>From private/domestic to public/political women.</strong> 1200: women were nearly everywhere excluded from formal politics. 1893+: New Zealand granted women\'s suffrage; by ~1920 most Western democracies followed; by 2024, women have led major nations.<br>
+        &bull; <strong>From legal slavery to (formal) abolition.</strong> Slavery was legal almost everywhere in 1200. By the late 19th century, abolition movements had outlawed it across most of the world &mdash; though forms of coerced labor persist.</p>
+      </div>
+
+      <!-- ════ ERA 1: 1200–1450 ════ -->
+      <div class="sh">Era 1 (1200&ndash;1450): Birth-Determined Hierarchies</div>
+      <div class="b-card">
+        <p><strong>From Unit 1 (Global Tapestry):</strong> Most societies in this era organized themselves by hereditary status &mdash; you were born into your social position and rarely left it. Several major systems coexisted across Eurasia and Africa:</p>
+        <p>&bull; <strong>Chinese scholar-gentry.</strong> The Confucian civil service exam, established in the Han and intensified under Song/Yuan/Ming, in theory allowed any boy to rise into the bureaucracy through study. In practice, only wealthy families could afford the years of preparation. The result was a literate <em>scholar-gentry</em> class that monopolized administration and shaped Chinese culture for ~1,000 years &mdash; an unusually mobile-looking elite that was actually quite hereditary.<br>
+        &bull; <strong>Indian caste system.</strong> The varna/jati system divided Hindu society into hereditary occupational groups: Brahmins (priests), Kshatriyas (warriors and rulers), Vaishyas (merchants and farmers), Shudras (laborers), and the Dalits ("Untouchables") below the four varnas. Caste boundaries shaped marriage, food, work, and social contact. The Delhi Sultanate (1206&ndash;1526) layered Muslim ruling-class identities on top of this system, producing complex hybrid social structures.<br>
+        &bull; <strong>European feudalism.</strong> A three-estate model (clergy, nobles, peasants/commoners) organized medieval Europe. Peasants were largely tied to the land as serfs, owing labor and dues to lords. The Black Death\'s labor shortages would shake this system in Western Europe; in Eastern Europe, by contrast, serfdom would actually intensify in coming centuries.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>Gender in Era 1.</strong> Patriarchy was the near-universal organizing principle, but its specific forms varied:</p>
+        <p>&bull; <strong>Mongol gender roles</strong> were notably more open than those of the sedentary societies the Mongols conquered. Mongol women rode horses, managed encampments, and could play major political roles &mdash; Sorghaghtani Beki (Khubilai\'s mother) is a famous example. Marco Polo and other observers were often startled.<br>
+        &bull; <strong>Foot-binding</strong> emerged as an upper-class Chinese practice in the Song dynasty and intensified under the Ming and Qing. Originally a marker of refinement, it spread widely and physically restricted millions of women\'s mobility for centuries.<br>
+        &bull; <strong>Purdah</strong> (the seclusion of women, especially elite women) was practiced in parts of the Islamic world and in Hindu/Muslim South Asia. It limited women\'s public roles but in some elite contexts also produced powerful female-led households.<br>
+        &bull; <strong>European Christian marriage</strong> was largely monogamous and church-regulated; women had limited legal rights but could inherit property in some traditions.</p>
+        <p><strong>Slave systems.</strong> Slavery existed widely in this period, but its forms were diverse and not yet racialized in the way it would become after 1492. Sub-Saharan African societies practiced indigenous forms of slavery (often integrated into kin networks). Trans-Saharan slave trade carried African captives to North Africa and the Middle East. Indian Ocean slavery was widespread. The Mongols enslaved skilled artisans during their conquests. Slavery was a normal part of the social fabric &mdash; tragic, ubiquitous, and not yet morally controversial in most societies.</p>
+      </div>
+
+      <!-- ════ ERA 2A: 1450–1750 LAND EMPIRES ════ -->
+      <div class="sh">Era 2A (1450&ndash;1750): Hierarchy Refined in the Gunpowder Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 3 (Land-Based Empires):</strong> The gunpowder empires inherited and refined the social systems of the previous era, often layering ruling-elite identity on top of larger conquered populations.</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">OTTOMAN MILLET SYSTEM</div>
+            <div class="b-mini-text">Religious communities (Greek Orthodox, Armenian Christian, Jewish) were granted self-rule under Ottoman sovereignty. Members were taxed and judged within their own community courts. A pluralist arrangement that managed diversity without modern citizenship.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">MUGHAL HINDU-MUSLIM SOCIETY</div>
+            <div class="b-mini-text">A Muslim ruling class governed a Hindu-majority population. Akbar\'s tolerationist policies (abolishing jizya, employing Hindus) produced relatively integrated elite networks; Aurangzeb\'s reversal hardened communal divisions and contributed to the empire\'s fragmentation.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">MANCHU/HAN HIERARCHY</div>
+            <div class="b-mini-text">Manchu rulers retained Confucian bureaucracy and the civil service exam, employed Han Chinese officials, but reserved top positions for Manchus and required Han men to wear the queue hairstyle. Ethnic stratification on top of continued Confucian social organization.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">INTENSIFIED RUSSIAN SERFDOM</div>
+            <div class="b-mini-text">Even as Western European serfdom declined, Russian serfdom intensified. Peter the Great\'s reforms (1682+) tied peasants more firmly to landowners; by 1800, serfs were a majority of Russia\'s population. Not abolished until Alexander II\'s 1861 emancipation.</div>
+          </div>
+        </div>
+        <p>The <strong>commercial bourgeoisie</strong> &mdash; merchants, bankers, manufacturers &mdash; began to emerge as a serious force in this era, especially in Northwest Europe. Dutch and English merchants accumulated wealth that rivaled traditional aristocracies. The Dutch Republic\'s burgher elite, the English merchant class behind Parliament, and the bankers of Genoa, Augsburg, and Antwerp all foreshadowed the class transformations of the next era.</p>
+      </div>
+
+      <!-- ════ ERA 2B: MARITIME EMPIRES ════ -->
+      <div class="sh">Era 2B (1450&ndash;1750): Race, Caste, and the Casta System</div>
+      <div class="b-card">
+        <p><strong>From Unit 4 (Transoceanic Interconnections):</strong> The Atlantic system produced a new and historically distinctive form of racial hierarchy that was unprecedented in scale and explicitness.</p>
+        <p>The <strong>casta system</strong> in Spanish America stratified colonial society by ancestry and birthplace. The basic categories ran roughly:</p>
+        <p>&bull; <strong>Peninsulares</strong> &mdash; Iberian-born Spaniards. The smallest group; held the highest offices.<br>
+        &bull; <strong>Creoles (criollos)</strong> &mdash; American-born people of Spanish ancestry. Wealthy and educated, but blocked from top colonial offices. Their resentment helped fuel the Latin American independence movements (Bolívar himself was a creole).<br>
+        &bull; <strong>Mestizos</strong> &mdash; mixed Spanish and indigenous ancestry. By the late colonial period, the largest group in many regions.<br>
+        &bull; <strong>Mulattoes</strong> &mdash; mixed Spanish and African ancestry.<br>
+        &bull; <strong>Indigenous peoples</strong> &mdash; subject to encomienda labor and tribute; legal status as wards of the crown.<br>
+        &bull; <strong>Enslaved Africans</strong> &mdash; the bottom of the hierarchy, with no formal rights.</p>
+        <p>An entire genre of 18th-century <em>casta paintings</em> tried to depict and codify these mixtures, sometimes with two dozen or more named categories. The system was never as orderly in practice as the paintings suggested &mdash; people moved between categories, especially with money &mdash; but it shaped colonial society profoundly. The casta system is essentially the historical foundation of modern race-based hierarchies in the Americas, and the AP exam tests it heavily.</p>
+        <p><strong>The Atlantic slave trade</strong> made racialized chattel slavery the basis of plantation societies in the Caribbean, Brazil, and the U.S. South. An estimated 12.5 million Africans were forcibly transported to the Americas between the 16th and 19th centuries; ~10.7 million survived the Middle Passage. Slavery in the Atlantic system was distinguished from earlier forms by being heritable, racialized, and oriented toward producing cash crops for global markets.</p>
+        <p>Meanwhile, <strong>the commercial bourgeoisie</strong> continued to gain wealth and influence in Europe. The Dutch Golden Age (~1600&ndash;1700) was led by merchant-burghers; the English Glorious Revolution (1688) consolidated parliamentary government heavily influenced by merchant interests. These groups would become the protagonists of the next era\'s revolutions.</p>
+      </div>
+
+      <!-- ════ ERA 3: 1750–1900 ════ -->
+      <div class="sh">Era 3 (1750&ndash;1900): Industrial Class Formation and First-Wave Feminism</div>
+      <div class="b-card">
+        <p><strong>From Units 5&ndash;6 (Revolutions and Consequences of Industrialization):</strong> The Industrial Revolution and Atlantic Revolutions together produced the most dramatic reorganization of social structure in any single century before or since.</p>
+        <p><strong>New industrial classes</strong> emerged with the factory system:</p>
+        <p>&bull; <strong>Bourgeoisie</strong> &mdash; the industrial and commercial middle class. Factory owners, financiers, professionals. Karl Marx\'s term, but the phenomenon was real: a class whose wealth came from capital rather than land or birth.<br>
+        &bull; <strong>Proletariat</strong> &mdash; industrial wage laborers. Concentrated in cities; worked long hours under harsh conditions for cash wages. Marx and Engels\'s <em>Communist Manifesto</em> (1848) famously called on this class to "lose their chains."<br>
+        &bull; <strong>White-collar middle class</strong> &mdash; clerks, managers, teachers, professionals &mdash; emerged as industrial economies grew larger and more complex. By 1900, this group was a defining feature of urban societies.</p>
+        <p><strong>Urbanization</strong> reshaped daily life. London passed 1 million people around 1800; by 1900, London, New York, Paris, Tokyo, and Beijing were all multimillion-population cities. Industrial cities created new social problems (slums, pollution, public health crises) and new social institutions (public schools, police forces, organized professional sports, mass-circulation newspapers, department stores).</p>
+        <p>Slavery was challenged and largely abolished in the Atlantic world during this period. Britain abolished the slave trade in 1807 and slavery itself in 1833. The U.S. ended slavery via the 13th Amendment (1865) following the Civil War. Brazil was the last major American holdout, abolishing slavery in 1888. Indigenous and African resistance, Enlightenment principles, evangelical Christianity, and changing economic interests all contributed.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>First-wave feminism and women\'s rights.</strong> The Atlantic Revolutions made universal claims about rights that women immediately pushed to extend to themselves.</p>
+        <p>&bull; <strong>Olympe de Gouges</strong> (1791) wrote the <em>Declaration of the Rights of Woman and the Female Citizen</em> in revolutionary France &mdash; explicitly modeled on the 1789 Declaration of Rights of Man. She was guillotined in 1793.<br>
+        &bull; <strong>Mary Wollstonecraft</strong>\'s <em>A Vindication of the Rights of Woman</em> (1792) became a foundational feminist text in the English-speaking world.<br>
+        &bull; <strong>Seneca Falls Convention (1848)</strong> &mdash; first U.S. women\'s rights convention, organized by Elizabeth Cady Stanton and Lucretia Mott. The Declaration of Sentiments adapted the language of the Declaration of Independence: "all men and women are created equal."<br>
+        &bull; <strong>Sojourner Truth\'s "Ain\'t I a Woman?" (1851)</strong> challenged white feminists to consider how race shaped gendered experience &mdash; an early articulation of intersectional thinking.<br>
+        &bull; <strong>The "cult of domesticity"</strong> emerged as a middle-class ideology in the 19th century: the idea that respectable women belonged in the private sphere of home, while men inhabited the public world of work and politics. The ideology contributed to suffragists\' arguments &mdash; both for and against the vote &mdash; and shaped middle-class life into the 20th century.<br>
+        &bull; <strong>New Zealand (1893)</strong> became the first self-governing country to grant women\'s suffrage. Australia followed (1902). Most major Western democracies would follow in the 1918&ndash;1928 period.</p>
+        <p><strong>Imperialism, race, and migration.</strong> European colonial powers developed pseudoscientific racial theories (social Darwinism) to justify imperial domination. The "scramble for Africa" produced new racial hierarchies, often codified in colonial law (segregated schools, separate residential areas, the South African color bar). Mass migration also transformed societies: ~50&ndash;60 million Europeans emigrated to the Americas, Australia, and elsewhere; tens of millions of Indians and Chinese moved within Asian and African empires as indentured laborers, merchants, and settlers.</p>
+      </div>
+
+      <!-- ════ ERA 4: 1900–1945 ════ -->
+      <div class="sh">Era 4 (1900&ndash;1945): Suffrage, Mass Atrocities, and "Rosie the Riveter"</div>
+      <div class="b-card">
+        <p><strong>From Unit 7 (Global Conflict):</strong> The first half of the 20th century saw social transformations that ranged from genuine emancipation to the worst genocides in human history.</p>
+        <p><strong>Women\'s suffrage after WWI.</strong> The wartime mobilization of women into industrial work and public roles, combined with decades of suffragist organizing, produced a wave of national enfranchisement:</p>
+        <p>&bull; United Kingdom (partial 1918, full 1928); Germany (1918); United States (19th Amendment, 1920); Soviet Russia (1917); Turkey (1934, under Atatürk); France (1944).<br>
+        &bull; In some places, women\'s suffrage was tied to national independence movements &mdash; women in newly independent states often gained voting rights at the same time as men.</p>
+        <p><strong>The Holocaust and other mass atrocities.</strong> The 20th century\'s genocides represent the most extreme failures of social organization:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">ARMENIAN GENOCIDE (1915&ndash;23)</div>
+            <div class="b-mini-text">Late Ottoman authorities killed an estimated 1&ndash;1.5 million Armenian Christians through massacres, forced marches, and starvation. Often cited as the first major genocide of the 20th century. Recognition remains politically contested.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">THE HOLOCAUST (1933&ndash;45)</div>
+            <div class="b-mini-text">Nazi Germany\'s industrialized murder of ~6 million Jews, plus Roma, disabled people, LGBTQ+ people, Polish intellectuals, Soviet POWs, and others. The Wannsee Conference (1942) coordinated the "Final Solution"; Auschwitz-Birkenau and other death camps killed millions.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">JAPANESE WARTIME ATROCITIES</div>
+            <div class="b-mini-text">The Rape of Nanjing (1937&ndash;38), the comfort women system enslaving Korean and other women into military prostitution, Unit 731\'s biological warfare experiments. ~3&ndash;10 million civilian deaths in Japanese-occupied territories.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">SOVIET TERRORS</div>
+            <div class="b-mini-text">Stalin\'s Great Purges (1936&ndash;38) killed an estimated 750,000+. The Holodomor famine (1932&ndash;33) in Ukraine killed millions. The Gulag camp system imprisoned ~18 million over its existence.</div>
+          </div>
+        </div>
+        <p><strong>"Rosie the Riveter" and women\'s wartime labor.</strong> WWII drew millions of women into industrial production in the U.S., Britain, and the USSR. American "Rosies" worked in shipyards, aircraft plants, and arsenals. The Soviet Union mobilized hundreds of thousands of women into combat roles, including snipers and pilots (the famous "Night Witches" 588th regiment). After the war, many Western women were pushed back into domestic roles, but the experience permanently changed expectations about what women could do.</p>
+        <p><strong>The "Double V" campaign</strong> by African American activists during WWII demanded victory abroad against fascism AND victory at home against segregation. It set the stage for the postwar civil rights movement. Asa Philip Randolph\'s 1941 threatened march on Washington produced FDR\'s Executive Order 8802 banning racial discrimination in defense industries.</p>
+      </div>
+
+      <!-- ════ ERA 5: COLD WAR ════ -->
+      <div class="sh">Era 5 (1945&ndash;1991): Civil Rights, Feminism Waves, and Stonewall</div>
+      <div class="b-card">
+        <p><strong>From Unit 8 (Cold War &amp; Decolonization):</strong> The postwar decades saw a worldwide wave of social movements challenging hierarchies that had stood for centuries.</p>
+        <p>&bull; <strong>U.S. Civil Rights Movement.</strong> <em>Brown v. Board of Education</em> (1954) struck down school segregation. The Montgomery Bus Boycott (1955&ndash;56), led by Martin Luther King Jr. and inspired by Rosa Parks, demonstrated nonviolent direct action. The March on Washington (1963), the Civil Rights Act (1964), the Voting Rights Act (1965), and the Fair Housing Act (1968) dismantled the legal architecture of Jim Crow.<br>
+        &bull; <strong>Anti-apartheid movement in South Africa.</strong> Sharpeville Massacre (1960), Nelson Mandela\'s imprisonment (1962&ndash;90), international sanctions, and finally the dismantling of apartheid in 1990&ndash;94 with Mandela\'s presidential election.<br>
+        &bull; <strong>Indian Untouchability outlawed.</strong> India\'s 1950 constitution, drafted under B.R. Ambedkar (himself a Dalit), formally abolished untouchability. Practical discrimination persisted but lost its legal foundation.<br>
+        &bull; <strong>Indigenous rights movements.</strong> The American Indian Movement (AIM, 1968), the occupation of Alcatraz (1969&ndash;71), Wounded Knee (1973). Similar movements emerged in Canada, Australia, New Zealand, and Latin America.</p>
+        <p><strong>Second-wave feminism (~1960s&ndash;80s).</strong> Building on the suffrage gains of first-wave feminism, this movement focused on workplace discrimination, reproductive rights, sexuality, and the broader cultural status of women.</p>
+        <p>&bull; Betty Friedan\'s <em>The Feminine Mystique</em> (1963) named "the problem that has no name" &mdash; the dissatisfaction of college-educated American housewives.<br>
+        &bull; The U.S. National Organization for Women (NOW) was founded in 1966.<br>
+        &bull; Title VII of the Civil Rights Act (1964) prohibited employment discrimination by sex; Title IX (1972) banned sex discrimination in federally funded education.<br>
+        &bull; <em>Roe v. Wade</em> (1973) established a constitutional right to abortion in the U.S. (overturned in 2022).<br>
+        &bull; Globally, the UN Decade for Women (1975&ndash;85) brought feminism into international policy.</p>
+        <p><strong>Stonewall and LGBTQ+ rights.</strong> The <strong>Stonewall riots (June 28&ndash;July 3, 1969)</strong> at a Greenwich Village gay bar in New York are conventionally cited as the start of the modern LGBTQ+ rights movement. Activists like Marsha P. Johnson and Sylvia Rivera led organizing in the immediate aftermath. The first Pride marches were held on the riots\' first anniversary (June 1970). The American Psychiatric Association removed homosexuality from its list of mental disorders in 1973. The AIDS crisis (1981+) galvanized further activism (ACT UP, 1987). By the early 21st century, same-sex marriage would be legal in dozens of countries.</p>
+      </div>
+
+      <!-- ════ ERA 6: PRESENT ════ -->
+      <div class="sh">Era 6 (1991&ndash;Present): Migration, Identity Politics, and Intersectionality</div>
+      <div class="b-card">
+        <p><strong>From Unit 9 (Globalization):</strong> The contemporary era is shaped by post-colonial migration, the consolidation of rights movements, and new identity-based politics.</p>
+        <p>&bull; <strong>Post-colonial migration patterns.</strong> Decolonization produced massive flows from former colonies to former colonial centers: South Asians and Caribbeans to Britain; North Africans and West Africans to France; Indonesians and Surinamese to the Netherlands; Turks (as guest workers) to Germany. By 2024, the populations of Western European cities are profoundly multi-ethnic in ways unimaginable in 1945.<br>
+        &bull; <strong>Ethnic enclaves</strong> &mdash; immigrant communities forming Chinatowns, Little Indias, Little Havanas, etc. &mdash; have been a feature of urban life for centuries but multiplied dramatically in the late 20th century. They serve as economic and cultural anchor points and as flashpoints for nativist backlash.<br>
+        &bull; <strong>Refugee crises.</strong> The Syrian civil war (2011+) produced one of the largest refugee waves since WWII. Sub-Saharan African migration to Europe, Central American migration to the U.S., and Rohingya displacement from Myanmar have all reshaped politics in destination societies.<br>
+        &bull; <strong>Right-wing populism</strong> often centers immigration restriction and ethno-cultural defense. Brexit (2016), Trump-era U.S. politics, Le Pen in France, AfD in Germany, Orbán in Hungary, Modi in India &mdash; all draw heavily on identity-based political mobilization.</p>
+        <p><strong>Continued progress on rights, with backlash.</strong></p>
+        <p>&bull; <strong>Same-sex marriage</strong> legalized in the Netherlands (2001) and progressively in dozens of countries. <em>Obergefell v. Hodges</em> (2015) made it a U.S. constitutional right.<br>
+        &bull; <strong>Transgender rights</strong> emerged as a major social and political issue from the 2010s onward.<br>
+        &bull; <strong>#MeToo (2017+)</strong> &mdash; a global movement against sexual harassment and assault, spreading via social media. Toppled major figures in entertainment, business, and politics.<br>
+        &bull; <strong>Black Lives Matter (2013+)</strong> &mdash; movement against police violence and systemic racism in the U.S., with global resonance after the murder of George Floyd (May 2020).<br>
+        &bull; <strong>Intersectionality</strong> &mdash; coined by Kimberl&eacute; Crenshaw in 1989, the concept that overlapping identities (race, gender, class, sexuality) produce distinct experiences of discrimination and privilege. Foundational to contemporary social analysis.</p>
+        <p>The 21st-century picture is one of <em>simultaneous progress and backlash</em>. Hierarchies that seemed permanent in 1945 (legal segregation, women\'s exclusion from many professions, criminalized homosexuality) have collapsed in much of the world; new contests over identity, citizenship, and recognition have replaced them.</p>
+      </div>
+
+      <!-- ════ THE BIG QUESTIONS ════ -->
+      <div class="sh">The Big Questions for AP Synthesis</div>
+      <div class="b-card">
+        <p>The AP exam often asks thematic LEQ questions that span multiple periods. Here are the most-tested social-organization prompts and how to think about them:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">HIERARCHIES OF BIRTH</div>
+            <div class="b-mini-text"><strong>"Compare social hierarchies in two periods."</strong> Try: Chinese scholar-gentry vs. Indian caste vs. European feudalism (Era 1); Mughal Hindu-Muslim layering vs. Manchu/Han hierarchy (Era 2A); the casta system vs. industrial-era class formation (Era 2B&ndash;3).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">GENDER ACROSS PERIODS</div>
+            <div class="b-mini-text"><strong>"How did the position of women change across two periods?"</strong> Try: Mongol vs. sedentary gender norms (Era 1) vs. cult of domesticity (Era 3) vs. first-wave/second-wave/post-2010s feminism (Eras 3&ndash;6).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">RACE AND COLOR LINES</div>
+            <div class="b-mini-text"><strong>"How did racial hierarchies form and change?"</strong> Try: Pre-1492 non-racialized slavery (Era 1) vs. Atlantic chattel slavery + casta system (Era 2B) vs. Jim Crow + apartheid (Era 4&ndash;5) vs. post-civil-rights formal equality (Era 5&ndash;6).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">RESISTANCE TO HIERARCHY</div>
+            <div class="b-mini-text"><strong>"Compare resistance movements in two periods."</strong> Try: Peasants\' Revolt 1381 vs. Haitian Revolution (1791) vs. Civil Rights Movement (1955+) vs. Stonewall (1969) vs. Black Lives Matter (2013+) vs. #MeToo (2017+).</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tip"><strong>How to use this Briefing:</strong> Read it ALL before taking the rounds. The rounds will test you on era-by-era detail, but the LEQ rounds will demand you weave the whole 800-year arc. Bookmark the "Big Questions" cards above &mdash; they\'re your essay-writing playbook.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB TAB — CED Required Examples
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-vocab" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Vocabulary — Social Interactions Across All Periods</div>
+        <div class="vocab-info-desc">Click any term to flip and reveal the definition. These terms span all 9 units and are the most essential for the SIO theme &mdash; the hierarchies, movements, and identity categories most likely to appear in thematic synthesis questions on the AP exam.</div>
+      </div>
+
+      <div id="vocab-content"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB QUIZ TAB — placeholder for now
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-quiz" class="hub-panel">
+      <div class="vocab-info">
+        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
+        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
+        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         OVERVIEW TAB — fully written
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-overview" class="hub-panel">
+
+      <div class="ov-hero">
+        <div class="ov-hero-title">Theme: Social Interactions &amp; Organization, 1200&ndash;Present</div>
+        <div class="ov-hero-desc">A cross-period synthesis of how human societies organized themselves &mdash; by class, gender, race, religion, and group identity. From caste and scholar-gentry to industrial classes and 21st-century identity politics. Every unit features SIO examples; this game pulls them together for thematic LEQ practice and exam synthesis.</div>
+      </div>
+
+      <div class="ov-stat-grid">
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">UNITS COVERED</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">800</div><div class="ov-stat-label">YEARS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">~50</div><div class="ov-stat-label">VOCAB TERMS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">ROUNDS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">CCOT</div><div class="ov-stat-label">CORE SKILL</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">LEQ</div><div class="ov-stat-label">FOCUS FORMAT</div></div>
+      </div>
+
+      <div class="sh">Social Hierarchies Across the Units &mdash; Your Roadmap</div>
+      <div class="ov-topics">
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U1</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Tapestry (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Chinese scholar-gentry produced by the civil service exam. Indian caste system (varnas, jatis, Dalits). European feudalism\'s three-estate model. Mongol gender roles (Sorghaghtani Beki). Foot-binding in Song/Ming China. Purdah in Islamic and Hindu South Asia. Trans-Saharan and Indian Ocean slave systems.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U2</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Networks of Exchange (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Diasporic merchant communities reshaping social structures (Sogdians on the Silk Roads, Swahili coastal merchants, Jewish trader networks across the Mediterranean and Indian Ocean). Gender impact of Mongol-era connectivity. Slavery integrated into trans-regional trade networks.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U3</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Land-Based Empires (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Ottoman millet system organizing religious communities. Mughal Hindu-Muslim social layering (Akbar\'s tolerance vs. Aurangzeb\'s orthodoxy). Manchu/Han ethnic hierarchy with the queue. Intensified Russian serfdom. Rise of the European commercial bourgeoisie.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U4</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Transoceanic Interconnections (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">The casta system in Spanish America: peninsulares &rarr; creoles &rarr; mestizos &rarr; mulattoes &rarr; indigenous &rarr; enslaved Africans. Casta paintings. Atlantic chattel slavery (~12.5 million Africans transported). The commercial bourgeoisie of Dutch Golden Age and English Glorious Revolution.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U5</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Revolutions (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Industrial class formation: bourgeoisie, proletariat, white-collar middle class. Marx and Engels (Communist Manifesto 1848). First-wave feminism: Olympe de Gouges (1791), Mary Wollstonecraft (1792), Seneca Falls (1848), Sojourner Truth\'s "Ain\'t I a Woman?" (1851). Cult of domesticity. Atlantic abolition (Britain 1833, U.S. 1865, Brazil 1888).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U6</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Consequences of Industrialization (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Mass urbanization (London, New York, Paris all multimillion by 1900). Imperial racial theories (social Darwinism). Mass migration: ~50&ndash;60 million Europeans to the Americas; Indian and Chinese indentured labor migration. Colonial racial codification (South African color bar). New Zealand women\'s suffrage (1893).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U7</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Conflict (1900&ndash;1945)</div>
+            <div class="ov-topic-obj">Women\'s suffrage wave post-WWI (UK 1918/28, US 1920, Germany 1918, USSR 1917, Turkey 1934, France 1944). Mass atrocities: Armenian Genocide (1915&ndash;23), the Holocaust (~6 million Jewish victims), Japanese wartime atrocities (Nanjing, comfort women), Soviet purges. "Rosie the Riveter" wartime labor. The Double V campaign.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U8</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Cold War &amp; Decolonization (1945&ndash;1991)</div>
+            <div class="ov-topic-obj">U.S. Civil Rights Movement (Brown 1954, Montgomery, MLK, March on Washington 1963, Civil Rights Act 1964, Voting Rights Act 1965). Anti-apartheid (Sharpeville 1960, Mandela). Ambedkar\'s 1950 abolition of untouchability. AIM (1968) and indigenous rights. Second-wave feminism (Friedan, NOW, Title IX, Roe v. Wade 1973). Stonewall riots (1969) and LGBTQ+ rights.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U9</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Globalization (1900&ndash;Present)</div>
+            <div class="ov-topic-obj">Post-colonial migration patterns (South Asians/Caribbeans to UK, Maghrebis to France, Turkish guest workers to Germany). Ethnic enclaves. Refugee crises (Syria 2011+). Right-wing populism. Same-sex marriage globalizing (NL 2001, Obergefell 2015). Intersectionality (Crenshaw 1989). #MeToo (2017+) and Black Lives Matter (2013+).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-sio">SIO</span></div>
+        </div>
+      </div>
+
+      <div class="sh">CCOT Skills This Theme Develops</div>
+      <div class="ov-skills">
+        <div class="ov-skill"><div class="ov-skill-name">CONTINUITY &amp; CHANGE OVER TIME (CCOT)</div><div class="ov-skill-desc">The central skill. Identify what stayed the same and what changed across 800 years. Continuities: hierarchy, patriarchy, coerced labor, resistance. Changes: from birth-based to (formally) merit-based status; from religious to secular community framings; from private to public women; from legal slavery to formal abolition.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">COMPARISON ACROSS PERIODS</div><div class="ov-skill-desc">Direct cross-period comparison &mdash; e.g., Chinese scholar-gentry vs. casta system vs. industrial class formation. Or: pre-1492 non-racialized slavery vs. Atlantic chattel slavery vs. Jim Crow vs. post-civil-rights formal equality.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">CAUSATION CHAINS</div><div class="ov-skill-desc">Long causal chains across periods: Atlantic Revolutions\' universal-rights claims &rarr; first-wave feminism (de Gouges, Wollstonecraft) &rarr; Seneca Falls (1848) &rarr; suffrage wave post-WWI &rarr; second-wave feminism &rarr; #MeToo. Or: Atlantic slavery &rarr; abolition &rarr; Jim Crow &rarr; Civil Rights Movement &rarr; BLM.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">ARGUMENTATION (LEQ-focused)</div><div class="ov-skill-desc">Build a thesis claim about social organization across periods, support it with three specific examples drawn from at least two different units, qualify with counterevidence, conclude with synthesis.</div></div>
+      </div>
+
+      <div class="b-tip"><strong>How to use this theme game:</strong> Best deployed in <strong>April or May right before the AP exam</strong>, after students have mastered Units 1&ndash;9. Each "Era Check" round tests detail recall; the Comparison and CCOT rounds test synthesis; the LEQ Synthesis round is full essay practice with rubric scoring. Treat it like a final review tool that ties together everything from the year.</div>
+
+    </div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  AP WORLD HISTORY — THEME: SOCIAL INTERACTIONS & ORGANIZATION (SIO)
+//  Cross-period synthesis tool — best used April/May for AP exam prep
+// ════════════════════════════════════════════════════════════════════
+
+const UNIT_ID = 'apwh_th_sio';
+const UNIT_TITLE = 'Theme: Social Interactions & Organization';
+
+// ── ROUNDS ────────────────────────────────────────────────────────────
+// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+const ROUNDS = [
+  // ── Era Checks (chronological detail recall) ──
+  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Birth-Determined Hierarchies', icon:'⛩️', themes:['SIO'],
+   desc:'Chinese scholar-gentry produced by the civil service exam. Indian caste system (varnas, jatis, Dalits). European feudalism\'s three-estate model. Mongol gender roles (Sorghaghtani Beki). Foot-binding, purdah, and pre-Atlantic slave systems. Drawn from Units 1–2.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Hierarchy in the Gunpowder Empires', icon:'🕌', themes:['SIO'],
+   desc:'Ottoman millet system. Mughal Hindu-Muslim layering (Akbar tolerance vs. Aurangzeb orthodoxy). Manchu/Han ethnic stratification with the queue. Intensified Russian serfdom. Rise of the European commercial bourgeoisie. Drawn from Unit 3.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Race & the Casta System', icon:'🎨', themes:['SIO'],
+   desc:'The Spanish American casta system (peninsulares → creoles → mestizos → mulattoes → indigenous → enslaved Africans). Casta paintings. Atlantic chattel slavery and the Middle Passage (~12.5 million Africans transported). Dutch Golden Age and English merchant elites. Drawn from Unit 4.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Industrial Classes & First-Wave Feminism', icon:'🏭', themes:['SIO'],
+   desc:'Bourgeoisie/proletariat/middle class formation. Marx and Engels (Communist Manifesto 1848). First-wave feminism: de Gouges (1791), Wollstonecraft (1792), Seneca Falls (1848), Sojourner Truth (1851). Cult of domesticity. Atlantic abolition (Britain 1833, U.S. 1865, Brazil 1888). Mass urbanization and migration. Drawn from Units 5–6.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Suffrage & Mass Atrocities', icon:'🗳️', themes:['SIO'],
+   desc:'Women\'s suffrage wave post-WWI (UK, US, Germany, USSR, Turkey, France). Armenian Genocide. The Holocaust and "Final Solution." Japanese wartime atrocities. Soviet purges. "Rosie the Riveter" wartime labor. The Double V campaign. Drawn from Unit 7.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Civil Rights & Identity', icon:'✊', themes:['SIO'],
+   desc:'U.S. Civil Rights Movement (Brown, Montgomery, MLK, 1964, 1965). Anti-apartheid. Ambedkar\'s untouchability ban. Indigenous rights movements. Second-wave feminism (Friedan, NOW, Title IX, Roe). Stonewall (1969) and LGBTQ+ rights. Post-colonial migration. #MeToo, BLM, intersectionality. Drawn from Units 8–9.',
+   type:'mcq', questions:12, group:'core'},
+
+  // ── Synthesis Rounds ──
+  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['SIO'],
+   desc:'Direct cross-period comparison questions. Compare social hierarchies (scholar-gentry vs. casta vs. industrial classes), gender across periods (Mongol freedom vs. cult of domesticity vs. modern feminism), or resistance movements (1381 Peasants\' Revolt vs. abolitionism vs. Civil Rights Movement vs. Stonewall vs. BLM).',
+   type:'comparison', questions:8, group:'skills'},
+  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['SIO'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in social organization from 1200 to present. Argumentation 6.B with three specific examples per claim.',
+   type:'ccot', questions:6, group:'skills'},
+
+  // ── LEQ Synthesis ──
+  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['SIO'],
+   desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which the position of women changed from 1750 to 2000" or "Compare social hierarchies in two different periods." 800–1000 word target.',
+   type:'leq', questions:1, group:'frq'},
+];
+
+// ── VOCABULARY (cross-period social-organization terms) ─────────────────
+// Organized by ERA so students can review chronologically OR by category
+const VOCAB = {
+  'Era 1 (1200–1450) — Birth-Determined Hierarchies': {icon:'⛩️', terms:[
+    {term:'Scholar-Gentry', def:'Chinese class of educated officials and landowners produced by the Confucian civil service exam. Maintained the bureaucracy and Confucian culture across dynastic changes. In theory meritocratic; in practice only wealthy families could afford the years of preparation.'},
+    {term:'Civil Service Examination', def:'Chinese system of recruiting bureaucrats through merit-based exams on Confucian classics. Established in the Han, intensified Song/Yuan/Ming/Qing. Centerpiece of how the scholar-gentry reproduced itself.'},
+    {term:'Caste System / Varnas', def:'Hindu system dividing society into hereditary occupational groups: Brahmins (priests), Kshatriyas (warriors/rulers), Vaishyas (merchants/farmers), Shudras (laborers), and Dalits ("Untouchables") below the four varnas. Shaped marriage, food, work, and social contact.'},
+    {term:'Jati', def:'Sub-caste groupings within the broader varna system, often tied to specific occupations or regional identities. The lived reality of caste was navigated through jati more than the broader varna categories.'},
+    {term:'Dalits ("Untouchables")', def:'Castes ranked below the four varnas in the Hindu hierarchy. Subjected to severe social restrictions; relegated to occupations considered ritually polluting. Discrimination outlawed by India\'s 1950 constitution (drafted by Dalit jurist B.R. Ambedkar).'},
+    {term:'European Feudalism', def:'Three-estate medieval social structure: clergy, nobility, peasants/commoners. Most peasants were serfs tied to land owing labor and dues. Black Death\'s labor shortages eroded serfdom in Western Europe; Eastern European serfdom would intensify.'},
+    {term:'Sorghaghtani Beki', def:'Mongol noblewoman, mother of Khubilai Khan. Politically influential, religiously tolerant, championed her sons\' careers. Often cited as evidence that Mongol gender roles were more open than those of the sedentary societies the Mongols ruled.'},
+    {term:'Foot-Binding', def:'Chinese practice of wrapping girls\' feet to permanently restrict their growth. Emerged among Song-era elites; spread widely under Ming and Qing. Marker of refinement that physically restricted women\'s mobility for centuries.'},
+    {term:'Purdah', def:'Practice of secluding women, especially elite women, from public male view. Prevalent in parts of the Islamic world and Hindu/Muslim South Asia. Limited public roles but in some contexts produced powerful female-led households.'},
+    {term:'Trans-Saharan Slavery', def:'Slave trade routes across the Sahara from sub-Saharan Africa to North Africa and the Middle East. Existed for centuries before Atlantic slavery; carried millions of African captives over its lifetime.'},
+  ]},
+  'Era 2 (1450–1750) — Layered &amp; Casta Hierarchies': {icon:'🎨', terms:[
+    {term:'Millet System', def:'Ottoman policy of religious community self-rule. Greek Orthodox, Armenian Christian, and Jewish communities governed their own civil affairs in exchange for tax and loyalty. Pluralist arrangement that managed diversity without modern citizenship.'},
+    {term:'Akbar\'s Tolerance', def:'Mughal emperor Akbar (r. 1556–1605) abolished the jizya tax on non-Muslims, married Hindu princesses, founded Din-i Ilahi, and employed Hindus in government. Pragmatic strategy for legitimating Muslim rule over a Hindu majority.'},
+    {term:'Aurangzeb\'s Orthodoxy', def:'Mughal emperor (r. 1658–1707) who reversed Akbar\'s tolerance. Reimposed jizya, persecuted non-Muslims, contributed to fragmenting Mughal coalitions and accelerating decline.'},
+    {term:'Manchu Queue', def:'Long braided hairstyle the Qing required all Han Chinese men to wear. Visible marker of submission to Manchu rule. Ethnic stratification on top of continued Confucian bureaucratic structure.'},
+    {term:'Russian Serfdom (Intensified)', def:'Even as Western European serfdom declined, Russian serfdom intensified after Peter the Great. By 1800, serfs were the majority of Russia\'s population. Not abolished until Alexander II\'s 1861 emancipation.'},
+    {term:'Casta System', def:'Spanish American hierarchy by ancestry and birthplace. Peninsulares (Iberian-born), creoles (American-born Spanish), mestizos (Spanish + indigenous), mulattoes (Spanish + African), indigenous, enslaved Africans. The historical foundation of modern Latin American race-based hierarchies.'},
+    {term:'Peninsulares', def:'Iberian-born Spaniards in colonial Spanish America. Smallest group; held the highest colonial offices. Their privileges fueled creole resentment that drove Latin American independence movements.'},
+    {term:'Creoles (Criollos)', def:'American-born people of Spanish ancestry. Wealthy and educated but blocked from top colonial offices. Their resentment fueled Latin American independence movements; Bolívar himself was a creole.'},
+    {term:'Mestizos', def:'Mixed Spanish and indigenous ancestry. By the late colonial period, the largest group in many Spanish American regions. Cultural and demographic core of much of modern Latin America.'},
+    {term:'Mulattoes', def:'Mixed Spanish and African ancestry in colonial Spanish America. Often urban; sometimes free, sometimes enslaved. Played important roles in colonial militias and trades.'},
+    {term:'Casta Paintings', def:'18th-century Spanish American genre that depicted and codified racial mixtures, sometimes with two dozen or more named categories. The system was never as orderly in practice as the paintings suggested.'},
+    {term:'Atlantic Chattel Slavery', def:'Heritable, racialized slavery oriented toward producing cash crops for global markets. ~12.5 million Africans forcibly transported, ~10.7 million surviving the Middle Passage. Distinct from earlier slavery systems in scale and racialization.'},
+    {term:'Commercial Bourgeoisie', def:'Merchants, bankers, and manufacturers whose wealth came from trade and capital rather than land. Rose to serious political power in Northwest Europe (Dutch Republic, English Parliament). Ancestors of the industrial bourgeoisie.'},
+  ]},
+  'Era 3 (1750–1900) — Industrial Classes &amp; First-Wave Feminism': {icon:'🏭', terms:[
+    {term:'Bourgeoisie', def:'Industrial and commercial middle class &mdash; factory owners, financiers, professionals. Karl Marx\'s term, but the phenomenon was real: a class whose wealth came from capital rather than land or birth.'},
+    {term:'Proletariat', def:'Industrial wage laborers in factories and cities. Concentrated in urban centers, worked long hours for cash wages. Marx and Engels\'s Communist Manifesto (1848) called on this class to "lose their chains."'},
+    {term:'Communist Manifesto (1848)', def:'Karl Marx and Friedrich Engels\'s pamphlet calling for proletarian revolution. Coined many terms still used to describe industrial society. Foundational document for socialism, communism, and labor movements.'},
+    {term:'White-Collar Middle Class', def:'Clerks, managers, teachers, professionals &mdash; emerged as industrial economies grew larger and more complex. By 1900, a defining feature of urban industrial society alongside the bourgeoisie and proletariat.'},
+    {term:'Olympe de Gouges', def:'French revolutionary who wrote the Declaration of the Rights of Woman and the Female Citizen (1791) &mdash; explicitly modeled on the 1789 Declaration of Rights of Man. Guillotined in 1793. Foundational figure of feminism.'},
+    {term:'Mary Wollstonecraft', def:'British philosopher whose A Vindication of the Rights of Woman (1792) became a foundational feminist text in the English-speaking world. Argued that women\'s apparent inferiority came from limited education, not nature.'},
+    {term:'Seneca Falls Convention (1848)', def:'First U.S. women\'s rights convention, organized by Elizabeth Cady Stanton and Lucretia Mott. The Declaration of Sentiments adapted the Declaration of Independence: "all men and women are created equal."'},
+    {term:'Sojourner Truth', def:'African American abolitionist and women\'s rights activist. Her 1851 "Ain\'t I a Woman?" speech challenged white feminists to consider how race shaped gendered experience &mdash; an early articulation of intersectional thinking.'},
+    {term:'Cult of Domesticity', def:'19th-century middle-class ideology that respectable women belonged in the private sphere of home, while men inhabited the public world of work and politics. Shaped middle-class life through the early 20th century.'},
+    {term:'Atlantic Abolition', def:'Wave of slavery abolition in the Atlantic world. Britain abolished the slave trade (1807) and slavery (1833); the U.S. ended slavery via the 13th Amendment (1865); Brazil abolished slavery in 1888 &mdash; the last major American holdout.'},
+    {term:'Social Darwinism', def:'Pseudoscientific 19th-century ideology applying "survival of the fittest" to societies and races. Used to justify European imperialism and racial hierarchies. Discredited scientifically but politically influential into the 20th century.'},
+    {term:'Indentured Labor Migration', def:'Tens of millions of Indians and Chinese moved within Asian, African, and American empires under labor contracts that often resembled forced servitude. Replaced enslaved African labor on many post-abolition plantations.'},
+    {term:'New Zealand Suffrage (1893)', def:'New Zealand became the first self-governing country to grant women the vote in national elections. Australia followed (1902). Prefigured the broader suffrage wave of the post-WWI period.'},
+  ]},
+  'Era 4 (1900–1945) — Suffrage &amp; Atrocities': {icon:'🗳️', terms:[
+    {term:'Post-WWI Suffrage Wave', def:'Wartime mobilization of women combined with decades of suffragist organizing produced a wave of national enfranchisement: UK (partial 1918, full 1928), Germany (1918), U.S. (19th Amendment, 1920), Soviet Russia (1917), Turkey (1934), France (1944).'},
+    {term:'Armenian Genocide (1915–23)', def:'Late Ottoman authorities killed an estimated 1–1.5 million Armenian Christians through massacres, forced marches, and starvation. Often cited as the first major genocide of the 20th century. Recognition remains politically contested.'},
+    {term:'The Holocaust', def:'Nazi Germany\'s industrialized murder of ~6 million Jews, plus Roma, disabled people, LGBTQ+ people, Polish intellectuals, Soviet POWs, and others. The Wannsee Conference (1942) coordinated the "Final Solution." Auschwitz-Birkenau and other death camps.'},
+    {term:'Wannsee Conference (Jan 1942)', def:'Meeting at which Nazi officials coordinated the "Final Solution to the Jewish Question" &mdash; the systematic, industrial-scale murder of Europe\'s Jews. Reinhard Heydrich chaired.'},
+    {term:'Nanjing Massacre (1937–38)', def:'Mass murder and rape of Chinese civilians and soldiers by Imperial Japanese troops following the fall of Nanjing. Estimated 200,000–300,000 killed. One of the worst single atrocities of WWII.'},
+    {term:'Comfort Women', def:'Korean, Chinese, Filipina, and other women enslaved by the Imperial Japanese military into wartime sexual servitude. An estimated 50,000–200,000 victims. Lingering diplomatic issue between Japan and Korea.'},
+    {term:'Rosie the Riveter', def:'Cultural icon representing the millions of American women who worked in shipyards, aircraft plants, and arsenals during WWII. Permanently changed expectations about what women could do, even where postwar policies pushed women back home.'},
+    {term:'Soviet Women in Combat', def:'The USSR mobilized hundreds of thousands of women into combat roles in WWII, including snipers and pilots (the famous "Night Witches" 588th regiment). Unprecedented in scale.'},
+    {term:'Double V Campaign', def:'African American activists\' WWII slogan demanding victory abroad against fascism AND victory at home against segregation. A. Philip Randolph\'s 1941 threatened march on Washington produced FDR\'s Executive Order 8802 banning racial discrimination in defense industries.'},
+    {term:'Soviet Purges / Gulag', def:'Stalin\'s Great Purges (1936–38) killed an estimated 750,000+. The Gulag camp system imprisoned ~18 million over its existence. State terror that profoundly reshaped Soviet society.'},
+  ]},
+  'Era 5–6 (1945–Present) — Civil Rights, Feminism, LGBTQ+': {icon:'✊', terms:[
+    {term:'Brown v. Board (1954)', def:'U.S. Supreme Court decision unanimously ruling racial segregation in public schools unconstitutional. Overturned Plessy v. Ferguson (1896). Foundational legal victory of the Civil Rights Movement.'},
+    {term:'Montgomery Bus Boycott (1955–56)', def:'13-month boycott of segregated city buses in Montgomery, Alabama, following Rosa Parks\'s arrest. Led by Martin Luther King Jr. Demonstrated nonviolent direct action and launched MLK to national prominence.'},
+    {term:'March on Washington (1963)', def:'~250,000 gathered at the Lincoln Memorial demanding civil rights and economic justice. MLK\'s "I Have a Dream" speech. Helped pressure passage of the 1964 Civil Rights Act.'},
+    {term:'Civil Rights Act (1964)', def:'U.S. law banning discrimination based on race, color, religion, sex, or national origin in public accommodations, employment, and federally funded programs. Title VII (employment) and Title VI (federal funds) had especially broad effects.'},
+    {term:'Voting Rights Act (1965)', def:'U.S. law banning literacy tests and other Jim Crow voter-suppression mechanisms; authorized federal oversight of elections in jurisdictions with a history of discrimination. Dramatically expanded Black voter registration in the South.'},
+    {term:'Anti-Apartheid Movement', def:'South African and international movement against the apartheid system of racial segregation. Sharpeville Massacre (1960), Mandela\'s imprisonment (1962–90), international sanctions. Apartheid dismantled 1990–94 with Mandela\'s presidential election.'},
+    {term:'B.R. Ambedkar / 1950 Untouchability Ban', def:'Ambedkar, a Dalit jurist, drafted India\'s 1950 constitution which formally abolished untouchability. Practical discrimination persisted but lost its legal foundation.'},
+    {term:'American Indian Movement (AIM, 1968)', def:'Indigenous rights organization founded in Minneapolis. Notable actions: occupation of Alcatraz (1969–71), Wounded Knee (1973). Pushed indigenous sovereignty and treaty rights into U.S. political discourse.'},
+    {term:'Second-Wave Feminism', def:'Feminist movement (~1960s–80s) focused on workplace discrimination, reproductive rights, sexuality, and broader cultural status. Built on first-wave suffrage gains. Betty Friedan, NOW (1966), Title IX (1972), Roe v. Wade (1973).'},
+    {term:'Betty Friedan / Feminine Mystique (1963)', def:'Friedan\'s book named "the problem that has no name" &mdash; the dissatisfaction of college-educated American housewives confined to domestic roles. Often cited as launching second-wave feminism.'},
+    {term:'Title IX (1972)', def:'U.S. law banning sex discrimination in federally funded education programs. Transformed women\'s access to athletics and graduate professional programs (medicine, law, business).'},
+    {term:'Roe v. Wade (1973)', def:'U.S. Supreme Court decision establishing a constitutional right to abortion. Overturned by Dobbs v. Jackson Women\'s Health Organization (2022), returning abortion regulation to states.'},
+    {term:'Stonewall Riots (1969)', def:'Multi-day uprising at a Greenwich Village gay bar in New York after a police raid. Conventionally cited as the start of the modern LGBTQ+ rights movement. Marsha P. Johnson and Sylvia Rivera among the leaders.'},
+    {term:'Pride Marches (1970+)', def:'First Pride marches were held on the Stonewall riots\' first anniversary (June 1970) in New York, Los Angeles, and Chicago. Now annual events worldwide.'},
+    {term:'Same-Sex Marriage', def:'Netherlands became the first country to legalize same-sex marriage (2001). Many countries followed. The U.S. legalized it nationwide via Obergefell v. Hodges (2015).'},
+    {term:'Post-Colonial Migration', def:'Decolonization produced massive flows from former colonies to former colonial centers: South Asians and Caribbeans to Britain; North/West Africans to France; Indonesians and Surinamese to the Netherlands; Turks (as guest workers) to Germany.'},
+    {term:'Ethnic Enclaves', def:'Immigrant communities forming Chinatowns, Little Indias, Little Havanas, and similar neighborhoods. Serve as economic and cultural anchor points and as flashpoints for nativist backlash.'},
+    {term:'Intersectionality (Crenshaw, 1989)', def:'Concept coined by Kimberl&eacute; Crenshaw: overlapping identities (race, gender, class, sexuality) produce distinct experiences of discrimination and privilege. Foundational to contemporary social analysis.'},
+    {term:'#MeToo (2017+)', def:'Global movement against sexual harassment and assault, spreading via social media. Toppled major figures in entertainment, business, and politics. Originally coined by Tarana Burke in 2006.'},
+    {term:'Black Lives Matter (2013+)', def:'Movement against police violence and systemic racism in the U.S., founded after the acquittal of George Zimmerman in the killing of Trayvon Martin. Global resonance after the murder of George Floyd (May 2020).'},
+  ]},
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE & STORAGE
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_theme_sio_progress';        // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_th_sio';        // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_th_sio';       // Supabase column for in-progress drafts
+
+let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+  catch(e){return{};}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
+}
+function getRoundProgress(roundId){
+  return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Play tab activity cards
+// ════════════════════════════════════════════════════════════════════
+function renderRoundCards(){
+  const groups = {core:[],skills:[],frq:[]};
+  ROUNDS.forEach(r => groups[r.group].push(r));
+
+  document.getElementById('round-cards-core').innerHTML  = groups.core.map(roundCard).join('');
+  document.getElementById('round-cards-skills').innerHTML = groups.skills.map(roundCard).join('');
+  document.getElementById('round-cards-frq').innerHTML  = groups.frq.map(roundCard).join('');
+
+  // Progress
+  const completed = ROUNDS.filter(r => {
+    const p = getRoundProgress(r.id);
+    return p && p.completed;
+  }).length;
+  const pct = Math.round((completed / ROUNDS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = completed + ' / ' + ROUNDS.length + ' ROUNDS';
+}
+
+function roundCard(r){
+  const prog = getRoundProgress(r.id);
+  const done = prog && prog.completed;
+  const accent = done ? 'var(--green2)' : 'var(--bronze)';
+  const themesHTML = r.themes.map(t =>
+    `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+  const badge = done
+    ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+  const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
+  return `
+    <div class="activity-card" onclick="launchRound('${r.id}')">
+      <div class="activity-card-strip" style="background:${accent}"></div>
+      <div class="activity-card-body">
+        ${badge}
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${r.num} · TOPIC ${r.topic} · ${label.toUpperCase()}</div>
+        <div class="activity-card-title">${r.title}</div>
+        <div class="activity-card-meta">${themesHTML}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action">▶ ${done ? 'Replay' : 'Begin'} Round</div>
+      </div>
+    </div>`;
+}
+
+function launchRound(roundId){
+  // Phase 2 will wire in the actual question runner.
+  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Social Interactions & Organization theme.');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Vocab tab
+// ════════════════════════════════════════════════════════════════════
+function renderVocab(){
+  const el = document.getElementById('vocab-content');
+  let html = '';
+  Object.keys(VOCAB).forEach(region => {
+    const data = VOCAB[region];
+    html += `<div class="vocab-region-header"><span class="vocab-region-icon">${data.icon}</span> ${region}</div>`;
+    html += '<div class="vocab-grid">';
+    data.terms.forEach(t => {
+      html += `<div class="vocab-card" onclick="this.classList.toggle('flipped')">
+        <div class="vocab-card-term">${t.term}</div>
+        <div class="vocab-card-def">${t.def}</div>
+        <div class="vocab-card-hint">click to reveal</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════
+function goBack(){
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const tick = setInterval(() => {
+    pct += 12 + Math.random() * 14;
+    if (pct >= 100) {
+      pct = 100;
+      bar.style.width = '100%';
+      clearInterval(tick);
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('hub').style.display = 'flex';
+          renderRoundCards();
+          renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
+        }, 400);
+      }, 200);
+    } else {
+      bar.style.width = pct + '%';
+    }
+  }, 90);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+</body>
+</html>
