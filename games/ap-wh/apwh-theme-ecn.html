@@ -1,1 +1,963 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme: Economic Systems — AP World History · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Crimson + Bronze — manuscripts & imperial seals */
+  --bg:#1a0a0a;--bg2:#2a1212;--bg3:#3a1c1c;--panel:#241010;
+  --border:#3a1a1a;--border2:#5a2828;
+  --acc:#a83838;--acc2:#c84848;--acc3:#e06a6a;            /* crimson */
+  --bronze:#d4a847;--bronze2:#e8c060;--bronze3:#f4d878;   /* bronze */
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --blue:#4878d0;--blue2:#6898e8;
+  --orange:#e08840;--orange2:#f0a058;
+  --text:#f0e4d4;--text2:#a89888;--text3:#5a4838;--cream:#f4ede0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(168,56,56,.10) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(212,168,71,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--bronze2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .2s;width:0}
+
+/* ── HUB ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(168,56,56,.18) 0%,rgba(26,10,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,71,.025) 40px,rgba(212,168,71,.025) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(245,200,66,.55)) drop-shadow(0 0 8px rgba(168,56,56,.35));position:relative}
+.hub-hero{border-left:4px solid rgba(245,200,66,.5)}
+.hub-hero-info{flex:1;position:relative}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--bronze2);letter-spacing:3px;margin-bottom:6px;opacity:.85}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:640px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--bronze2);font-weight:500}
+.back-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;position:relative}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── TABS ── */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;white-space:nowrap}
+.hub-tab:hover{color:var(--bronze2)}
+.hub-tab.active{color:var(--bronze2);border-bottom-color:var(--bronze)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* ── ACTIVITY CARDS (Play tab) ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px;color:var(--bronze2)}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.activity-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.activity-card-meta-tag{font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;padding:2px 6px;border:1px solid;border-radius:2px}
+.tag-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2)}
+.tag-gov{border-color:rgba(72,120,208,.4);color:var(--blue2)}
+.tag-ecn{border-color:rgba(245,200,66,.4);color:var(--gc)}
+.tag-sio{border-color:rgba(104,152,232,.4);color:#8898d8}
+.tag-tec{border-color:rgba(144,128,224,.4);color:var(--purple2)}
+.tag-env{border-color:rgba(64,200,112,.4);color:var(--green2)}
+
+/* ── BRIEFING / OVERVIEW shared ── */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;margin-top:24px}
+.sh::before{content:'';width:3px;height:14px;background:var(--bronze);display:block}
+.sh:first-of-type{margin-top:0}
+.b-card{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;margin-bottom:14px}
+.b-card p{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.85;margin-bottom:10px}
+.b-card p:last-child{margin-bottom:0}
+.b-card strong{color:var(--cream);font-weight:600}
+.b-card em{color:var(--bronze2);font-style:italic}
+.b-tip{padding:11px 15px;background:rgba(168,56,56,.08);border-left:3px solid var(--acc);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-tip strong{color:var(--acc3);font-weight:600}
+.b-key{padding:11px 15px;background:rgba(212,168,71,.08);border-left:3px solid var(--bronze);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-key strong{color:var(--bronze2);font-weight:600}
+.b-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;margin-bottom:8px}
+.b-mini{background:var(--bg3);border:1px solid var(--border2);padding:12px 14px}
+.b-mini-label{font-family:var(--bebas);font-size:11px;color:var(--bronze2);letter-spacing:1.5px;margin-bottom:4px}
+.b-mini-text{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6}
+.b-mini-text strong{color:var(--cream)}
+.b-source{padding:14px 18px;background:rgba(58,28,28,.6);border-left:3px solid var(--bronze);
+  margin-bottom:14px;font-family:var(--crimson);font-size:13px;font-style:italic;color:var(--text2);line-height:1.75}
+.b-source-attr{display:block;margin-top:8px;font-family:var(--dm);font-size:10px;color:var(--bronze2);font-style:normal;letter-spacing:1px}
+
+.theme-pill{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:2px;margin-right:4px;border:1px solid}
+.tp-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2);background:rgba(224,136,64,.08)}
+.tp-gov{border-color:rgba(72,120,208,.4);color:var(--blue2);background:rgba(72,120,208,.08)}
+.tp-ecn{border-color:rgba(245,200,66,.4);color:var(--gc);background:rgba(245,200,66,.08)}
+.tp-sio{border-color:rgba(104,152,232,.4);color:#8898d8;background:rgba(104,152,232,.08)}
+.tp-tec{border-color:rgba(144,128,224,.4);color:var(--purple2);background:rgba(144,128,224,.08)}
+.tp-env{border-color:rgba(64,200,112,.4);color:var(--green2);background:rgba(64,200,112,.08)}
+
+/* ── VOCAB ── */
+.vocab-info{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:16px 20px;margin-bottom:20px}
+.vocab-info-title{font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px}
+.vocab-info-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
+.vocab-region-header{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.vocab-region-header:first-of-type{margin-top:0}
+.vocab-region-icon{font-size:18px}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.vocab-card{background:var(--bg2);border:1px solid var(--border);padding:11px 14px;cursor:pointer;transition:all .15s;position:relative}
+.vocab-card:hover{border-color:var(--bronze);background:var(--bg3)}
+.vocab-card-term{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600;margin-bottom:3px}
+.vocab-card-def{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;display:none}
+.vocab-card.flipped .vocab-card-def{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.vocab-card-hint{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── OVERVIEW ── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:20px 26px;margin-bottom:20px}
+.ov-hero-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.ov-hero-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7}
+.ov-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);padding:14px;text-align:center}
+.ov-stat-val{font-family:var(--bebas);font-size:24px;color:var(--bronze2);letter-spacing:1px}
+.ov-stat-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.ov-topics{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ov-topic{background:var(--bg2);border:1px solid var(--border);padding:14px 18px;display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center}
+.ov-topic-num{font-family:var(--bebas);font-size:18px;color:var(--bronze2);letter-spacing:2px}
+.ov-topic-info{}
+.ov-topic-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:3px}
+.ov-topic-obj{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+.ov-topic-themes{display:flex;gap:4px;flex-wrap:wrap}
+.ov-skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ov-skill{background:var(--bg2);border:1px solid var(--border);padding:13px 16px;border-left:3px solid var(--bronze)}
+.ov-skill-name{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--bronze2);margin-bottom:3px}
+.ov-skill-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;margin-bottom:18px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-label span{color:var(--bronze2)}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:760px){
+  .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
+  .hub-hero-icon{font-size:40px}
+  .hub-content{padding:16px 18px 60px}
+  .hub-tab{padding:10px 14px;font-size:10px}
+  .hub-meta{gap:10px}
+  .hub-meta-item{font-size:8px}
+  .activity-grid{grid-template-columns:1fr}
+  .ov-topic{grid-template-columns:50px 1fr;gap:10px}
+  .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════════════════ -->
+<div id="loading">
+  <div class="ld-icon">💰</div>
+  <div class="ld-title">ECONOMIC SYSTEMS</div>
+  <div class="ld-sub">Theme · 1200 — Present</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     UNIT HUB
+════════════════════════════════════════════════════════════════════ -->
+<div id="hub">
+
+  <!-- Hero header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">💰</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP WORLD HISTORY · THEME</div>
+      <div class="hub-title">Economic Systems</div>
+      <div class="hub-desc">A cross-period synthesis of <strong>trade, labor, money, and economic ideology</strong> from 1200 to the present. Trace how the world economy evolved &mdash; from the Silk Roads to global capitalism, from cowrie shells to cryptocurrency, from corv&eacute;e labor to the multinational corporation. Use this for synthesis &mdash; SAQs, DBQs, and especially LEQs that ask you to argue across periods. <em>Best used as April/May exam prep after completing Units 1&ndash;9.</em></div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Periods Covered: <span>All 9 Units</span></div>
+        <div class="hub-meta-item">🎯 Theme Code: <span>ECN</span></div>
+        <div class="hub-meta-item">💱 Focus: <span>Trade, labor, money, ideology</span></div>
+        <div class="hub-meta-item">⚖️ Format: <span>9 rounds + LEQ synthesis</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📊 Overview</button>
+  </div>
+
+  <div class="hub-content">
+
+    <!-- ═══════════════════════════════════════════════════
+         PLAY TAB
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-play" class="hub-panel active">
+
+      <!-- Progress bar -->
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-pct">0 / 12 ROUNDS</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="sh">ERA CHECKS — Governance Across the Periods</div>
+      <div class="activity-grid" id="round-cards-core"></div>
+
+      <div class="sh">SYNTHESIS — Cross-Period Comparison &amp; CCOT</div>
+      <div class="activity-grid" id="round-cards-skills"></div>
+
+      <div class="sh">ASSESSMENT — Thematic LEQ Practice</div>
+      <div class="activity-grid" id="round-cards-frq"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         BRIEFING TAB — fully written, CED-aligned
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-briefing" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Briefing — Economic Systems (ECN)</div>
+        <div class="vocab-info-desc">A <strong>cross-period synthesis</strong> of how trade, labor, money, and economic ideology evolved from 1200 to the present. The world economy went from regional trade networks (Silk Roads, Indian Ocean, trans-Saharan) to truly global capitalism &mdash; with massive consequences for who got rich, who got poor, and who got enslaved. Use this briefing to prepare for thematic LEQs and any AP question asking you to compare economic structures across periods. The dominant skills are <strong>CCOT</strong> and <strong>Comparison</strong>.</div>
+      </div>
+
+      <!-- ════ CCOT FRAMING ════ -->
+      <div class="sh">The Big Story: How the World Economy Changed (and Didn\'t) From 1200 to Present</div>
+      <div class="b-card">
+        <p>Across 800 years, the world economy transformed dramatically. The CED expects you to identify <strong>continuities</strong> and <strong>changes</strong>:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 1: COERCED LABOR</div>
+            <div class="b-mini-text">Slavery, serfdom, encomienda, indentured servitude, sweatshops &mdash; coerced labor never fully disappeared. The forms changed; the underlying reality of forced or near-forced work persisted.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 2: TRADE INEQUALITY</div>
+            <div class="b-mini-text">Wealthy regions exchanged manufactured goods for raw materials from poorer regions in 1200 (Cairo for African gold) and in 2000 (Apple for Chinese-assembled iPhones). The geography shifted; the pattern persisted.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 3: DIASPORIC MERCHANTS</div>
+            <div class="b-mini-text">Ethnic merchant communities (Sogdians, Genoese, Gujaratis, Hokkien Chinese, modern multinational corporations\' diasporas) lubricated long-distance trade in every era.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 4: STATE INTERVENTION</div>
+            <div class="b-mini-text">From Yuan China taxing Silk Road traders to modern WTO/IMF/tariffs, states have always regulated economic activity. Pure laissez-faire is the exception, not the rule.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-card">
+        <p>And the <strong>changes</strong> &mdash; what fundamentally transformed:</p>
+        <p>&bull; <strong>From regional to global trade networks.</strong> 1200: Silk Roads, Indian Ocean, trans-Saharan trade. 1500+: a single integrated global economy via Atlantic + Pacific.<br>
+        &bull; <strong>From land empires to maritime + capitalist economies.</strong> The Atlantic system + joint-stock companies + plantation slavery built modern capitalism.<br>
+        &bull; <strong>From mercantilism to industrial capitalism to neoliberalism.</strong> Each ideology dominated for ~150&ndash;200 years before yielding to the next.<br>
+        &bull; <strong>From bullion-based to fiat-based money.</strong> Spanish silver was global currency in 1600; the U.S. dollar (with no gold backing since 1971) is global currency today.<br>
+        &bull; <strong>From single-commodity dependency to financial interdependence.</strong> Modern global supply chains span dozens of countries for a single product.</p>
+      </div>
+
+      <!-- ════ ERA 1: 1200–1450 ════ -->
+      <div class="sh">Era 1 (1200&ndash;1450): The Pre-Modern Trade Networks</div>
+      <div class="b-card">
+        <p><strong>From Units 1&ndash;2:</strong> Three major trade networks dominated Eurasia, plus a fourth in Africa.</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">SILK ROADS</div>
+            <div class="b-mini-text">Overland Eurasian network. Silk and porcelain west, horses and silver east. Pax Mongolica enabled. Diasporic merchants (Sogdians, Persians) facilitated. Caravanserais provided lodging.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">INDIAN OCEAN</div>
+            <div class="b-mini-text">Maritime network connecting East Africa, Arabia, India, SE Asia, China. Monsoon-powered. Spices, cotton textiles, ivory. Swahili merchants, Gujarati traders, Chinese junks (Zheng He).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">TRANS-SAHARAN TRADE</div>
+            <div class="b-mini-text">Camel caravans across the Sahara. Salt south, gold north. Mansa Musa\'s 1324 hajj distributed so much Mali gold it caused inflation in Cairo. Timbuktu as Islamic learning + trade center.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">LABOR SYSTEMS</div>
+            <div class="b-mini-text">Free peasants paying tax/tribute (most of the world). Serfdom in Europe and Russia. Slavery in Islamic world and pre-Atlantic Africa. Mit\'a labor draft in Inca empire. Corv&eacute;e in many monarchies.</div>
+          </div>
+        </div>
+        <p>Money in this era was bullion-based: gold dinars (Islamic world), silver, cowrie shells (Africa, parts of Asia), Chinese paper money under the Yuan (an early experiment).</p>
+      </div>
+
+      <!-- ════ ERA 2A ════ -->
+      <div class="sh">Era 2A (1450&ndash;1750): Land Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 3:</strong> Land empires extracted wealth through new tax systems:</p>
+        <p>&bull; <strong>Ottoman <em>iltizam</em></strong> (tax farming) &mdash; Ottoman government auctioned tax-collection rights to wealthy individuals.<br>
+        &bull; <strong>Mughal <em>zamindar</em> system</strong> &mdash; local landholders collected taxes, kept a share.<br>
+        &bull; <strong>Ming/Qing silver tax</strong> &mdash; Single Whip Reform required tax payment in silver, creating massive Chinese demand for Spanish-American silver.<br>
+        &bull; <strong>Russian poll tax</strong> on serfs.</p>
+        <p>The Ottoman, Safavid, and Mughal courts engaged actively in <strong>luxury trade</strong> &mdash; carpets (Persian), textiles (Mughal), coffee (originally Yemeni). Wealth concentrated in Delhi, Isfahan, Istanbul, Beijing.</p>
+      </div>
+
+      <!-- ════ ERA 2B ════ -->
+      <div class="sh">Era 2B (1450&ndash;1750): The Atlantic System &amp; Global Silver</div>
+      <div class="b-card">
+        <p><strong>From Unit 4:</strong> This is the era when modern capitalism was born.</p>
+        <p><strong>Mercantilism</strong> was the dominant economic ideology &mdash; national wealth = bullion accumulated; trade is zero-sum; colonies serve the mother country; positive trade balance is the goal. Navigation Acts and similar laws restricted colonial trade.</p>
+        <p><strong>Joint-stock companies</strong> (Dutch VOC 1602, British East India Company 1600) were a transformative financial innovation. Spread risk across investors; made huge expeditions financially possible. Foundation of modern corporate capitalism.</p>
+        <p><strong>The Columbian Exchange</strong> reshaped diets and economies: maize and potatoes fueled population growth; sugar and tobacco built plantation economies; horses transformed Plains Indian cultures.</p>
+        <p><strong>The Atlantic slave trade</strong> &mdash; the largest forced migration in human history (~12.5 million Africans transported, ~2 million dead at sea) &mdash; was the labor backbone of the Atlantic system. Sugar drove demand. Triangular trade tied Europe, Africa, and the Americas.</p>
+        <p><strong>Other coerced labor systems</strong> in the Americas: encomienda (Spanish indigenous labor), hacienda (debt peonage), Spanish mit\'a (forced mine labor at Potos&iacute;), indentured servitude, chattel slavery.</p>
+        <p><strong>Silver and the global economy.</strong> Spanish silver from Potos&iacute; flowed to Europe, then to China &mdash; where the Single Whip Reform required silver tax payment. By 1600, perhaps a third of all New World silver ended up in China. The world\'s first truly global economy.</p>
+        <p><strong>Manila Galleons</strong> connected Acapulco to Manila, shipping silver west and Chinese silk east.</p>
+      </div>
+
+      <!-- ════ ERA 3 ════ -->
+      <div class="sh">Era 3 (1750&ndash;1900): Industrial Capitalism</div>
+      <div class="b-card">
+        <p><strong>From Unit 5:</strong> The <strong>Industrial Revolution</strong> began in Britain c. 1750 and reshaped the global economy. Cotton mills replaced cottage textile production; coal-fired steam engines powered factories; the factory system replaced cottage industry.</p>
+        <p><strong>Why Britain first?</strong> Coal + iron + capital (slave-trade profits) + labor (enclosure-displaced peasants) + colonial markets + property rights + geography + political stability.</p>
+        <p>Industrialization spread in waves: Belgium, France, U.S., German states (1820s&ndash;60s); then Japan (Meiji) and Russia (1870s&ndash;90s) through state-led "catch-up" industrialization. Meanwhile, India and Egypt deindustrialized as British and French markets undermined them.</p>
+        <p><strong>Adam Smith\'s <em>Wealth of Nations</em></strong> (1776) attacked mercantilism, advocating free markets. Foundation of liberal capitalism.</p>
+        <p>New economic institutions: <strong>stock markets</strong> (London, NYSE), <strong>limited liability corporations</strong> (investors lose only what they invest), <strong>monopolies and trusts</strong> (Standard Oil, U.S. Steel), <strong>multinational corporations</strong> (United Fruit Company in Latin America, HSBC in East Asia).</p>
+        <p><strong>Marx and Engels\' <em>Communist Manifesto</em></strong> (1848) argued capitalism produces growing inequality, alienation, and inevitable revolution. Foundation of socialism. Labor unions and reform movements (British Factory Acts, Tanzimat) tried to reform capitalism without abolishing it.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>From Unit 6:</strong> Industrialized states imposed <strong>cash crop economies</strong> on colonized regions. Rubber (Belgian Congo, Brazil), palm oil and ivory (West Africa), cotton (Egypt, India, U.S. South), sugar/coffee/bananas (Latin America/Caribbean), tea (India, Ceylon). Colonial railways were built to extract from interiors to coastal ports for export.</p>
+        <p><strong>Economic imperialism</strong> dominated even non-colonized regions: unequal treaties (China, Japan), extraterritoriality, spheres of influence, foreign control of finance (Egypt). Latin America gained political independence but remained economically dependent on Britain (and later the U.S.).</p>
+        <p>The global economy operated on the <strong>gold standard</strong> from the late 19th century &mdash; most major economies tied currencies to gold, creating a single global financial system.</p>
+      </div>
+
+      <!-- ════ ERA 4 ════ -->
+      <div class="sh">Era 4 (1900&ndash;1945): Crisis, Depression, and Competing Models</div>
+      <div class="b-card">
+        <p><strong>From Unit 7:</strong> The <strong>Great Depression</strong> (1929&ndash;c. 1939) was the worst economic crisis in industrial history. ~25% unemployment in U.S. and Germany at peak. Trade collapsed under protectionist tariffs (Smoot-Hawley Tariff, 1930). Gold standard collapsed. Loss of faith in liberal capitalism was the central political consequence &mdash; opening the door to fascism and communism.</p>
+        <p>Four government responses across the political spectrum:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">U.S. — NEW DEAL</div>
+            <div class="b-mini-text">FDR\'s program (1933+). Government employment programs (CCC, WPA), banking reform (FDIC), Social Security. Saved capitalism by reforming it. Massively expanded federal economic role.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">USSR — FIVE-YEAR PLANS</div>
+            <div class="b-mini-text">Stalin\'s command-economy industrialization (1928+). Forced collectivization caused mass famine (Holodomor). USSR was the only major economy to grow during the Depression.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">FASCIST ITALY — CORPORATIST STATE</div>
+            <div class="b-mini-text">Mussolini\'s regime organized the economy into state-controlled "corporations" representing industries. Pioneered the fascist economic model.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">NAZI GERMANY — REARMAMENT</div>
+            <div class="b-mini-text">Hitler\'s regime used massive public works (Autobahn) and military rearmament to end unemployment. Funded by debt and seizures from Jewish citizens.</div>
+          </div>
+        </div>
+        <p>WWII required massive economic mobilization on all sides &mdash; "war economies" with rationing, price controls, women in factories ("Rosie the Riveter"), nationalized industries.</p>
+      </div>
+
+      <!-- ════ ERA 5 ════ -->
+      <div class="sh">Era 5 (1945&ndash;1991): Bretton Woods, Cold War, Decolonization</div>
+      <div class="b-card">
+        <p><strong>From Unit 8:</strong> The post-WWII economic order was built at Bretton Woods (1944). Three new institutions:</p>
+        <p>&bull; <strong>International Monetary Fund (IMF)</strong> &mdash; lends to countries in crisis with strict economic conditions.<br>
+        &bull; <strong>World Bank</strong> &mdash; provides loans for development projects in poorer countries.<br>
+        &bull; <strong>GATT</strong> (General Agreement on Tariffs and Trade, 1947; replaced by WTO 1995) &mdash; reduced trade barriers among capitalist countries.</p>
+        <p><strong>The Marshall Plan</strong> (1948) provided $13 billion in U.S. aid to rebuild Western Europe, binding it economically to the U.S.</p>
+        <p>The Cold War was also an <strong>economic contest</strong> between two models:</p>
+        <p>&bull; <strong>Capitalism</strong> in the West &mdash; market-based, private property, consumer goods, post-war boom (~1945&ndash;73).<br>
+        &bull; <strong>Centrally planned economies</strong> in the East &mdash; state ownership, Five-Year Plans, COMECON trade bloc, chronic shortages of consumer goods.</p>
+        <p><strong>Decolonization</strong> created dozens of newly independent states. Most pursued <strong>state-led economic development</strong> &mdash; Nasser\'s Aswan Dam, Indira Gandhi\'s state industries, Nyerere\'s ujamaa in Tanzania. Mixed results; many ran into debt crises by the 1980s.</p>
+        <p>The capitalist post-war boom ended c. 1973 with oil shocks (OPEC) and stagflation. Set the stage for the neoliberal turn.</p>
+      </div>
+
+      <!-- ════ ERA 6 ════ -->
+      <div class="sh">Era 6 (1980s&ndash;Present): Neoliberalism &amp; Globalization</div>
+      <div class="b-card">
+        <p><strong>From Unit 9:</strong> The 1980s saw a major economic shift: from Keynesian/state-led economies to <strong>neoliberalism</strong> &mdash; free markets, deregulation, privatization, low taxes.</p>
+        <p>Key actors:</p>
+        <p>&bull; <strong>Ronald Reagan</strong> (US) and <strong>Margaret Thatcher</strong> (UK) led 1980s deregulation. "There is no alternative" to free markets.<br>
+        &bull; <strong>Deng Xiaoping</strong> opened China to market forces from 1978. By 2010, China was world\'s 2nd-largest economy &mdash; "socialism with Chinese characteristics."<br>
+        &bull; <strong>Soviet collapse → market transitions</strong> &mdash; Russia and Eastern Europe converted from communism to capitalism (often chaotically) in the 1990s.<br>
+        &bull; <strong>Free-trade agreements</strong> &mdash; NAFTA (1994), European Union (1993), WTO (1995).<br>
+        &bull; <strong>Multinational corporations</strong> &mdash; Apple, Walmart, Toyota, Samsung. Global supply chains across dozens of countries.</p>
+        <p><strong>Asian Tigers</strong> (Hong Kong, Singapore, S. Korea, Taiwan) industrialized rapidly through state-led, export-oriented strategies in 1960s&ndash;90s. India\'s 1991 economic liberalization. Tech sector boom in Bangalore.</p>
+        <p>The <strong>2008 financial crisis</strong> exposed risks of unregulated finance &mdash; U.S. housing-market collapse triggered global recession. Led to some banking reform but globalization continued.</p>
+        <p><strong>Knowledge economy</strong> &mdash; in wealthy countries, services, information, and finance replaced manufacturing as the primary economic activity. Manufacturing shifted to lower-wage countries.</p>
+        <p><strong>Resistance to neoliberalism</strong> grew through the 2010s: anti-globalization protests (Seattle WTO, 1999), right-wing populism (Brexit, Trump), Fair Trade movement, microfinance (Grameen Bank). The 2020s have seen growing skepticism of the "Washington Consensus" globalization model.</p>
+      </div>
+
+      <!-- ════ THE BIG QUESTIONS ════ -->
+      <div class="sh">The Big Questions for AP Synthesis</div>
+      <div class="b-card">
+        <p>The AP exam often asks thematic LEQ questions about economics across periods. Here are the most-tested prompts and how to think about them:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">TRADE NETWORKS</div>
+            <div class="b-mini-text"><strong>"Compare trade networks across two periods."</strong> Try: Silk Roads (1200) vs. Atlantic system (1700) vs. modern global supply chains. Same function, different geography, different scale, different beneficiaries.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">LABOR SYSTEMS</div>
+            <div class="b-mini-text"><strong>"Compare labor systems across two periods."</strong> Try: serfdom (medieval) vs. Atlantic chattel slavery (1700) vs. Indian indentured labor (1850) vs. modern Bangladeshi garment workers (2020). The continuity of coercion through changing forms.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">ECONOMIC IDEOLOGY</div>
+            <div class="b-mini-text"><strong>"Trace changes in dominant economic ideology."</strong> Mercantilism (1500&ndash;1750) → liberal capitalism (1750&ndash;1929) → Keynesian state capitalism (1933&ndash;73) → neoliberalism (1980&ndash;present). Each lasted ~150 years.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">INEQUALITY &amp; DEPENDENCY</div>
+            <div class="b-mini-text"><strong>"Evaluate continuity and change in global economic inequality."</strong> Latin America\'s 19th-c. dependency &rarr; Africa\'s post-colonial dependency &rarr; modern Global North/South divide. Same pattern, different geography.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tip"><strong>How to use this Briefing:</strong> The ECN theme has the clearest <em>arc</em> of any AP World theme &mdash; from regional networks to global capitalism is a tractable narrative. Memorize one specific example per period (Silk Roads &rarr; VOC &rarr; cotton mill &rarr; Five-Year Plan &rarr; Marshall Plan &rarr; NAFTA) and you can write any LEQ on this material.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB TAB — CED Required Examples
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-vocab" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Vocabulary — Economic Systems Across All Periods</div>
+        <div class="vocab-info-desc">Click any term to flip and reveal the definition. These terms span all 9 units and are the most essential for the ECN theme &mdash; trade networks, labor systems, economic ideologies, financial institutions, and the actors who shaped them.</div>
+      </div>
+
+      <div id="vocab-content"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB QUIZ TAB — placeholder for now
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-quiz" class="hub-panel">
+      <div class="vocab-info">
+        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
+        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
+        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         OVERVIEW TAB — fully written
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-overview" class="hub-panel">
+
+      <div class="ov-hero">
+        <div class="ov-hero-title">Theme: Economic Systems, 1200&ndash;Present</div>
+        <div class="ov-hero-desc">A cross-period synthesis of trade networks, labor systems, money, and economic ideology. <strong>From the Silk Roads to globalization &mdash; the cleanest arc of any AP World theme.</strong> Use this game to prepare for thematic LEQs and exam synthesis questions.</div>
+      </div>
+
+      <div class="ov-stat-grid">
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">UNITS COVERED</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">800</div><div class="ov-stat-label">YEARS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">~50</div><div class="ov-stat-label">VOCAB TERMS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">ROUNDS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">CCOT</div><div class="ov-stat-label">CORE SKILL</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">LEQ</div><div class="ov-stat-label">FOCUS FORMAT</div></div>
+      </div>
+
+      <div class="sh">Economic Systems Across the Units &mdash; Your Roadmap</div>
+      <div class="ov-topics">
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U1</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Tapestry (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Song China\'s commercialized economy (paper money, Grand Canal, porcelain, cotton). Mali gold and Mansa Musa. Italian banking (Medici, bills of exchange). Japanese feudal economy. Pre-Atlantic African economies.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U2</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Networks of Exchange (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">The four major trade networks: Silk Roads, Indian Ocean, trans-Saharan, Mediterranean. Diasporic merchants (Sogdians, Genoese, Gujaratis, Swahili). Caravanserai. Champa rice. Hanseatic League. The Black Death\'s spread along trade routes.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U3</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Land-Based Empires (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Ottoman iltizam (tax farming). Mughal zamindar system. Ming/Qing Single Whip Reform requiring silver tax payment. Russian poll tax on serfs. Court luxury industries (Persian carpets, Mughal textiles, Ming porcelain).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U4</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Transoceanic Interconnections (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Mercantilism. Joint-stock companies (VOC, EIC). Columbian Exchange. Atlantic slave trade and triangular trade. Encomienda, mit\'a, hacienda, chattel slavery, indentured servitude. Spanish silver and the global economy. Manila Galleons.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U5</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Revolutions (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Industrial Revolution. Why Britain first. Spread of industrialization. Adam Smith\'s Wealth of Nations and liberal capitalism. Marx\'s Communist Manifesto. Stock markets, limited liability corporations, monopolies. Labor unions and reform movements.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U6</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Consequences of Industrialization (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Cash crop economies in colonies (rubber, palm oil, cotton, sugar/coffee/bananas, tea). Deindustrialization of India and Egypt. Economic imperialism (unequal treaties, extraterritoriality, gunboat diplomacy). Latin American economic dependency. The gold standard.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U7</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Conflict (1900&ndash;1945)</div>
+            <div class="ov-topic-obj">Great Depression. Smoot-Hawley Tariff. Four government responses: New Deal (US), Five-Year Plans (USSR), fascist corporatism (Italy), Nazi rearmament. War economies and women in workforce ("Rosie the Riveter").</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U8</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Cold War &amp; Decolonization (1945&ndash;1991)</div>
+            <div class="ov-topic-obj">Bretton Woods system: IMF, World Bank, GATT. Marshall Plan. Capitalism vs. centrally planned economies. State-led development in newly independent states (Nasser, Indira Gandhi, Nyerere, Bandaranaike). Oil shocks and end of post-war boom.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U9</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Globalization (1900&ndash;Present)</div>
+            <div class="ov-topic-obj">Neoliberalism. Reagan, Thatcher, Deng Xiaoping reforms. NAFTA, EU, WTO, IMF. Multinational corporations. Asian Tigers. 2008 financial crisis. Knowledge economy. Anti-globalization movements (Seattle 1999, Brexit). Fair Trade and microfinance.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-ecn">ECN</span></div>
+        </div>
+      </div>
+
+      <div class="sh">CCOT Skills This Theme Develops</div>
+      <div class="ov-skills">
+        <div class="ov-skill"><div class="ov-skill-name">CONTINUITY &amp; CHANGE OVER TIME (CCOT)</div><div class="ov-skill-desc">The central skill. Continuities: coerced labor, trade inequality, diasporic merchants, state intervention. Changes: regional → global trade; mercantilism → industrial → neoliberalism; bullion → fiat money.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">COMPARISON ACROSS PERIODS</div><div class="ov-skill-desc">Cross-period comparison &mdash; e.g., Silk Roads (1200) vs. Atlantic system (1700) vs. global supply chains (2020). Or: serfdom vs. chattel slavery vs. indentured labor vs. modern sweatshops.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">CAUSATION CHAINS</div><div class="ov-skill-desc">Long causal chains: silver flow → Chinese economy → European trade deficit → Atlantic plantation slavery. Or: Industrial Revolution → imperialism → cash-crop economies → post-colonial dependency.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">ARGUMENTATION (LEQ-focused)</div><div class="ov-skill-desc">Build a thesis claim about economic systems across periods, support it with three specific examples drawn from at least two different units, qualify with counterevidence, conclude with synthesis.</div></div>
+      </div>
+
+      <div class="b-tip"><strong>How to use this theme game:</strong> Best deployed in <strong>April or May right before the AP exam</strong>, after students have mastered Units 1&ndash;9. The ECN theme has the cleanest historical arc &mdash; from regional networks to global capitalism &mdash; making it an excellent first thematic synthesis exercise. Master one specific example per period and you have ready material for nearly any economic LEQ.</div>
+
+    </div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  AP WORLD HISTORY — THEME: ECONOMIC SYSTEMS (ECN)
+//  Cross-period synthesis tool — best used April/May for AP exam prep
+// ════════════════════════════════════════════════════════════════════
+
+const UNIT_ID = 'apwh_th_ecn';
+const UNIT_TITLE = 'Theme: Economic Systems';
+
+// ── ROUNDS ────────────────────────────────────────────────────────────
+// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+const ROUNDS = [
+  // ── Era Checks (chronological detail recall) ──
+  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Pre-Modern Networks', icon:'🐪', themes:['ECN'],
+   desc:'Silk Roads, Indian Ocean, trans-Saharan trade. Diasporic merchants, caravanserais. Mansa Musa\'s gold. Italian banking. Pre-Atlantic labor systems (serfdom, slavery, mit\'a, corv&eacute;e). Drawn from Units 1–2.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Land Empire Economies', icon:'🏛️', themes:['ECN'],
+   desc:'Ottoman iltizam, Mughal zamindar system, Ming/Qing Single Whip Reform, Russian poll tax, court luxury industries (carpets, porcelain, textiles). Drawn from Unit 3.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Atlantic System', icon:'⚓', themes:['ECN'],
+   desc:'Mercantilism. Joint-stock companies (VOC, EIC). Columbian Exchange. Atlantic slave trade. Spanish silver and Manila Galleons. Encomienda, mit\'a, hacienda, chattel slavery, indentured servitude. Drawn from Unit 4.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Industrial Capitalism', icon:'🏭', themes:['ECN'],
+   desc:'Industrial Revolution. Why Britain first. Spread of industrialization. Adam Smith vs. Marx. Stock markets, corporations, monopolies. Cash crop colonialism, deindustrialization, Latin American dependency, gold standard. Drawn from Units 5–6.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Crisis & Depression', icon:'📉', themes:['ECN'],
+   desc:'Great Depression. Smoot-Hawley Tariff. New Deal vs. Five-Year Plans vs. fascist corporatism vs. Nazi rearmament. War economies and women in workforce. Drawn from Unit 7.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Bretton Woods to Globalization', icon:'🌐', themes:['ECN'],
+   desc:'Bretton Woods (IMF, World Bank, GATT). Marshall Plan. Post-war boom. Decolonization and state-led development. Neoliberalism (Reagan, Thatcher, Deng). NAFTA/EU/WTO. Asian Tigers. 2008 crisis. Drawn from Units 8–9.',
+   type:'mcq', questions:12, group:'core'},
+
+  // ── Synthesis Rounds ──
+  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['ECN'],
+   desc:'Direct cross-period comparison questions. Compare trade networks (Silk Roads vs. Atlantic vs. modern), labor systems (serfdom vs. chattel slavery vs. indentured labor), or economic ideologies (mercantilism vs. liberal capitalism vs. neoliberalism).',
+   type:'comparison', questions:8, group:'skills'},
+  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['ECN'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in trade, labor, and economic ideology from 1200 to present. Argumentation 6.B with three specific examples per claim.',
+   type:'ccot', questions:6, group:'skills'},
+
+  // ── LEQ Synthesis ──
+  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['ECN'],
+   desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which trade networks changed from 1450 to 1900" or "Compare labor systems in two different periods." 800–1000 word target.',
+   type:'leq', questions:1, group:'frq'},
+];
+
+// ── VOCABULARY (cross-period economic terms) ─────────────────
+// Organized by ERA so students can review chronologically OR by category
+const VOCAB = {
+  'Era 1 (1200–1450) — Pre-Modern Networks': {icon:'🐪', terms:[
+    {term:'Silk Roads', def:'Overland Eurasian trade network connecting China to the Mediterranean. Silk and porcelain west, horses and silver east. Sogdian and Persian diasporic merchants. Pax Mongolica enabled Marco Polo and Ibn Battuta.'},
+    {term:'Indian Ocean Trade', def:'Maritime network connecting East Africa, Arabia, India, SE Asia, China. Monsoon-powered. Spices, cotton textiles, ivory. Swahili merchants, Gujarati traders, Chinese junks.'},
+    {term:'Trans-Saharan Trade', def:'Camel caravan network across the Sahara. Salt south, gold north. Connected West African empires (Mali, Songhai) to North Africa and the Mediterranean.'},
+    {term:'Mansa Musa', def:'Mali emperor (r. 1312–37). His 1324 hajj distributed so much gold in Cairo it caused inflation. Made Timbuktu an Islamic learning and trade center.'},
+    {term:'Caravanserai', def:'Roadside inns along the Silk Roads. Provided shelter, food, and safety for merchants and animals. State-built infrastructure supporting long-distance trade.'},
+    {term:'Champa Rice', def:'Fast-ripening rice variety from Vietnam, introduced to Song China c. 1000. Allowed double-cropping; doubled food supply; fueled massive Song population growth.'},
+    {term:'Hanseatic League', def:'Confederation of northern European merchant cities (Hamburg, L&uuml;beck, Bremen, etc.). Dominated Baltic and North Sea trade c. 1300–1600.'},
+    {term:'Italian Banking', def:'Medici family of Florence pioneered modern banking: bills of exchange, double-entry bookkeeping, branch banking. Foundation of Renaissance commerce.'},
+    {term:'Cowrie Shells', def:'Used as currency across West Africa, Indian Ocean, parts of Asia. Sourced primarily from the Maldives. A pre-modern global currency.'},
+    {term:'Serfdom', def:'European and Russian labor system. Peasants legally tied to land; owed labor and produce to lord. Persisted in Russia until 1861. Form of coerced agricultural labor.'},
+    {term:'Mit\'a', def:'Inca labor draft requiring rotating service. Adapted by Spanish colonizers as forced labor (especially at Potos&iacute; silver mines).'},
+    {term:'Corv&eacute;e Labor', def:'Unpaid labor extracted by states from peasants for public works (roads, canals, palaces). Common across pre-modern empires.'},
+  ]},
+  'Era 2 (1450–1750) — Atlantic & Land Empires': {icon:'⚓', terms:[
+    {term:'Mercantilism', def:'Dominant European economic ideology 1500–1750. National wealth = bullion accumulated; trade is zero-sum; colonies serve mother country. Navigation Acts restricted colonial trade.'},
+    {term:'Joint-Stock Company', def:'Investors pooled capital, sharing profits and risks. Dutch VOC (1602) and British East India Company (1600) were sovereign-power entities — armies, treaties, governance. Foundation of modern corporate capitalism.'},
+    {term:'Dutch East India Company (VOC)', def:'World\'s first multinational corporation (1602). Conducted Dutch trade in Asia. Controlled Indonesian spice trade. Issued shares; dispatched fleets; waged war.'},
+    {term:'British East India Company', def:'Founded 1600. Conducted British trade with India and East Asia. Eventually came to govern India directly until British Crown took over after Sepoy Mutiny (1858).'},
+    {term:'Columbian Exchange', def:'Massive transfer of plants, animals, and diseases between the Americas and Afro-Eurasia after 1492. Maize, potatoes, tomatoes (American → Old World); horses, cattle, smallpox (Old → New World).'},
+    {term:'Atlantic Slave Trade', def:'Largest forced migration in human history. ~12.5 million Africans transported, ~2 million dead at sea. Sugar drove demand. Triangular trade tied Europe, Africa, and the Americas.'},
+    {term:'Triangular Trade', def:'Atlantic trade pattern: European manufactured goods to Africa; enslaved Africans to Americas; American raw materials (sugar, tobacco, cotton) to Europe.'},
+    {term:'Encomienda', def:'Spanish colonial labor system. Spaniards granted "trusteeship" over indigenous laborers. Officially abolished 1542 (New Laws); replaced by hacienda and other coerced labor systems.'},
+    {term:'Hacienda', def:'Large Spanish American agricultural estate. Used debt peonage to bind indigenous and mestizo workers. Operated through 19th and into 20th centuries.'},
+    {term:'Chattel Slavery', def:'System where enslaved people are legally property &mdash; bought, sold, inherited. Key feature of Atlantic plantation system. Race-based and hereditary.'},
+    {term:'Indentured Servitude', def:'Workers contracted to work for fixed term (typically 4–7 years) in exchange for passage. Used across Atlantic. Replaced by Asian indentured labor in 19th century.'},
+    {term:'Spanish Silver / Potos&iacute;', def:'Massive silver deposit in modern Bolivia. Spanish forced indigenous labor (mit\'a) extracted millions of tons. Fueled global economy; flowed to Europe then to China.'},
+    {term:'Manila Galleons', def:'Spanish ships sailing Acapulco-Manila route 1565–1815. Carried Mexican silver west, Chinese silk east. Connected Spanish American and Asian economies.'},
+    {term:'Single Whip Reform', def:'Ming Chinese tax reform (1581) requiring tax payment in silver. Created massive Chinese demand for Spanish-American silver; integrated China into the global economy.'},
+    {term:'Iltizam', def:'Ottoman tax-farming system. Government auctioned tax-collection rights to wealthy individuals (multazims) who kept a share. Decentralized administration.'},
+    {term:'Zamindar System', def:'Mughal tax-collection system using local landholders. Decentralized administration model. British later kept system for the Raj.'},
+  ]},
+  'Era 3 (1750–1900) — Industrial Age': {icon:'🏭', terms:[
+    {term:'Industrial Revolution', def:'Transformation of production from human/animal/water to coal/steam/factory. Began in Britain c. 1750; spread globally over the next 150 years.'},
+    {term:'Cotton Textiles', def:'First industry transformed by Industrial Revolution. Spinning jenny, water frame, power loom. Manchester became world textile capital. Drove demand for slave-grown cotton.'},
+    {term:'Steam Engine', def:'James Watt\'s improved engine (1769) powered factories and later locomotives and ships. Fundamental energy revolution; allowed industry to operate independently of water power.'},
+    {term:'Adam Smith / The Wealth of Nations (1776)', def:'Scottish philosopher\'s foundational work of liberal capitalism. Attacked mercantilism. "Invisible hand" of the market. Argued free trade enriches all.'},
+    {term:'Karl Marx / Communist Manifesto (1848)', def:'Marx and Engels\' founding text of socialism. Argued capitalism produces growing inequality, alienation, and inevitable revolution. Foundation of 20th-century communist movements.'},
+    {term:'Stock Market', def:'Exchange where shares of corporations are traded. London Stock Exchange (formal 1801), NYSE (1817). Enabled massive capital concentration for industrial growth.'},
+    {term:'Limited Liability Corporation', def:'Legal innovation: investors liable only for what they invest, not for company\'s debts. Encouraged risk-taking and investment; foundation of modern corporate form.'},
+    {term:'Standard Oil', def:'Rockefeller\'s monopoly trust controlling 90% of U.S. oil refining. Symbol of Gilded Age corporate power. Broken up by U.S. Supreme Court (1911) under antitrust law.'},
+    {term:'Cash Crops', def:'Agricultural products grown for export rather than subsistence. Rubber (Belgian Congo), palm oil (West Africa), cotton (Egypt, India, U.S.), sugar/coffee/bananas (Latin America), tea (India, Ceylon).'},
+    {term:'Deindustrialization', def:'British and French markets undermined Indian and Egyptian textile industries in 19th c. Indian weavers driven into agriculture; reversed centuries of Indian textile dominance.'},
+    {term:'Economic Imperialism', def:'Foreign economic control without formal colonization. Mechanisms: unequal treaties, extraterritoriality, spheres of influence, foreign control of finance, gunboat diplomacy.'},
+    {term:'Unequal Treaties', def:'Treaties forcing weaker states (Qing China after Opium Wars; Tokugawa Japan after Perry) to accept unfavorable trade terms. Treaty of Nanking (1842), Treaty of Kanagawa (1854).'},
+    {term:'Gold Standard', def:'Monetary system tying currencies to gold. Most major economies on it from late 19th c. through Great Depression. Created single global financial system; constrained economic policy.'},
+    {term:'United Fruit Company', def:'U.S. corporation dominating Caribbean and Central American banana trade. Effectively governed "banana republics" through political manipulation. Symbol of economic imperialism.'},
+  ]},
+  'Era 4 (1900–1945) — Crisis & Competing Models': {icon:'📉', terms:[
+    {term:'Great Depression', def:'Worst economic crisis in industrial history (1929–c. 1939). Triggered by U.S. stock market crash; spread globally via gold standard. ~25% unemployment in industrial countries.'},
+    {term:'Stock Market Crash (1929)', def:'October 1929 collapse of U.S. stock prices. Triggered the Great Depression. Wiped out savings; bank failures; mass unemployment.'},
+    {term:'Smoot-Hawley Tariff (1930)', def:'U.S. protectionist tariff. Provoked retaliatory tariffs worldwide. Made the Great Depression deeper and more global.'},
+    {term:'New Deal', def:'FDR\'s response to the Depression (1933+). Government employment programs (CCC, WPA), banking reform (FDIC), Social Security. Massively expanded federal economic role.'},
+    {term:'Five-Year Plans', def:'Stalin\'s Soviet economic plans (from 1928). Forced industrialization through state planning. Doubled industrial output but at huge human cost (Holodomor).'},
+    {term:'Collectivization', def:'Stalin\'s forced consolidation of peasant farms into state collectives. Resisted by farmers (kulaks); led to mass deportations and famine.'},
+    {term:'Fascist Corporatism', def:'Mussolini\'s economic system. State organized economy into "corporations" representing industries. Workers and owners under government control.'},
+    {term:'Nazi Rearmament', def:'Hitler\'s economic strategy. Massive public works (Autobahn) and military rearmament ended unemployment. Funded by debt and seizures from Jewish citizens.'},
+  ]},
+  'Era 5–6 (1945–Present) — Global Order': {icon:'🌐', terms:[
+    {term:'Bretton Woods System (1944)', def:'Post-WWII economic order. Established IMF, World Bank, fixed exchange rates tied to gold-backed U.S. dollar. Collapsed 1971 when U.S. abandoned gold standard.'},
+    {term:'Marshall Plan (1948)', def:'$13 billion in U.S. economic aid to rebuild Western Europe. Bound Western Europe to U.S. economically and politically. Soviets refused to let satellites participate.'},
+    {term:'IMF', def:'International Monetary Fund. Founded 1944 (Bretton Woods). Lends to countries in financial crisis with strict economic conditions ("structural adjustment").'},
+    {term:'World Bank', def:'Founded 1944. Provides loans for development projects in poorer countries. Sister institution to IMF.'},
+    {term:'GATT / WTO', def:'GATT (1947) reduced trade barriers among capitalist countries. Replaced 1995 by WTO (164 members by 2025). Regulates international trade; resolves disputes.'},
+    {term:'OPEC', def:'Organization of Petroleum Exporting Countries (founded 1960). 1973 oil embargo quadrupled oil prices, triggering global recession and end of post-war boom.'},
+    {term:'Neoliberalism', def:'Economic ideology favoring free markets, deregulation, privatization, low taxes. Dominant since 1980s. Reagan and Thatcher its champions. "Washington Consensus."'},
+    {term:'Ronald Reagan', def:'U.S. President (1981–89). Cut taxes, deregulated industries, increased military spending. Helped end Cold War; reshaped U.S. politics rightward.'},
+    {term:'Margaret Thatcher', def:'UK Prime Minister (1979–90). Privatized state industries, weakened labor unions, cut taxes. "There is no alternative" to free markets.'},
+    {term:'Deng Xiaoping Reforms', def:'Chinese economic liberalization from 1978. "Socialism with Chinese characteristics." Opened China to market forces; transformed it into world\'s 2nd-largest economy by 2010.'},
+    {term:'NAFTA (1994)', def:'North American Free Trade Agreement (US, Canada, Mexico). Eliminated most tariffs. Replaced by USMCA in 2020. Helped some sectors, hurt others.'},
+    {term:'European Union (1993)', def:'Economic and political union of European states (now 27 members). Common market, common currency (euro), free movement of people. Most ambitious supranational integration project.'},
+    {term:'Multinational Corporations', def:'Apple, Toyota, Walmart, Nestlé, Samsung, ExxonMobil. Operate across multiple countries. Sometimes more economically powerful than small nations.'},
+    {term:'Asian Tigers', def:'Hong Kong, Singapore, South Korea, Taiwan. Industrialized rapidly 1960s–90s through state-led, export-oriented strategies. Model for Chinese reform.'},
+    {term:'2008 Financial Crisis', def:'U.S. housing-market collapse triggered global recession. Exposed risks of unregulated finance. Led to some banking reform but globalization continued.'},
+    {term:'Knowledge Economy', def:'Late 20th-c. shift in wealthy countries from manufacturing to services, information, finance. Manufacturing shifted to lower-wage countries (China, then Vietnam, Bangladesh).'},
+    {term:'Outsourcing', def:'Shifting business operations (manufacturing, customer service) to lower-wage countries. Major feature of globalization since 1990s. Drove hollowing-out of Western manufacturing.'},
+    {term:'Fair Trade', def:'Movement promoting better trading conditions for producers in developing countries. Higher prices to farmers; environmental and labor standards. Coffee, chocolate especially.'},
+    {term:'Microfinance / Grameen Bank', def:'Small loans to poor borrowers, especially women in developing countries. Muhammad Yunus founded Grameen Bank (Bangladesh, 1983). Won Nobel Peace Prize 2006.'},
+  ]},
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE & STORAGE
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_theme_ecn_progress';        // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_th_ecn';        // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_th_ecn';       // Supabase column for in-progress drafts
+
+let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+  catch(e){return{};}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
+}
+function getRoundProgress(roundId){
+  return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Play tab activity cards
+// ════════════════════════════════════════════════════════════════════
+function renderRoundCards(){
+  const groups = {core:[],skills:[],frq:[]};
+  ROUNDS.forEach(r => groups[r.group].push(r));
+
+  document.getElementById('round-cards-core').innerHTML  = groups.core.map(roundCard).join('');
+  document.getElementById('round-cards-skills').innerHTML = groups.skills.map(roundCard).join('');
+  document.getElementById('round-cards-frq').innerHTML  = groups.frq.map(roundCard).join('');
+
+  // Progress
+  const completed = ROUNDS.filter(r => {
+    const p = getRoundProgress(r.id);
+    return p && p.completed;
+  }).length;
+  const pct = Math.round((completed / ROUNDS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = completed + ' / ' + ROUNDS.length + ' ROUNDS';
+}
+
+function roundCard(r){
+  const prog = getRoundProgress(r.id);
+  const done = prog && prog.completed;
+  const accent = done ? 'var(--green2)' : 'var(--bronze)';
+  const themesHTML = r.themes.map(t =>
+    `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+  const badge = done
+    ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+  const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
+  return `
+    <div class="activity-card" onclick="launchRound('${r.id}')">
+      <div class="activity-card-strip" style="background:${accent}"></div>
+      <div class="activity-card-body">
+        ${badge}
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${r.num} · TOPIC ${r.topic} · ${label.toUpperCase()}</div>
+        <div class="activity-card-title">${r.title}</div>
+        <div class="activity-card-meta">${themesHTML}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action">▶ ${done ? 'Replay' : 'Begin'} Round</div>
+      </div>
+    </div>`;
+}
+
+function launchRound(roundId){
+  // Phase 2 will wire in the actual question runner.
+  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Economic Systems theme.');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Vocab tab
+// ════════════════════════════════════════════════════════════════════
+function renderVocab(){
+  const el = document.getElementById('vocab-content');
+  let html = '';
+  Object.keys(VOCAB).forEach(region => {
+    const data = VOCAB[region];
+    html += `<div class="vocab-region-header"><span class="vocab-region-icon">${data.icon}</span> ${region}</div>`;
+    html += '<div class="vocab-grid">';
+    data.terms.forEach(t => {
+      html += `<div class="vocab-card" onclick="this.classList.toggle('flipped')">
+        <div class="vocab-card-term">${t.term}</div>
+        <div class="vocab-card-def">${t.def}</div>
+        <div class="vocab-card-hint">click to reveal</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════
+function goBack(){
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const tick = setInterval(() => {
+    pct += 12 + Math.random() * 14;
+    if (pct >= 100) {
+      pct = 100;
+      bar.style.width = '100%';
+      clearInterval(tick);
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('hub').style.display = 'flex';
+          renderRoundCards();
+          renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
+        }, 400);
+      }, 200);
+    } else {
+      bar.style.width = pct + '%';
+    }
+  }, 90);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+</body>
+</html>
