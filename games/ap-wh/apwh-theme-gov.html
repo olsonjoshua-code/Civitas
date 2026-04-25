@@ -1,1 +1,956 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme: Governance — AP World History · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Crimson + Bronze — manuscripts & imperial seals */
+  --bg:#1a0a0a;--bg2:#2a1212;--bg3:#3a1c1c;--panel:#241010;
+  --border:#3a1a1a;--border2:#5a2828;
+  --acc:#a83838;--acc2:#c84848;--acc3:#e06a6a;            /* crimson */
+  --bronze:#d4a847;--bronze2:#e8c060;--bronze3:#f4d878;   /* bronze */
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --blue:#4878d0;--blue2:#6898e8;
+  --orange:#e08840;--orange2:#f0a058;
+  --text:#f0e4d4;--text2:#a89888;--text3:#5a4838;--cream:#f4ede0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(168,56,56,.10) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(212,168,71,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--bronze2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .2s;width:0}
+
+/* ── HUB ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(168,56,56,.18) 0%,rgba(26,10,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,71,.025) 40px,rgba(212,168,71,.025) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(72,120,208,.55)) drop-shadow(0 0 8px rgba(168,56,56,.35));position:relative}
+.hub-hero{border-left:4px solid rgba(72,120,208,.5)}
+.hub-hero-info{flex:1;position:relative}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--bronze2);letter-spacing:3px;margin-bottom:6px;opacity:.85}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:640px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--bronze2);font-weight:500}
+.back-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;position:relative}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── TABS ── */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;white-space:nowrap}
+.hub-tab:hover{color:var(--bronze2)}
+.hub-tab.active{color:var(--bronze2);border-bottom-color:var(--bronze)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* ── ACTIVITY CARDS (Play tab) ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px;color:var(--bronze2)}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.activity-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.activity-card-meta-tag{font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;padding:2px 6px;border:1px solid;border-radius:2px}
+.tag-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2)}
+.tag-gov{border-color:rgba(72,120,208,.4);color:var(--blue2)}
+.tag-ecn{border-color:rgba(245,200,66,.4);color:var(--gc)}
+.tag-sio{border-color:rgba(104,152,232,.4);color:#8898d8}
+.tag-tec{border-color:rgba(144,128,224,.4);color:var(--purple2)}
+.tag-env{border-color:rgba(64,200,112,.4);color:var(--green2)}
+
+/* ── BRIEFING / OVERVIEW shared ── */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;margin-top:24px}
+.sh::before{content:'';width:3px;height:14px;background:var(--bronze);display:block}
+.sh:first-of-type{margin-top:0}
+.b-card{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;margin-bottom:14px}
+.b-card p{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.85;margin-bottom:10px}
+.b-card p:last-child{margin-bottom:0}
+.b-card strong{color:var(--cream);font-weight:600}
+.b-card em{color:var(--bronze2);font-style:italic}
+.b-tip{padding:11px 15px;background:rgba(168,56,56,.08);border-left:3px solid var(--acc);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-tip strong{color:var(--acc3);font-weight:600}
+.b-key{padding:11px 15px;background:rgba(212,168,71,.08);border-left:3px solid var(--bronze);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-key strong{color:var(--bronze2);font-weight:600}
+.b-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;margin-bottom:8px}
+.b-mini{background:var(--bg3);border:1px solid var(--border2);padding:12px 14px}
+.b-mini-label{font-family:var(--bebas);font-size:11px;color:var(--bronze2);letter-spacing:1.5px;margin-bottom:4px}
+.b-mini-text{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6}
+.b-mini-text strong{color:var(--cream)}
+.b-source{padding:14px 18px;background:rgba(58,28,28,.6);border-left:3px solid var(--bronze);
+  margin-bottom:14px;font-family:var(--crimson);font-size:13px;font-style:italic;color:var(--text2);line-height:1.75}
+.b-source-attr{display:block;margin-top:8px;font-family:var(--dm);font-size:10px;color:var(--bronze2);font-style:normal;letter-spacing:1px}
+
+.theme-pill{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:2px;margin-right:4px;border:1px solid}
+.tp-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2);background:rgba(224,136,64,.08)}
+.tp-gov{border-color:rgba(72,120,208,.4);color:var(--blue2);background:rgba(72,120,208,.08)}
+.tp-ecn{border-color:rgba(245,200,66,.4);color:var(--gc);background:rgba(245,200,66,.08)}
+.tp-sio{border-color:rgba(104,152,232,.4);color:#8898d8;background:rgba(104,152,232,.08)}
+.tp-tec{border-color:rgba(144,128,224,.4);color:var(--purple2);background:rgba(144,128,224,.08)}
+.tp-env{border-color:rgba(64,200,112,.4);color:var(--green2);background:rgba(64,200,112,.08)}
+
+/* ── VOCAB ── */
+.vocab-info{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:16px 20px;margin-bottom:20px}
+.vocab-info-title{font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px}
+.vocab-info-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
+.vocab-region-header{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.vocab-region-header:first-of-type{margin-top:0}
+.vocab-region-icon{font-size:18px}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.vocab-card{background:var(--bg2);border:1px solid var(--border);padding:11px 14px;cursor:pointer;transition:all .15s;position:relative}
+.vocab-card:hover{border-color:var(--bronze);background:var(--bg3)}
+.vocab-card-term{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600;margin-bottom:3px}
+.vocab-card-def{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;display:none}
+.vocab-card.flipped .vocab-card-def{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.vocab-card-hint{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── OVERVIEW ── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:20px 26px;margin-bottom:20px}
+.ov-hero-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.ov-hero-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7}
+.ov-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);padding:14px;text-align:center}
+.ov-stat-val{font-family:var(--bebas);font-size:24px;color:var(--bronze2);letter-spacing:1px}
+.ov-stat-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.ov-topics{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ov-topic{background:var(--bg2);border:1px solid var(--border);padding:14px 18px;display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center}
+.ov-topic-num{font-family:var(--bebas);font-size:18px;color:var(--bronze2);letter-spacing:2px}
+.ov-topic-info{}
+.ov-topic-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:3px}
+.ov-topic-obj{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+.ov-topic-themes{display:flex;gap:4px;flex-wrap:wrap}
+.ov-skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ov-skill{background:var(--bg2);border:1px solid var(--border);padding:13px 16px;border-left:3px solid var(--bronze)}
+.ov-skill-name{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--bronze2);margin-bottom:3px}
+.ov-skill-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;margin-bottom:18px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-label span{color:var(--bronze2)}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:760px){
+  .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
+  .hub-hero-icon{font-size:40px}
+  .hub-content{padding:16px 18px 60px}
+  .hub-tab{padding:10px 14px;font-size:10px}
+  .hub-meta{gap:10px}
+  .hub-meta-item{font-size:8px}
+  .activity-grid{grid-template-columns:1fr}
+  .ov-topic{grid-template-columns:50px 1fr;gap:10px}
+  .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════════════════ -->
+<div id="loading">
+  <div class="ld-icon">👑</div>
+  <div class="ld-title">GOVERNANCE</div>
+  <div class="ld-sub">Theme · 1200 — Present</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     UNIT HUB
+════════════════════════════════════════════════════════════════════ -->
+<div id="hub">
+
+  <!-- Hero header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">👑</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP WORLD HISTORY · THEME</div>
+      <div class="hub-title">Governance</div>
+      <div class="hub-desc">A cross-period synthesis of <strong>state formation, expansion, and decline</strong> from 1200 to the present. Trace how rulers built bureaucracies, legitimized power, expanded empires, and faced internal and external challenges &mdash; from the Mongol khans to the modern UN. <strong>The single most-tested theme on the AP exam.</strong> Use this for synthesis &mdash; SAQs, DBQs, and especially LEQs that ask you to argue across periods. <em>Best used as April/May exam prep after completing Units 1&ndash;9.</em></div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Periods Covered: <span>All 9 Units</span></div>
+        <div class="hub-meta-item">🎯 Theme Code: <span>GOV</span></div>
+        <div class="hub-meta-item">🏛️ Focus: <span>State formation, legitimation, decline</span></div>
+        <div class="hub-meta-item">⚖️ Format: <span>9 rounds + LEQ synthesis</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📊 Overview</button>
+  </div>
+
+  <div class="hub-content">
+
+    <!-- ═══════════════════════════════════════════════════
+         PLAY TAB
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-play" class="hub-panel active">
+
+      <!-- Progress bar -->
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-pct">0 / 12 ROUNDS</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="sh">ERA CHECKS — Governance Across the Periods</div>
+      <div class="activity-grid" id="round-cards-core"></div>
+
+      <div class="sh">SYNTHESIS — Cross-Period Comparison &amp; CCOT</div>
+      <div class="activity-grid" id="round-cards-skills"></div>
+
+      <div class="sh">ASSESSMENT — Thematic LEQ Practice</div>
+      <div class="activity-grid" id="round-cards-frq"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         BRIEFING TAB — fully written, CED-aligned
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-briefing" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Briefing — Governance (GOV)</div>
+        <div class="vocab-info-desc">This is a <strong>cross-period synthesis</strong> of how states formed, legitimized themselves, expanded, and declined from 1200 to the present. Unlike the unit briefings (which walk you through a single era), this briefing follows ONE thread &mdash; <em>governance</em> &mdash; across all 800 years. Use it to prepare for thematic LEQs, DBQs, and any AP exam question asking you to compare political structures across periods. The dominant reasoning skills are <strong>Continuity and Change Over Time (CCOT)</strong> and <strong>Comparison</strong>.</div>
+      </div>
+
+      <!-- ════ CCOT FRAMING ════ -->
+      <div class="sh">The Big Story: How Governance Changed (and Didn't) From 1200 to Present</div>
+      <div class="b-card">
+        <p>Across 800 years, the form of "the state" transformed dramatically &mdash; but several <strong>continuities</strong> persisted throughout. Here's the master narrative the AP exam expects you to be able to construct:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 1: TAXATION</div>
+            <div class="b-mini-text">Every state in every era extracted resources from its population to fund itself. The methods evolved (tribute &rarr; tax farming &rarr; income tax &rarr; corporate tax) but the function never disappeared.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 2: LEGITIMATION</div>
+            <div class="b-mini-text">Rulers always needed reasons why subjects should obey them. Mandate of Heaven, divine right, religious authority, popular sovereignty &mdash; the language changes, the function persists.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 3: BUREAUCRACY</div>
+            <div class="b-mini-text">From Confucian civil-service examiners to modern career civil servants, complex states have always required trained administrators applying rules in writing.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 4: RESISTANCE</div>
+            <div class="b-mini-text">Every state in every era faced rebellion, dissent, and challenges to its power &mdash; from the Pueblo Revolt of 1680 to Tiananmen Square in 1989.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-card">
+        <p>And the <strong>changes</strong> &mdash; the major transitions in <em>what</em> a state is:</p>
+        <p>&bull; <strong>From sacred to secular legitimacy.</strong> 1200: rulers claimed divine sanction (Mandate of Heaven, divine right). 1900: most major states claimed popular sovereignty (constitutions, elections). The Enlightenment was the turning point.<br>
+        &bull; <strong>From personal to institutional rule.</strong> 1200: the king IS the state. 2000: the state survives any individual ruler. Constitutions and bureaucracies replaced dynasties.<br>
+        &bull; <strong>From local to global scale.</strong> 1200: most people lived under local rulers. 2000: most people live in nation-states embedded in international institutions (UN, EU, WTO).<br>
+        &bull; <strong>From ethnic empire to nation-state.</strong> 1200&ndash;1900: most large polities were multi-ethnic empires (Mongol, Ottoman, Mughal, Habsburg, British). After 1918: the nation-state model dominated, with one "people" claiming one state.</p>
+      </div>
+
+      <!-- ════ ERA 1: 1200–1450 ════ -->
+      <div class="sh">Era 1 (1200&ndash;1450): The Age of Vast Land Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 1 (Global Tapestry):</strong> Three governance models dominated:</p>
+        <p>&bull; <strong>The Mongol Empire</strong> (largest contiguous land empire in history) showed how a small steppe-nomadic elite could rule sedentary populations through military terror, tax collection, and the <em>Pax Mongolica</em>. Genghis Khan and Khubilai Khan combined hereditary kingship with merit-based military advancement.<br>
+        &bull; <strong>Confucian bureaucracy in China.</strong> The Song Dynasty (and later Yuan, Ming) staffed government through the <strong>civil service exam</strong> &mdash; a meritocratic ideal that produced a literate scholar-official class (the "scholar-gentry"). The Mandate of Heaven legitimized rule.<br>
+        &bull; <strong>Feudalism in Europe and Japan.</strong> Decentralized, contract-based loyalty &mdash; lords held land in exchange for military service. Weak central authority. By 1450, both regions were beginning to centralize (Tokugawa Japan would consolidate in 1603).</p>
+        <p><strong>From Unit 2 (Networks of Exchange):</strong> States were also <em>shaped by trade networks</em> &mdash; the Mali Empire (Mansa Musa) and Songhai grew rich from gold trade; Swahili city-states in East Africa governed through merchant councils; the Delhi Sultanate ruled India as an Islamic state imposed on a Hindu majority.</p>
+      </div>
+
+      <!-- ════ ERA 2: 1450–1750 LAND EMPIRES ════ -->
+      <div class="sh">Era 2A (1450&ndash;1750): The Gunpowder Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 3 (Land-Based Empires):</strong> Four "gunpowder empires" defined this era. Each one mastered a critical innovation in governance:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">OTTOMAN: PROFESSIONAL BUREAUCRACY</div>
+            <div class="b-mini-text">The <strong>devshirme</strong> recruited Christian boys from the Balkans, converted them to Islam, and trained them as Janissary soldiers and high administrators. <strong>Millet</strong> system gave religious minorities self-rule under Ottoman sovereignty.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">SAFAVID: STATE RELIGION</div>
+            <div class="b-mini-text">Shah Ismail imposed <strong>Twelver Shi\'a Islam</strong> on Persia &mdash; making religion an instrument of state identity that distinguished Persia from Sunni Ottoman/Mughal neighbors.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">MUGHAL: TOLERATION (then orthodoxy)</div>
+            <div class="b-mini-text">Akbar abolished the <strong>jizya</strong> tax on non-Muslims, married Hindu princesses, founded <em>Din-i Ilahi</em> &mdash; building a Muslim ruling class atop a Hindu majority through pragmatic toleration. Aurangzeb reversed this; empire fragmented.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">QING: ETHNIC HIERARCHY + CONFUCIAN CONTINUITY</div>
+            <div class="b-mini-text">Manchu rulers kept the Confucian civil service exam, retained Han bureaucrats, but reserved top positions for Manchus &mdash; including the symbolic <strong>queue</strong> hairstyle requirement. Continuity in the bureaucracy + ethnic stratification on top.</div>
+          </div>
+        </div>
+        <p><strong>European parallel:</strong> Bourbon France under Louis XIV exemplified <strong>absolutism</strong> &mdash; divine right of kings, professional standing army, intendants as centralized administrators, Versailles as theater of royal power. Russia under Peter the Great Westernized the bureaucracy. Tokugawa Japan centralized through the daimyo system.</p>
+      </div>
+
+      <!-- ════ ERA 2B: MARITIME EMPIRES ════ -->
+      <div class="sh">Era 2B (1450&ndash;1750): The Maritime Empires</div>
+      <div class="b-card">
+        <p><strong>From Unit 4 (Transoceanic Interconnections):</strong> A new form of state emerged: the <strong>maritime empire</strong>, governed differently from land empires.</p>
+        <p>&bull; <strong>Spanish Viceroyalty model</strong> &mdash; New Spain and Peru ruled by viceroys representing the king. Encomienda granted Spaniards labor over indigenous peoples. <strong>Casta system</strong> stratified society by race and birthplace (peninsulares &rarr; creoles &rarr; mestizos &rarr; mulattoes &rarr; indigenous &rarr; African slaves).<br>
+        &bull; <strong>Joint-stock chartered companies</strong> &mdash; a NEW kind of governing entity. The <strong>Dutch East India Company (VOC, 1602)</strong> and <strong>British East India Company (1600)</strong> were corporations with the power to wage war, sign treaties, and govern territory. Sovereignty privatized for profit. <em>This is one of the most-tested governance innovations on the AP exam.</em><br>
+        &bull; <strong>Portuguese cartaz system</strong> &mdash; control of seas through naval cannon and licensing fees rather than territorial conquest. A "trading-post empire" rather than a settlement empire.</p>
+      </div>
+
+      <!-- ════ ERA 3: 1750–1900 ════ -->
+      <div class="sh">Era 3 (1750&ndash;1900): Revolutions and the Nation-State</div>
+      <div class="b-card">
+        <p><strong>From Unit 5 (Revolutions):</strong> The Enlightenment fundamentally reframed what governance was for. The transition from <em>"government legitimacy comes from God"</em> to <em>"government legitimacy comes from the consent of the governed"</em> happened here.</p>
+        <p>The four Atlantic Revolutions (American, French, Haitian, Latin American) all invoked Enlightenment ideas &mdash; natural rights (Locke), social contract (Rousseau), separation of powers (Montesquieu) &mdash; to challenge monarchy and colonial rule. Three foundational documents (CED required):</p>
+        <p>&bull; <strong>Declaration of Independence (1776)</strong> &mdash; "all men are created equal... endowed with certain unalienable Rights."<br>
+        &bull; <strong>Declaration of the Rights of Man (1789)</strong> &mdash; "Men are born and remain free and equal in rights."<br>
+        &bull; <strong>Bol&iacute;var\'s Letter from Jamaica (1815)</strong> &mdash; argued for republican government in independent Latin America.</p>
+        <p>The <strong>Haitian Revolution (1791&ndash;1804)</strong> went furthest &mdash; the first independent Black republic, abolishing slavery before any other Atlantic state. <strong>Toussaint Louverture</strong> and <strong>Dessalines</strong> showed that natural rights logic, applied consistently, demanded the end of slavery itself.</p>
+        <p><strong>Nationalism</strong> emerged powerfully: Italian unification under Garibaldi/Cavour (1815&ndash;71), German unification under Bismarck (1864&ndash;71), Greek and Balkan independence from Ottoman rule. The <em>nation-state</em> model &mdash; "one people, one state" &mdash; replaced the multi-ethnic empire as the dominant aspiration.</p>
+      </div>
+      <div class="b-card">
+        <p><strong>From Unit 6 (Consequences of Industrialization):</strong> Even as Atlantic Revolutions democratized governance in some places, industrialized states <em>colonized</em> nearly the entire non-Western world.</p>
+        <p>&bull; <strong>Berlin Conference (1884&ndash;85)</strong> &mdash; European powers divided Africa on a map without African input. By 1914, only Ethiopia and Liberia remained independent.<br>
+        &bull; <strong>British Raj (1858&ndash;1947)</strong> &mdash; after the Sepoy Mutiny, Britain took over from the East India Company; direct imperial rule over ~300 million people.<br>
+        &bull; <strong>"Unequal treaties"</strong> in China after the Opium Wars: extraterritoriality, treaty ports, spheres of influence &mdash; sovereignty hollowed out without formal colonization.<br>
+        &bull; <strong>Indigenous responses</strong> shaped state development: Sepoy Mutiny led to British Raj; Boxer Rebellion failed but accelerated Qing collapse; Meiji Japan succeeded in modernizing without colonization (and then became a colonizer itself).</p>
+      </div>
+
+      <!-- ════ ERA 4: 1900–1945 ════ -->
+      <div class="sh">Era 4 (1900&ndash;1945): Empires Collapse, Ideologies Compete</div>
+      <div class="b-card">
+        <p><strong>From Unit 7 (Global Conflict):</strong> Four major multinational empires &mdash; <strong>Ottoman, Russian, Austro-Hungarian, Qing</strong> &mdash; collapsed between 1911 and 1922. WWI was the immediate trigger; nationalism the deeper cause.</p>
+        <p>What replaced them? Three competing models of governance fought for dominance in the interwar period:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">LIBERAL DEMOCRACY</div>
+            <div class="b-mini-text">Constitutional government, civil rights, market economy. Embodied by US, UK, France. Severely strained by Great Depression. <strong>FDR\'s New Deal</strong> reformed without overthrowing.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">COMMUNISM</div>
+            <div class="b-mini-text"><strong>Russian Revolution (1917)</strong> &mdash; Lenin and the Bolsheviks established the world\'s first communist state. <strong>Stalin\'s</strong> Five-Year Plans built a totalitarian command economy at horrific human cost.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">FASCISM</div>
+            <div class="b-mini-text"><strong>Mussolini\'s Italy (1922)</strong> &mdash; the original fascist state. <strong>Hitler\'s Nazi Germany (1933)</strong> &mdash; extreme nationalism + racial ideology + totalitarianism. Defeated militarily in WWII; ideology persists in mutated forms.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">ANTI-COLONIAL NATIONALISM</div>
+            <div class="b-mini-text">Throughout the colonized world, nationalist movements demanded sovereignty &mdash; <strong>Gandhi\'s INC</strong>, <strong>Mao\'s CCP</strong>, <strong>Ho Chi Minh\'s Viet Minh</strong>, <strong>Atat&uuml;rk\'s Turkish Republic</strong>. Set up postwar decolonization.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ERA 5: COLD WAR ════ -->
+      <div class="sh">Era 5 (1945&ndash;1991): Bipolar World</div>
+      <div class="b-card">
+        <p><strong>From Unit 8 (Cold War &amp; Decolonization):</strong> WWII produced two superpowers (US and USSR) and triggered rapid decolonization. The Cold War wasn\'t just military rivalry &mdash; it was a contest between <em>two models of governance</em>: liberal capitalist democracy vs. authoritarian state socialism.</p>
+        <p>&bull; <strong>NATO (1949) vs. Warsaw Pact (1955)</strong> &mdash; ideological alliances backed by nuclear weapons.<br>
+        &bull; <strong>Proxy wars</strong> in Korea, Vietnam, Afghanistan, Angola &mdash; "hot" extensions of the Cold War in newly decolonized territories.<br>
+        &bull; <strong>Containment</strong> (Truman Doctrine) and <strong>Marshall Plan</strong> &mdash; U.S. attempts to shape postwar governance through aid and alliance.</p>
+        <p><strong>Decolonization</strong> created dozens of newly independent states. India and Pakistan (1947). Ghana (1957). The "Year of Africa" (1960) saw 17 African nations become independent. By 1970 European colonial empires were largely gone.</p>
+        <p>Newly independent states navigated three governance challenges:</p>
+        <p>&bull; <strong>Borders inherited from colonial maps</strong> often cut through ethnic groups, creating internal conflicts (Rwanda, Sudan, Iraq).<br>
+        &bull; <strong>Cold War pressure</strong> to align with one superpower &mdash; the <strong>Non-Aligned Movement</strong> (Bandung 1955: Sukarno, Nehru, Nasser, Tito) tried to chart a third path.<br>
+        &bull; <strong>State-led development</strong> was the dominant strategy &mdash; Nasser in Egypt, Indira Gandhi in India, Nyerere in Tanzania, Bandaranaike in Sri Lanka all pursued government-directed industrialization.</p>
+        <p><strong>End of the Cold War (1989&ndash;91)</strong>: Gorbachev\'s reforms (glasnost, perestroika), the fall of the Berlin Wall (Nov 1989), and the Soviet Union\'s formal dissolution (Dec 1991) seemed at the time to vindicate liberal democracy. Francis Fukuyama declared "the end of history."</p>
+      </div>
+
+      <!-- ════ ERA 6: PRESENT ════ -->
+      <div class="sh">Era 6 (1991&ndash;Present): The Globalized State</div>
+      <div class="b-card">
+        <p><strong>From Unit 9 (Globalization):</strong> Governance in the present is shaped by tensions between the nation-state and global forces:</p>
+        <p>&bull; <strong>Global institutions</strong> &mdash; UN, EU, WTO, IMF, World Bank, International Criminal Court &mdash; constrain and enable state action. The EU is the most ambitious supranational governance project in history.<br>
+        &bull; <strong>NGOs</strong> &mdash; Amnesty International, Greenpeace, Doctors Without Borders &mdash; perform quasi-governmental functions outside state authority.<br>
+        &bull; <strong>Multinational corporations</strong> sometimes more economically powerful than small states. Apple, Google, Walmart, ExxonMobil shape global politics.<br>
+        &bull; <strong>Resistance to globalization</strong> &mdash; right-wing populism (Brexit 2016, Trump, European far right), religious fundamentalism (Iranian Revolution 1979, Al-Qaeda 9/11, ISIS), anti-globalization protests (Seattle WTO 1999) &mdash; all reassert national or local sovereignty against perceived global elites.<br>
+        &bull; <strong>China\'s rise</strong> &mdash; Deng Xiaoping reforms (1978+) made China the world\'s 2nd-largest economy by 2010, challenging the post-1991 American unipolar moment. Authoritarian state capitalism as a competing governance model.</p>
+        <p><strong>21st-century challenges to the nation-state</strong>: climate change, pandemics, terrorism, migration crises, cyber-warfare &mdash; all transcend borders. The 1648 Westphalian model of sovereign nation-states is increasingly strained.</p>
+      </div>
+
+      <!-- ════ THE BIG QUESTIONS ════ -->
+      <div class="sh">The Big Questions for AP Synthesis</div>
+      <div class="b-card">
+        <p>The AP exam often asks thematic LEQ questions that span multiple periods. Here are the most-tested governance prompts and how to think about them:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">EXPANSION OF STATES</div>
+            <div class="b-mini-text"><strong>"Compare methods of imperial expansion across two periods."</strong> Try: Mongol military conquest (1200s) vs. Ottoman gunpowder/Janissaries (1500s) vs. British East India Company commercial empire (1700s) vs. Berlin Conference partition (1884). Same outcome, different methods.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">LEGITIMATION</div>
+            <div class="b-mini-text"><strong>"How did rulers legitimize their power?"</strong> Try: Mandate of Heaven (Yuan/Ming/Qing); Divine right (Bourbons); Mandate of Heaven + queue (Manchu Qing); popular sovereignty (post-1789); "civilizing mission" (imperial); democratic elections (modern).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">RESISTANCE TO STATES</div>
+            <div class="b-mini-text"><strong>"Compare resistance movements across two periods."</strong> Try: Pueblo Revolt (1680) vs. Sepoy Mutiny (1857); Glorious Revolution (1688) vs. American Revolution (1776); anti-colonial nationalism (Gandhi) vs. anti-globalization (Seattle 1999).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">DECLINE OF STATES</div>
+            <div class="b-mini-text"><strong>"Why did states/empires collapse?"</strong> Try: Mongol fragmentation (1294+); Ming → Qing transition; Ottoman/Russian/Austro-Hungarian/Qing all collapse 1911&ndash;22; European empires after WWII; Soviet collapse 1991.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tip"><strong>How to use this Briefing:</strong> Read it ALL before taking the rounds. The rounds will test you on era-by-era detail, but the LEQ rounds will demand you weave the whole 800-year arc. Bookmark the "Big Questions" cards above &mdash; they\'re your essay-writing playbook.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB TAB — CED Required Examples
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-vocab" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Vocabulary — Governance Across All Periods</div>
+        <div class="vocab-info-desc">Click any term to flip and reveal the definition. These terms span all 9 units and are the most essential for the GOV theme &mdash; the names, institutions, and concepts most likely to appear in thematic synthesis questions on the AP exam.</div>
+      </div>
+
+      <div id="vocab-content"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB QUIZ TAB — placeholder for now
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-quiz" class="hub-panel">
+      <div class="vocab-info">
+        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
+        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
+        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         OVERVIEW TAB — fully written
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-overview" class="hub-panel">
+
+      <div class="ov-hero">
+        <div class="ov-hero-title">Theme: Governance, 1200&ndash;Present</div>
+        <div class="ov-hero-desc">A cross-period synthesis of state formation, expansion, legitimation, administration, resistance, and decline. <strong>The single most-tested theme on the AP exam.</strong> Every unit features GOV examples; this game pulls them together for thematic LEQ practice and exam synthesis.</div>
+      </div>
+
+      <div class="ov-stat-grid">
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">UNITS COVERED</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">800</div><div class="ov-stat-label">YEARS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">~50</div><div class="ov-stat-label">VOCAB TERMS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">ROUNDS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">CCOT</div><div class="ov-stat-label">CORE SKILL</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">LEQ</div><div class="ov-stat-label">FOCUS FORMAT</div></div>
+      </div>
+
+      <div class="sh">Governance Across the Units &mdash; Your Roadmap</div>
+      <div class="ov-topics">
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U1</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Tapestry (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">The Mongol Empire (Genghis Khan, Khubilai Khan, Pax Mongolica). Confucian civil service exam in Song/Yuan/Ming China. Feudalism in Europe and Japan. Mansa Musa\'s Mali. Delhi Sultanate.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U2</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Networks of Exchange (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">States shaped by trade: Mali/Songhai gold-trade kingdoms; Swahili merchant city-states; Yuan facilitating Silk Roads; Delhi Sultanate as Islamic state in Hindu majority.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U3</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Land-Based Empires (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">The four "gunpowder empires": Ottoman (Janissaries, devshirme, millet system), Safavid (Twelver Shi\'ism), Mughal (Akbar tolerance &rarr; Aurangzeb orthodoxy), Manchu Qing. European absolutism (Louis XIV at Versailles, Peter the Great).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U4</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Transoceanic Interconnections (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Spanish viceroyalties + casta system. Joint-stock chartered companies (VOC, British East India Company) as new sovereign-power entities. Portuguese cartaz "trading-post empire." Treaty of Tordesillas. Resistance: Pueblo Revolt, Metacom\'s War, Maroon societies.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U5</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Revolutions (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">The transition from divine-right monarchy to popular sovereignty. American, French, Haitian, Latin American Revolutions. Three required documents: Declaration of Independence, Declaration of Rights of Man, Bol&iacute;var\'s Letter from Jamaica. Italian and German unification under Garibaldi/Bismarck.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U6</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Consequences of Industrialization (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">New imperial governance: Berlin Conference, British Raj, "unequal treaties" in China. Indigenous resistance: Sepoy Mutiny, Boxer Rebellion, Mahdist War, Yaa Asantewaa. Reform movements: Indian National Congress, Tanzimat reforms, Self-Strengthening Movement.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U7</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Conflict (1900&ndash;1945)</div>
+            <div class="ov-topic-obj">Collapse of four empires (Ottoman, Russian, Austro-Hungarian, Qing). Russian Revolution (Lenin); Bolsheviks. Mexican Revolution. Treaty of Versailles. Three competing models: liberal democracy, communism, fascism. Mussolini, Hitler, Stalin, Mao, Atat&uuml;rk, Gandhi.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U8</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Cold War &amp; Decolonization (1945&ndash;1991)</div>
+            <div class="ov-topic-obj">U.S.-Soviet bipolar rivalry. NATO vs. Warsaw Pact. Decolonization (India, Ghana, Algeria, Year of Africa). Newly independent states: Nasser, Nehru, Indira Gandhi, Nyerere. Non-Aligned Movement (Bandung 1955). Mandela and apartheid. Soviet collapse.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U9</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Globalization (1900&ndash;Present)</div>
+            <div class="ov-topic-obj">Global institutions (UN, EU, WTO, IMF, ICC). NGOs (Amnesty, Greenpeace). Right-wing populism, Brexit. Religious fundamentalism, terrorism (9/11, ISIS). China\'s rise as authoritarian alternative. State sovereignty vs. global cooperation tensions.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-gov">GOV</span></div>
+        </div>
+      </div>
+
+      <div class="sh">CCOT Skills This Theme Develops</div>
+      <div class="ov-skills">
+        <div class="ov-skill"><div class="ov-skill-name">CONTINUITY &amp; CHANGE OVER TIME (CCOT)</div><div class="ov-skill-desc">The central skill. Identify what stayed the same and what changed across 800 years. Continuities: taxation, legitimation, bureaucracy, resistance. Changes: from sacred to secular legitimacy; from personal to institutional rule; from ethnic empire to nation-state.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">COMPARISON ACROSS PERIODS</div><div class="ov-skill-desc">Direct cross-period comparison &mdash; e.g., Mongol expansion vs. Ottoman gunpowder vs. British colonial vs. modern globalization. Or: Mandate of Heaven vs. divine right vs. popular sovereignty vs. democratic elections.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">CAUSATION CHAINS</div><div class="ov-skill-desc">Long causal chains across periods: Enlightenment &rarr; Atlantic Revolutions &rarr; nationalism &rarr; collapse of multiethnic empires (1918) &rarr; nation-state era. Or: industrialization &rarr; imperialism &rarr; anti-colonial nationalism &rarr; postwar decolonization.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">ARGUMENTATION (LEQ-focused)</div><div class="ov-skill-desc">Build a thesis claim about governance across periods, support it with three specific examples drawn from at least two different units, qualify with counterevidence, conclude with synthesis.</div></div>
+      </div>
+
+      <div class="b-tip"><strong>How to use this theme game:</strong> Best deployed in <strong>April or May right before the AP exam</strong>, after students have mastered Units 1&ndash;9. Each "Era Check" round tests detail recall; the Comparison and CCOT rounds test synthesis; the LEQ Synthesis round is full essay practice with rubric scoring. Treat it like a final review tool that ties together everything from the year.</div>
+
+    </div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  AP WORLD HISTORY — THEME: GOVERNANCE (GOV)
+//  Cross-period synthesis tool — best used April/May for AP exam prep
+// ════════════════════════════════════════════════════════════════════
+
+const UNIT_ID = 'apwh_th_gov';
+const UNIT_TITLE = 'Theme: Governance';
+
+// ── ROUNDS ────────────────────────────────────────────────────────────
+// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+const ROUNDS = [
+  // ── Era Checks (chronological detail recall) ──
+  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Vast Land Empires', icon:'🐎', themes:['GOV'],
+   desc:'Mongol Empire, Yuan China, Confucian civil service exam, Mali under Mansa Musa, Delhi Sultanate, European/Japanese feudalism. Drawn from Units 1–2.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Gunpowder Empires', icon:'🏛️', themes:['GOV'],
+   desc:'The four required gunpowder empires: Ottoman (Janissaries, devshirme, millet), Safavid (Twelver Shi\'ism), Mughal (Akbar/Aurangzeb), Manchu Qing. European absolutism. Drawn from Unit 3.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Maritime Empires', icon:'⛵', themes:['GOV'],
+   desc:'Spanish viceroyalties and casta system, Dutch VOC and British East India Company as joint-stock sovereigns, Portuguese cartaz. Resistance: Pueblo Revolt, Maroons. Drawn from Unit 4.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Revolutions & Empire', icon:'⚖️', themes:['GOV'],
+   desc:'Atlantic Revolutions, the three required documents (Declaration of Independence, Rights of Man, Letter from Jamaica), Italian/German unification, Berlin Conference, British Raj. Drawn from Units 5–6.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Empires Collapse', icon:'💥', themes:['GOV'],
+   desc:'Russian Revolution and Bolsheviks, Mexican Revolution, fall of four empires (Ottoman/Russian/Austro-Hungarian/Qing), competing ideologies (liberal democracy, communism, fascism). Drawn from Unit 7.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['GOV'],
+   desc:'Cold War alliances (NATO/Warsaw Pact), decolonization (India, Ghana, Algeria), Non-Aligned Movement, end of Cold War, modern global institutions (UN, EU, ICC), populism. Drawn from Units 8–9.',
+   type:'mcq', questions:12, group:'core'},
+
+  // ── Synthesis Rounds ──
+  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['GOV'],
+   desc:'Direct cross-period comparison questions. Compare imperial expansion methods (Mongol vs. Ottoman vs. British), legitimation strategies (Mandate of Heaven vs. divine right vs. popular sovereignty), or resistance movements (Sepoy 1857 vs. Tiananmen 1989).',
+   type:'comparison', questions:8, group:'skills'},
+  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['GOV'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in governance from 1200 to present. Argumentation 6.B with three specific examples per claim.',
+   type:'ccot', questions:6, group:'skills'},
+
+  // ── LEQ Synthesis ──
+  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['GOV'],
+   desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which methods of imperial expansion changed from 1450 to 1900" or "Compare how rulers legitimized power in two different periods." 800–1000 word target.',
+   type:'leq', questions:1, group:'frq'},
+];
+
+// ── VOCABULARY (cross-period governance terms) ─────────────────
+// Organized by ERA so students can review chronologically OR by category
+const VOCAB = {
+  'Era 1 (1200–1450) — Land Empires': {icon:'🐎', terms:[
+    {term:'Mongol Empire', def:'Largest contiguous land empire in history. Ruled by Genghis Khan (founder), Khubilai Khan, and successors. Established Pax Mongolica enabling Eurasian trade.'},
+    {term:'Pax Mongolica', def:'Period of relative peace under Mongol rule (~1250–1350) that secured the Silk Roads. Enabled Marco Polo, Ibn Battuta, and the Black Death\'s spread.'},
+    {term:'Mandate of Heaven', def:'Chinese political-religious doctrine: heaven grants legitimacy to the just ruler and withdraws it from the unjust. Used by every Chinese dynasty including foreign-ruled Yuan and Qing.'},
+    {term:'Civil Service Examination', def:'Chinese system of recruiting bureaucrats through merit-based exams on Confucian classics. Established Han dynasty; intensified Song/Yuan/Ming/Qing. Symbol of meritocratic ideal.'},
+    {term:'Scholar-Gentry', def:'Chinese class of educated officials and landowners produced by the civil service exam. Maintained the bureaucracy and Confucian culture across dynastic changes.'},
+    {term:'Mali Empire', def:'West African empire (1235–1670). Mansa Musa\'s 1324 hajj (with massive gold) put Mali on European maps. Famous for Timbuktu as Islamic learning center.'},
+    {term:'Delhi Sultanate', def:'Series of Muslim dynasties ruling northern India (1206–1526). Predecessor to Mughal Empire. Imposed Islamic rule on Hindu-majority population.'},
+    {term:'Feudalism', def:'Decentralized governance based on lord-vassal contracts. Lords held land in exchange for military service. Western European and Japanese variants. Weak central authority.'},
+  ]},
+  'Era 2 (1450–1750) — Gunpowder & Maritime': {icon:'🏛️', terms:[
+    {term:'Gunpowder Empires', def:'Ottoman, Safavid, Mughal, Qing. Used cannon, professional armies, and centralized bureaucracies to rule vast territories. Defining state form 1450–1750.'},
+    {term:'Devshirme', def:'Ottoman "blood tax." Christian boys taken from Balkan villages, converted to Islam, trained as Janissaries (elite military) or top bureaucrats. Heavily tested.'},
+    {term:'Janissaries', def:'Elite Ottoman infantry recruited via devshirme. Among world\'s first professional standing armies. Loyal directly to the sultan.'},
+    {term:'Millet System', def:'Ottoman policy of religious community self-rule. Greek Orthodox, Armenian Christian, Jewish communities governed their own civil affairs in exchange for tax and loyalty.'},
+    {term:'Twelver Shi\'a Islam', def:'Branch of Shi\'a Islam imposed as Persia\'s state religion by Shah Ismail (1501). Made Persia distinct from Sunni Ottoman/Mughal neighbors. Still dominant in Iran today.'},
+    {term:'Zamindar System', def:'Mughal tax-collection system using local landholders to gather revenue, keeping a share. Decentralized administration model.'},
+    {term:'Akbar', def:'Greatest Mughal emperor (r. 1556–1605). Religious tolerance: abolished jizya, founded Din-i Ilahi, employed Hindus in government. Pragmatic legitimation strategy.'},
+    {term:'Aurangzeb', def:'Mughal emperor (r. 1658–1707) who reversed Akbar\'s tolerance. Reimposed jizya, persecuted non-Muslims. His policies fragmented Mughal coalitions and accelerated decline.'},
+    {term:'Manchu Queue', def:'Long braided hairstyle the Qing required all Han Chinese men to wear. Visible marker of submission to Manchu rule. Ethnic stratification on top of continued Confucian bureaucracy.'},
+    {term:'Divine Right of Kings', def:'European political-religious doctrine: kings ruled by God\'s will. Embodied by Louis XIV at Versailles. European parallel to Mandate of Heaven and Caliphate.'},
+    {term:'Versailles', def:'Louis XIV\'s palace; theatrical center of Bourbon absolutism. Forced nobles to live there under royal supervision; massive expenditure as state propaganda.'},
+    {term:'Peter the Great', def:'Russian tsar (r. 1682–1725). Westernized Russian administration, military, culture. Built St. Petersburg as Russia\'s "window on the West."'},
+    {term:'Viceroyalty', def:'Spanish administrative unit governed by a viceroy representing the king. New Spain (Mexico) and Peru were the two great viceroyalties of the Americas.'},
+    {term:'Casta System', def:'Spanish American hierarchy by race and birthplace: peninsulares (Spanish-born), creoles (American-born Spanish ancestry), mestizos (Spanish + indigenous), mulattoes (Spanish + African), indigenous, enslaved Africans.'},
+    {term:'Joint-Stock Company', def:'Investors pooled capital, sharing profits and risks. Dutch VOC (1602) and British East India Company (1600) became sovereign-power entities — armies, treaties, governance. CRITICAL governance innovation.'},
+    {term:'Treaty of Tordesillas (1494)', def:'Spain-Portugal treaty dividing the non-European world along a meridian. Spain got most of Americas; Portugal got Brazil, Africa, India coast.'},
+    {term:'Glorious Revolution (1688)', def:'English political revolution replacing James II with William and Mary. Established parliamentary supremacy and constitutional monarchy &mdash; foundational for later democratic governance.'},
+  ]},
+  'Era 3 (1750–1900) — Revolutions & Empire': {icon:'⚖️', terms:[
+    {term:'Natural Rights', def:'Rights granted by nature/God (life, liberty, property) that no government can take away. Locke\'s formulation; foundation of Declaration of Independence.'},
+    {term:'Social Contract', def:'Government legitimacy comes from consent of governed. Rousseau, Locke, Hobbes. People can replace government that fails. Key Enlightenment concept.'},
+    {term:'Popular Sovereignty', def:'The people are the ultimate source of political authority. Direct attack on divine right of kings. Foundation of American and French Revolutions.'},
+    {term:'Declaration of Independence (1776)', def:'Jefferson-drafted U.S. founding document. Invoked natural rights ("life, liberty, and the pursuit of Happiness"). CED-required document.'},
+    {term:'Declaration of the Rights of Man (1789)', def:'French National Assembly document. "Men are born and remain free and equal in rights." CED-required document.'},
+    {term:'Letter from Jamaica (1815)', def:'Bol&iacute;var\'s vision for Latin American republican government. CED-required document for Latin American independence movements.'},
+    {term:'Toussaint Louverture', def:'Leader of Haitian Revolution. Created world\'s first independent Black republic and abolished slavery (1804). Captured by French; died in prison.'},
+    {term:'Nationalism', def:'Idea that a nation (people sharing language/culture/history) should have its own state. Built up new states (Italy, Germany) and broke down old empires (Ottoman, Habsburg).'},
+    {term:'Italian Unification', def:'Combined many small states into Kingdom of Italy (1815–71). Garibaldi (military), Cavour (diplomatic), Victor Emmanuel II (king).'},
+    {term:'German Unification', def:'Bismarck\'s "blood and iron" diplomacy. Three wars (Denmark, Austria, France) created German Empire (1871). Transformed European balance of power.'},
+    {term:'Berlin Conference (1884–85)', def:'European powers (no Africans invited) divided Africa on a map. Signature event of New Imperialism. By 1914, only Ethiopia and Liberia independent.'},
+    {term:'British Raj', def:'British direct rule of India (1858–1947). Replaced East India Company after the Sepoy Mutiny. Queen Victoria proclaimed Empress of India (1877).'},
+    {term:'Sepoy Mutiny (1857)', def:'Indian uprising against British East India Company. Brutally suppressed; led directly to British government taking over India as the Raj.'},
+    {term:'Unequal Treaties', def:'Treaties forcing weaker states (Qing China, Tokugawa Japan) to accept unfavorable trade terms. Treaty of Nanking (1842), Treaty of Kanagawa (1854).'},
+    {term:'Indian National Congress', def:'Founded 1885. Initially moderate; sought greater Indian participation in colonial government. Eventually became vehicle of independence under Gandhi.'},
+  ]},
+  'Era 4 (1900–1945) — Empires Collapse': {icon:'💥', terms:[
+    {term:'Russian Revolution of 1917', def:'February Revolution overthrew Tsar Nicholas II; October Revolution brought Bolsheviks to power under Lenin. Established world\'s first communist state.'},
+    {term:'Vladimir Lenin', def:'Founder of the Bolshevik Party and Soviet state. Promised "Peace, Land, Bread." Established communist dictatorship; died 1924.'},
+    {term:'Mexican Revolution (1910–20)', def:'Overthrew dictator Porfirio D&iacute;az; resulted in Mexican Constitution of 1917 (land reform, labor rights). PRI dominated Mexican politics from 1929.'},
+    {term:'Mustafa Kemal (Atat&uuml;rk)', def:'Founder of Republic of Turkey (1923). Modernized Turkey: secularism, women\'s rights, Latin alphabet, Western-style legal codes. Replaced Ottoman caliphate.'},
+    {term:'Treaty of Versailles (1919)', def:'WWI peace treaty. War guilt clause, reparations, territorial losses imposed on Germany. Sowed seeds of WWII. CED-required document.'},
+    {term:'League of Nations', def:'International organization founded 1920 to prevent war through collective security. Wilson\'s creation, but U.S. Senate refused to join. Failed in 1930s; replaced by UN.'},
+    {term:'Fascism', def:'Far-right ideology emphasizing extreme nationalism, glorification of state and leader, suppression of opposition. Mussolini\'s Italy (1922) the original fascist state.'},
+    {term:'Adolf Hitler / Nazi Germany', def:'Hitler became Chancellor 1933. Used Reichstag Fire to suspend civil liberties. Established totalitarian dictatorship. Persecuted Jews and others; initiated WWII and Holocaust.'},
+    {term:'Stalin / Five-Year Plans', def:'Soviet leader (1924–53). Industrialized USSR through brutal collectivization and central planning. Caused Holodomor; Great Purges killed millions.'},
+    {term:'Mahatma Gandhi', def:'Leader of Indian independence movement. Pioneered nonviolent civil disobedience (satyagraha). Salt March (1930). Indian independence 1947; assassinated 1948.'},
+    {term:'Mao Zedong', def:'Founder of Chinese Communist Party. Survived the Long March (1934–35). Won the Chinese Civil War (1949) against Chiang Kai-shek\'s Nationalists.'},
+  ]},
+  'Era 5–6 (1945–Present) — Cold War to Today': {icon:'🌐', terms:[
+    {term:'United Nations (1945)', def:'Founded after WWII to replace failed League. UN Security Council (5 permanent members with veto), General Assembly, specialized agencies (WHO, UNICEF).'},
+    {term:'Truman Doctrine (1947)', def:'U.S. pledge to support nations resisting communist subversion. Foundation of "containment" as Cold War strategy. Aimed initially at Greece and Turkey.'},
+    {term:'Marshall Plan (1948)', def:'$13 billion in U.S. economic aid to rebuild Western Europe. Bound it to U.S. economically and politically. Soviets refused to let satellites participate.'},
+    {term:'NATO (1949)', def:'North Atlantic Treaty Organization. U.S.-led military alliance of Western nations. "An attack on one is an attack on all." Still exists.'},
+    {term:'Warsaw Pact (1955)', def:'Soviet-led military alliance of Eastern European communist states. Counter to NATO. Disbanded 1991 with Soviet collapse.'},
+    {term:'Indian Independence (1947)', def:'Britain granted independence after Gandhi\'s nonviolent resistance. Partition divided British India into India and Pakistan; ~1 million killed in religious violence.'},
+    {term:'Kwame Nkrumah / Ghana (1957)', def:'Ghana became first sub-Saharan African nation to gain independence from Britain. Inspired the rest of African decolonization. Pan-African leader.'},
+    {term:'Algerian War (1954–62)', def:'Bloody 8-year war of independence from France. FLN won. France lost its largest and most settler-heavy colony.'},
+    {term:'"Year of Africa" (1960)', def:'17 African nations gained independence in 1960 alone. By 1970, almost all of Africa was independent.'},
+    {term:'Non-Aligned Movement', def:'Group of states (founded at Bandung 1955) refusing to side with either superpower. Sukarno, Nehru, Nasser, Tito key figures.'},
+    {term:'Gamal Abdel Nasser', def:'Egyptian leader (r. 1956–70). Overthrew British-backed monarchy. Nationalized Suez Canal. Pan-Arab nationalist leader. State-led economic development.'},
+    {term:'Nelson Mandela', def:'South African anti-apartheid leader. Imprisoned 27 years. Led negotiations to end apartheid; first Black president of South Africa (1994).'},
+    {term:'Mikhail Gorbachev', def:'Last Soviet leader (1985–91). Glasnost (openness) and perestroika (restructuring) tried to save Soviet system but accelerated its collapse. Won Nobel Peace Prize 1990.'},
+    {term:'Fall of the Berlin Wall (1989)', def:'November 9, 1989. East Germans began crossing freely. Iconic image of Cold War\'s end. Triggered German reunification (1990).'},
+    {term:'Collapse of USSR (1991)', def:'Soviet Union formally dissolved into 15 successor states in December 1991. Ended 70 years of communist rule and the Cold War.'},
+    {term:'European Union', def:'Economic and political union of 27 European states. Common market, euro currency, free movement of people. Most ambitious supranational integration project in history.'},
+    {term:'Brexit (2016/2020)', def:'UK voted to leave the European Union. Symbol of right-wing populism and anti-globalization backlash. UK formally left 2020.'},
+    {term:'9/11 Attacks (2001)', def:'Al-Qaeda hijacked four U.S. planes; killed ~3,000. Triggered War on Terror, invasions of Afghanistan and Iraq. Reshaped 21st-c. geopolitics.'},
+    {term:'International Criminal Court', def:'Founded 2002 by Rome Statute. Prosecutes genocide, war crimes, crimes against humanity. U.S., China, Russia not members.'},
+  ]},
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE & STORAGE
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_theme_gov_progress';        // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_th_gov';        // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_th_gov';       // Supabase column for in-progress drafts
+
+let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+  catch(e){return{};}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
+}
+function getRoundProgress(roundId){
+  return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Play tab activity cards
+// ════════════════════════════════════════════════════════════════════
+function renderRoundCards(){
+  const groups = {core:[],skills:[],frq:[]};
+  ROUNDS.forEach(r => groups[r.group].push(r));
+
+  document.getElementById('round-cards-core').innerHTML  = groups.core.map(roundCard).join('');
+  document.getElementById('round-cards-skills').innerHTML = groups.skills.map(roundCard).join('');
+  document.getElementById('round-cards-frq').innerHTML  = groups.frq.map(roundCard).join('');
+
+  // Progress
+  const completed = ROUNDS.filter(r => {
+    const p = getRoundProgress(r.id);
+    return p && p.completed;
+  }).length;
+  const pct = Math.round((completed / ROUNDS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = completed + ' / ' + ROUNDS.length + ' ROUNDS';
+}
+
+function roundCard(r){
+  const prog = getRoundProgress(r.id);
+  const done = prog && prog.completed;
+  const accent = done ? 'var(--green2)' : 'var(--bronze)';
+  const themesHTML = r.themes.map(t =>
+    `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+  const badge = done
+    ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+  const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
+  return `
+    <div class="activity-card" onclick="launchRound('${r.id}')">
+      <div class="activity-card-strip" style="background:${accent}"></div>
+      <div class="activity-card-body">
+        ${badge}
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${r.num} · TOPIC ${r.topic} · ${label.toUpperCase()}</div>
+        <div class="activity-card-title">${r.title}</div>
+        <div class="activity-card-meta">${themesHTML}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action">▶ ${done ? 'Replay' : 'Begin'} Round</div>
+      </div>
+    </div>`;
+}
+
+function launchRound(roundId){
+  // Phase 2 will wire in the actual question runner.
+  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Governance theme.');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Vocab tab
+// ════════════════════════════════════════════════════════════════════
+function renderVocab(){
+  const el = document.getElementById('vocab-content');
+  let html = '';
+  Object.keys(VOCAB).forEach(region => {
+    const data = VOCAB[region];
+    html += `<div class="vocab-region-header"><span class="vocab-region-icon">${data.icon}</span> ${region}</div>`;
+    html += '<div class="vocab-grid">';
+    data.terms.forEach(t => {
+      html += `<div class="vocab-card" onclick="this.classList.toggle('flipped')">
+        <div class="vocab-card-term">${t.term}</div>
+        <div class="vocab-card-def">${t.def}</div>
+        <div class="vocab-card-hint">click to reveal</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════
+function goBack(){
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const tick = setInterval(() => {
+    pct += 12 + Math.random() * 14;
+    if (pct >= 100) {
+      pct = 100;
+      bar.style.width = '100%';
+      clearInterval(tick);
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('hub').style.display = 'flex';
+          renderRoundCards();
+          renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
+        }, 400);
+      }, 200);
+    } else {
+      bar.style.width = pct + '%';
+    }
+  }, 90);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+</body>
+</html>
