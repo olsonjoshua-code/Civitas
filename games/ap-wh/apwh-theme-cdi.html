@@ -1,1 +1,901 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme: Cultural Developments & Interactions — AP World History · Civitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Crimson + Bronze — manuscripts & imperial seals */
+  --bg:#1a0a0a;--bg2:#2a1212;--bg3:#3a1c1c;--panel:#241010;
+  --border:#3a1a1a;--border2:#5a2828;
+  --acc:#a83838;--acc2:#c84848;--acc3:#e06a6a;            /* crimson */
+  --bronze:#d4a847;--bronze2:#e8c060;--bronze3:#f4d878;   /* bronze */
+  --amber:#e8a020;--amber2:#f8c850;
+  --gold:#ffd700;--gc:#f5c842;
+  --green:#2aaa50;--green2:#40c870;
+  --red:#e04040;--red2:#f06060;
+  --purple:#7060d0;--purple2:#9080f0;
+  --teal:#208878;--teal2:#2aaa98;
+  --blue:#4878d0;--blue2:#6898e8;
+  --orange:#e08840;--orange2:#f0a058;
+  --text:#f0e4d4;--text2:#a89888;--text3:#5a4838;--cream:#f4ede0;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--dm);
+  background-image:radial-gradient(ellipse at 15% 0%,rgba(168,56,56,.10) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 100%,rgba(212,168,71,.06) 0%,transparent 50%)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;transition:opacity .5s}
+.ld-icon{font-size:56px;margin-bottom:16px;animation:pulse 2s infinite}
+.ld-title{font-family:var(--bebas);font-size:28px;color:var(--bronze2);letter-spacing:5px;margin-bottom:4px}
+.ld-sub{font-family:var(--crimson);font-size:14px;color:var(--text3);font-style:italic;margin-bottom:24px}
+.ld-bar{width:200px;height:2px;background:var(--border2)}
+.ld-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .2s;width:0}
+
+/* ── HUB ── */
+#hub{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+.hub-hero{background:linear-gradient(135deg,rgba(168,56,56,.18) 0%,rgba(26,10,10,.98) 60%);
+  border-bottom:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;gap:28px;
+  flex-shrink:0;position:relative;overflow:hidden}
+.hub-hero::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(212,168,71,.025) 40px,rgba(212,168,71,.025) 80px)}
+.hub-hero-icon{font-size:64px;flex-shrink:0;filter:drop-shadow(0 0 20px rgba(224,136,64,.55)) drop-shadow(0 0 8px rgba(168,56,56,.35));position:relative}
+.hub-hero{border-left:4px solid rgba(224,136,64,.5)}
+.hub-hero-info{flex:1;position:relative}
+.hub-breadcrumb{font-family:var(--dm);font-size:9px;color:var(--bronze2);letter-spacing:3px;margin-bottom:6px;opacity:.85}
+.hub-title{font-family:var(--playfair);font-size:clamp(22px,4vw,34px);color:var(--cream);font-weight:700;line-height:1.2;margin-bottom:6px}
+.hub-desc{font-family:var(--crimson);font-size:15px;color:var(--text2);font-style:italic;line-height:1.6;max-width:640px}
+.hub-meta{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.hub-meta-item{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.hub-meta-item span{color:var(--bronze2);font-weight:500}
+.back-btn{font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;position:relative}
+.back-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* ── TABS ── */
+.hub-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.hub-tab{font-family:var(--bebas);font-size:12px;letter-spacing:2px;padding:14px 24px;cursor:pointer;
+  background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text3);transition:all .15s;white-space:nowrap}
+.hub-tab:hover{color:var(--bronze2)}
+.hub-tab.active{color:var(--bronze2);border-bottom-color:var(--bronze)}
+.hub-content{flex:1;overflow-y:auto;padding:24px 40px 60px}
+.hub-panel{display:none;animation:fadeIn .3s ease}
+.hub-panel.active{display:block}
+
+/* ── ACTIVITY CARDS (Play tab) ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.activity-card{background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.activity-card:hover:not(.locked){transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5);border-color:var(--bronze)}
+.activity-card-strip{height:3px;width:100%}
+.activity-card-body{padding:18px 20px}
+.activity-card-icon{font-size:28px;margin-bottom:10px}
+.activity-card-label{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.activity-card-title{font-family:var(--playfair);font-size:16px;color:var(--cream);margin-bottom:6px}
+.activity-card-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:14px}
+.activity-card-action{font-family:var(--bebas);font-size:11px;letter-spacing:2px;display:flex;align-items:center;gap:6px;color:var(--bronze2)}
+.activity-card.locked{opacity:.45;cursor:not-allowed}
+.activity-card.locked:hover{transform:none;box-shadow:none}
+.activity-card-badge{position:absolute;top:10px;right:10px;font-family:var(--bebas);font-size:9px;letter-spacing:1px;padding:3px 8px;border:1px solid}
+.activity-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.activity-card-meta-tag{font-family:var(--bebas);font-size:8px;letter-spacing:1.5px;padding:2px 6px;border:1px solid;border-radius:2px}
+.tag-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2)}
+.tag-gov{border-color:rgba(72,120,208,.4);color:var(--blue2)}
+.tag-ecn{border-color:rgba(245,200,66,.4);color:var(--gc)}
+.tag-sio{border-color:rgba(104,152,232,.4);color:#8898d8}
+.tag-tec{border-color:rgba(144,128,224,.4);color:var(--purple2)}
+.tag-env{border-color:rgba(64,200,112,.4);color:var(--green2)}
+
+/* ── BRIEFING / OVERVIEW shared ── */
+.sh{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  border-bottom:1px solid var(--border2);padding-bottom:6px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;margin-top:24px}
+.sh::before{content:'';width:3px;height:14px;background:var(--bronze);display:block}
+.sh:first-of-type{margin-top:0}
+.b-card{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;margin-bottom:14px}
+.b-card p{font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.85;margin-bottom:10px}
+.b-card p:last-child{margin-bottom:0}
+.b-card strong{color:var(--cream);font-weight:600}
+.b-card em{color:var(--bronze2);font-style:italic}
+.b-tip{padding:11px 15px;background:rgba(168,56,56,.08);border-left:3px solid var(--acc);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-tip strong{color:var(--acc3);font-weight:600}
+.b-key{padding:11px 15px;background:rgba(212,168,71,.08);border-left:3px solid var(--bronze);
+  font-family:var(--dm);font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.b-key strong{color:var(--bronze2);font-weight:600}
+.b-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;margin-bottom:8px}
+.b-mini{background:var(--bg3);border:1px solid var(--border2);padding:12px 14px}
+.b-mini-label{font-family:var(--bebas);font-size:11px;color:var(--bronze2);letter-spacing:1.5px;margin-bottom:4px}
+.b-mini-text{font-family:var(--crimson);font-size:13px;color:var(--text2);line-height:1.6}
+.b-mini-text strong{color:var(--cream)}
+.b-source{padding:14px 18px;background:rgba(58,28,28,.6);border-left:3px solid var(--bronze);
+  margin-bottom:14px;font-family:var(--crimson);font-size:13px;font-style:italic;color:var(--text2);line-height:1.75}
+.b-source-attr{display:block;margin-top:8px;font-family:var(--dm);font-size:10px;color:var(--bronze2);font-style:normal;letter-spacing:1px}
+
+.theme-pill{display:inline-block;font-family:var(--bebas);font-size:9px;letter-spacing:1.5px;
+  padding:2px 7px;border-radius:2px;margin-right:4px;border:1px solid}
+.tp-cdi{border-color:rgba(224,136,64,.4);color:var(--orange2);background:rgba(224,136,64,.08)}
+.tp-gov{border-color:rgba(72,120,208,.4);color:var(--blue2);background:rgba(72,120,208,.08)}
+.tp-ecn{border-color:rgba(245,200,66,.4);color:var(--gc);background:rgba(245,200,66,.08)}
+.tp-sio{border-color:rgba(104,152,232,.4);color:#8898d8;background:rgba(104,152,232,.08)}
+.tp-tec{border-color:rgba(144,128,224,.4);color:var(--purple2);background:rgba(144,128,224,.08)}
+.tp-env{border-color:rgba(64,200,112,.4);color:var(--green2);background:rgba(64,200,112,.08)}
+
+/* ── VOCAB ── */
+.vocab-info{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:16px 20px;margin-bottom:20px}
+.vocab-info-title{font-family:var(--playfair);font-size:18px;color:var(--cream);margin-bottom:6px}
+.vocab-info-desc{font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
+.vocab-region-header{font-family:var(--bebas);font-size:13px;letter-spacing:3px;color:var(--bronze2);
+  margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.vocab-region-header:first-of-type{margin-top:0}
+.vocab-region-icon{font-size:18px}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.vocab-card{background:var(--bg2);border:1px solid var(--border);padding:11px 14px;cursor:pointer;transition:all .15s;position:relative}
+.vocab-card:hover{border-color:var(--bronze);background:var(--bg3)}
+.vocab-card-term{font-family:var(--playfair);font-size:14px;color:var(--cream);font-weight:600;margin-bottom:3px}
+.vocab-card-def{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;display:none}
+.vocab-card.flipped .vocab-card-def{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.vocab-card-hint{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── OVERVIEW ── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--bronze);padding:20px 26px;margin-bottom:20px}
+.ov-hero-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.ov-hero-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.7}
+.ov-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);padding:14px;text-align:center}
+.ov-stat-val{font-family:var(--bebas);font-size:24px;color:var(--bronze2);letter-spacing:1px}
+.ov-stat-label{font-family:var(--dm);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.ov-topics{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ov-topic{background:var(--bg2);border:1px solid var(--border);padding:14px 18px;display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center}
+.ov-topic-num{font-family:var(--bebas);font-size:18px;color:var(--bronze2);letter-spacing:2px}
+.ov-topic-info{}
+.ov-topic-title{font-family:var(--playfair);font-size:15px;color:var(--cream);margin-bottom:3px}
+.ov-topic-obj{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+.ov-topic-themes{display:flex;gap:4px;flex-wrap:wrap}
+.ov-skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ov-skill{background:var(--bg2);border:1px solid var(--border);padding:13px 16px;border-left:3px solid var(--bronze)}
+.ov-skill-name{font-family:var(--bebas);font-size:11px;letter-spacing:2px;color:var(--bronze2);margin-bottom:3px}
+.ov-skill-desc{font-family:var(--crimson);font-size:12px;color:var(--text2);line-height:1.5;font-style:italic}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;margin-bottom:18px}
+.prog-label{font-family:var(--bebas);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.prog-label span{color:var(--bronze2)}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:760px){
+  .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
+  .hub-hero-icon{font-size:40px}
+  .hub-content{padding:16px 18px 60px}
+  .hub-tab{padding:10px 14px;font-size:10px}
+  .hub-meta{gap:10px}
+  .hub-meta-item{font-size:8px}
+  .activity-grid{grid-template-columns:1fr}
+  .ov-topic{grid-template-columns:50px 1fr;gap:10px}
+  .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════════════════ -->
+<div id="loading">
+  <div class="ld-icon">🎭</div>
+  <div class="ld-title">CULTURAL DEVELOPMENTS</div>
+  <div class="ld-sub">Theme · 1200 — Present</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     UNIT HUB
+════════════════════════════════════════════════════════════════════ -->
+<div id="hub">
+
+  <!-- Hero header -->
+  <div class="hub-hero">
+    <div class="hub-hero-icon">🎭</div>
+    <div class="hub-hero-info">
+      <div class="hub-breadcrumb">CIVITAS · AP WORLD HISTORY · THEME</div>
+      <div class="hub-title">Cultural Developments &amp; Interactions</div>
+      <div class="hub-desc">A cross-period synthesis of <strong>religion, ideology, science, art, and the spread of ideas</strong> from 1200 to the present. Trace how Buddhism, Christianity, Islam, and other belief systems traveled along trade routes and spread by conquest; how the Enlightenment reshaped politics; how Cold War ideologies divided the world; how globalized pop culture remakes identity today. Use this for synthesis &mdash; SAQs, DBQs, and especially LEQs that argue across periods. <em>Best used as April/May exam prep after completing Units 1&ndash;9.</em></div>
+      <div class="hub-meta">
+        <div class="hub-meta-item">📚 Periods Covered: <span>All 9 Units</span></div>
+        <div class="hub-meta-item">🎯 Theme Code: <span>CDI</span></div>
+        <div class="hub-meta-item">🎨 Focus: <span>Religion, ideology, art, knowledge</span></div>
+        <div class="hub-meta-item">⚖️ Format: <span>9 rounds + LEQ synthesis</span></div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back to AP World</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs">
+    <button class="hub-tab active" onclick="switchTab('play',this)">▶ Play</button>
+    <button class="hub-tab" onclick="switchTab('briefing',this)">📋 Briefing</button>
+    <button class="hub-tab" onclick="switchTab('vocab',this)">🃏 Vocabulary</button>
+    <button class="hub-tab" onclick="switchTab('quiz',this)">✅ Vocab Quiz</button>
+    <button class="hub-tab" onclick="switchTab('overview',this)">📊 Overview</button>
+  </div>
+
+  <div class="hub-content">
+
+    <!-- ═══════════════════════════════════════════════════
+         PLAY TAB
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-play" class="hub-panel active">
+
+      <!-- Progress bar -->
+      <div class="prog-wrap">
+        <div class="prog-label"><span>UNIT PROGRESS</span><span id="prog-pct">0 / 12 ROUNDS</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="sh">ERA CHECKS — Governance Across the Periods</div>
+      <div class="activity-grid" id="round-cards-core"></div>
+
+      <div class="sh">SYNTHESIS — Cross-Period Comparison &amp; CCOT</div>
+      <div class="activity-grid" id="round-cards-skills"></div>
+
+      <div class="sh">ASSESSMENT — Thematic LEQ Practice</div>
+      <div class="activity-grid" id="round-cards-frq"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         BRIEFING TAB — fully written, CED-aligned
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-briefing" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Briefing — Cultural Developments &amp; Interactions (CDI)</div>
+        <div class="vocab-info-desc">A <strong>cross-period synthesis</strong> of religion, ideology, art, science, and the diffusion of ideas from 1200 to the present. Religion shaped politics; trade networks spread beliefs; the Enlightenment reshaped legitimacy; Cold War ideologies divided the world; globalized pop culture remakes identity today. Use this briefing for thematic LEQs and AP questions about cultural change. The dominant skills are <strong>CCOT</strong> and <strong>Comparison</strong>.</div>
+      </div>
+
+      <!-- ════ CCOT FRAMING ════ -->
+      <div class="sh">The Big Story: Ideas Across 800 Years</div>
+      <div class="b-card">
+        <p>Cultural change is often slower than political or economic change &mdash; but when it happens, it transforms everything. Track these <strong>continuities and changes</strong>:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 1: TRADE SPREADS IDEAS</div>
+            <div class="b-mini-text">Buddhism along Silk Roads, Islam across Indian Ocean, Christianity via Atlantic missions, K-pop via the internet &mdash; <em>cultural diffusion follows commercial routes in every era</em>.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 2: SYNCRETISM</div>
+            <div class="b-mini-text">When religions meet, they blend. Sufi Islam absorbed Hindu elements; Latin American Catholicism absorbed indigenous and African elements (Vodou, Candombl&eacute;); Mahayana Buddhism in China absorbed Daoist elements.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 3: ELITE vs. POPULAR</div>
+            <div class="b-mini-text">Every era has a high culture of elites (Sanskrit poetry, classical Chinese, Latin liturgy, modernist art) alongside popular cultures of the masses (vernacular literature, folk music, social media memes).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CONTINUITY 4: RELIGIOUS REVIVAL</div>
+            <div class="b-mini-text">Periodic religious revivals respond to perceived crises: Reformation in 16th-c. Europe, Wahhabism in 18th-c. Arabia, Second Great Awakening in 19th-c. America, Iranian Revolution in 1979, modern fundamentalisms.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-card">
+        <p>And the <strong>changes</strong> &mdash; what fundamentally transformed:</p>
+        <p>&bull; <strong>From sacred to secular legitimacy.</strong> 1200: religion legitimized rulers. Post-1789: secular ideologies (popular sovereignty, nationalism, communism, liberalism) replaced religious justification in many places.<br>
+        &bull; <strong>From manuscript to print to digital culture.</strong> The Gutenberg printing press (c. 1450) revolutionized information; the internet (1990s+) revolutionized it again. Each accelerated the spread of ideas dramatically.<br>
+        &bull; <strong>From regional cultures to global pop culture.</strong> 1200: most cultural products stayed within their regions. 2020: Hollywood, Bollywood, K-pop, anime, and TikTok cross every border instantly.<br>
+        &bull; <strong>From religion as worldview to religion as identity choice.</strong> In most pre-modern societies, religion was given by birth and society. Modern pluralism allows individual choice (and religious "shopping").</p>
+      </div>
+
+      <!-- ════ ERA 1 ════ -->
+      <div class="sh">Era 1 (1200&ndash;1450): Religious World Systems</div>
+      <div class="b-card">
+        <p><strong>From Units 1&ndash;2:</strong> Three universal religions had spread across vast regions by 1200, and the period saw further diffusion along trade routes:</p>
+        <p>&bull; <strong>Buddhism</strong> &mdash; spread from India along the Silk Roads to China, Korea, Japan; Theravada southward to SE Asia. Mahayana absorbed Daoist elements in China; Zen developed in Japan.<br>
+        &bull; <strong>Christianity</strong> &mdash; Eastern Orthodox in Byzantine and later Russian world; Roman Catholic in Western Europe (with the Great Schism of 1054 already complete). Crusades (1095&ndash;1291) attempted to retake the Holy Land &mdash; failed militarily, succeeded in transferring knowledge.<br>
+        &bull; <strong>Islam</strong> &mdash; spread along trade routes, especially Indian Ocean (Swahili coast) and trans-Saharan (Mali). Mansa Musa\'s 1324 hajj was a famous Islamic pilgrimage. Sufism emerged as a mystical tradition that aided conversion.<br>
+        &bull; <strong>Hinduism</strong> remained dominant in India; <strong>Confucianism + Buddhism + Daoism</strong> blended in East Asia.</p>
+        <p><strong>Mongol religious tolerance</strong> was exceptional: Mongol khans permitted Buddhism, Christianity, Islam, and Daoism within their empire. Khubilai Khan invited the Polo brothers; the Mongols maintained Confucian bureaucracy.</p>
+        <p><strong>Cultural achievements</strong>: Dante\'s <em>Divine Comedy</em> (1320, vernacular Italian); Ibn Battuta\'s travel writings; Mansa Musa\'s patronage of Timbuktu; classical Mali architecture (Djenn&eacute; mosque); Yuan Chinese drama; Heian Japanese literature (Tale of Genji from earlier era still influential).</p>
+      </div>
+
+      <!-- ════ ERA 2 ════ -->
+      <div class="sh">Era 2 (1450&ndash;1750): Reformation, Renaissance, Encounter</div>
+      <div class="b-card">
+        <p><strong>From Units 3&ndash;4:</strong> Several massive cultural transformations:</p>
+        <p><strong>The Renaissance</strong> (c. 1350&ndash;1600) revived classical Greek and Roman learning in Italy and spread north. Leonardo, Michelangelo, Petrarch. Humanism placed value on human achievement, not just divine. Foundation of modern Western culture.</p>
+        <p><strong>The Protestant Reformation</strong> (1517+) split Western Christianity. Martin Luther\'s 95 Theses; sola scriptura, sola fide; printing press enabled spread; Calvin in Geneva; Henry VIII in England. Catholic Counter-Reformation responded with Council of Trent (1545&ndash;63), Jesuit order. Wars of religion devastated Europe.</p>
+        <p><strong>Sunni-Shi\'a divide</strong> intensified: Ottoman (Sunni), Safavid (Twelver Shi\'a) rivalry; Akbar\'s Din-i Ilahi attempted syncretism in India; <strong>Sikhism</strong> emerged in Punjab (Guru Nanak, c. 1500) blending Hindu and Islamic elements.</p>
+        <p><strong>Atlantic missions</strong> spread Christianity to the Americas. Spanish missions converted indigenous peoples (often forcibly). <strong>Syncretic religions</strong> emerged from contact: <strong>Vodou</strong> (Haiti), <strong>Candombl&eacute;</strong> (Brazil), <strong>Santer&iacute;a</strong> (Cuba) blended West African religions with Catholicism.</p>
+        <p><strong>Scientific Revolution</strong> (1543+): Copernicus, Galileo, Newton. Heliocentric universe replaced Ptolemaic geocentric. Empirical method replaced authority. Foundation of modern science.</p>
+        <p><strong>Globalized cuisine</strong> emerged from Columbian Exchange: Italian tomato sauce, Indian chiles, African peppers, European beef in Argentina &mdash; all 16th&ndash;17th century innovations.</p>
+      </div>
+
+      <!-- ════ ERA 3 ════ -->
+      <div class="sh">Era 3 (1750&ndash;1900): The Enlightenment &amp; Its Echoes</div>
+      <div class="b-card">
+        <p><strong>From Unit 5:</strong> The <strong>Enlightenment</strong> (c. 1685&ndash;1815) was the most consequential cultural shift in modern history. Philosophes argued: reason can solve human problems; natural rights belong to all; government legitimacy comes from consent of governed; religion should be tolerated but not dominate politics.</p>
+        <p>Key figures: <strong>Locke</strong> (natural rights, social contract), <strong>Rousseau</strong> (general will, popular sovereignty), <strong>Montesquieu</strong> (separation of powers), <strong>Voltaire</strong> (religious tolerance, freedom of speech), <strong>Adam Smith</strong> (free markets), <strong>Mary Wollstonecraft</strong> (women\'s rights).</p>
+        <p>The Enlightenment was the ideological foundation of the <strong>Atlantic Revolutions</strong> (American, French, Haitian, Latin American). <strong>Olympe de Gouges</strong>\' Declaration of the Rights of Woman (1791) extended Enlightenment logic to gender equality.</p>
+        <p><strong>Romanticism</strong> (c. 1800&ndash;50) reacted against Enlightenment rationalism. Emphasized emotion, nature, the individual genius, the nation. Inspired nationalism, abolitionism. Goethe, Wordsworth, Beethoven.</p>
+        <p><strong>Religious reform movements</strong>: <strong>Second Great Awakening</strong> (US, 1820s&ndash;60s) drove abolitionism, women\'s suffrage, temperance. <strong>Wahhabism</strong> (Arabia, late 18th c.) called for return to pure Islam. <strong>Sikh reform</strong> in Punjab. <strong>Hindu reformers</strong> like Rammohun Roy.</p>
+        <p><strong>Marx and socialism</strong> (1848+) offered a secular ideology of class liberation, challenging both capitalism and religion ("opiate of the masses").</p>
+        <p><strong>Imperial cultural impact</strong>: Western missionaries spread Christianity globally; Western education spread Enlightenment ideas in colonized lands &mdash; eventually fueling anti-colonial movements (Gandhi was Western-educated).</p>
+      </div>
+
+      <!-- ════ ERA 4 ════ -->
+      <div class="sh">Era 4 (1900&ndash;1945): Modern Art, Mass Politics, Propaganda</div>
+      <div class="b-card">
+        <p><strong>From Unit 7:</strong> Three competing political ideologies fought for dominance: <strong>liberal democracy</strong>, <strong>communism</strong>, <strong>fascism</strong> &mdash; all secular, all explicitly competing as comprehensive worldviews.</p>
+        <p><strong>Modern art</strong> rejected representation: Picasso\'s Cubism (1907+), Dadaism (anti-war, 1916+), Surrealism (Freudian dreams, 1920s), abstract expressionism (1940s). Reflected the chaos and trauma of the world wars.</p>
+        <p><strong>Propaganda</strong> emerged as a state art form: Soviet socialist realism, Nazi rallies and films (Riefenstahl), American war posters. Radio (1920s+) and film (1900s+) made mass propaganda possible at unprecedented scale.</p>
+        <p><strong>Anti-colonial cultural movements</strong>: <strong>N&eacute;gritude</strong> (Aim&eacute; C&eacute;saire, L&eacute;opold S&eacute;dar Senghor) celebrated African heritage; the <strong>Harlem Renaissance</strong> celebrated African-American culture; <strong>Indian nationalism</strong> revived Hindu and pre-colonial identity.</p>
+        <p><strong>Existentialism</strong> (Sartre, Camus) emerged from WWII trauma &mdash; humans must create meaning in an absurd universe.</p>
+      </div>
+
+      <!-- ════ ERA 5 ════ -->
+      <div class="sh">Era 5 (1945&ndash;1991): Cold War of Ideas</div>
+      <div class="b-card">
+        <p><strong>From Unit 8:</strong> The Cold War was an ideological contest, not just military.</p>
+        <p>&bull; <strong>Liberal democracy + capitalism</strong> in the West &mdash; Hollywood, jazz, rock and roll, abstract art, blue jeans as cultural exports. CIA secretly funded Western cultural programs.<br>
+        &bull; <strong>Communism</strong> in the East &mdash; socialist realism, classical music, ballet, propaganda film. Suppression of dissident artists (Solzhenitsyn).<br>
+        &bull; <strong>Anti-colonial nationalism</strong> + state-led modernization in newly independent nations.<br>
+        &bull; <strong>Non-Aligned Movement</strong> (Bandung 1955) tried to articulate a third path culturally as well as politically.</p>
+        <p><strong>Religious revivals</strong> in late 20th c.: <strong>Iranian Revolution (1979)</strong> brought Shi\'a Islamism to power; <strong>U.S. evangelical Christianity</strong> grew politically powerful; <strong>liberation theology</strong> in Latin America; <strong>Hindu nationalism</strong> in India.</p>
+        <p><strong>Civil rights and identity movements</strong>: <strong>U.S. Civil Rights Movement</strong> (MLK), <strong>second-wave feminism</strong>, anti-apartheid, LGBTQ+ rights movements (post-Stonewall 1969). All challenged received cultural hierarchies.</p>
+        <p><strong>Globalization of culture</strong>: Cold War ironically accelerated cultural exchange. American pop music penetrated the Iron Curtain (Beatles, jeans). Olympic Games as global stage. By 1989, Western consumer culture had won the cultural Cold War.</p>
+      </div>
+
+      <!-- ════ ERA 6 ════ -->
+      <div class="sh">Era 6 (1991&ndash;Present): Globalized Pop Culture &amp; Backlash</div>
+      <div class="b-card">
+        <p><strong>From Unit 9:</strong> Culture is now globalized at unprecedented speed and scale.</p>
+        <p>&bull; <strong>Westernization / "Americanization"</strong> &mdash; Hollywood, McDonald\'s, Coca-Cola, Disney, Apple. English as global lingua franca.<br>
+        &bull; <strong>Reverse flows</strong> &mdash; Bollywood, K-pop (BTS, Blackpink), Japanese anime/manga, Latin music, Korean dramas, soccer/football. Cultural traffic moves in many directions.<br>
+        &bull; <strong>Internet and social media</strong> (YouTube 2005, Facebook 2004, Twitter 2006, Instagram 2010, TikTok 2016) created instant global cultural networks.<br>
+        &bull; <strong>Globalized cuisine</strong> &mdash; sushi, Indian curry, Mexican tacos, Korean BBQ available everywhere.</p>
+        <p><strong>Cultural backlash and fundamentalism</strong>:</p>
+        <p>&bull; <strong>Religious fundamentalism</strong> &mdash; Iranian Revolution, Hindu nationalism (BJP rule of India from 2014), Christian evangelicalism (US), Salafi/Wahhabi Islamism (Al-Qaeda, ISIS), ultra-Orthodox Judaism.<br>
+        &bull; <strong>Right-wing populism</strong> &mdash; Brexit, Trumpism, European far-right &mdash; framed as defense of national culture against globalization.<br>
+        &bull; <strong>Indigenous cultural revival</strong> &mdash; UN Declaration on Indigenous Rights (2007), language revival movements (Welsh, Hawaiian, Maori), traditional knowledge protection.<br>
+        &bull; <strong>Climate movement</strong> &mdash; Greta Thunberg, Fridays for Future. New global youth culture organized around shared cause.</p>
+      </div>
+
+      <!-- ════ THE BIG QUESTIONS ════ -->
+      <div class="sh">The Big Questions for AP Synthesis</div>
+      <div class="b-card">
+        <p>The AP exam often asks thematic LEQ questions about culture across periods:</p>
+        <div class="b-grid">
+          <div class="b-mini">
+            <div class="b-mini-label">SPREAD OF RELIGIONS</div>
+            <div class="b-mini-text"><strong>"Compare the spread of two religions across periods."</strong> Try: Islam along Indian Ocean (1200) vs. Christianity via Atlantic missions (1500). Same function (cultural diffusion); different methods (trade vs. conquest); different outcomes (syncretism vs. forced conversion).</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">RELIGION → IDEOLOGY</div>
+            <div class="b-mini-text"><strong>"Trace the role of belief systems in shaping politics across periods."</strong> Try: Mandate of Heaven (Confucian) → divine right (Christian) → popular sovereignty (Enlightenment) → Marxism → liberal democracy. The "religion" of politics secularized over time.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">CULTURAL EXCHANGE</div>
+            <div class="b-mini-text"><strong>"Compare cultural exchange in two periods."</strong> Try: Silk Roads diffusion of Buddhism (1200) vs. internet diffusion of K-pop (2020). Same pattern; different speed; different scale.</div>
+          </div>
+          <div class="b-mini">
+            <div class="b-mini-label">REFORM &amp; REVIVAL</div>
+            <div class="b-mini-text"><strong>"Compare two religious or ideological reform movements."</strong> Try: Protestant Reformation (1517) vs. Wahhabism (18th c.) vs. Iranian Revolution (1979). All called for return to "pure" original tradition; all transformed politics.</div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tip"><strong>How to use this Briefing:</strong> CDI is the second-most-tested theme on the AP exam after GOV. Master one specific religious/cultural example per era (Buddhism on Silk Roads &rarr; Reformation &rarr; Enlightenment &rarr; modern art &rarr; civil rights &rarr; K-pop) and you have synthesis material for nearly any cultural LEQ.</div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB TAB — CED Required Examples
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-vocab" class="hub-panel">
+
+      <div class="vocab-info">
+        <div class="vocab-info-title">Theme Vocabulary — Cultural Developments Across All Periods</div>
+        <div class="vocab-info-desc">Click any term to flip and reveal the definition. These terms span all 9 units &mdash; religions, ideologies, cultural movements, art, science, and the actors who shaped them.</div>
+      </div>
+
+      <div id="vocab-content"></div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VOCAB QUIZ TAB — placeholder for now
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-quiz" class="hub-panel">
+      <div class="vocab-info">
+        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
+        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
+        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         OVERVIEW TAB — fully written
+    ═══════════════════════════════════════════════════ -->
+    <div id="tab-overview" class="hub-panel">
+
+      <div class="ov-hero">
+        <div class="ov-hero-title">Theme: Cultural Developments &amp; Interactions, 1200&ndash;Present</div>
+        <div class="ov-hero-desc">A cross-period synthesis of religion, ideology, art, science, and the diffusion of ideas. <strong>The second most-tested AP World theme after GOV.</strong> Use this game to prepare for thematic LEQs and exam synthesis questions about cultural change.</div>
+      </div>
+
+      <div class="ov-stat-grid">
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">UNITS COVERED</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">800</div><div class="ov-stat-label">YEARS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">~50</div><div class="ov-stat-label">VOCAB TERMS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">9</div><div class="ov-stat-label">ROUNDS</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">CCOT</div><div class="ov-stat-label">CORE SKILL</div></div>
+        <div class="ov-stat"><div class="ov-stat-val">LEQ</div><div class="ov-stat-label">FOCUS FORMAT</div></div>
+      </div>
+
+      <div class="sh">Cultural Developments Across the Units &mdash; Your Roadmap</div>
+      <div class="ov-topics">
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U1</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Tapestry (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Buddhism, Christianity, Islam, Hinduism, Confucianism. Mongol religious tolerance. Mansa Musa\'s hajj. Sufi mysticism. Islamic learning at Timbuktu. Heian Japan, Yuan drama, Dante\'s Divine Comedy.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U2</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Networks of Exchange (1200&ndash;1450)</div>
+            <div class="ov-topic-obj">Buddhism along Silk Roads. Islam across Indian Ocean and trans-Saharan trade. Crusades and knowledge transfer. Marco Polo, Ibn Battuta. Greek/Roman texts preserved by Islamic scholars; Renaissance roots.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U3</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Land-Based Empires (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Sunni-Shi\'a divide intensified. Akbar\'s Din-i Ilahi syncretism. Sikhism (Guru Nanak). Renaissance and humanism. Protestant Reformation (Luther, Calvin). Catholic Counter-Reformation (Jesuits). Scientific Revolution.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U4</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Transoceanic Interconnections (1450&ndash;1750)</div>
+            <div class="ov-topic-obj">Atlantic missions spread Christianity. Syncretic religions (Vodou, Candombl&eacute;, Santer&iacute;a) blend West African + Catholic. Globalized cuisine from Columbian Exchange. Casta system\'s cultural hierarchies.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U5</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Revolutions (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Enlightenment (Locke, Rousseau, Voltaire, Smith, Wollstonecraft). Romanticism. Second Great Awakening. Wahhabism. Hindu reformers (Rammohun Roy). Karl Marx and the Communist Manifesto. Olympe de Gouges and women\'s rights.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U6</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Consequences of Industrialization (1750&ndash;1900)</div>
+            <div class="ov-topic-obj">Western missionaries spread Christianity. Western education spread Enlightenment ideas in colonized lands &mdash; later fueling anti-colonial nationalism. Social Darwinism justified imperialism. Reform movements (abolitionism, suffrage).</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U7</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Global Conflict (1900&ndash;1945)</div>
+            <div class="ov-topic-obj">Three competing political ideologies (liberal democracy, communism, fascism). Modern art (Picasso, Dadaism, Surrealism). Propaganda as state art form. N&eacute;gritude, Harlem Renaissance, anti-colonial cultural movements. Existentialism.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U8</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Cold War &amp; Decolonization (1945&ndash;1991)</div>
+            <div class="ov-topic-obj">Cultural Cold War (Hollywood vs. socialist realism). Civil rights and identity movements (MLK, feminism, anti-apartheid, Stonewall). Iranian Revolution. Liberation theology. Hindu nationalism. Beatles penetrate Iron Curtain.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+
+        <div class="ov-topic">
+          <div class="ov-topic-num">U9</div>
+          <div class="ov-topic-info">
+            <div class="ov-topic-title">Globalization (1900&ndash;Present)</div>
+            <div class="ov-topic-obj">Hollywood, Bollywood, K-pop, anime, Latin music, soccer. English as global language. Internet and social media. Religious fundamentalism (evangelical, Salafi, Hindu). Right-wing populism. Indigenous cultural revival. Climate movement.</div>
+          </div>
+          <div class="ov-topic-themes"><span class="theme-pill tp-cdi">CDI</span></div>
+        </div>
+      </div>
+
+      <div class="sh">CCOT Skills This Theme Develops</div>
+      <div class="ov-skills">
+        <div class="ov-skill"><div class="ov-skill-name">CONTINUITY &amp; CHANGE OVER TIME (CCOT)</div><div class="ov-skill-desc">Continuities: trade spreads ideas; syncretism; elite vs. popular cultures; periodic religious revival. Changes: sacred → secular legitimacy; manuscript → print → digital; regional → global pop culture.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">COMPARISON ACROSS PERIODS</div><div class="ov-skill-desc">Cross-period comparisons &mdash; Islam along Indian Ocean (1200) vs. Christianity via Atlantic missions (1500); Reformation (1517) vs. Wahhabism (18th c.) vs. Iranian Revolution (1979).</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">CAUSATION CHAINS</div><div class="ov-skill-desc">Long causal chains: Enlightenment → Atlantic Revolutions → secular nationalism → 20th-century ideologies. Or: Western missionaries + colonial education → anti-colonial nationalism → independence movements.</div></div>
+        <div class="ov-skill"><div class="ov-skill-name">ARGUMENTATION (LEQ-focused)</div><div class="ov-skill-desc">Build a thesis claim about cultural change across periods, support it with three specific examples drawn from at least two different units, qualify with counterevidence.</div></div>
+      </div>
+
+      <div class="b-tip"><strong>How to use this theme game:</strong> CDI rewards specific knowledge of religions, philosophies, and reform movements. Memorize one specific cultural example per era (Sufi Islam &rarr; Reformation &rarr; Enlightenment philosopher &rarr; modern art movement &rarr; civil rights leader &rarr; K-pop) and you have ready material for any cultural LEQ.</div>
+
+    </div>
+  </div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  AP WORLD HISTORY — THEME: CULTURAL DEVELOPMENTS & INTERACTIONS (CDI)
+// ════════════════════════════════════════════════════════════════════
+
+const UNIT_ID = 'apwh_th_cdi';
+const UNIT_TITLE = 'Theme: Cultural Developments & Interactions';
+
+// ── ROUNDS ────────────────────────────────────────────────────────────
+const ROUNDS = [
+  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Religious World Systems', icon:'☸️', themes:['CDI'],
+   desc:'Buddhism, Christianity, Islam, Hinduism, Confucianism. Mongol religious tolerance. Mansa Musa\'s hajj. Sufi mysticism. Drawn from Units 1–2.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Reformation & Renaissance', icon:'✝️', themes:['CDI'],
+   desc:'Renaissance and humanism. Protestant Reformation (Luther, Calvin). Catholic Counter-Reformation. Sunni-Shi\'a divide. Akbar\'s Din-i Ilahi. Sikhism. Scientific Revolution. Drawn from Unit 3.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Atlantic Encounters', icon:'⛪', themes:['CDI'],
+   desc:'Atlantic missions. Syncretic religions (Vodou, Candombl&eacute;, Santer&iacute;a). Casta system culture. Globalized cuisine from Columbian Exchange. Drawn from Unit 4.',
+   type:'mcq', questions:8, group:'core'},
+  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: The Enlightenment Age', icon:'💡', themes:['CDI'],
+   desc:'Enlightenment philosophes (Locke, Rousseau, Voltaire). Romanticism. Second Great Awakening. Wahhabism. Marx and the Communist Manifesto. Wollstonecraft, de Gouges, abolitionism. Drawn from Units 5–6.',
+   type:'mcq', questions:12, group:'core'},
+  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Modernism & Mass Politics', icon:'🎨', themes:['CDI'],
+   desc:'Three competing ideologies (liberal democracy, communism, fascism). Modern art (Picasso, Dadaism, Surrealism). Propaganda. N&eacute;gritude, Harlem Renaissance. Existentialism. Drawn from Unit 7.',
+   type:'mcq', questions:10, group:'core'},
+  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['CDI'],
+   desc:'Cultural Cold War. Civil rights and identity movements. Iranian Revolution. Liberation theology. Hollywood, Bollywood, K-pop, anime. Religious fundamentalism. Drawn from Units 8–9.',
+   type:'mcq', questions:12, group:'core'},
+
+  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['CDI'],
+   desc:'Cross-period comparison: spread of religions across periods; reform/revival movements (Reformation vs. Wahhabism vs. Iranian Revolution); cultural exchange (Silk Roads vs. internet).',
+   type:'comparison', questions:8, group:'skills'},
+  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['CDI'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in religion, ideology, and culture from 1200 to present. Argumentation 6.B.',
+   type:'ccot', questions:6, group:'skills'},
+
+  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['CDI'],
+   desc:'1 full Long Essay Question with rubric scoring. Sample prompt: "Evaluate the extent to which religious reform movements changed politics across two different periods."',
+   type:'leq', questions:1, group:'frq'},
+];
+
+// ── VOCABULARY ─────────────────────────────────────────────────────
+const VOCAB = {
+  'Era 1 (1200–1450) — Religious Worlds': {icon:'☸️', terms:[
+    {term:'Mahayana Buddhism', def:'"Greater Vehicle." Branch of Buddhism dominant in China, Korea, Japan. Emphasized bodhisattvas (enlightened beings who help others). Absorbed Daoist elements in China.'},
+    {term:'Theravada Buddhism', def:'"School of the Elders." Branch of Buddhism dominant in Sri Lanka and SE Asia (Thailand, Burma, Cambodia, Laos). More conservative; emphasized monasticism and individual enlightenment.'},
+    {term:'Sufism', def:'Mystical tradition within Islam. Emphasized direct personal experience of God through meditation, music, dance. Played key role in spreading Islam to South Asia, SE Asia, Africa.'},
+    {term:'Sunni Islam', def:'Majority branch of Islam. Recognizes the first four caliphs as legitimate successors to Muhammad. Dominant in Ottoman, Mughal, and most modern Muslim populations.'},
+    {term:'Shi\'a Islam', def:'Minority branch of Islam. Believes Muhammad\'s successor should have been his son-in-law Ali; reveres a line of Imams. Dominant in Iran (Twelver Shi\'ism made state religion under Safavids).'},
+    {term:'Mongol Religious Tolerance', def:'Mongol khans permitted Buddhism, Christianity, Islam, and Daoism within their empire. Khubilai Khan invited Polo brothers; Ilkhanate khans converted to Islam.'},
+    {term:'Mansa Musa\'s Hajj (1324)', def:'West African ruler\'s pilgrimage to Mecca. Distributed so much gold in Cairo it caused inflation. Made Mali famous in Islamic world; built Djinguereber Mosque in Timbuktu.'},
+    {term:'Timbuktu', def:'Mali Empire city. Major Islamic learning center: Sankore Madrasah, vast library. Symbol of African Islamic intellectual achievement.'},
+    {term:'Dante\'s Divine Comedy (1320)', def:'Italian epic poem in vernacular Italian (not Latin). Three-part journey through Hell, Purgatory, Paradise. Pioneered vernacular literature; foundation of modern Italian.'},
+    {term:'Marco Polo', def:'Venetian merchant who traveled to Yuan China (1271–95). His written account introduced Europe to Asian wealth and culture; influenced later European exploration.'},
+    {term:'Ibn Battuta', def:'Moroccan scholar (1304–69). Traveled ~75,000 miles across Islamic world over 30 years. His Rihla is greatest pre-modern travel literature; documented Mali, Indian Ocean, China.'},
+  ]},
+  'Era 2 (1450–1750) — Reformation & Encounter': {icon:'✝️', terms:[
+    {term:'Renaissance', def:'European cultural movement c. 1350–1600. Revival of classical Greek and Roman learning. Italian origins (Florence, Venice). Leonardo, Michelangelo, Petrarch. Humanism replaced purely religious worldview.'},
+    {term:'Humanism', def:'Renaissance intellectual movement emphasizing human achievement and classical learning. Petrarch the founder. Foundation of secular education.'},
+    {term:'Protestant Reformation (1517+)', def:'Martin Luther\'s 95 Theses split Western Christianity. Sola scriptura (scripture alone), sola fide (faith alone). Printing press enabled spread.'},
+    {term:'Martin Luther', def:'German monk and theologian (1483–1546). Posted 95 Theses (1517); translated Bible into German. Father of Protestantism.'},
+    {term:'John Calvin', def:'French theologian (1509–64). Geneva-based. Predestination doctrine. Calvinism spread to Scotland (Presbyterians), Netherlands, France (Huguenots), and English Puritans.'},
+    {term:'Counter-Reformation', def:'Catholic response to Protestantism. Council of Trent (1545–63) reaffirmed Catholic doctrine. Jesuit order (founded 1540) led missions and education globally.'},
+    {term:'Jesuit Order', def:'Catholic religious order founded by Ignatius Loyola (1540). Emphasized education and missions. Spread Catholicism globally; ran schools and universities; influential in China and Japan.'},
+    {term:'Akbar\'s Din-i Ilahi', def:'Mughal emperor Akbar\'s syncretic religion (founded 1582). Combined elements of Islam, Hinduism, Christianity, Zoroastrianism. Failed; abolished after Akbar\'s death.'},
+    {term:'Sikhism', def:'Religion founded in Punjab (c. 1500) by Guru Nanak. Blended Hindu and Islamic elements. Emphasized one God, equality, devotional service. ~25 million followers today.'},
+    {term:'Scientific Revolution', def:'1543+ transformation of European thought. Copernicus (heliocentric), Galileo, Newton (laws of motion). Empirical method replaced authority. Foundation of modern science.'},
+    {term:'Vodou', def:'Syncretic religion of Haiti. Blended West African Yoruba/Fon religions with Catholicism. Practiced by enslaved Africans; central to Haitian Revolution. Misrepresented in Western culture.'},
+    {term:'Candombl&eacute;', def:'Syncretic Afro-Brazilian religion. Blended Yoruba religion (orixás) with Catholic saints. Emerged among enslaved Africans in Brazil. Still practiced today.'},
+    {term:'Santer&iacute;a', def:'Syncretic religion in Cuba. Blended Yoruba religion with Catholic saints. Emerged among enslaved Africans. Spread throughout Latin America and Latino communities.'},
+  ]},
+  'Era 3 (1750–1900) — Enlightenment Age': {icon:'💡', terms:[
+    {term:'Enlightenment', def:'European intellectual movement c. 1685–1815. Reason can solve human problems; natural rights; consent of governed; religious tolerance. Foundation of modern liberalism.'},
+    {term:'John Locke', def:'English philosopher (1632–1704). Natural rights to "life, liberty, and property." Social contract theory. Heavy influence on Declaration of Independence.'},
+    {term:'Jean-Jacques Rousseau', def:'Genevan philosopher (1712–78). "General will" of the people; popular sovereignty. The Social Contract (1762) was foundational for French Revolution.'},
+    {term:'Montesquieu', def:'French philosopher (1689–1755). Argued for separation of powers (executive, legislative, judicial) to prevent tyranny. Spirit of the Laws (1748). Influenced US Constitution.'},
+    {term:'Voltaire', def:'French philosopher (1694–1778). Champion of religious tolerance, freedom of speech, civil rights. "I disapprove of what you say, but I will defend to the death your right to say it."'},
+    {term:'Adam Smith', def:'Scottish philosopher (1723–90). The Wealth of Nations (1776). "Invisible hand" of the market. Foundation of liberal capitalism.'},
+    {term:'Mary Wollstonecraft', def:'British writer (1759–97). A Vindication of the Rights of Woman (1792). Argued women deserve same education and rights as men. Founder of feminist political philosophy.'},
+    {term:'Olympe de Gouges', def:'French playwright (1748–93). Wrote Declaration of the Rights of Woman (1791) extending Rights of Man to women. Executed during the Reign of Terror.'},
+    {term:'Romanticism', def:'Cultural movement c. 1800–50. Reacted against Enlightenment rationalism. Emphasized emotion, nature, the individual genius, the nation. Goethe, Wordsworth, Beethoven.'},
+    {term:'Second Great Awakening', def:'U.S. religious revival c. 1820s–60s. Emphasized personal salvation and social reform. Drove abolitionism, women\'s suffrage, temperance, prison reform.'},
+    {term:'Wahhabism', def:'Sunni Islamic reform movement founded by Muhammad ibn Abd al-Wahhab (mid-1700s, Arabia). Called for return to "pure" Islam; rejected innovations. Core ideology of Saudi Arabia.'},
+    {term:'Karl Marx', def:'German philosopher (1818–83). With Engels, wrote Communist Manifesto (1848) and Das Kapital (1867). Argued capitalism produces inevitable class revolution. Foundation of socialism.'},
+    {term:'Communist Manifesto (1848)', def:'Marx and Engels\' founding text. Argued history is class struggle; capitalism produces inequality and revolution; "Workers of the world, unite!"'},
+    {term:'Social Darwinism', def:'Late 19th-c. ideology applying "survival of the fittest" to societies and races. Justified imperialism, racism. Misuse of Darwin\'s biological theory.'},
+  ]},
+  'Era 4 (1900–1945) — Modernism': {icon:'🎨', terms:[
+    {term:'Cubism', def:'Picasso and Braque\'s art movement (1907+). Showed objects from multiple perspectives simultaneously. Rejected single-viewpoint Renaissance perspective. Foundation of modern art.'},
+    {term:'Dadaism', def:'Anti-war art movement (1916+). Born from disgust with WWI carnage. Marcel Duchamp\'s readymades. Embraced absurdity; rejected traditional aesthetic standards.'},
+    {term:'Surrealism', def:'1920s+ art movement. Drew on Freudian psychology and dreams. Salvador Dal&iacute;, Ren&eacute; Magritte, Frida Kahlo. Sought to release the unconscious mind.'},
+    {term:'Socialist Realism', def:'Soviet state art style (Stalin era+). Idealized scenes of workers, peasants, revolutionary leaders. Required by communist regimes globally.'},
+    {term:'Propaganda', def:'State-directed messaging. Soviet posters, Nazi rallies (Riefenstahl\'s Triumph of the Will), American war posters. Radio and film made mass propaganda possible at unprecedented scale.'},
+    {term:'N&eacute;gritude', def:'Francophone Black cultural movement (1930s+). Aim&eacute; C&eacute;saire, L&eacute;opold S&eacute;dar Senghor, L&eacute;on Damas. Celebrated African heritage; rejected colonial racism.'},
+    {term:'Harlem Renaissance', def:'African-American cultural movement (1920s+). Centered in Harlem, NYC. Langston Hughes, Zora Neale Hurston, Duke Ellington. Celebrated Black culture and challenged racism.'},
+    {term:'Existentialism', def:'Philosophy emerging from WWII trauma. Sartre, Camus, de Beauvoir. Humans must create meaning in an absurd universe. Influenced literature, theater, theology.'},
+  ]},
+  'Era 5–6 (1945–Present) — Global Culture': {icon:'🌐', terms:[
+    {term:'Cultural Cold War', def:'Ideological competition between U.S. (Hollywood, jazz, rock, abstract art, blue jeans) and USSR (socialist realism, ballet, propaganda film). CIA secretly funded Western cultural programs.'},
+    {term:'Beat Generation', def:'1950s American countercultural literary movement. Allen Ginsberg (Howl), Jack Kerouac (On the Road). Rejected conformity; influenced 1960s counterculture.'},
+    {term:'Civil Rights Movement', def:'U.S. mass nonviolent campaign against racial segregation, peaking 1955–68. Martin Luther King Jr. as central leader. Inspired similar movements globally.'},
+    {term:'Martin Luther King Jr.', def:'Civil Rights leader (1929–68). Inspired by Gandhi\'s nonviolence. "I Have a Dream" (1963). Letter from Birmingham Jail. Won Nobel Peace Prize 1964; assassinated 1968.'},
+    {term:'Second-Wave Feminism', def:'1960s–80s women\'s rights movement. Equal pay, reproductive rights, workplace equality. Betty Friedan\'s The Feminine Mystique (1963). UN Decade for Women (1975–85).'},
+    {term:'Stonewall Riots (1969)', def:'NYC LGBTQ+ uprising against police raids. Considered the start of the modern gay rights movement. Pride marches commemorate it annually worldwide.'},
+    {term:'Iranian Revolution (1979)', def:'Ayatollah Khomeini overthrew U.S.-backed Shah; established Islamic Republic. Combined religious revival, anti-imperialism, anti-monarchism. Set up U.S.-Iran rivalry.'},
+    {term:'Liberation Theology', def:'Latin American Catholic movement combining Christianity with social justice and Marxist critique. Influential 1960s–80s; opposition from Vatican limited it.'},
+    {term:'Hindu Nationalism', def:'Movement asserting Hindu cultural and political identity in India. Bharatiya Janata Party (BJP) rule from 2014 (Modi). Major political and cultural force.'},
+    {term:'Hollywood', def:'U.S. film industry; dominant globally throughout 20th century. Symbol of "Americanization" and U.S. soft power. Major export of consumer culture.'},
+    {term:'Bollywood', def:'Indian (Mumbai) film industry. Produces more films annually than Hollywood. Massive following in South Asia, Middle East, Africa. Symbol of non-Western culture going global.'},
+    {term:'K-Pop', def:'Korean pop music. Became a global phenomenon in the 2010s. BTS, Blackpink. Exemplifies non-Western culture going global via internet.'},
+    {term:'Anime &amp; Manga', def:'Japanese animation and comics. Major global cultural exports since 1990s. Pokemon, Studio Ghibli, Naruto, One Piece.'},
+    {term:'Religious Fundamentalism', def:'Movements asserting traditional religious values against secular globalization. Christian evangelicalism, Hindu nationalism, Islamic revivalism (Salafism), ultra-Orthodox Judaism.'},
+    {term:'Greta Thunberg', def:'Swedish climate activist (b. 2003). Started Fridays for Future student strikes 2018. Galvanized global youth climate movement.'},
+    {term:'Indigenous Cultural Revival', def:'UN Declaration on Indigenous Rights (2007). Language revival movements (Welsh, Hawaiian, Maori). Traditional knowledge protection. Land claims.'},
+  ]},
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE & STORAGE
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE-FIRST PERSISTENCE
+//  Chromebooks wipe localStorage on logout — Supabase is the source of truth
+// ════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dnmrwglrcvlbamzhlzlx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
+const SUPA_H = {
+  'Content-Type':'application/json',
+  'apikey':SUPA_KEY,
+  'Authorization':'Bearer '+SUPA_KEY
+};
+const STORAGE_KEY = 'apwh_theme_cdi_progress';        // legacy localStorage cache
+const ROUNDS_COL  = 'unit_rounds_apwh_th_cdi';        // Supabase column for round data
+const PARTIAL_COL = 'unit_partial_apwh_th_cdi';       // Supabase column for in-progress drafts
+
+let _state = loadState();
+let _dbFullName = '';      // canonical full_name from Supabase (after _loadProfileFromDB)
+let _dbLoaded = false;     // true once DB attempt has resolved (success OR fail)
+
+function _getFullName(){
+  return (localStorage.getItem('civitas_full_name')
+       || localStorage.getItem('civitas_student_name')
+       || '').trim();
+}
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+  catch(e){return{};}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));}catch(e){}
+  // Fire-and-forget Supabase save (don't block the UI)
+  saveProgressToSupabase();
+}
+function getRoundProgress(roundId){
+  return _state.rounds && _state.rounds[roundId] || null;
+}
+
+// ── Pull progress from Supabase on boot ───────────────────────────────
+async function _loadProfileFromDB(){
+  try{
+    const fn = _getFullName();
+    if(!fn || fn === 'Mr. Olson'){ _dbLoaded = true; return; }
+    const r = await Promise.race([
+      fetch(SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fn) + '&select=*&limit=1', {headers: SUPA_H}),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000))
+    ]);
+    if(!r.ok){ _dbLoaded = true; return; }
+    const rows = await r.json();
+    const p = Array.isArray(rows) && rows[0] ? rows[0] : null;
+    if(!p){ _dbLoaded = true; return; }
+    _dbFullName = (p.full_name || fn).trim();
+    // Restore round data — Supabase wins over localStorage
+    if(p[ROUNDS_COL]){
+      try{
+        const dbRounds = JSON.parse(p[ROUNDS_COL] || '{}');
+        _state.rounds = _state.rounds || {};
+        Object.keys(dbRounds).forEach(rk => {
+          const local = _state.rounds[rk];
+          const remote = dbRounds[rk];
+          // Newer one wins — by timestamp if available, else remote
+          if(!local || (remote && remote.completedAt && (!local.completedAt || local.completedAt < remote.completedAt))){
+            _state.rounds[rk] = remote;
+          }
+        });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }catch(e){}
+      }catch(e){}
+    }
+  }catch(e){ /* offline / network failure — silently use localStorage */ }
+  _dbLoaded = true;
+}
+
+// ── Push progress to Supabase after every change ──────────────────────
+async function saveProgressToSupabase(){
+  try{
+    const fn = _dbFullName || _getFullName();
+    if(!fn || fn === 'Mr. Olson') return;
+    const payload = {
+      full_name: fn,
+      [ROUNDS_COL]: JSON.stringify(_state.rounds || {}),
+      updated_at: new Date().toISOString()
+    };
+    await fetch(SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: { ...SUPA_H, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+  }catch(e){ /* offline — localStorage will sync on next save */ }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Play tab activity cards
+// ════════════════════════════════════════════════════════════════════
+function renderRoundCards(){
+  const groups = {core:[],skills:[],frq:[]};
+  ROUNDS.forEach(r => groups[r.group].push(r));
+
+  document.getElementById('round-cards-core').innerHTML  = groups.core.map(roundCard).join('');
+  document.getElementById('round-cards-skills').innerHTML = groups.skills.map(roundCard).join('');
+  document.getElementById('round-cards-frq').innerHTML  = groups.frq.map(roundCard).join('');
+
+  // Progress
+  const completed = ROUNDS.filter(r => {
+    const p = getRoundProgress(r.id);
+    return p && p.completed;
+  }).length;
+  const pct = Math.round((completed / ROUNDS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = completed + ' / ' + ROUNDS.length + ' ROUNDS';
+}
+
+function roundCard(r){
+  const prog = getRoundProgress(r.id);
+  const done = prog && prog.completed;
+  const accent = done ? 'var(--green2)' : 'var(--bronze)';
+  const themesHTML = r.themes.map(t =>
+    `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+  const badge = done
+    ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+  const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
+  return `
+    <div class="activity-card" onclick="launchRound('${r.id}')">
+      <div class="activity-card-strip" style="background:${accent}"></div>
+      <div class="activity-card-body">
+        ${badge}
+        <div class="activity-card-icon">${r.icon}</div>
+        <div class="activity-card-label">ROUND ${r.num} · TOPIC ${r.topic} · ${label.toUpperCase()}</div>
+        <div class="activity-card-title">${r.title}</div>
+        <div class="activity-card-meta">${themesHTML}</div>
+        <div class="activity-card-desc">${r.desc}</div>
+        <div class="activity-card-action">▶ ${done ? 'Replay' : 'Begin'} Round</div>
+      </div>
+    </div>`;
+}
+
+function launchRound(roundId){
+  // Phase 2 will wire in the actual question runner.
+  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Cultural Developments theme.');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER — Vocab tab
+// ════════════════════════════════════════════════════════════════════
+function renderVocab(){
+  const el = document.getElementById('vocab-content');
+  let html = '';
+  Object.keys(VOCAB).forEach(region => {
+    const data = VOCAB[region];
+    html += `<div class="vocab-region-header"><span class="vocab-region-icon">${data.icon}</span> ${region}</div>`;
+    html += '<div class="vocab-grid">';
+    data.terms.forEach(t => {
+      html += `<div class="vocab-card" onclick="this.classList.toggle('flipped')">
+        <div class="vocab-card-term">${t.term}</div>
+        <div class="vocab-card-def">${t.def}</div>
+        <div class="vocab-card-hint">click to reveal</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════
+function goBack(){
+  // Returns to the Civitas shell AND auto-enters the AP World course.
+  // The shell reads civitas_last_course on boot and calls enterCourse(lastCourse)
+  // — so setting it here keeps the student inside AP World instead of bouncing
+  // them out to the catalog.
+  try{
+    localStorage.setItem('civitas_returning','1');
+    localStorage.setItem('civitas_last_course','ap_wh');
+  }catch(e){}
+  window.location.href = 'https://olsonjoshua-code.github.io/Civitas/';
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+function boot(){
+  // Kick off Supabase profile load in parallel with the loading bar
+  _loadProfileFromDB();
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const tick = setInterval(() => {
+    pct += 12 + Math.random() * 14;
+    if (pct >= 100) {
+      pct = 100;
+      bar.style.width = '100%';
+      clearInterval(tick);
+      setTimeout(() => {
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('hub').style.display = 'flex';
+          renderRoundCards();
+          renderVocab();
+          // If Supabase load finishes after render, refresh progress display
+          const refreshTimer = setInterval(() => {
+            if (_dbLoaded) {
+              clearInterval(refreshTimer);
+              renderRoundCards();   // re-render with cloud-restored progress
+            }
+          }, 200);
+          setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
+        }, 400);
+      }, 200);
+    } else {
+      bar.style.width = pct + '%';
+    }
+  }, 90);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+
+</body>
+</html>
