@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -613,12 +756,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 6 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every CED topic in the unit: rationales for imperialism, the Scramble for Africa, imperialism in Asia, indigenous responses, the global economy, economic imperialism, and the great age of migration. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -758,6 +907,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 6 DATA
@@ -766,57 +963,468 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u6';
 const UNIT_TITLE = 'Consequences of Industrialization';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 3 imperialism rounds + 5 economy/migration rounds + 1 CCOT + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 6 Consequences of Industrialization (c. 1750 – c. 1900)
+//  8 MCQ rounds, 36 questions total (Pass 1):
+//    r1=5 r2=5 r3=5 r4=4 r5=4 r6=4 r7=5 r8=4
+//  Plus 4 Pass-2 stubs (Causation synthesis, Document Analysis, SAQ, LEQ)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Imperialism (Topics 6.1–6.3) ──
-  {id:'r1',  num:1,  topic:'6.1', title:'Rationales for Imperialism', icon:'🏛️', themes:['CDI','GOV'],
-   desc:'Why Europeans expanded: economic motives, political rivalry, Social Darwinism, the "civilizing mission," missionaries, nationalism. Kipling\'s "White Man\'s Burden."',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r2',  num:2,  topic:'6.2', title:'Scramble for Africa', icon:'🌍', themes:['GOV','TEC'],
-   desc:'The Berlin Conference (1884–85), Cecil Rhodes, Belgian Congo and Leopold II, the Battle of Adwa, Anglo-Boer Wars. From 10% to 90% of Africa colonized in 30 years.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r3',  num:3,  topic:'6.2', title:'Imperialism in Asia', icon:'🐉', themes:['GOV','ECN'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — RATIONALES FOR IMPERIALISM  (Topic 6.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'6.1', title:'Rationales for Imperialism', icon:'🏛️', themes:['CDI','GOV'],
+   desc:'Why Europeans expanded: economic motives, political rivalry, Social Darwinism, the "civilizing mission," missionaries, nationalism.',
+   type:'mcq', group:'core', label:'Round 1 — Rationales for Imperialism', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u6_mcq_001', topic:'6.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Social Darwinism was used to justify late-19th-century imperialism by',
+      choices:[
+        {id:'A', text:'applying ideas of "survival of the fittest" to nations and races to claim European dominance was natural.'},
+        {id:'B', text:'arguing that all human races and societies were biologically and politically equal in every meaningful way.'},
+        {id:'C', text:'rejecting evolutionary theory entirely and grounding imperial rule purely in Christian missionary doctrine alone.'},
+        {id:'D', text:'asserting that colonized peoples were destined to overthrow European empires within a single generation.'}
+      ], correct:'A',
+      explanation:'Social Darwinism misapplied biological evolution to nations and races, using it to argue European industrial dominance reflected a natural hierarchy and justified the colonization of "less fit" societies.'},
+
+    {id:'wh_u6_mcq_002', topic:'6.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Rudyard Kipling\'s "The White Man\'s Burden" (1899) most directly captured the rationale that',
+      choices:[
+        {id:'A', text:'Western nations had a moral duty to "civilize" non-European peoples through imperial rule and conversion.'},
+        {id:'B', text:'imperial expansion was economically harmful and Europeans should immediately give up their overseas colonies.'},
+        {id:'C', text:'colonized peoples should be granted full self-government within the British Empire as soon as possible.'},
+        {id:'D', text:'imperialism was rooted entirely in racial science and had nothing to do with morality, religion, or economics.'}
+      ], correct:'A',
+      explanation:'Kipling\'s poem framed imperialism as a moral burden: Western nations supposedly had a duty to "civilize" non-European peoples. The "civilizing mission" rationale combined racial assumptions with Christian and Enlightenment ideals.'},
+
+    {id:'wh_u6_mcq_003', topic:'6.1', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Industrialized European powers had a clear economic motive for imperial expansion because they sought',
+      choices:[
+        {id:'A', text:'cheap raw materials for their factories and new markets where they could sell their finished manufactured goods.'},
+        {id:'B', text:'an opportunity to abandon mercantilism in favor of full free trade with all non-European societies and economies.'},
+        {id:'C', text:'long-term reductions in their domestic industrial output to relieve crowding in major European industrial centers.'},
+        {id:'D', text:'large-scale settlement opportunities for their surplus aristocrats, who would govern colonies on hereditary terms.'}
+      ], correct:'A',
+      explanation:'Industrial economies needed raw materials (rubber, cotton, palm oil, minerals) and new markets for manufactured goods. This economic logic was a major driver of late-19th-century imperialism.'},
+
+    {id:'wh_u6_mcq_004', topic:'6.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Christian missionaries contributed to European imperialism most directly by',
+      choices:[
+        {id:'A', text:'building schools and hospitals in colonies, which spread Western culture alongside Christian conversion efforts.'},
+        {id:'B', text:'rejecting all Western governments and refusing to cooperate with any colonial administrative authorities abroad.'},
+        {id:'C', text:'opposing the European conquest of Africa and Asia and lobbying their own home governments to abandon empire.'},
+        {id:'D', text:'establishing autonomous local Christian republics that broke off from European political control all across Africa.'}
+      ], correct:'A',
+      explanation:'Missionaries built schools, hospitals, and translated texts. Their work spread Christianity but also Western languages and ideas, often supporting and reinforcing the broader colonial project.'},
+
+    {id:'wh_u6_mcq_005', topic:'6.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that nationalism drove late-19th-century imperialism would most likely emphasize',
+      choices:[
+        {id:'A', text:'the political competition among European states to acquire colonies as marks of national prestige and power.'},
+        {id:'B', text:'a unified European agreement that consciously avoided national rivalry in colonial expansion across Africa and Asia.'},
+        {id:'C', text:'the deliberate rejection of national identity by colonial governments in favor of universalist Enlightenment ideals.'},
+        {id:'D', text:'the emergence of a single European state that absorbed all of the rival European colonial empires by about 1880.'}
+      ], correct:'A',
+      explanation:'Nationalism turned colonies into status symbols. France\'s humiliation in 1870-71 and Germany\'s late unification fed competition; new colonies advertised national greatness. Empire and nationalism reinforced each other.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — SCRAMBLE FOR AFRICA  (Topic 6.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'6.2', title:'Scramble for Africa', icon:'🌍', themes:['GOV','TEC'],
+   desc:'The Berlin Conference (1884–85), Cecil Rhodes, Belgian Congo and Leopold II, the Battle of Adwa, Anglo-Boer Wars.',
+   type:'mcq', group:'core', label:'Round 2 — Scramble for Africa', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u6_mcq_006', topic:'6.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Berlin Conference (1884-85) is best understood as a meeting in which',
+      choices:[
+        {id:'A', text:'European powers established rules for partitioning Africa among themselves with no African representatives present.'},
+        {id:'B', text:'African rulers and European diplomats jointly negotiated a fair and balanced division of the African continent.'},
+        {id:'C', text:'European nations agreed to abandon all colonial claims in Africa and recognize full African political independence.'},
+        {id:'D', text:'Britain and Germany jointly declared a major war on the Ottoman Empire in order to seize control over the entire Sahara.'}
+      ], correct:'A',
+      explanation:'European powers met in Berlin to set rules for the colonial division of Africa. No African leaders were invited. The conference accelerated the "Scramble" that took European control of Africa from about 10% to about 90% in three decades.'},
+
+    {id:'wh_u6_mcq_007', topic:'6.2', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The rapid European conquest of Africa in the late 19th century was made possible most directly by',
+      choices:[
+        {id:'A', text:'industrial-era technologies including steamships, repeating rifles, the Maxim gun, and quinine for malaria prevention.'},
+        {id:'B', text:'the formal voluntary submission of all African rulers, who joined European empires in exchange for trade benefits.'},
+        {id:'C', text:'a coordinated mass migration of millions of European settlers who outnumbered local African populations everywhere.'},
+        {id:'D', text:'the deliberate abandonment by African states of nearly every existing iron-age weapon and military training tradition in the region.'}
+      ], correct:'A',
+      explanation:'Industrial technologies tipped the military balance: steamships penetrated rivers, breech-loading rifles and the Maxim gun outmatched African weapons, and quinine let Europeans survive in tropical regions.'},
+
+    {id:'wh_u6_mcq_008', topic:'6.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'King Leopold II\'s rule of the Congo Free State is most often cited as an example of',
+      choices:[
+        {id:'A', text:'extreme exploitation under colonial rule, with forced labor for rubber that killed millions of Congolese.'},
+        {id:'B', text:'a relatively mild colonial regime that gradually extended elected representation to Congolese subjects.'},
+        {id:'C', text:'a successful Belgian effort to industrialize central Africa within the first decade of colonial rule there.'},
+        {id:'D', text:'an imperial regime that abolished slavery in central Africa and immediately established universal public education.'}
+      ], correct:'A',
+      explanation:'Leopold ran the Congo as personal property and extracted rubber through forced labor and brutal violence. Estimates of Congolese deaths run into the millions; the regime became notorious enough that Belgium took it over in 1908.'},
+
+    {id:'wh_u6_mcq_009', topic:'6.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1896 Battle of Adwa is significant primarily because',
+      choices:[
+        {id:'A', text:'Ethiopian forces under Menelik II defeated an invading Italian army, preserving Ethiopian independence.'},
+        {id:'B', text:'British forces decisively defeated the last independent African state in central southern Africa during 1896.'},
+        {id:'C', text:'a coalition of European powers jointly defeated the Mahdist state and brought all of Sudan under Anglo-Egyptian rule.'},
+        {id:'D', text:'a German colonial regiment defeated the Belgian forces in the Congo and seized Katanga\'s mineral resources.'}
+      ], correct:'A',
+      explanation:'At Adwa, Menelik II\'s Ethiopian army defeated invading Italian forces. Ethiopia was the only large African state to maintain its independence from European conquest during the Scramble for Africa.'},
+
+    {id:'wh_u6_mcq_010', topic:'6.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Cecil Rhodes is best understood as a figure who',
+      choices:[
+        {id:'A', text:'combined private business with imperial ambition, building enormous wealth from southern African mining.'},
+        {id:'B', text:'served as a British missionary who opposed European imperial expansion across the African continent.'},
+        {id:'C', text:'led African resistance against European powers throughout most of the late nineteenth century in southern Africa.'},
+        {id:'D', text:'organized the diplomatic conference that formally divided central Africa among the European colonial powers.'}
+      ], correct:'A',
+      explanation:'Rhodes built diamond and gold fortunes in southern Africa and used his wealth to extend British control. His career exemplifies the late-19th-century blending of corporate enterprise with state imperial ambition.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — IMPERIALISM IN ASIA  (Topic 6.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'6.2', title:'Imperialism in Asia', icon:'🐉', themes:['GOV','ECN'],
    desc:'British Raj after the Sepoy Mutiny, Opium Wars and unequal treaties in China, French Indochina, Dutch East Indies, Japan as a new imperial power.',
-   type:'mcq',  questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 3 — Imperialism in Asia', color:'var(--acc)', draw:5, questions:[
 
-  // ── Indigenous Responses ──
-  {id:'r4',  num:4,  topic:'6.3', title:'Indigenous Responses', icon:'⚔️', themes:['GOV','SIO','CDI'],
+    {id:'wh_u6_mcq_011', topic:'6.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'After the 1857 Sepoy Mutiny, the British government',
+      choices:[
+        {id:'A', text:'took direct control of India from the East India Company, establishing the British Raj.'},
+        {id:'B', text:'granted India full self-government within the British Empire and withdrew most British troops.'},
+        {id:'C', text:'returned the Indian subcontinent to Mughal rule under the heir of the last Mughal emperor.'},
+        {id:'D', text:'allowed the East India Company to expand its territorial holdings without any British government oversight.'}
+      ], correct:'A',
+      explanation:'The 1857 rebellion shocked the British government enough to abolish East India Company rule. The Crown took direct control in 1858 (the British Raj), which lasted until Indian independence in 1947.'},
+
+    {id:'wh_u6_mcq_012', topic:'6.2', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The Opium Wars (1839-1842 and 1856-1860) resulted most directly in',
+      choices:[
+        {id:'A', text:'a series of "unequal treaties" that opened Chinese ports and granted extraterritoriality to Westerners in China.'},
+        {id:'B', text:'the immediate end of the opium trade and the full restoration of Chinese sovereignty over coastal ports.'},
+        {id:'C', text:'a unified Chinese imperial victory that expelled all British and French commercial interests from East Asia.'},
+        {id:'D', text:'a long-standing Chinese alliance with the Mughal Empire to jointly resist any further European commercial pressure across Asia.'}
+      ], correct:'A',
+      explanation:'The Opium Wars forced China to sign unequal treaties: opening ports, ceding Hong Kong, paying indemnities, and granting Westerners extraterritoriality (immunity from Chinese law). Qing sovereignty was deeply weakened.'},
+
+    {id:'wh_u6_mcq_013', topic:'6.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Spheres of influence in late-19th-century China are best described as',
+      choices:[
+        {id:'A', text:'regions where particular foreign powers held exclusive economic privileges without formal political annexation.'},
+        {id:'B', text:'autonomous Chinese provinces fully governed by elected representatives chosen from the local Han Chinese population.'},
+        {id:'C', text:'a single colony established jointly by all the European powers and ruled directly by the British viceroy of India.'},
+        {id:'D', text:'territories of the Qing dynasty whose Han Chinese governors traded directly with European traders without imperial oversight.'}
+      ], correct:'A',
+      explanation:'Spheres of influence were areas of China where a particular foreign power (Britain, France, Germany, Russia, Japan) held exclusive economic privileges. China was carved up economically without being formally colonized.'},
+
+    {id:'wh_u6_mcq_014', topic:'6.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'French Indochina, established by the late 19th century, included the modern territories of',
+      choices:[
+        {id:'A', text:'Vietnam, Laos, and Cambodia, which together formed the core of the French Southeast Asian colonial holdings.'},
+        {id:'B', text:'India, Pakistan, and Bangladesh, which made up the largest portion of France\'s overseas empire in continental Asia.'},
+        {id:'C', text:'Korea, Mongolia, and northern China, which were held briefly during the closing years of the nineteenth century.'},
+        {id:'D', text:'the Philippines and the Dutch East Indies, which France purchased from Spain and the Netherlands during the 1890s.'}
+      ], correct:'A',
+      explanation:'French Indochina consisted of Vietnam (Tonkin, Annam, Cochinchina), Laos, and Cambodia. France ruled the colony until the post-WWII Indochina wars led to French withdrawal.'},
+
+    {id:'wh_u6_mcq_015', topic:'6.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'By 1900, Meiji Japan had become a new imperial power, demonstrated most clearly by its',
+      choices:[
+        {id:'A', text:'victory over China in the 1894-95 First Sino-Japanese War and its annexation of Taiwan as a colony.'},
+        {id:'B', text:'role as the principal mediator of the Berlin Conference\'s formal division of African colonial territory.'},
+        {id:'C', text:'voluntary surrender of Hokkaido, Okinawa, and the Kuril Islands to neighboring states during the late 1890s.'},
+        {id:'D', text:'long alliance with the Russian Empire to jointly partition Korea and northeastern China during the late 1880s.'}
+      ], correct:'A',
+      explanation:'Japan\'s 1895 victory over Qing China in the First Sino-Japanese War and acquisition of Taiwan signaled a non-Western state was now playing the imperial game. Japan\'s 1905 victory over Russia confirmed this.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — INDIGENOUS RESPONSES  (Topic 6.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'6.3', title:'Indigenous Responses', icon:'⚔️', themes:['GOV','SIO','CDI'],
    desc:'Sepoy Mutiny, Boxer Rebellion, Mahdist War, Ghost Dance and Wounded Knee, Yaa Asantewaa, Indian National Congress, José Martí, Cuban independence.',
-   type:'mcq',  questions:12, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 4 — Indigenous Responses', color:'var(--acc)', draw:4, questions:[
 
-  // ── Global Economy (Topics 6.4–6.5) ──
-  {id:'r5',  num:5,  topic:'6.4', title:'Global Economic Development', icon:'💹', themes:['ECN','ENV'],
+    {id:'wh_u6_mcq_016', topic:'6.3', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1899-1901 Boxer Rebellion in China is best understood as',
+      choices:[
+        {id:'A', text:'an anti-foreign uprising by Chinese militants who attacked Westerners and Chinese converts to Christianity.'},
+        {id:'B', text:'a peaceful constitutional reform movement led by the Qing emperor to modernize China along Western lines.'},
+        {id:'C', text:'a Japanese-led military invasion that briefly placed the city of Beijing under direct Tokyo administration.'},
+        {id:'D', text:'a coordinated Christian missionary movement that aimed to convert all the Han Chinese to Catholicism by the year 1900.'}
+      ], correct:'A',
+      explanation:'The Boxers (Society of Righteous and Harmonious Fists) attacked foreigners and Chinese Christians, with quiet Qing support. An eight-nation foreign expedition crushed them, further humiliating the Qing dynasty.'},
+
+    {id:'wh_u6_mcq_017', topic:'6.3', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Ghost Dance movement among Plains Indians in the late 19th century is best characterized as',
+      choices:[
+        {id:'A', text:'a religious-cultural revival that promised the return of the buffalo and the ancestors and the end of white expansion.'},
+        {id:'B', text:'a treaty negotiation in which the U.S. government formally recognized Plains Indian independence and removed all settlers.'},
+        {id:'C', text:'a Christian missionary movement that converted Plains Indians to Catholicism through their mass adoption of European dance styles.'},
+        {id:'D', text:'a labor union of Plains Indian workers who organized peaceful strikes for higher wages on the U.S. transcontinental railroads.'}
+      ], correct:'A',
+      explanation:'The Ghost Dance was a religious-cultural revival among Plains Indians, especially the Lakota, that prophesied the disappearance of white settlers and the return of the buffalo and the ancestors. The 1890 Wounded Knee Massacre was a U.S. response.'},
+
+    {id:'wh_u6_mcq_018', topic:'6.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Indian National Congress, founded in 1885, was significant primarily because it',
+      choices:[
+        {id:'A', text:'organized middle-class Indian political opposition to British rule, eventually demanding full self-government.'},
+        {id:'B', text:'served as the British Crown\'s direct administrative council for the colonial governance of British India.'},
+        {id:'C', text:'led an armed military revolt against the British Raj during the closing years of the late nineteenth century.'},
+        {id:'D', text:'represented exclusively Muslim political interests and explicitly rejected any cooperation with Indian Hindu communities.'}
+      ], correct:'A',
+      explanation:'The Indian National Congress (1885) organized educated Indians for political action, beginning with reform demands and gradually escalating to full independence. It became the leading anti-colonial political force.'},
+
+    {id:'wh_u6_mcq_019', topic:'6.3', bigIdea:'CDI', difficulty:'challenging',
+      stem:'José Martí is best understood as',
+      choices:[
+        {id:'A', text:'a Cuban writer and revolutionary who organized armed resistance against Spanish colonial rule in Cuba.'},
+        {id:'B', text:'a Spanish colonial governor who pacified Cuba during the closing decades of the nineteenth century.'},
+        {id:'C', text:'a Brazilian author who advocated peaceful constitutional reform within the colonial Portuguese empire.'},
+        {id:'D', text:'an American sugar businessman who ran the United Fruit Company\'s extensive agricultural operations all across Cuba.'}
+      ], correct:'A',
+      explanation:'Martí was a Cuban poet, journalist, and revolutionary leader who organized the late-19th-century independence struggle. He died in battle in 1895; his ideas shaped Cuban national identity and Latin American anti-imperialism.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — GLOBAL ECONOMIC DEVELOPMENT  (Topic 6.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'6.4', title:'Global Economic Development', icon:'💹', themes:['ECN','ENV'],
    desc:'Cash crop economies: rubber, palm oil, ivory, cotton, sugar, tea. Colonial railways for extraction. The international division of labor.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r6',  num:6,  topic:'6.5', title:'Economic Imperialism', icon:'🏦', themes:['ECN','GOV'],
-   desc:'Unequal treaties, extraterritoriality, spheres of influence, gunboat diplomacy, the United Fruit Company, Latin American economic dependency, foreign control of Egyptian finance.',
-   type:'mcq',  questions:10, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 5 — Global Economic Development', color:'var(--acc)', draw:4, questions:[
 
-  // ── Migration (Topics 6.6–6.7) ──
-  {id:'r7',  num:7,  topic:'6.6', title:'Causes of Migration', icon:'🚢', themes:['SIO','ENV','ECN'],
+    {id:'wh_u6_mcq_020', topic:'6.4', bigIdea:'ECN', difficulty:'accessible',
+      stem:'Cash crop economies in colonial Africa, Asia, and Latin America were typically organized to',
+      choices:[
+        {id:'A', text:'produce raw materials for export to industrial Europe, often at the expense of local food production.'},
+        {id:'B', text:'serve local food needs first, with any export-oriented agriculture a distinctly secondary concern for colonies.'},
+        {id:'C', text:'develop fully balanced colonial economies that mirrored the industrial diversity of European nations by 1900.'},
+        {id:'D', text:'replace Indian Ocean and Atlantic trade routes with new economic links to the Russian and Ottoman empires.'}
+      ], correct:'A',
+      explanation:'Colonial economies were reoriented to produce specific cash crops (rubber, palm oil, cotton, tea, sugar) for industrial European markets. This often displaced subsistence agriculture and made colonies vulnerable to price swings and famine.'},
+
+    {id:'wh_u6_mcq_021', topic:'6.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Late-19th-century rubber demand transformed the economies of',
+      choices:[
+        {id:'A', text:'Brazil and the Belgian Congo, which became major exporters of rubber for industrial uses in Europe and America.'},
+        {id:'B', text:'Argentina and Uruguay, whose temperate climate supported the world\'s leading rubber-tree plantation industry.'},
+        {id:'C', text:'Tibet and Mongolia, whose high-altitude pastures became the leading global source of rubber for European factories.'},
+        {id:'D', text:'Italy and Spain, which dominated late-19th-century rubber production through long-established Mediterranean plantations.'}
+      ], correct:'A',
+      explanation:'Industrial demand for rubber (bicycles, cars, electrical insulation) drove extraction in tropical regions. Brazil\'s Amazon and Leopold\'s Congo became major rubber producers, often through brutal forced labor.'},
+
+    {id:'wh_u6_mcq_022', topic:'6.4', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Colonial railways in Africa and Asia were typically built to',
+      choices:[
+        {id:'A', text:'move raw materials from extraction sites to coastal ports for export to industrialized European countries.'},
+        {id:'B', text:'integrate colonial economies internally and connect inland cities to one another for long-distance commerce.'},
+        {id:'C', text:'serve local subsistence farmers by linking small markets and supporting widespread regional grain trade networks.'},
+        {id:'D', text:'reduce the export of raw materials and instead promote new colonial manufacturing inland in the African interior.'}
+      ], correct:'A',
+      explanation:'Colonial railways were typically extraction infrastructure: they ran from interior mines or plantations to coastal ports, optimized for moving exports out rather than connecting colonial regions internally.'},
+
+    {id:'wh_u6_mcq_023', topic:'6.4', bigIdea:'ECN', difficulty:'challenging',
+      stem:'A scholar describing the international division of labor c. 1900 would most likely emphasize that',
+      choices:[
+        {id:'A', text:'industrial Europe and the United States manufactured goods while colonial regions supplied raw materials and food.'},
+        {id:'B', text:'every region of the global economy participated equally in industrial manufacturing during the late nineteenth century.'},
+        {id:'C', text:'Africa and Asia took the lead in industrial manufacturing while Europe shifted toward export of agricultural commodities.'},
+        {id:'D', text:'global manufacturing was evenly distributed among Europe, the Americas, Africa, and Asia by the year 1900.'}
+      ], correct:'A',
+      explanation:'The late-19th-century global economy was structured around an international division of labor: industrial cores (Europe, US) made manufactured goods; peripheries (Africa, Asia, Latin America) supplied raw materials and food.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ECONOMIC IMPERIALISM  (Topic 6.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'6.5', title:'Economic Imperialism', icon:'🏦', themes:['ECN','GOV'],
+   desc:'Unequal treaties, extraterritoriality, spheres of influence, gunboat diplomacy, the United Fruit Company, Latin American economic dependency.',
+   type:'mcq', group:'skills', label:'Round 6 — Economic Imperialism', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u6_mcq_024', topic:'6.5', bigIdea:'ECN', difficulty:'accessible',
+      stem:'Economic imperialism is best defined as a form of imperial control that',
+      choices:[
+        {id:'A', text:'used economic dominance, debt, and trade pressure rather than direct political annexation of territory.'},
+        {id:'B', text:'was based on direct military conquest with no economic component or significant commercial dimension.'},
+        {id:'C', text:'depended entirely on cultural exchange and refused to use any economic leverage of any kind whatsoever.'},
+        {id:'D', text:'rejected free trade and instead built closed mercantilist colonial empires identical to the early-modern era.'}
+      ], correct:'A',
+      explanation:'Economic imperialism imposed control through trade dominance, debt, foreign investment, and unequal treaties rather than direct annexation. Latin America after independence is the textbook example.'},
+
+    {id:'wh_u6_mcq_025', topic:'6.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Extraterritoriality, as imposed on China in this period, gave foreigners',
+      choices:[
+        {id:'A', text:'immunity from Chinese law, so foreign nationals were tried by their own consuls under their own home country\'s laws.'},
+        {id:'B', text:'the right to vote in Chinese imperial elections that selected the next member of the Qing dynastic ruling family.'},
+        {id:'C', text:'permanent ownership of the Forbidden City along with all imperial palaces inside Beijing under a long-term lease.'},
+        {id:'D', text:'a single formal seat on the imperial Chinese Grand Council reserved for the visiting European and American merchant delegates.'}
+      ], correct:'A',
+      explanation:'Extraterritoriality meant that foreigners in China were subject to their own nation\'s laws and tried by their own consuls, not Chinese courts. It was a major Chinese grievance and a defining feature of the unequal treaty system.'},
+
+    {id:'wh_u6_mcq_026', topic:'6.5', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The United Fruit Company\'s operations in early-20th-century Central America illustrate',
+      choices:[
+        {id:'A', text:'how multinational corporations could shape national economies and even politics through control of key export sectors.'},
+        {id:'B', text:'how locally-owned cooperatives gradually replaced multinational corporations in Caribbean and Central American economies.'},
+        {id:'C', text:'how late-19th-century Central American governments banned all foreign agricultural investment to protect local farmers.'},
+        {id:'D', text:'how a single American agricultural firm voluntarily turned its banana plantations over to Central American workers in 1910.'}
+      ], correct:'A',
+      explanation:'United Fruit dominated banana production, transportation, and politics in Central America. The phrase "banana republic" originally described countries whose governance was effectively reshaped by this single multinational corporation.'},
+
+    {id:'wh_u6_mcq_027', topic:'6.5', bigIdea:'ECN', difficulty:'challenging',
+      stem:'A historian describing late-19th-century Egypt as a victim of economic imperialism would most likely emphasize',
+      choices:[
+        {id:'A', text:'European foreign creditors taking control of Egyptian state finances after Egypt defaulted on debts from the Suez Canal.'},
+        {id:'B', text:'Egyptian governments running consistent budget surpluses and accumulating large gold reserves for industrial reinvestment.'},
+        {id:'C', text:'a sustained period of strong domestic Egyptian industrialization that successfully resisted any foreign financial pressure.'},
+        {id:'D', text:'the deliberate exclusion of European banks from any role in Egyptian state finance throughout the entire nineteenth century.'}
+      ], correct:'A',
+      explanation:'Egypt borrowed heavily for the Suez Canal and modernization. When it could not pay, European creditors took control of Egyptian finances; Britain occupied the country in 1882. It became a textbook case of debt-driven economic imperialism.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — CAUSES OF MIGRATION  (Topic 6.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'6.6', title:'Causes of Migration', icon:'🚢', themes:['SIO','ENV','ECN'],
    desc:'Push/pull factors. Irish Potato Famine, Italian and Chinese diasporas, gold rushes. Indian and Chinese indentured labor replacing African slavery.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r8',  num:8,  topic:'6.7', title:'Effects of Migration', icon:'🏘️', themes:['SIO','CDI'],
-   desc:'Ethnic enclaves and Chinatowns. Chinese Exclusion Act (1882). "White Australia." Female-headed households in sending societies. Diasporic networks and remittances.',
-   type:'mcq',  questions:10, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 7 — Causes of Migration', color:'var(--acc)', draw:5, questions:[
 
-  // ── Synthesis ──
+    {id:'wh_u6_mcq_028', topic:'6.6', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Irish Potato Famine (1845-1852) drove mass Irish migration to North America most directly because it',
+      choices:[
+        {id:'A', text:'caused widespread starvation and economic collapse, pushing roughly a million Irish to emigrate over a decade.'},
+        {id:'B', text:'created a strong economic boom in Ireland that funded paid voluntary emigration to overseas colonial territories.'},
+        {id:'C', text:'gave Ireland independence from Britain and inspired large numbers of Irish to relocate to British colonial holdings.'},
+        {id:'D', text:'was caused by a British policy that financed and organized voluntary Irish settlement in the United States and Canada.'}
+      ], correct:'A',
+      explanation:'A potato blight, combined with British policy failures, killed about a million people in Ireland and pushed about a million more to emigrate, primarily to North America. It was a defining late-19th-century push-factor migration.'},
+
+    {id:'wh_u6_mcq_029', topic:'6.6', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Indian and Chinese indentured labor systems in the late 19th century',
+      choices:[
+        {id:'A', text:'replaced enslaved African labor on plantations and mines after the abolition of the trans-Atlantic slave trade.'},
+        {id:'B', text:'produced free wage labor identical to that of European factory workers across the same colonial territories.'},
+        {id:'C', text:'were quickly abolished by British and French colonial authorities just a few decades after they were first introduced.'},
+        {id:'D', text:'organized a global system of voluntary settlement in which workers controlled their own contracts and labor terms.'}
+      ], correct:'A',
+      explanation:'After abolition of the slave trade, plantation economies in the Caribbean, the Pacific, and Africa imported indentured laborers from India and China. Conditions were often brutal and the system functioned as a slavery successor for decades.'},
+
+    {id:'wh_u6_mcq_030', topic:'6.6', bigIdea:'SIO', difficulty:'moderate',
+      stem:'The 19th-century gold rushes in California and Australia drew migrants most directly from',
+      choices:[
+        {id:'A', text:'Ireland, China, Italy, and other regions whose populations were already actively seeking new opportunities abroad.'},
+        {id:'B', text:'a small number of restricted European countries from which only adult men were legally permitted to emigrate.'},
+        {id:'C', text:'sub-Saharan Africa exclusively, since indentured African labor was the principal source of all gold-rush migration.'},
+        {id:'D', text:'a single source country, since the gold rushes drew migration only from one of the major European empires of that period.'}
+      ], correct:'A',
+      explanation:'California (1849) and Australia (1851) drew migrants from many regions, including Ireland, China, Italy, and Latin America. Gold rushes are good examples of pull-factor migration in the global age of mass migration.'},
+
+    {id:'wh_u6_mcq_031', topic:'6.6', bigIdea:'ECN', difficulty:'moderate',
+      stem:'A common pattern among Italian, Chinese, and Lebanese diasporas in this period was that migrants',
+      choices:[
+        {id:'A', text:'often sought temporary work abroad and sent remittances back home, sometimes returning when conditions improved.'},
+        {id:'B', text:'always settled permanently in their destination country and never sent any earnings back to their home regions.'},
+        {id:'C', text:'were exclusively women whose husbands stayed in their home countries and never themselves left their original homes.'},
+        {id:'D', text:'rejected any contact with their home countries and refused to maintain cultural ties to the regions they had emigrated from.'}
+      ], correct:'A',
+      explanation:'Many migrants in this era were "sojourners" who sent remittances home and often returned. Italian, Chinese, and Lebanese diasporas all show this pattern, which sustained sending societies economically.'},
+
+    {id:'wh_u6_mcq_032', topic:'6.6', bigIdea:'SIO', difficulty:'challenging',
+      stem:'A scholar describing 1850-1914 as the "great age of migration" would most likely emphasize',
+      choices:[
+        {id:'A', text:'the unprecedented scale of cross-oceanic movement made possible by industrial transport, with tens of millions migrating.'},
+        {id:'B', text:'a sharp decline in long-distance migration during this period, as states tightened border controls and limited mobility.'},
+        {id:'C', text:'the localized nature of migration, with most movement occurring strictly within a few hundred kilometers of birth.'},
+        {id:'D', text:'a uniform global pattern in which all migrants settled permanently in their destination and never returned to their homelands again.'}
+      ], correct:'A',
+      explanation:'The era 1850-1914 saw an unprecedented scale of migration: tens of millions crossed oceans, made possible by steamships, railroads, and the labor demands of industrial and frontier economies.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 8 — EFFECTS OF MIGRATION  (Topic 6.7)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r8', num:8, topic:'6.7', title:'Effects of Migration', icon:'🏘️', themes:['SIO','CDI'],
+   desc:'Ethnic enclaves and Chinatowns. Chinese Exclusion Act (1882). "White Australia." Female-headed households in sending societies. Diasporic networks.',
+   type:'mcq', group:'skills', label:'Round 8 — Effects of Migration', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u6_mcq_033', topic:'6.7', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Ethnic enclaves such as Chinatowns formed in major destination cities most directly because they',
+      choices:[
+        {id:'A', text:'allowed migrants to maintain language, food, and customs while supporting one another economically and socially.'},
+        {id:'B', text:'were imposed by destination governments specifically to keep migrant communities entirely separated from local populations.'},
+        {id:'C', text:'served as official diplomatic missions of the Chinese imperial government in foreign countries during the late 1800s.'},
+        {id:'D', text:'were industrial labor camps from which the residents could not legally leave to work in any other parts of the city.'}
+      ], correct:'A',
+      explanation:'Ethnic enclaves let migrants maintain familiar language, food, religion, and mutual aid networks. Chinatowns, Little Italys, and similar neighborhoods became defining features of late-19th-century immigrant cities.'},
+
+    {id:'wh_u6_mcq_034', topic:'6.7', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1882 Chinese Exclusion Act in the United States is best understood as',
+      choices:[
+        {id:'A', text:'the first major U.S. law to ban immigration from a specific country, reflecting widespread anti-Chinese racism.'},
+        {id:'B', text:'a Qing-dynasty edict that prevented Chinese citizens from emigrating to the United States or to any other country.'},
+        {id:'C', text:'a U.S.-China treaty that mutually opened immigration between the two countries on a strictly equal legal basis.'},
+        {id:'D', text:'a U.S. law that granted full citizenship rights to all Chinese immigrants and their American-born children equally.'}
+      ], correct:'A',
+      explanation:'The Chinese Exclusion Act was the first major U.S. law restricting immigration on the basis of nationality. It reflected widespread anti-Chinese sentiment in the West and signaled a broader shift toward immigration restriction.'},
+
+    {id:'wh_u6_mcq_035', topic:'6.7', bigIdea:'SIO', difficulty:'moderate',
+      stem:'In sending societies, large-scale male emigration in this period often produced',
+      choices:[
+        {id:'A', text:'female-headed households in which women managed family land and community life in the absence of men.'},
+        {id:'B', text:'a sharp drop in female labor participation as women retreated entirely into purely ceremonial domestic roles.'},
+        {id:'C', text:'a complete collapse of agricultural production in regions losing male migrants to overseas industrial economies.'},
+        {id:'D', text:'a rapid increase in the male population due to a corresponding influx of male migrants returning from abroad.'}
+      ], correct:'A',
+      explanation:'In regions sending many male migrants (parts of Italy, China, Lebanon, Mexico), women often took on expanded household roles, managing land, finances, and family welfare while sending earnings flowed back as remittances.'},
+
+    {id:'wh_u6_mcq_036', topic:'6.7', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The "White Australia" policy and similar restrictions in this era are best understood as',
+      choices:[
+        {id:'A', text:'race-based immigration laws that aimed to keep settler colonies racially European while allowing ongoing white migration.'},
+        {id:'B', text:'open immigration policies that gave preference to migrants from China, India, and the Pacific over European migrants.'},
+        {id:'C', text:'a coordinated United Nations program that imposed uniform immigration standards across all of the British colonial dominions.'},
+        {id:'D', text:'industrial labor recruitment policies that gave Asian and Pacific Islander migrants preferential settlement opportunities.'}
+      ], correct:'A',
+      explanation:'White Australia (formalized 1901) and similar laws (Chinese Exclusion Act, Canadian head taxes) used race-based criteria to restrict non-European immigration while admitting European migrants. Settler colonies used these policies to remain demographically European.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 9 - 12 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
   {id:'r9',  num:9,  topic:'6.8', title:'Causation in the Imperial Age', icon:'🔗', themes:['GOV','ECN'],
    desc:'Topic 6.8 in full: explicit causation analysis. Industrialization → imperialism → migration → nationalism → WWI. Argumentation 6.B.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'synthesis', group:'skills', label:'Round 9 — Causation', color:'var(--bronze)', draw:1, questions:8, sets:[]},
 
-  // ── Free-Response Practice ──
   {id:'r10', num:10, topic:'6.1–6.8', title:'Document Analysis', icon:'📜', themes:['CDI','GOV'],
    desc:'5 primary-source stimulus drills — Kipling\'s "White Man\'s Burden," Berlin Conference reports, anti-colonial writings, Chinese Exclusion Act. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'6.1–6.8', title:'SAQ Practice',  icon:'✍️', themes:['GOV','ECN'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'6.1–6.8', title:'SAQ Practice', icon:'✍️', themes:['GOV','ECN'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — rationales for imperialism, effects of cash crop economies.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'6.1–6.8', title:'LEQ Practice',  icon:'📝', themes:['ECN'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'6.1–6.8', title:'LEQ Practice', icon:'📝', themes:['ECN'],
    desc:'1 full Long Essay Question with rubric scoring. "Evaluate the extent to which industrialization changed the global economy in the period 1750–1900."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -1046,7 +1654,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -1063,10 +1671,462 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 6.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -1100,6 +2160,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1140,11 +2202,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
