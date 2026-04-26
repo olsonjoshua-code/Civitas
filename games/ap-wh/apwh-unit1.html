@@ -420,6 +420,130 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .stim-content  { font-size: 14px; line-height: 1.65; }
 }
 
+
+/* ══════════════════════════════════════
+   MAP MASTERY  (Pass 2 — type:'map')
+══════════════════════════════════════ */
+.map-prompt-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--bronze);
+  padding: 16px 20px 14px;
+  margin-bottom: 12px;
+  animation: slideUp .3s ease both;
+}
+.map-prompt-label {
+  font-family: var(--crimson);
+  font-size: 18px;
+  color: var(--cream);
+  margin-top: 8px;
+}
+.map-prompt-target {
+  font-family: var(--playfair);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--bronze2);
+  font-size: 22px;
+  margin-left: 6px;
+}
+.map-instruction {
+  font-family: var(--dm);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+.q-tag.map-mode {
+  border-color: var(--bronze);
+  color: var(--bronze2);
+  background: rgba(212,168,71,.08);
+  font-family: var(--bebas);
+  letter-spacing: 1.5px;
+}
+.map-stage {
+  background: rgba(0,0,0,.25);
+  border: 1px solid var(--border2);
+  padding: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.map-stage svg.wh-map {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: crosshair;
+  user-select: none;
+}
+.map-stage .region {
+  fill: rgba(168,56,56,.18);
+  stroke: var(--bronze);
+  stroke-width: 1;
+  transition: fill .15s, stroke .15s;
+  cursor: pointer;
+}
+.map-stage .region.region-cool { fill: rgba(72,120,208,.22); stroke: rgba(212,168,71,.7); }
+.map-stage .region.region-warm { fill: rgba(232,160,32,.22); stroke: rgba(212,168,71,.7); }
+.map-stage .region:hover:not(.region-locked) {
+  fill: rgba(212,168,71,.42);
+  stroke: var(--bronze2);
+  stroke-width: 1.5;
+}
+.map-stage .region.region-correct {
+  fill: rgba(42,170,80,.55) !important;
+  stroke: var(--green2) !important;
+  stroke-width: 2 !important;
+  animation: correctFlash .6s ease;
+}
+.map-stage .region.region-wrong {
+  fill: rgba(224,64,64,.55) !important;
+  stroke: var(--red2) !important;
+  stroke-width: 2 !important;
+  animation: wrongFlash .6s ease;
+}
+.map-stage .region.region-dimmed { opacity: .45; }
+.map-stage .region.region-locked { cursor: default; }
+.map-stage .grid-line { stroke: rgba(212,168,71,.08); stroke-width: 1; stroke-dasharray: 2 6; }
+.map-stage .grid-equator { stroke: rgba(212,168,71,.16); stroke-dasharray: 4 4; }
+
+.map-stage .region-mali { fill: rgba(245,200,66,.30); }
+.map-stage .region-delhi { fill: rgba(144,128,224,.32); }
+.map-stage .region-andes { fill: rgba(64,200,112,.30); }
+.map-stage .region-mesoamerica { fill: rgba(224,136,64,.30); }
+.map-stage .region-swahili { fill: rgba(42,170,152,.32); }
+.map-stage .region-china { fill: rgba(168,56,56,.32); }
+.map-stage .region-korea { fill: rgba(168,56,56,.20); }
+.map-stage .region-japan { fill: rgba(168,56,56,.20); }
+.map-stage .region-mongol { fill: rgba(255,215,0,.18); }
+.map-stage .region-islam { fill: rgba(64,200,112,.22); }
+.map-stage .region-europe-poly { fill: rgba(72,120,208,.30); }
+.map-stage .region-south-asia-poly { fill: rgba(224,136,64,.22); }
+
+.map-feedback { display: none; margin-bottom: 12px; }
+.map-feedback-inner {
+  background: rgba(42,170,80,.06);
+  border: 1px solid rgba(42,170,80,.2);
+  border-left: 3px solid var(--green);
+  padding: 14px 18px;
+  font-family: var(--crimson);
+  animation: fadeIn .3s ease;
+}
+.map-feedback-inner.fb-wrong {
+  background: rgba(224,64,64,.06);
+  border-color: rgba(224,64,64,.2);
+  border-left-color: var(--red);
+}
+.fb-headline { font-size: 16px; color: var(--cream); margin-bottom: 8px; }
+.fb-headline strong { color: var(--bronze2); font-weight: 700; }
+.fb-correct .fb-headline strong { color: var(--green2); }
+.fb-wrong .fb-headline strong { color: var(--red2); }
+.fb-blurb { font-size: 14px; color: var(--text2); line-height: 1.65; margin-top: 6px; }
+
+@media (max-width: 720px) {
+  .map-stage { padding: 4px; }
+  .map-prompt-target { font-size: 18px; display: block; margin-left: 0; margin-top: 4px; }
+}
+
 </style>
 </head>
 <body>
@@ -1538,6 +1662,169 @@ const UNIT1_COMPARE_MCQS = [
 
 ];
 
+// ════════════════════════════════════════════════════════════════════
+//  UNIT 1 — MAP MASTERY data for Round 7 (Skills group)
+//  10 region placements drawn from a pool covering all 6 CED regions.
+//
+//  The map is a simplified stylized Afro-Eurasian + Americas projection.
+//  Regions are SVG polygons with id attributes; the runner matches a
+//  click to the correct region's id.
+//
+//  Coord system: viewBox is 0 0 1000 500. North up, equirectangular-ish.
+// ════════════════════════════════════════════════════════════════════
+
+// The SVG markup is stored as a string template so the runner can inject it
+// into the DOM and attach event listeners by querying for [data-region].
+// Coastlines are deliberately blocky; AP-WH cares about region identification,
+// not cartographic accuracy.
+const UNIT1_MAP_SVG = `
+<svg viewBox="0 0 1000 500" class="wh-map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <pattern id="oceanPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="rgba(40,30,30,0.4)"/>
+      <path d="M 0 20 Q 10 14 20 20 T 40 20" stroke="rgba(168,56,56,0.08)" fill="none" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1000" height="500" fill="url(#oceanPattern)"/>
+
+  <g class="region-group region-americas">
+    <polygon data-region="americas_north"
+             points="40,90 120,75 175,80 175,135 200,150 195,200 175,225 140,235 100,225 65,215 40,180"
+             class="region region-cool"/>
+    <polygon data-region="mesoamerica"
+             points="120,225 175,225 195,200 200,260 175,280 145,275 130,255"
+             class="region region-cool region-mesoamerica"/>
+    <polygon data-region="south_america"
+             points="155,275 210,275 235,310 245,360 230,420 200,445 170,440 150,400 135,340 145,300"
+             class="region region-cool"/>
+    <polygon data-region="andes_inca"
+             points="170,295 195,300 200,350 195,400 180,420 165,400 160,360 165,320"
+             class="region region-cool region-andes"/>
+  </g>
+
+  <g class="region-group region-europe">
+    <polygon data-region="europe"
+             points="445,110 530,100 580,108 595,135 610,160 600,185 565,200 530,205 490,200 460,185 445,160"
+             class="region region-warm region-europe-poly"/>
+  </g>
+
+  <g class="region-group region-darulislam">
+    <polygon data-region="dar_al_islam"
+             points="430,205 470,200 530,205 575,210 615,205 660,210 690,225 705,260 695,290 670,310 630,320 590,315 555,300 520,290 480,285 445,270 425,245"
+             class="region region-warm region-islam"/>
+  </g>
+
+  <g class="region-group region-africa">
+    <polygon data-region="mali_west_africa"
+             points="445,275 490,285 520,295 535,330 525,365 495,385 455,385 425,375 410,345 415,310"
+             class="region region-warm region-mali"/>
+    <polygon data-region="central_southern_africa"
+             points="535,330 590,320 625,335 640,375 650,420 625,450 580,460 540,450 510,420 510,385 525,365"
+             class="region region-warm"/>
+    <polygon data-region="swahili_coast"
+             points="640,335 670,330 685,355 685,395 670,430 650,430 640,400 645,375"
+             class="region region-warm region-swahili"/>
+  </g>
+
+  <g class="region-group region-south-asia">
+    <polygon data-region="south_asia"
+             points="725,225 770,225 800,250 800,285 790,320 770,355 750,370 730,355 720,320 715,280"
+             class="region region-warm region-south-asia-poly"/>
+    <polygon data-region="delhi_sultanate"
+             points="730,235 770,235 790,255 785,275 770,285 745,280 725,265"
+             class="region region-warm region-delhi"/>
+  </g>
+
+  <g class="region-group region-southeast-asia">
+    <polygon data-region="southeast_asia"
+             points="810,300 855,290 880,305 905,335 895,365 870,375 840,365 820,345"
+             class="region region-warm"/>
+  </g>
+
+  <g class="region-group region-east-asia">
+    <polygon data-region="song_china"
+             points="810,180 870,170 905,180 925,210 920,250 895,275 855,280 825,265 805,235 800,205"
+             class="region region-cool region-china"/>
+    <polygon data-region="korea"
+             points="930,190 950,190 955,225 945,245 925,240 925,210"
+             class="region region-cool region-korea"/>
+    <polygon data-region="japan"
+             points="965,180 980,200 975,235 955,250 945,235 955,205"
+             class="region region-cool region-japan"/>
+  </g>
+
+  <g class="region-group region-central-asia">
+    <polygon data-region="central_asia_mongol"
+             points="615,135 690,125 760,130 815,140 870,135 875,165 835,180 770,180 700,175 640,170 615,160"
+             class="region region-cool region-mongol"/>
+  </g>
+
+  <g class="map-grid" pointer-events="none">
+    <line x1="0" y1="125" x2="1000" y2="125" class="grid-line"/>
+    <line x1="0" y1="250" x2="1000" y2="250" class="grid-line grid-equator"/>
+    <line x1="0" y1="375" x2="1000" y2="375" class="grid-line"/>
+  </g>
+
+  <g class="compass" transform="translate(60,460)" pointer-events="none">
+    <circle r="14" fill="rgba(20,8,8,0.9)" stroke="#d4a847" stroke-width="1"/>
+    <text y="-3" text-anchor="middle" font-size="9" fill="#e8c060" letter-spacing="1" style="font-family:Bebas Neue,sans-serif">N</text>
+    <text y="10" text-anchor="middle" font-size="9" fill="#a89888">^</text>
+  </g>
+</svg>
+`;
+
+const UNIT1_MAP_PLACEMENTS = [
+
+  {id:'wh_u1_m7_001', label:'Song China',
+    correct:'song_china', topic:'1.1', bigIdea:'GOV', difficulty:'accessible',
+    blurb:'The Song dynasty (960-1279) ruled the eastern stretch of the Eurasian landmass, anchoring the East Asian regional system through its examination bureaucracy and economic might.'},
+
+  {id:'wh_u1_m7_002', label:'Mali Empire',
+    correct:'mali_west_africa', topic:'1.5', bigIdea:'ECN', difficulty:'accessible',
+    blurb:'The Mali Empire (c. 1235-1670) controlled the trans-Saharan gold and salt trade in West Africa. Mansa Musa\'s 1324 hajj advertised its wealth to the wider Islamic world.'},
+
+  {id:'wh_u1_m7_003', label:'Delhi Sultanate',
+    correct:'delhi_sultanate', topic:'1.3', bigIdea:'GOV', difficulty:'moderate',
+    blurb:'The Delhi Sultanate (1206-1526) was a Turkic-Persian Islamic state that ruled most of northern India, governing a largely non-Muslim population.'},
+
+  {id:'wh_u1_m7_004', label:'Inca Empire (Andean heartland)',
+    correct:'andes_inca', topic:'1.4', bigIdea:'GOV', difficulty:'moderate',
+    blurb:'The Inca Empire (Tawantinsuyu) ran along the spine of the Andes, integrated by mit\'a labor, the quipu record-keeping system, and the Qhapaq Nan road network.'},
+
+  {id:'wh_u1_m7_005', label:'Aztec Empire (Mesoamerica)',
+    correct:'mesoamerica', topic:'1.4', bigIdea:'GOV', difficulty:'moderate',
+    blurb:'The Mexica/Aztec Triple Alliance (1428-1521) ruled central Mexico, drawing tribute in goods from conquered city-states and centering its religious life on the capital, Tenochtitlan.'},
+
+  {id:'wh_u1_m7_006', label:'Swahili Coast city-states',
+    correct:'swahili_coast', topic:'1.5', bigIdea:'ECN', difficulty:'moderate',
+    blurb:'The Swahili coast (Kilwa, Mombasa, Mogadishu, Sofala) was a string of autonomous Muslim trading cities linking East African gold, ivory, and timber to the Indian Ocean network.'},
+
+  {id:'wh_u1_m7_007', label:'Dar al-Islam (heartland)',
+    correct:'dar_al_islam', topic:'1.2', bigIdea:'CDI', difficulty:'accessible',
+    blurb:'After the Abbasid collapse, the dar al-Islam stretched from North Africa through Egypt, the Levant, Arabia, and Persia. Mamluks ruled in Egypt; the Seljuk and Ilkhanate successors fragmented Persia.'},
+
+  {id:'wh_u1_m7_008', label:'Latin Christendom',
+    correct:'europe', topic:'1.6', bigIdea:'CDI', difficulty:'accessible',
+    blurb:'Latin Christendom covered most of western and central Europe under the authority of the Roman papacy, distinguished from Orthodox Christianity to the east.'},
+
+  {id:'wh_u1_m7_009', label:'Mongol Khanate zone (post-1260)',
+    correct:'central_asia_mongol', topic:'1.2', bigIdea:'GOV', difficulty:'challenging',
+    blurb:'After 1260, the Mongol Empire fragmented into four khanates: the Yuan in China, the Chagatai in Central Asia, the Ilkhanate in Persia, and the Golden Horde north of the Black Sea.'},
+
+  {id:'wh_u1_m7_010', label:'Kingdom of Korea (Goryeo)',
+    correct:'korea', topic:'1.1', bigIdea:'CDI', difficulty:'moderate',
+    blurb:'The Goryeo dynasty (918-1392) adapted the Chinese civil service exam but restricted it to the yangban aristocracy. Korea also pioneered movable metal type printing in the early 13th century.'},
+
+  {id:'wh_u1_m7_011', label:'Heian/Kamakura Japan',
+    correct:'japan', topic:'1.1', bigIdea:'GOV', difficulty:'moderate',
+    blurb:'Heian (794-1185) and Kamakura (1185-1333) Japan organized political authority around hereditary aristocratic clans and, later, a warrior class commanded by the shogun, with the emperor in a largely ceremonial role.'},
+
+  {id:'wh_u1_m7_012', label:'Khmer Empire (mainland Southeast Asia)',
+    correct:'southeast_asia', topic:'1.3', bigIdea:'CDI', difficulty:'challenging',
+    blurb:'The Khmer Empire, centered on Angkor in present-day Cambodia, drew political legitimacy from the syncretic Hindu-Buddhist devaraja (god-king) tradition, visible in the temple complex of Angkor Wat.'},
+
+];
+
 const ROUNDS = [
 
   // ─────────────────────────────────────────────────────────────────
@@ -1960,8 +2247,8 @@ const ROUNDS = [
   //  if a teacher clicks them too early. They show a friendly "Coming soon".
   // ─────────────────────────────────────────────────────────────────
   {id:'r7',  num:7,  topic:'1.7', title:'Map Mastery', icon:'🗺️', themes:['ENV','GOV'],
-   desc:'Place all 6 regional states/empires on a world map. Identify trade networks and religious zones.',
-   type:'map', group:'skills', label:'Round 7 — Map Mastery', color:'var(--bronze)', draw:1, questions:10, sets:[]},
+   desc:'Click-to-place the major states, empires, and cultural zones of c. 1200-1450 on a stylized world map. 12 placements, 10 drawn each play.',
+   type:'map', group:'skills', label:'Round 7 — Map Mastery', color:'var(--bronze)', draw:10, questions: 12, placements: UNIT1_MAP_PLACEMENTS, mapSvg: UNIT1_MAP_SVG},
 
   {id:'r8',  num:8,  topic:'1.7', title:'Belief Systems', icon:'☯️', themes:['CDI'],
    desc:'12 cross-regional MCQs on how religion shaped governance: Confucianism, Islam, Hinduism, Christianity, Buddhism, indigenous traditions.',
@@ -2229,6 +2516,8 @@ function launchRound(roundId){
     startRound(idx);
   } else if (round.type === 'documents' && Array.isArray(round.sets) && round.sets.length > 0) {
     startRound(idx);
+  } else if (round.type === 'map' && Array.isArray(round.placements) && round.placements.length > 0) {
+    startRound(idx);
   } else {
     notify('🛠️ ' + round.title + ' is being built in Pass 2.');
   }
@@ -2325,7 +2614,16 @@ function prepareRound(){
     G.questions = buildVocabQuizQuestions();
   } else {
     const round = ROUNDS[G.roundIdx];
-    if (round.type === 'documents' && Array.isArray(round.sets)) {
+    if (round.type === 'map' && Array.isArray(round.placements)) {
+      const shuffled = [...round.placements].sort(() => Math.random() - 0.5);
+      const drawN = Math.min(round.draw || round.placements.length, round.placements.length);
+      G.questions = shuffled.slice(0, drawN).map(p => Object.assign({}, p, {
+        _isMap: true,
+        stem: p.label,
+        choices: [],
+        explanation: p.blurb,
+      }));
+    } else if (round.type === 'documents' && Array.isArray(round.sets)) {
       // Flatten stimulus sets into a flat question list, preserving set order.
       // Each question carries _setIdx, _qInSet, _setMeta so the renderer can
       // draw the persistent stimulus pane above the question card.
@@ -2386,6 +2684,13 @@ function renderQuestion(){
 
   document.getElementById('btn-next').style.display = 'none';
 
+  if (q && q._isMap) {
+    renderMapQuestion(q);
+    updatePips();
+    el.scrollTop = 0;
+    return;
+  }
+
   let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
   if (G.mode === 'vocab') {
     const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
@@ -2422,6 +2727,85 @@ function renderQuestion(){
   el.scrollTop = 0;
 }
 
+
+
+// ════════════════════════════════════════════════════════════════════
+//  MAP MASTERY RUNNER  (Pass 2 — Skills group, type:'map')
+// ════════════════════════════════════════════════════════════════════
+function renderMapQuestion(q) {
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+  const round = ROUNDS[G.roundIdx];
+  const svgMarkup = round.mapSvg || '';
+
+  const metaHtml = [
+    '<div class="q-num">Q ' + (G.questionIdx + 1) + ' / ' + totalQ + '</div>',
+    '<div class="q-tag topic">' + (q.topic || '') + '</div>',
+    '<div class="q-tag bi-' + (q.bigIdea || 'GOV') + '">' + (q.bigIdea || 'GOV') + '</div>',
+    '<div class="q-tag diff-' + (q.difficulty || 'moderate') + '">' + (q.difficulty || 'moderate') + '</div>',
+    '<div class="q-tag map-mode">MAP</div>',
+  ].join('');
+
+  el.innerHTML = [
+    '<div class="map-prompt-card">',
+    '  <div class="q-meta">' + metaHtml + '</div>',
+    '  <div class="map-prompt-label">Click the region: <span class="map-prompt-target">' + q.label + '</span></div>',
+    '  <div class="map-instruction">Tap or click anywhere inside the correct region on the map below.</div>',
+    '</div>',
+    '<div class="map-stage" id="map-stage">' + svgMarkup + '</div>',
+    '<div class="map-feedback" id="map-feedback"></div>',
+  ].join('\n');
+
+  const stage = document.getElementById('map-stage');
+  if (stage) stage.addEventListener('click', handleMapClick);
+}
+
+function handleMapClick(ev) {
+  if (G.answered) return;
+  let node = ev.target;
+  while (node && node !== ev.currentTarget && !(node.getAttribute && node.getAttribute('data-region'))) {
+    node = node.parentNode;
+  }
+  if (!node || !node.getAttribute || !node.getAttribute('data-region')) return;
+  const clickedRegion = node.getAttribute('data-region');
+  const q = G.questions[G.questionIdx];
+  G.answered = true;
+  G.selectedChoice = clickedRegion;
+  G.sessionTotal++;
+
+  const correct = clickedRegion === q.correct;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+
+  const stage = document.getElementById('map-stage');
+  const allRegions = stage.querySelectorAll('[data-region]');
+  allRegions.forEach(poly => {
+    poly.classList.add('region-locked');
+    const id = poly.getAttribute('data-region');
+    if (id === q.correct) poly.classList.add('region-correct');
+    if (id === clickedRegion && !correct) poly.classList.add('region-wrong');
+    if (id !== q.correct && id !== clickedRegion) poly.classList.add('region-dimmed');
+  });
+
+  const fb = document.getElementById('map-feedback');
+  fb.innerHTML = [
+    '<div class="map-feedback-inner ' + (correct ? 'fb-correct' : 'fb-wrong') + '">',
+    '  <div class="fb-headline">' + (correct ? '✓ Correct.' : '✗ Not quite.') + ' ',
+    correct
+      ? 'You placed <strong>' + q.label + '</strong> in the right region.'
+      : 'The highlighted green region is where <strong>' + q.label + '</strong> belongs.',
+    '  </div>',
+    q.blurb ? '<div class="fb-blurb">' + q.blurb + '</div>' : '',
+    '</div>',
+  ].join('');
+  fb.style.display = 'block';
+
+  document.getElementById('btn-next').style.display = 'inline-block';
+}
 
 // ════════════════════════════════════════════════════════════════════
 //  STIMULUS RUNNER  (Pass 2 — Document Analysis rounds)
