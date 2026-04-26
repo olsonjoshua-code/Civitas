@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -598,12 +741,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 4 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every CED topic in the unit: technology, exploration, the Columbian Exchange, the maritime empires, and Atlantic-world social hierarchies. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -744,6 +893,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 4 DATA
@@ -752,53 +949,464 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u4';
 const UNIT_TITLE = 'Transoceanic Interconnections';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 8 topic rounds + 1 map + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 4 Transoceanic Interconnections (c. 1450 – c. 1750)
+//  7 MCQ rounds (36 questions total) + 5 Pass-2 stubs
+//   r1 Tech: 5 · r2 Exploration: 6 · r3 Columbian Exchange: 6
+//   r4 Empires Established: 5 · r5 Empires Maintained: 6
+//   r6 Resistance: 4 · r7 Hierarchies: 4
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Core Content (Topics 4.1–4.5) ──
-  {id:'r1',  num:1,  topic:'4.1', title:'Tech Innovations',  icon:'🧭', themes:['TEC','CDI'],
-   desc:'Magnetic compass, astrolabe, lateen sail, sternpost rudder, caravels, galleons, fluyts — and the diffusion of these technologies from Asian and Islamic origins.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r2',  num:2,  topic:'4.2', title:'Exploration',       icon:'⚓', themes:['ECN','GOV'],
-   desc:'Henry the Navigator, da Gama, Columbus, Magellan, Cortés, Pizarro. Causes of European exploration and the Treaty of Tordesillas.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r3',  num:3,  topic:'4.3', title:'Columbian Exchange', icon:'🌽', themes:['ENV','CDI','SIO'],
-   desc:'The biological reshaping of the world: maize, potatoes, smallpox, horses. The "great dying" and population growth in Afro-Eurasia.',
-   type:'mcq',  questions:14, group:'core'},
-  {id:'r4',  num:4,  topic:'4.4', title:'Maritime Empires Established', icon:'⚔️', themes:['GOV','ECN'],
-   desc:'Portuguese trading-post empire, Spanish viceroyalties, Dutch VOC, British East India Company, French colonies — five different imperial models.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r5',  num:5,  topic:'4.5', title:'Maritime Empires Maintained', icon:'💰', themes:['ECN','SIO'],
-   desc:'Mercantilism, the Atlantic slave trade, the Middle Passage, encomienda, hacienda, Spanish mit\'a, Potosí silver, the Manila Galleons.',
-   type:'mcq',  questions:14, group:'core'},
 
-  // ── Consequences & Synthesis (Topics 4.6–4.8) ──
-  {id:'r6',  num:6,  topic:'4.6', title:'Resistance & Challenges', icon:'⚒️', themes:['GOV','SIO','CDI'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — TECH INNOVATIONS  (Topic 4.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'4.1', title:'Tech Innovations', icon:'🧭', themes:['TEC','CDI'],
+   desc:'Magnetic compass, astrolabe, lateen sail, sternpost rudder, caravels, galleons, fluyts — and the diffusion of these technologies from Asian and Islamic origins.',
+   type:'mcq', group:'core', label:'Round 1 — Tech Innovations', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u4_mcq_001', topic:'4.1', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The lateen sail and the sternpost rudder were significant for European exploration most directly because they',
+      choices:[
+        {id:'A', text:'allowed ships to sail closer to the wind and steer more reliably across deep open ocean.'},
+        {id:'B', text:'gave Portuguese ships an unmatched military advantage in close combat with Ottoman warships.'},
+        {id:'C', text:'enabled European fleets to row across the Atlantic in calm conditions when the wind dropped entirely.'},
+        {id:'D', text:'reduced the need for trained crews, since both technologies could be operated by one or two sailors.'}
+      ], correct:'A',
+      explanation:'The triangular lateen sail let ships tack against the wind, and the sternpost rudder improved steering. Together they made oceanic voyages, which require sailing in many wind directions, far more practical.'},
+
+    {id:'wh_u4_mcq_002', topic:'4.1', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The astrolabe and magnetic compass contributed to long-distance ocean travel primarily by',
+      choices:[
+        {id:'A', text:'helping navigators determine their position and direction when out of sight of land for many days at a time.'},
+        {id:'B', text:'allowing European ship captains to communicate instantly with port authorities thousands of miles away.'},
+        {id:'C', text:'serving as religious instruments that blessed each new vessel before its first ocean voyage from Lisbon.'},
+        {id:'D', text:'powering the wind-driven mechanical pumps that kept the lower decks of caravel ships completely dry during storms.'}
+      ], correct:'A',
+      explanation:'The compass gave bearing; the astrolabe (refined by Muslim scholars) let navigators calculate latitude using the stars or sun. Both addressed the core challenge of open-ocean navigation: knowing where you are.'},
+
+    {id:'wh_u4_mcq_003', topic:'4.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Many of the technologies that made European exploration possible originally came from',
+      choices:[
+        {id:'A', text:'Chinese, Indian, and Islamic societies whose innovations diffused westward through long-standing trade contact.'},
+        {id:'B', text:'Spanish royal academies that systematically invented every needed device during the late 1400s and early 1500s.'},
+        {id:'C', text:'Portuguese guilds that kept all maritime technology completely secret from the rest of the European continent.'},
+        {id:'D', text:'indigenous American peoples who shared key navigational knowledge with the Vikings and Norse a few centuries earlier.'}
+      ], correct:'A',
+      explanation:'The compass came from China, the astrolabe was refined in the Islamic world, and the lateen sail had Indian Ocean origins. European exploration relied on a long pattern of technological diffusion from Asia.'},
+
+    {id:'wh_u4_mcq_004', topic:'4.1', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The caravel was particularly well-suited to early Portuguese exploration because it',
+      choices:[
+        {id:'A', text:'combined a shallow draft with strong sails, making it agile in coastal waters and capable of long voyages.'},
+        {id:'B', text:'required the smallest possible crew of any European warship, which dramatically lowered each voyage\'s cost.'},
+        {id:'C', text:'carried more cannon than any other contemporary vessel and dominated all major Mediterranean naval engagements.'},
+        {id:'D', text:'was built entirely of metal hull plates, which made caravel ships effectively immune to damage from cannon fire.'}
+      ], correct:'A',
+      explanation:'The caravel\'s shallow draft let it explore coastlines and rivers; its sail rig enabled long ocean voyages. Portuguese explorers used it to map the African coast and reach the Indian Ocean.'},
+
+    {id:'wh_u4_mcq_005', topic:'4.1', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar arguing that European exploration relied on cumulative global innovation would most likely point to',
+      choices:[
+        {id:'A', text:'the use of the compass, astrolabe, and lateen rig, all of which had non-European origins long before 1450.'},
+        {id:'B', text:'the rapid invention of gunpowder by Spanish chemists in the years immediately before the voyages of Columbus.'},
+        {id:'C', text:'the development of the steam engine, which propelled the first transatlantic crossings during the late 15th century.'},
+        {id:'D', text:'the invention of the printing press in China, which had no influence on European navigation or oceanic shipping.'}
+      ], correct:'A',
+      explanation:'The CED stresses that European success rested on borrowed and adapted technologies. Compass, astrolabe, and lateen rig all came from outside Europe, and Europeans combined them with new ship designs.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — EXPLORATION  (Topic 4.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'4.2', title:'Exploration', icon:'⚓', themes:['ECN','GOV'],
+   desc:'Henry the Navigator, da Gama, Columbus, Magellan, Cortés, Pizarro. Causes of European exploration and the Treaty of Tordesillas.',
+   type:'mcq', group:'core', label:'Round 2 — Exploration', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u4_mcq_006', topic:'4.2', bigIdea:'ECN', difficulty:'accessible',
+      stem:'A primary economic motive for European exploration in the late 15th century was the desire to',
+      choices:[
+        {id:'A', text:'find a sea route to Asia that bypassed the Ottoman and Italian middlemen who controlled Mediterranean trade.'},
+        {id:'B', text:'establish permanent settler colonies in northern Russia for use as winter naval bases on the Baltic.'},
+        {id:'C', text:'transport Christian pilgrims directly from western Europe to the holy city of Mecca on the Arabian peninsula.'},
+        {id:'D', text:'export European wheat and rye to feed the rising urban populations of Ming China and Tokugawa Japan.'}
+      ], correct:'A',
+      explanation:'After the 1453 Ottoman capture of Constantinople, European demand for direct access to Asian spices and luxuries (without Italian and Ottoman middlemen) drove Iberian exploration in particular.'},
+
+    {id:'wh_u4_mcq_007', topic:'4.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Prince Henry the Navigator is best known for',
+      choices:[
+        {id:'A', text:'sponsoring Portuguese voyages along the West African coast that built the foundations for later expansion.'},
+        {id:'B', text:'personally leading the Portuguese fleet that first reached India by way of the Cape of Good Hope route.'},
+        {id:'C', text:'commanding the Spanish armada that attempted the first circumnavigation of the entire Eurasian continent.'},
+        {id:'D', text:'serving as the Habsburg ambassador to the Mughal court during the early decades of the late 16th century in India.'}
+      ], correct:'A',
+      explanation:'Henry himself rarely sailed, but he funded and organized Portuguese voyages along West Africa from Sagres in the 15th century. His school built up the navigational expertise later used by da Gama and others.'},
+
+    {id:'wh_u4_mcq_008', topic:'4.2', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Vasco da Gama\'s 1498 voyage was historically significant because it',
+      choices:[
+        {id:'A', text:'opened a sea route from Europe to India around the Cape of Good Hope, bypassing overland Asian trade routes.'},
+        {id:'B', text:'discovered the Pacific Ocean and proved that the Americas were not connected to the eastern coast of Asia.'},
+        {id:'C', text:'circumnavigated the globe for the first time and confirmed that the world was substantially smaller than had been assumed.'},
+        {id:'D', text:'established the first Portuguese colony in central Mexico and brought back the first samples of Mexican silver.'}
+      ], correct:'A',
+      explanation:'Da Gama\'s 1498 voyage gave Portugal a direct sea route to Indian Ocean trade, breaking the Italian and Ottoman commercial chokehold on the spice trade with Asia.'},
+
+    {id:'wh_u4_mcq_009', topic:'4.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1494 Treaty of Tordesillas',
+      choices:[
+        {id:'A', text:'divided newly explored non-European lands between Spain and Portugal along a meridian line in the Atlantic.'},
+        {id:'B', text:'ended the Hundred Years\' War between England and France through papal mediation in the late 15th century.'},
+        {id:'C', text:'recognized Ottoman sovereignty over the eastern Mediterranean and barred Christian shipping from the Black Sea.'},
+        {id:'D', text:'created the Dutch East India Company as a joint venture between Spain and the United Provinces of Holland.'}
+      ], correct:'A',
+      explanation:'The Treaty of Tordesillas, brokered by the Pope, drew a line through the Atlantic. Lands east of the line were Portuguese; west of it, Spanish. This is why Brazil ended up Portuguese while most of the Americas became Spanish.'},
+
+    {id:'wh_u4_mcq_010', topic:'4.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Hernán Cortés\'s defeat of the Aztec Empire was made possible most directly by',
+      choices:[
+        {id:'A', text:'a combination of indigenous allies, gunpowder weapons, and the catastrophic spread of European diseases.'},
+        {id:'B', text:'a vastly larger Spanish army that outnumbered Aztec forces by a wide margin during every major battle.'},
+        {id:'C', text:'a Spanish naval blockade that cut off Tenochtitlan from access to fresh water and food for over five years.'},
+        {id:'D', text:'a peaceful agreement in which the Aztec ruler voluntarily surrendered his throne to a visiting Catholic priest.'}
+      ], correct:'A',
+      explanation:'Cortés had only a few hundred Spanish soldiers but allied with Aztec enemies (notably the Tlaxcalans), used steel and firearms, and benefitted enormously from the smallpox epidemic that devastated Tenochtitlan.'},
+
+    {id:'wh_u4_mcq_011', topic:'4.2', bigIdea:'TEC', difficulty:'challenging',
+      stem:'Magellan\'s 1519-1522 voyage is most often cited as significant because it',
+      choices:[
+        {id:'A', text:'completed the first circumnavigation of the globe, definitively confirming that the Earth could be sailed around.'},
+        {id:'B', text:'discovered the existence of a navigable Northwest Passage connecting the Atlantic and Pacific oceans across Canada.'},
+        {id:'C', text:'reached the Philippines for the first time and converted the entire archipelago to Christianity within a single year.'},
+        {id:'D', text:'mapped a direct overland route across northern Russia that linked Iberia with the Pacific coast of Eurasia.'}
+      ], correct:'A',
+      explanation:'Magellan died in the Philippines, but his expedition (completed by Elcano) was the first to circumnavigate the globe. It confirmed Earth\'s spherical scale and the immense size of the Pacific Ocean.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — COLUMBIAN EXCHANGE  (Topic 4.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'4.3', title:'Columbian Exchange', icon:'🌽', themes:['ENV','CDI','SIO'],
+   desc:'The biological reshaping of the world: maize, potatoes, smallpox, horses. The "great dying" and population growth in Afro-Eurasia.',
+   type:'mcq', group:'core', label:'Round 3 — The Columbian Exchange', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u4_mcq_012', topic:'4.3', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Columbian Exchange is best defined as',
+      choices:[
+        {id:'A', text:'the transfer of plants, animals, diseases, and people between the Americas, Europe, Africa, and Asia after 1492.'},
+        {id:'B', text:'the long-distance trade of silk and Chinese porcelain along the Silk Roads during the late medieval period.'},
+        {id:'C', text:'the formal political alliance between Christopher Columbus and the rulers of Spain during the 15th century.'},
+        {id:'D', text:'the system of formal payments by which Spanish colonists exchanged silver coins for indigenous American slave labor.'}
+      ], correct:'A',
+      explanation:'The Columbian Exchange refers to the global biological and cultural transfer that began with Columbus\'s 1492 voyage: crops, animals, diseases, people, and ideas moving between the hemispheres.'},
+
+    {id:'wh_u4_mcq_013', topic:'4.3', bigIdea:'ENV', difficulty:'accessible',
+      stem:'A devastating consequence of European contact for indigenous American populations was',
+      choices:[
+        {id:'A', text:'the spread of diseases like smallpox, to which native populations had no prior immunity, killing tens of millions.'},
+        {id:'B', text:'a catastrophic European-introduced famine, since traditional indigenous staple crops were quickly outlawed by Spain.'},
+        {id:'C', text:'the rapid disappearance of all corn and potato crops, which were taken away by Europeans for use back home.'},
+        {id:'D', text:'an immediate population boom that completely overwhelmed the limited food supply of the Spanish colonies.'}
+      ], correct:'A',
+      explanation:'Eurasian diseases (smallpox, measles, influenza, mumps) killed an estimated 75-90% of the indigenous American population in the century after contact. This "great dying" is among the largest demographic catastrophes in history.'},
+
+    {id:'wh_u4_mcq_014', topic:'4.3', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The introduction of American crops such as maize, potatoes, and cassava into Afro-Eurasia contributed most directly to',
+      choices:[
+        {id:'A', text:'population growth, because these crops produced more calories per acre than older Eurasian and African staples.'},
+        {id:'B', text:'a sharp economic collapse in China and India, because farmers refused to plant any unfamiliar foreign crops.'},
+        {id:'C', text:'the wholesale abandonment of wheat and rice cultivation everywhere across the Eurasian continent within decades.'},
+        {id:'D', text:'a sudden severe famine in West Africa, which had no land suitable for growing the new American crops at all.'}
+      ], correct:'A',
+      explanation:'High-calorie American crops (especially potatoes in Europe, maize in Africa and southern China, cassava in Africa) supported large population increases by raising the carrying capacity of marginal land.'},
+
+    {id:'wh_u4_mcq_015', topic:'4.3', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The introduction of horses, cattle, and pigs to the Americas most directly transformed',
+      choices:[
+        {id:'A', text:'indigenous lifeways, especially on the Great Plains, where horses revolutionized hunting and warfare practices.'},
+        {id:'B', text:'European settlement patterns, since the new animals required permanent walled enclosures in every colony.'},
+        {id:'C', text:'the religious practice of indigenous Americans, who immediately adopted Christianity after contact with the animals.'},
+        {id:'D', text:'overseas Asian trade networks, since horses now traveled by sea to replace the camels of the Silk Roads.'}
+      ], correct:'A',
+      explanation:'Horses, in particular, transformed Plains Indian societies, enabling new forms of bison hunting and reshaping warfare. European livestock fundamentally altered American ecologies and cultures.'},
+
+    {id:'wh_u4_mcq_016', topic:'4.3', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Sugar, coffee, and tobacco are best understood as',
+      choices:[
+        {id:'A', text:'New World cash crops whose plantation cultivation by enslaved labor reshaped global tastes and consumption.'},
+        {id:'B', text:'staple grains that fed enslaved African populations across most of the major Caribbean and Brazilian colonies.'},
+        {id:'C', text:'medicines first imported from China that European physicians used in the treatment of bubonic plague outbreaks.'},
+        {id:'D', text:'religious symbols that the Catholic Church specifically banned among new converts in the Americas after 1500.'}
+      ], correct:'A',
+      explanation:'Plantation cash crops grown in the Americas with coerced (and especially enslaved) African labor reshaped global consumer culture, making once-luxury goods like sugar and tobacco everyday items in Europe.'},
+
+    {id:'wh_u4_mcq_017', topic:'4.3', bigIdea:'ENV', difficulty:'challenging',
+      stem:'Which statement best captures the global environmental impact of the Columbian Exchange?',
+      choices:[
+        {id:'A', text:'It produced both demographic disaster in the Americas and population growth in Afro-Eurasia, fundamentally reshaping world ecology.'},
+        {id:'B', text:'It had only minor environmental effects, since most plant and animal exchanges had already happened along earlier overland Silk Roads.'},
+        {id:'C', text:'It mainly affected European populations, which absorbed nearly all biological transfers and most of the global disease burden.'},
+        {id:'D', text:'It was a strictly economic event with no measurable biological consequences anywhere in the Atlantic basin or across Eurasia.'}
+      ], correct:'A',
+      explanation:'The CED stresses both sides: catastrophic indigenous American population collapse from disease, and substantial Afro-Eurasian population growth from new American crops. Same exchange, opposite demographic outcomes.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — MARITIME EMPIRES ESTABLISHED  (Topic 4.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'4.4', title:'Maritime Empires Established', icon:'⚔️', themes:['GOV','ECN'],
+   desc:'Portuguese trading-post empire, Spanish viceroyalties, Dutch VOC, British East India Company, French colonies — five different imperial models.',
+   type:'mcq', group:'core', label:'Round 4 — Maritime Empires Established', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u4_mcq_018', topic:'4.4', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Portuguese empire in the Indian Ocean is best characterized as',
+      choices:[
+        {id:'A', text:'a network of fortified trading posts that controlled key chokepoints rather than ruling large territorial blocks.'},
+        {id:'B', text:'a settler empire of large agricultural plantations spread across the inland regions of the Indian subcontinent.'},
+        {id:'C', text:'a unified colonial bureaucracy administered directly by the Portuguese king from his royal palace in Lisbon.'},
+        {id:'D', text:'a religious state ruled jointly by Catholic missionaries and indigenous princes who voluntarily converted to Christianity.'}
+      ], correct:'A',
+      explanation:'Portugal lacked the manpower to rule large territories. Instead, it established fortified trading posts (Goa, Hormuz, Malacca) at strategic Indian Ocean chokepoints, taxing trade rather than governing populations.'},
+
+    {id:'wh_u4_mcq_019', topic:'4.4', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Spanish governed their American colonies most directly through',
+      choices:[
+        {id:'A', text:'viceroyalties, large territorial divisions ruled by viceroys appointed by and accountable to the Spanish king.'},
+        {id:'B', text:'a small number of joint-stock companies modeled on the Dutch VOC and run by independent merchant boards.'},
+        {id:'C', text:'an indirect system of indigenous client kingdoms whose hereditary rulers paid annual tribute to Madrid.'},
+        {id:'D', text:'a federation of self-governing settler republics that each elected their own representative provincial assemblies.'}
+      ], correct:'A',
+      explanation:'Spain organized its Americas as viceroyalties (initially New Spain and Peru). Viceroys, as the king\'s direct representatives, oversaw colonial administration. This was a more centralized model than the Dutch or British later used.'},
+
+    {id:'wh_u4_mcq_020', topic:'4.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Dutch East India Company (VOC) was distinctive among early modern overseas ventures because it',
+      choices:[
+        {id:'A', text:'was a state-chartered joint-stock company empowered to wage war, sign treaties, and govern in the company\'s name.'},
+        {id:'B', text:'was an entirely private commercial enterprise with no formal government recognition or any legal political authority.'},
+        {id:'C', text:'was directly run by the Dutch king and his cabinet, and reported its day-to-day operations to the royal treasury.'},
+        {id:'D', text:'limited its activities to peaceful trade and refused under any circumstances to use military force against rival merchants.'}
+      ], correct:'A',
+      explanation:'The VOC (founded 1602) was a chartered joint-stock company with quasi-sovereign powers. It could wage war, conclude treaties, and govern, blurring the line between corporation and state in ways modern firms cannot.'},
+
+    {id:'wh_u4_mcq_021', topic:'4.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The British East India Company differed from the Spanish viceroyalty system in that the Company',
+      choices:[
+        {id:'A', text:'began as a private trading enterprise and only gradually took on direct governing authority over Indian territory.'},
+        {id:'B', text:'was created as a fully governmental institution from its founding moment and never engaged in any private commerce.'},
+        {id:'C', text:'rejected all forms of profit-seeking and operated solely as a Christian missionary society in the Indian subcontinent.'},
+        {id:'D', text:'governed the entire Indian subcontinent directly from London, without ever using local intermediaries or allies.'}
+      ], correct:'A',
+      explanation:'The BEIC started as a chartered joint-stock company focused on trade. Only over time, especially after Plassey (1757), did it accumulate direct governing power over large parts of India, eventually rivaling a state.'},
+
+    {id:'wh_u4_mcq_022', topic:'4.4', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar comparing the Portuguese, Spanish, Dutch, and British overseas empires would most likely emphasize that they',
+      choices:[
+        {id:'A', text:'used different organizational models (trading posts, viceroyalties, joint-stock companies) suited to their resources and goals.'},
+        {id:'B', text:'all used one single uniform colonial structure modeled directly on the Roman Catholic Church administrative hierarchy headquartered in Rome.'},
+        {id:'C', text:'were each governed by elected legislatures of settler representatives rather than by appointed monarchical officials.'},
+        {id:'D', text:'all completely avoided any major military conflict with each other throughout the entire early modern period of expansion.'}
+      ], correct:'A',
+      explanation:'CED Topic 4.4 stresses that early-modern maritime empires used different organizational models. Portugal\'s trading-post empire, Spain\'s viceroyalties, and the Dutch and British joint-stock companies were structurally distinct.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — MARITIME EMPIRES MAINTAINED  (Topic 4.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'4.5', title:'Maritime Empires Maintained', icon:'💰', themes:['ECN','SIO'],
+   desc:'Mercantilism, the Atlantic slave trade, the Middle Passage, encomienda, hacienda, Spanish mit\'a, Potosí silver, the Manila Galleons.',
+   type:'mcq', group:'core', label:'Round 5 — Maritime Empires Maintained', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u4_mcq_023', topic:'4.5', bigIdea:'ECN', difficulty:'accessible',
+      stem:'Mercantilism, the dominant economic theory of European powers in this period, held that',
+      choices:[
+        {id:'A', text:'national wealth depended on accumulating gold and silver, achieved through a favorable balance of foreign trade.'},
+        {id:'B', text:'free trade among all nations would eventually maximize the global economic prosperity for every state involved.'},
+        {id:'C', text:'colonies should be allowed to trade openly with every foreign power and develop their own independent industries.'},
+        {id:'D', text:'governments should completely abolish all tariffs, all subsidies, and any kind of state intervention in foreign commerce.'}
+      ], correct:'A',
+      explanation:'Mercantilism held that wealth was measured in bullion and that colonies existed to enrich the mother country: supplying raw materials, buying finished goods, and never trading directly with rival European states.'},
+
+    {id:'wh_u4_mcq_024', topic:'4.5', bigIdea:'SIO', difficulty:'accessible',
+      stem:'The Atlantic slave trade in this period most directly involved',
+      choices:[
+        {id:'A', text:'the forced transport of millions of enslaved Africans across the Atlantic to work on plantations in the Americas.'},
+        {id:'B', text:'the voluntary migration of free African laborers to European-run agricultural enterprises in the Caribbean basin.'},
+        {id:'C', text:'the exchange of enslaved indigenous Americans for European manufactured goods in West African coastal markets.'},
+        {id:'D', text:'the seasonal movement of African pastoralists across the Sahara to provide labor at large Mediterranean wheat farms.'}
+      ], correct:'A',
+      explanation:'The trans-Atlantic slave trade carried roughly 12-13 million Africans (with about 10-11 million surviving the Middle Passage) to plantations and mines in the Americas across roughly four centuries.'},
+
+    {id:'wh_u4_mcq_025', topic:'4.5', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Spanish encomienda system gave conquistadors and colonists',
+      choices:[
+        {id:'A', text:'the right to demand tribute and labor from indigenous communities in exchange for a duty to protect and convert them.'},
+        {id:'B', text:'a salaried government job that required them to administer the daily affairs of viceroyal Spanish provinces.'},
+        {id:'C', text:'permanent ownership of all Indian lands they touched, which they could later sell freely to other colonial settlers.'},
+        {id:'D', text:'the legal right to enslave any indigenous person they captured and ship them all directly to silver mines back in Europe.'}
+      ], correct:'A',
+      explanation:'Encomienda was a grant of indigenous tribute and labor to a colonist (the encomendero), nominally in exchange for protection and Christian instruction. In practice it was deeply exploitative and contributed to indigenous decline.'},
+
+    {id:'wh_u4_mcq_026', topic:'4.5', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Spanish mit\'a system, adapted from earlier Inca practice, was used most directly to',
+      choices:[
+        {id:'A', text:'staff the brutal silver mines at Potosí by drafting indigenous Andean workers for rotational forced labor.'},
+        {id:'B', text:'collect annual cash payments in silver from indigenous Andean communities living near the colonial cities.'},
+        {id:'C', text:'recruit voluntary Spanish settlers from Castile to staff the agricultural haciendas of the central Mexican valleys.'},
+        {id:'D', text:'transport enslaved Africans from the West African coast to the silver mining regions of viceroyal Peru.'}
+      ], correct:'A',
+      explanation:'The Spanish mit\'a (modeled on Inca rotational labor) drafted indigenous Andeans into mining work, especially at Potosí. Conditions were brutal and the system contributed enormously to indigenous demographic decline in the Andes.'},
+
+    {id:'wh_u4_mcq_027', topic:'4.5', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Manila Galleon trade was significant in the global economy primarily because it',
+      choices:[
+        {id:'A', text:'connected the Spanish American silver supply to Chinese demand, integrating the Pacific into global commerce.'},
+        {id:'B', text:'served as the main route for shipping enslaved Africans from West Africa to the colonial sugar plantations of Brazil.'},
+        {id:'C', text:'opened a direct trade between Tokugawa Japan and the British East India Company headquarters in London.'},
+        {id:'D', text:'allowed Spanish settlers to import grain from China to feed the indigenous laborers in Mexican silver mining centers.'}
+      ], correct:'A',
+      explanation:'The Manila Galleons (Acapulco-Manila) brought American silver to China in exchange for Chinese silks and porcelain. They tied the silver-hungry Ming/Qing economy to American mines via the Pacific.'},
+
+    {id:'wh_u4_mcq_028', topic:'4.5', bigIdea:'SIO', difficulty:'challenging',
+      stem:'The Middle Passage refers most directly to',
+      choices:[
+        {id:'A', text:'the brutal trans-Atlantic leg of the triangular slave trade, with extremely high mortality rates among captives below decks.'},
+        {id:'B', text:'the section of the Indian Ocean monsoon route that linked the Swahili Coast to the western coast of British India.'},
+        {id:'C', text:'a Portuguese diplomatic agreement that divided the Atlantic slave trade between the kingdoms of Spain and Portugal.'},
+        {id:'D', text:'a key administrative office of the Spanish Casa de Contratación that was located in the city of Seville on the Iberian peninsula.'}
+      ], correct:'A',
+      explanation:'The Middle Passage was the brutal Atlantic crossing of the triangular trade, with conditions so extreme that 15-20% of enslaved captives typically died before arrival in the Americas.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — RESISTANCE & CHALLENGES  (Topic 4.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'4.6', title:'Resistance & Challenges', icon:'⚒️', themes:['GOV','SIO','CDI'],
    desc:'Pueblo Revolt, Metacom\'s War, Maroon societies, Quilombos, Sikh and Maratha resistance, Glorious Revolution.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r7',  num:7,  topic:'4.7', title:'Social Hierarchies', icon:'👥', themes:['SIO','CDI'],
+   type:'mcq', group:'skills', label:'Round 6 — Resistance & Challenges', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u4_mcq_029', topic:'4.6', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The 1680 Pueblo Revolt in New Mexico was significant most directly because it',
+      choices:[
+        {id:'A', text:'temporarily expelled Spanish colonists from the region and is considered the most successful indigenous revolt against colonial rule.'},
+        {id:'B', text:'led to a permanent peace treaty in which Spain formally recognized full Pueblo independence in northern New Mexico.'},
+        {id:'C', text:'forced the Spanish Crown to immediately abolish slavery throughout all of its colonial territories in the New World.'},
+        {id:'D', text:'resulted in the rapid conversion of all the Spanish settlers in New Mexico to the traditional Pueblo religious and ritual customary practices.'}
+      ], correct:'A',
+      explanation:'The Pueblo Revolt, led by Popé, drove the Spanish out of New Mexico for over a decade. Although Spain eventually returned, the revolt is the most successful indigenous uprising against European rule in the colonial Americas.'},
+
+    {id:'wh_u4_mcq_030', topic:'4.6', bigIdea:'SIO', difficulty:'moderate',
+      stem:'Maroon societies and quilombos were',
+      choices:[
+        {id:'A', text:'autonomous communities founded by escaped enslaved Africans, often in remote regions where colonial control was weak.'},
+        {id:'B', text:'voluntary settler colonies founded by free Europeans seeking new economic opportunity in the Spanish Caribbean.'},
+        {id:'C', text:'mission villages founded by Catholic friars to convert and educate small communities of indigenous Americans.'},
+        {id:'D', text:'British naval bases used to suppress the activities of pirates throughout the entire Caribbean Sea during the late 1600s.'}
+      ], correct:'A',
+      explanation:'Maroon (in the Caribbean) and quilombo (in Brazil) communities were settlements of escaped enslaved Africans, usually in inaccessible terrain, that maintained autonomy and sometimes negotiated treaties with colonial authorities.'},
+
+    {id:'wh_u4_mcq_031', topic:'4.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Sikh and Maratha resistance challenged Mughal authority most directly during the late 17th century by',
+      choices:[
+        {id:'A', text:'organizing armed opposition to Aurangzeb\'s orthodox religious policies and growing imperial taxation demands.'},
+        {id:'B', text:'forming a long-standing diplomatic alliance with Spanish missionaries and exiled Mughal princes against Aurangzeb.'},
+        {id:'C', text:'launching naval expeditions against Portuguese trading posts on the western coast of the Indian subcontinent.'},
+        {id:'D', text:'forging an early military alliance with the British East India Company to expel the Mughal governors from India.'}
+      ], correct:'A',
+      explanation:'Sikh and Maratha movements organized armed resistance to Aurangzeb\'s reimposition of jizya, religious orthodoxy, and tax pressures. Both contributed to the gradual weakening of Mughal central authority.'},
+
+    {id:'wh_u4_mcq_032', topic:'4.6', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1688 Glorious Revolution in England is most often cited as significant because it',
+      choices:[
+        {id:'A', text:'established parliamentary supremacy over the monarch, an early and influential example of constitutional limits on royal power.'},
+        {id:'B', text:'ended the entire institution of the English monarchy and replaced it permanently with a republican form of government.'},
+        {id:'C', text:'forced England to abandon its colonial holdings in North America and the Caribbean to the Spanish and French crowns.'},
+        {id:'D', text:'restored the absolute political power of King James II by overturning all of the earlier parliamentary limits placed on royal authority.'}
+      ], correct:'A',
+      explanation:'The Glorious Revolution removed James II and brought William and Mary to the throne under a Bill of Rights that affirmed parliamentary supremacy. It is a key step in the development of constitutional government.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — SOCIAL HIERARCHIES  (Topic 4.7)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'4.7', title:'Social Hierarchies', icon:'👥', themes:['SIO','CDI'],
    desc:'The Spanish casta system, peninsulares, creoles, mestizos, mulattoes; race-based chattel slavery; intensified Russian serfdom; the rising bourgeoisie.',
-   type:'mcq',  questions:10, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 7 — Social Hierarchies', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u4_mcq_033', topic:'4.7', bigIdea:'SIO', difficulty:'accessible',
+      stem:'The Spanish casta system in the Americas',
+      choices:[
+        {id:'A', text:'was a racial-social hierarchy that ranked individuals according to their European, indigenous, and African ancestry.'},
+        {id:'B', text:'was a religious organization that ranked Catholic clergy in colonial Latin America by their seniority in office.'},
+        {id:'C', text:'was a system of voluntary self-identification in which colonial subjects freely chose their own social category.'},
+        {id:'D', text:'was a colonial guild structure that organized colonial American craftsmen by their trade rather than by race or by ancestry.'}
+      ], correct:'A',
+      explanation:'The casta system was a Spanish colonial racial hierarchy with elaborate categories (peninsulares, creoles, mestizos, mulattoes, indios, Africans). Position was based on ancestry and shaped legal status, occupations, and rights.'},
+
+    {id:'wh_u4_mcq_034', topic:'4.7', bigIdea:'SIO', difficulty:'moderate',
+      stem:'Within the Spanish American casta system, peninsulares occupied the highest social position because they',
+      choices:[
+        {id:'A', text:'were European-born Spaniards considered closest to Iberian Spanish identity, holding the most senior royal offices.'},
+        {id:'B', text:'were a hereditary indigenous nobility recognized by the Spanish crown after the conquest of central Mexico and Peru.'},
+        {id:'C', text:'were free Africans who had earned full Spanish legal rights by serving in the colonial Spanish military for many years.'},
+        {id:'D', text:'were skilled artisans who controlled the urban guilds of the largest viceroyal cities such as Lima or Mexico City.'}
+      ], correct:'A',
+      explanation:'Peninsulares were Spaniards born in Spain. They held the top spot in the casta hierarchy and dominated senior royal offices in the colonies. Creoles (American-born Spaniards) ranked just below them and resented this exclusion.'},
+
+    {id:'wh_u4_mcq_035', topic:'4.7', bigIdea:'SIO', difficulty:'moderate',
+      stem:'A key shift in the institution of slavery in the Atlantic world during this period was that',
+      choices:[
+        {id:'A', text:'slavery in the Americas became increasingly defined as race-based, hereditary, and chattel ownership of enslaved persons.'},
+        {id:'B', text:'European powers gradually abolished slavery in their colonies during the early 17th century without any opposition.'},
+        {id:'C', text:'free wage labor entirely replaced enslaved labor on every Caribbean and Brazilian sugar plantation by about 1700.'},
+        {id:'D', text:'enslaved people in the Americas regularly rotated between free and unfree legal status based on their annual labor contracts.'}
+      ], correct:'A',
+      explanation:'Atlantic slavery hardened into race-based chattel slavery: enslaved status passed by birth from mother to child, was legally tied to African ancestry, and treated enslaved people as property rather than as persons in temporary bondage.'},
+
+    {id:'wh_u4_mcq_036', topic:'4.7', bigIdea:'SIO', difficulty:'challenging',
+      stem:'During this period, Russian serfdom evolved in ways that contrasted with trends in much of Western Europe in that it',
+      choices:[
+        {id:'A', text:'intensified, with the state and nobles tightening control over peasants even as Western European serfdom continued to weaken.'},
+        {id:'B', text:'was completely abolished by Peter the Great and his successors as part of the broader Russian westernization reforms.'},
+        {id:'C', text:'transformed into a free wage labor system identical to those that existed across the more industrialized parts of Europe.'},
+        {id:'D', text:'remained almost entirely unchanged, with neither the state nor the local nobles altering any peasant obligations during the era.'}
+      ], correct:'A',
+      explanation:'While Western European serfdom was weakening (especially after the Black Death), Russian serfdom hardened. Peasants became more tightly bound to land and lord, a divergence with major long-term consequences for Russian society.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 8 - 12 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
   {id:'r8',  num:8,  topic:'4.8', title:'Continuity & Change', icon:'🔄', themes:['ECN','GOV'],
    desc:'Topic 4.8 in full: explicit CCOT analysis of the Atlantic World, 1450–1750. Argumentation 6.B — support claims with specific evidence.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'synthesis', group:'skills', label:'Round 8 — Continuity & Change', color:'var(--bronze)', draw:1, questions:8, sets:[]},
 
-  // ── Map Mastery ──
   {id:'r9',  num:9,  topic:'4.1–4.8', title:'Map Mastery', icon:'🗺️', themes:['ENV','GOV'],
    desc:'Place the major maritime empires, trade routes, viceroyalties, and slave-trade flows on a world map.',
-   type:'map', questions:10, group:'skills'},
+   type:'map', group:'skills', label:'Round 9 — Map Mastery', color:'var(--bronze)', draw:1, questions:10, sets:[]},
 
-  // ── Free-Response Practice ──
   {id:'r10', num:10, topic:'4.1–4.8', title:'Document Analysis', icon:'📜', themes:['ENV','SIO'],
    desc:'5 primary-source stimulus drills — Columbus\'s journal, slave ship logs, casta paintings, mercantilist tracts. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'4.1–4.8', title:'SAQ Practice',  icon:'✍️', themes:['ECN','SIO'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'4.1–4.8', title:'SAQ Practice', icon:'✍️', themes:['ECN','SIO'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — effects of the Columbian Exchange and the Atlantic slave trade.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'4.1–4.8', title:'LEQ Practice',  icon:'📝', themes:['ECN'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'4.1–4.8', title:'LEQ Practice', icon:'📝', themes:['ECN'],
    desc:'1 full Long Essay Question with rubric scoring. "Evaluate the extent to which the Atlantic World transformed in the period 1450–1750."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -1017,7 +1625,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -1034,10 +1642,462 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 4.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -1071,6 +2131,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1111,11 +2173,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
