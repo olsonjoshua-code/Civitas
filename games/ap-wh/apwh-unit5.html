@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -635,12 +778,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 5 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every CED topic in the unit: the Enlightenment, the four political revolutions, the Industrial Revolution, and reactions to industrial society. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -803,6 +952,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 5 DATA
@@ -811,51 +1008,472 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u5';
 const UNIT_TITLE = 'Revolutions';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 5 political-revolution rounds + 4 industrial rounds + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 5 Revolutions (c. 1750 – c. 1900)
+//  9 MCQ rounds × 4 questions each = 36 MCQs (Pass 1)
+//  Plus 3 Pass-2 stubs (Document Analysis, SAQ, LEQ)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Political Revolutions (Topics 5.1–5.2) ──
-  {id:'r1',  num:1,  topic:'5.1', title:'The Enlightenment', icon:'💡', themes:['CDI','GOV'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — THE ENLIGHTENMENT  (Topic 5.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'5.1', title:'The Enlightenment', icon:'💡', themes:['CDI','GOV'],
    desc:'Natural rights, social contract, popular sovereignty. Locke, Voltaire, Rousseau, Montesquieu, Wollstonecraft, Olympe de Gouges, abolitionists.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r2',  num:2,  topic:'5.2', title:'American Revolution', icon:'🦅', themes:['GOV','CDI'],
+   type:'mcq', group:'core', label:'Round 1 — The Enlightenment', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_001', topic:'5.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'John Locke\'s political theory most directly argued that',
+      choices:[
+        {id:'A', text:'governments derive their legitimate authority from the consent of the governed and exist to protect natural rights.'},
+        {id:'B', text:'monarchs hold authority by divine right and are accountable to no earthly power except the head of the church.'},
+        {id:'C', text:'the strongest faction in any society naturally and rightly assumes leadership over all the weaker political groups.'},
+        {id:'D', text:'all political power should be permanently concentrated in a single hereditary noble class for the sake of stability.'}
+      ], correct:'A',
+      explanation:'Locke argued that government legitimacy rests on the consent of the governed and that its central purpose is to protect natural rights such as life, liberty, and property. This idea was foundational to the American and French Revolutions.'},
+
+    {id:'wh_u5_mcq_002', topic:'5.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Montesquieu\'s most influential contribution to Enlightenment political thought was the idea of',
+      choices:[
+        {id:'A', text:'separating governmental powers into distinct branches so that no single institution could become too dominant.'},
+        {id:'B', text:'replacing all monarchies with direct democracies in which citizens voted personally on every government policy.'},
+        {id:'C', text:'unifying executive, legislative, and judicial power in one body for the sake of efficient legal administration.'},
+        {id:'D', text:'rejecting all forms of representative government as inherently incompatible with the principles of human liberty.'}
+      ], correct:'A',
+      explanation:'Montesquieu argued in The Spirit of the Laws that governmental power should be divided among separate branches to prevent tyranny. This idea heavily influenced the U.S. Constitution.'},
+
+    {id:'wh_u5_mcq_003', topic:'5.1', bigIdea:'SIO', difficulty:'moderate',
+      stem:'Mary Wollstonecraft and Olympe de Gouges are best understood as',
+      choices:[
+        {id:'A', text:'Enlightenment thinkers who extended natural-rights arguments to women, demanding political and educational equality.'},
+        {id:'B', text:'royalist authors who defended absolute monarchy against the Enlightenment ideas spreading in Europe and North America.'},
+        {id:'C', text:'leaders of the Catholic Counter-Reformation who organized armed resistance to the Enlightenment\'s secular philosophy.'},
+        {id:'D', text:'Latin American military commanders who later led the wars of independence against Spanish and Portuguese colonial rule.'}
+      ], correct:'A',
+      explanation:'Wollstonecraft\'s Vindication of the Rights of Woman (1792) and de Gouges\'s Declaration of the Rights of Woman and Female Citizen (1791) extended Enlightenment natural-rights arguments to women, arguing for political and educational equality.'},
+
+    {id:'wh_u5_mcq_004', topic:'5.1', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Late 18th-century abolitionists most often justified ending the slave trade by',
+      choices:[
+        {id:'A', text:'invoking Enlightenment natural-rights principles, arguing that slavery violated the universal liberty owed to all human beings.'},
+        {id:'B', text:'demonstrating that the slave trade was unprofitable and that abolition would reduce European trade losses across the Atlantic.'},
+        {id:'C', text:'arguing that slavery undermined the foundations of monarchy and weakened the legitimate authority of European kings.'},
+        {id:'D', text:'asserting that enslaved Africans should remain in bondage temporarily until they could be safely sent back to their African homelands.'}
+      ], correct:'A',
+      explanation:'Enlightenment-era abolitionists (Wilberforce, Equiano, Quakers) framed the slave trade as a violation of natural rights and human dignity. Economic and religious arguments reinforced the natural-rights case but did not lead it.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — AMERICAN REVOLUTION  (Topic 5.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'5.2', title:'American Revolution', icon:'🦅', themes:['GOV','CDI'],
    desc:'Causes (Stamp Act, Boston Tea Party, Common Sense), the Declaration of Independence, Yorktown, the U.S. Constitution.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r3',  num:3,  topic:'5.2', title:'French Revolution', icon:'🇫🇷', themes:['GOV','CDI','SIO'],
+   type:'mcq', group:'core', label:'Round 2 — American Revolution', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_005', topic:'5.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Colonial protests against measures like the Stamp Act centered most directly on the principle that',
+      choices:[
+        {id:'A', text:'colonists could not legitimately be taxed by a parliament in which they had no elected representatives.'},
+        {id:'B', text:'all colonial subjects should immediately convert to the Anglican Church to ensure their political loyalty.'},
+        {id:'C', text:'the British monarch had no legal authority to govern any of the existing North American colonial territories.'},
+        {id:'D', text:'the colonies should be allowed to print and circulate their own coin and paper currency without British approval.'}
+      ], correct:'A',
+      explanation:'The slogan "no taxation without representation" captured the colonists\' core grievance: as British subjects, they argued they could not be taxed by a Parliament in which they had no elected voice.'},
+
+    {id:'wh_u5_mcq_006', topic:'5.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Thomas Paine\'s Common Sense (1776) contributed to the American Revolution most directly by',
+      choices:[
+        {id:'A', text:'making the case for independence from Britain in clear language accessible to ordinary colonial readers.'},
+        {id:'B', text:'persuading the French king Louis XVI to send military forces to support the American colonial rebellion.'},
+        {id:'C', text:'organizing the formal political alliance between the thirteen colonies and the new revolutionary French state.'},
+        {id:'D', text:'rejecting Enlightenment ideas as unsuitable for guiding the founding of any new American republican government.'}
+      ], correct:'A',
+      explanation:'Common Sense argued for full independence (not just reconciliation) in plain, accessible prose. It sold extraordinary numbers of copies and shifted colonial public opinion decisively toward independence.'},
+
+    {id:'wh_u5_mcq_007', topic:'5.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The 1776 Declaration of Independence drew most directly on Enlightenment thought by',
+      choices:[
+        {id:'A', text:'asserting that all men are created equal and possess natural rights that any legitimate government must protect.'},
+        {id:'B', text:'declaring that political authority belongs only to monarchs descended from the founders of the Holy Roman Empire.'},
+        {id:'C', text:'rejecting the idea of natural rights and instead grounding political authority in long-established colonial tradition.'},
+        {id:'D', text:'establishing a state-supported Anglican Church for all of the thirteen colonies under their newly-independent government.'}
+      ], correct:'A',
+      explanation:'Jefferson\'s Declaration drew explicitly on Locke. The phrasing of inalienable rights and government by consent shows direct Enlightenment influence on the founding document.'},
+
+    {id:'wh_u5_mcq_008', topic:'5.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1789 U.S. Constitution is most often cited as a key example of Enlightenment political thought because it',
+      choices:[
+        {id:'A', text:'created a federal republic with separated powers and explicit protections of individual rights in a written form.'},
+        {id:'B', text:'concentrated all federal power in the office of the president, modeled on the French absolute monarchy of Louis XIV.'},
+        {id:'C', text:'abolished the institution of slavery throughout the new United States within the first decade after ratification.'},
+        {id:'D', text:'established a hereditary monarchy in the new United States, with Washington designated as the first American king.'}
+      ], correct:'A',
+      explanation:'The Constitution institutionalized Enlightenment principles: separation of powers (Montesquieu), federalism, written limits on government, and a Bill of Rights protecting individual liberties.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — FRENCH REVOLUTION  (Topic 5.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'5.2', title:'French Revolution', icon:'🇫🇷', themes:['GOV','CDI','SIO'],
    desc:'Three Estates, Bastille, Declaration of the Rights of Man, Reign of Terror, Robespierre, Napoleon and the Napoleonic Code.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'5.2', title:'Haitian Revolution', icon:'⛓️', themes:['GOV','SIO','CDI'],
+   type:'mcq', group:'core', label:'Round 3 — French Revolution', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_009', topic:'5.2', bigIdea:'SIO', difficulty:'accessible',
+      stem:'On the eve of the French Revolution, the Third Estate consisted of',
+      choices:[
+        {id:'A', text:'the commoners, including peasants, urban workers, and the bourgeoisie, who together made up the vast majority of France.'},
+        {id:'B', text:'the Catholic clergy, including parish priests and bishops, who controlled large landholdings throughout the kingdom.'},
+        {id:'C', text:'the hereditary nobility, who held tax exemptions and dominated the highest royal offices and military commands.'},
+        {id:'D', text:'the foreign-born aristocrats from the neighboring European states whom Louis XVI had personally appointed to manage royal affairs.'}
+      ], correct:'A',
+      explanation:'The Third Estate included roughly 97% of the French population: peasants, urban workers, and the rising bourgeoisie. The First and Second Estates (clergy and nobility) held privileges the Third did not.'},
+
+    {id:'wh_u5_mcq_010', topic:'5.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The 1789 Declaration of the Rights of Man and of the Citizen most clearly reflected',
+      choices:[
+        {id:'A', text:'Enlightenment principles, asserting that men are born free and equal in rights and that sovereignty rests with the nation.'},
+        {id:'B', text:'a religious revival, asserting that all political authority derives from the Catholic Church and the doctrines of the Pope.'},
+        {id:'C', text:'absolutist monarchical principles, asserting that all political authority continued to flow from the king alone in France.'},
+        {id:'D', text:'pre-Enlightenment feudal traditions, asserting that political rights belonged exclusively to the existing French nobility.'}
+      ], correct:'A',
+      explanation:'The Declaration directly applied Enlightenment principles. Articles 1-3 affirm equality of rights, the natural origin of those rights, and that sovereignty resides in the nation, not in the monarch.'},
+
+    {id:'wh_u5_mcq_011', topic:'5.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Reign of Terror (1793-1794) under Robespierre is best understood as',
+      choices:[
+        {id:'A', text:'a radical phase of the Revolution in which the Committee of Public Safety executed thousands accused of being its enemies.'},
+        {id:'B', text:'a peaceful constitutional convention that drafted the founding documents of the new French republican government.'},
+        {id:'C', text:'a foreign invasion led by the Habsburg armies that briefly restored Louis XVI to the French throne in 1794.'},
+        {id:'D', text:'a religious revival movement in which French Catholic clergy convinced revolutionaries to restore the Catholic Church to power.'}
+      ], correct:'A',
+      explanation:'The Terror was a radical phase in which the Jacobin-led Committee of Public Safety executed thousands (including the king, queen, and many revolutionaries) on charges of being enemies of the Revolution.'},
+
+    {id:'wh_u5_mcq_012', topic:'5.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The Napoleonic Code (1804) was significant in spreading revolutionary ideas because it',
+      choices:[
+        {id:'A', text:'codified equality before the law, property rights, and religious tolerance across the territories Napoleon controlled.'},
+        {id:'B', text:'restored the privileges of the French nobility and clergy and reversed the major legal reforms of the French Revolution.'},
+        {id:'C', text:'returned French law to the system of feudal customs that had governed France before the start of the Revolution in 1789.'},
+        {id:'D', text:'replaced the French civil legal system with strict religious Catholic canon law throughout French-controlled European territory.'}
+      ], correct:'A',
+      explanation:'The Napoleonic Code codified equality before the law, secular government, property rights, and religious tolerance. It spread these revolutionary principles across Europe through Napoleon\'s conquests.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — HAITIAN REVOLUTION  (Topic 5.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'5.2', title:'Haitian Revolution', icon:'⛓️', themes:['GOV','SIO','CDI'],
    desc:'Saint-Domingue, Toussaint Louverture, Dessalines, the first independent Black republic (1804), and effects on the Atlantic world.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r5',  num:5,  topic:'5.2', title:'Latin Am. & Nationalism', icon:'⚔️', themes:['GOV','CDI'],
+   type:'mcq', group:'core', label:'Round 4 — Haitian Revolution', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_013', topic:'5.2', bigIdea:'SIO', difficulty:'accessible',
+      stem:'Before its revolution, Saint-Domingue was significant in the Atlantic world primarily because',
+      choices:[
+        {id:'A', text:'it was the most profitable European colony, producing enormous wealth from sugar grown on plantations using enslaved labor.'},
+        {id:'B', text:'it served as the only port through which Spanish silver passed on its long voyage from the Americas to mainland Europe.'},
+        {id:'C', text:'it functioned as the chief British naval base in the entire western Caribbean throughout the eighteenth century.'},
+        {id:'D', text:'it was always the largest free Black republic anywhere across the entire Atlantic basin throughout most of the eighteenth century.'}
+      ], correct:'A',
+      explanation:'Saint-Domingue (modern Haiti) was the world\'s most profitable colony before the revolution. Its sugar plantations, worked by hundreds of thousands of enslaved Africans, produced wealth on a scale that funded much of the French economy.'},
+
+    {id:'wh_u5_mcq_014', topic:'5.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Toussaint Louverture is best known for',
+      choices:[
+        {id:'A', text:'leading the formerly enslaved population of Saint-Domingue in a successful revolution against French colonial rule.'},
+        {id:'B', text:'serving as the French royal governor of Saint-Domingue who personally suppressed the early enslaved uprisings.'},
+        {id:'C', text:'organizing the abolition of the slave trade across all British colonial holdings in the Atlantic during the 1790s.'},
+        {id:'D', text:'leading the Latin American independence movements against the Spanish from his own personal northern South American base.'}
+      ], correct:'A',
+      explanation:'A formerly enslaved man, Toussaint Louverture led Saint-Domingue\'s enslaved population to victory over French, British, and Spanish forces. He was captured in 1802; his lieutenant Dessalines completed independence in 1804.'},
+
+    {id:'wh_u5_mcq_015', topic:'5.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The 1804 Haitian Revolution is historically distinctive because it',
+      choices:[
+        {id:'A', text:'produced the first independent Black-led republic and the only successful large-scale revolution led by enslaved people.'},
+        {id:'B', text:'established a permanent French monarchy in the Caribbean that lasted until the end of the nineteenth century.'},
+        {id:'C', text:'restored slavery in Saint-Domingue and continued plantation production for the European sugar markets after 1804.'},
+        {id:'D', text:'led to the immediate abolition of slavery throughout the entire Atlantic world during the early decades of the nineteenth century.'}
+      ], correct:'A',
+      explanation:'Haiti was the first independent Black-led republic and the only successful slave revolution in modern history. It directly inspired anti-slavery movements while also frightening slaveholders into hardening their systems.'},
+
+    {id:'wh_u5_mcq_016', topic:'5.2', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar arguing that the Haitian Revolution radicalized Atlantic-world ideas of liberty would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'extended Enlightenment natural-rights claims to enslaved people of African descent in a way other revolutions did not.'},
+        {id:'B', text:'rejected Enlightenment ideas entirely and grounded its independence claim in pre-colonial African political traditions.'},
+        {id:'C', text:'led France to immediately abolish slavery in all of its colonies the moment the revolution began in Saint-Domingue.'},
+        {id:'D', text:'modeled itself directly on the U.S. Constitution and adopted nearly identical political and economic institutions.'}
+      ], correct:'A',
+      explanation:'Haiti uniquely extended Enlightenment "rights of man" arguments to enslaved Africans. The American and French Revolutions had largely excluded enslaved people; Haiti\'s revolutionaries demonstrated the universal logic of natural rights.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — LATIN AMERICAN INDEPENDENCE & NATIONALISM  (Topic 5.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'5.2', title:'Latin Am. & Nationalism', icon:'⚔️', themes:['GOV','CDI'],
    desc:'Bolívar\'s Letter from Jamaica, San Martín, Hidalgo, Brazilian independence; Italian and German unification; the Revolutions of 1848.',
-   type:'mcq',  questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 5 — Latin American Independence & Nationalism', color:'var(--acc)', draw:4, questions:[
 
-  // ── Industrial Revolution (Topics 5.3–5.10) ──
-  {id:'r6',  num:6,  topic:'5.3–5.5', title:'Industrial Revolution', icon:'⚙️', themes:['ENV','TEC','ECN'],
+    {id:'wh_u5_mcq_017', topic:'5.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Simón Bolívar is best known for',
+      choices:[
+        {id:'A', text:'leading independence movements that liberated much of northern South America from Spanish colonial rule.'},
+        {id:'B', text:'serving as the last Spanish viceroy of New Granada during the final years before independence.'},
+        {id:'C', text:'founding the modern country of Brazil after leading a long armed revolt against Portuguese colonial rule.'},
+        {id:'D', text:'commanding the Argentine fleet during the war of independence against the British rather than Spain.'}
+      ], correct:'A',
+      explanation:'Bolívar ("the Liberator") led the wars that freed Venezuela, Colombia, Ecuador, Peru, and Bolivia from Spanish rule. He hoped to unify Spanish South America but the new states fragmented after independence.'},
+
+    {id:'wh_u5_mcq_018', topic:'5.2', bigIdea:'SIO', difficulty:'moderate',
+      stem:'A primary cause of the Latin American independence movements in the early 19th century was',
+      choices:[
+        {id:'A', text:'creole resentment of peninsular Spanish dominance, combined with the spread of Enlightenment ideas across the Atlantic.'},
+        {id:'B', text:'a coordinated rebellion of indigenous communities seeking the formal restoration of the Inca and Aztec empires.'},
+        {id:'C', text:'a unified African-led uprising of enslaved laborers across the entire Spanish-speaking American continent.'},
+        {id:'D', text:'an immediate British invasion that overthrew Spanish viceregal authority across all of South America almost simultaneously.'}
+      ], correct:'A',
+      explanation:'Creoles (American-born Spaniards) resented the dominance of peninsulares and were inspired by Enlightenment ideas and the American, French, and Haitian revolutions. Napoleon\'s 1808 invasion of Spain provided the trigger.'},
+
+    {id:'wh_u5_mcq_019', topic:'5.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Italian and German unification in the 19th century are best understood as',
+      choices:[
+        {id:'A', text:'nationalist movements that combined many smaller states into a single new nation defined by shared language and culture.'},
+        {id:'B', text:'religious revivals that restored medieval Catholic and Lutheran political authority across central and southern Europe.'},
+        {id:'C', text:'restorations of older feudal kingdoms that had existed before the rise of the early modern centralized European states.'},
+        {id:'D', text:'colonial movements that established new German and Italian overseas empires across most of sub-Saharan Africa during the 1860s.'}
+      ], correct:'A',
+      explanation:'Italian unification (under Cavour and Garibaldi, completed 1871) and German unification (under Bismarck, 1871) merged smaller states into single nations. Both reflected the 19th-century rise of nationalism.'},
+
+    {id:'wh_u5_mcq_020', topic:'5.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The Revolutions of 1848 across Europe are most often cited as significant because they',
+      choices:[
+        {id:'A', text:'reflected widespread liberal and nationalist demands, although most were crushed and failed to achieve their stated goals.'},
+        {id:'B', text:'permanently established democracy across all of continental Europe and ended every monarchy by the end of that year.'},
+        {id:'C', text:'led directly to the rapid unification of Italy and Germany within just a few months after each revolt began.'},
+        {id:'D', text:'established Marxist communist governments in France, Germany, Austria, and Italy following the earliest of the 1848 uprisings.'}
+      ], correct:'A',
+      explanation:'The 1848 revolutions reflected liberal, nationalist, and (in some cases) socialist demands. Most were defeated within months, but they reshaped European politics by demonstrating widespread popular pressure for reform.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — INDUSTRIAL REVOLUTION  (Topics 5.3-5.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'5.3–5.5', title:'Industrial Revolution', icon:'⚙️', themes:['ENV','TEC','ECN'],
    desc:'Why Britain first: coal, capital, enclosure, markets. The factory system, steam engine, textile innovations. Then railroads, telegraphs, Bessemer steel.',
-   type:'mcq',  questions:14, group:'skills'},
-  {id:'r7',  num:7,  topic:'5.4, 5.6', title:'Industrialization Spreads', icon:'🚂', themes:['ECN','GOV'],
-   desc:'Industrialization in Belgium, France, US, Germany; state-led catch-up in Meiji Japan, Russia, Egypt; Self-Strengthening in China; deindustrialization in India.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r8',  num:8,  topic:'5.7', title:'Economic Innovations', icon:'💰', themes:['ECN'],
-   desc:'Capitalism, stock markets, limited liability corporations, monopolies, Standard Oil, multinationals (United Fruit, HSBC), the gold standard.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r9',  num:9,  topic:'5.8–5.10', title:'Reactions & Society', icon:'✊', themes:['SIO','ECN','CDI'],
-   desc:'Marx and the Communist Manifesto, Luddites, labor unions, Tanzimat, Taiping Rebellion, urbanization, suffrage, Seneca Falls. CCOT for Topic 5.10.',
-   type:'mcq',  questions:14, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 6 — Industrial Revolution', color:'var(--acc)', draw:4, questions:[
 
-  // ── Free-Response Practice ──
+    {id:'wh_u5_mcq_021', topic:'5.3', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Industrial Revolution began in Britain primarily because',
+      choices:[
+        {id:'A', text:'Britain had abundant coal, a large pool of capital, available labor, and ready access to colonial raw materials and markets.'},
+        {id:'B', text:'British scientists invented every key industrial technology decades before any other European or Asian competitors did.'},
+        {id:'C', text:'the British government nationalized all industry and directly funded factory construction in the early eighteenth century.'},
+        {id:'D', text:'Britain had the smallest possible adult labor population, which allowed each worker to be paid extremely high industrial wages.'}
+      ], correct:'A',
+      explanation:'Britain combined cheap coal, agricultural surplus, available capital from colonial trade, enclosure-displaced labor, and access to raw materials and markets. This combination of factors explains why industrialization began there first.'},
+
+    {id:'wh_u5_mcq_022', topic:'5.3', bigIdea:'TEC', difficulty:'moderate',
+      stem:'James Watt\'s improved steam engine was important to industrialization most directly because it',
+      choices:[
+        {id:'A', text:'provided a reliable, mobile source of mechanical power that freed factories from being located near rivers or waterfalls.'},
+        {id:'B', text:'provided the first practical method for generating electricity for use in homes and factories across the British isles.'},
+        {id:'C', text:'replaced human and animal labor in agriculture, leading to a mass migration of farm workers back into the rural countryside.'},
+        {id:'D', text:'allowed steam-powered cars to replace horse-drawn transport across the entire interior of Britain by about the year 1800.'}
+      ], correct:'A',
+      explanation:'Watt\'s engine (refined in the 1760s-80s) provided steady, locatable mechanical power. Factories no longer needed to be on rivers; they could be built where coal, labor, or markets made them most profitable.'},
+
+    {id:'wh_u5_mcq_023', topic:'5.4', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The development of railroads and the telegraph in the 19th century most directly transformed',
+      choices:[
+        {id:'A', text:'long-distance commerce and communication, making it possible to coordinate national economies and global markets.'},
+        {id:'B', text:'agriculture, by mechanizing planting and harvesting on small subsistence farms across most of central Europe.'},
+        {id:'C', text:'religious life, by allowing missionary societies to coordinate worldwide simultaneous prayer services on Sundays.'},
+        {id:'D', text:'maritime exploration, by replacing all of the major sailing ships with railroads and telegraph lines on the open ocean.'}
+      ], correct:'A',
+      explanation:'Railroads dramatically reduced shipping costs and times; the telegraph allowed near-instant communication. Together they made larger national markets and global supply chains possible, transforming commerce and finance.'},
+
+    {id:'wh_u5_mcq_024', topic:'5.5', bigIdea:'TEC', difficulty:'challenging',
+      stem:'The Bessemer process was significant in 19th-century industrialization most directly because it',
+      choices:[
+        {id:'A', text:'made the mass production of inexpensive steel possible, enabling new bridges, railroads, and skyscraper construction.'},
+        {id:'B', text:'established the modern petroleum-refining industry by separating crude oil into fuels and various other useful chemicals.'},
+        {id:'C', text:'replaced gunpowder with smokeless gunpowder for use in firearms and military artillery during the Napoleonic Wars.'},
+        {id:'D', text:'invented and perfected the internal combustion engine, which then immediately replaced steam in nearly all of industry.'}
+      ], correct:'A',
+      explanation:'The Bessemer process (1850s) allowed inexpensive mass production of steel by blowing air through molten iron. Cheap steel transformed construction, transportation, and weaponry in the second wave of industrialization.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — INDUSTRIALIZATION SPREADS  (Topics 5.4, 5.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'5.4, 5.6', title:'Industrialization Spreads', icon:'🚂', themes:['ECN','GOV'],
+   desc:'Industrialization in Belgium, France, US, Germany; state-led catch-up in Meiji Japan, Russia, Egypt; Self-Strengthening in China; deindustrialization in India.',
+   type:'mcq', group:'skills', label:'Round 7 — Industrialization Spreads', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_025', topic:'5.4', bigIdea:'ECN', difficulty:'accessible',
+      stem:'Industrialization spread beyond Britain during the 19th century most directly to',
+      choices:[
+        {id:'A', text:'Belgium, France, the United States, and Germany, where similar resource and capital conditions allowed factories to develop.'},
+        {id:'B', text:'sub-Saharan Africa and Southeast Asia, which industrialized rapidly during the same decades as Britain and France.'},
+        {id:'C', text:'every major Asian society, with rapid factory growth uniformly visible across China, Japan, India, and Korea by 1850.'},
+        {id:'D', text:'only the Russian Empire, which had achieved full industrialization several decades before any of the other Western powers did.'}
+      ], correct:'A',
+      explanation:'Industrialization spread first to nearby Belgium and France, then to the United States and unified Germany. These regions had similar conditions: capital, resources, transportation, and labor.'},
+
+    {id:'wh_u5_mcq_026', topic:'5.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Meiji Japan\'s industrialization is best characterized as',
+      choices:[
+        {id:'A', text:'a state-directed effort that combined Western technology with Japanese institutions to defend against foreign domination.'},
+        {id:'B', text:'a purely private commercial movement led by Japanese merchant families without any meaningful state involvement.'},
+        {id:'C', text:'a colonial project carried out by British engineers who governed Japanese industry directly from Tokyo embassies.'},
+        {id:'D', text:'a sustained effort to permanently restore Tokugawa-era isolation by eliminating all industrial trade with all of western Europe.'}
+      ], correct:'A',
+      explanation:'After the 1868 Meiji Restoration, Japan pursued top-down state-led industrialization: importing Western technology, sending students abroad, building railroads and shipyards, and protecting domestic industry to avoid colonization.'},
+
+    {id:'wh_u5_mcq_027', topic:'5.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Egypt\'s industrialization under Muhammad Ali (early-to-mid 19th century) ultimately',
+      choices:[
+        {id:'A', text:'collapsed under British pressure, which forced Egypt to remove tariffs that had protected its young domestic industries.'},
+        {id:'B', text:'succeeded so completely that Egypt became the leading industrial power in the entire Mediterranean basin by 1850.'},
+        {id:'C', text:'led Egypt to colonize Britain and impose Egyptian industrial control over British factories and the imperial economy.'},
+        {id:'D', text:'spread its model entirely unchanged across all of sub-Saharan Africa, igniting widespread African industrial growth by 1860.'}
+      ], correct:'A',
+      explanation:'Muhammad Ali tried state-led industrialization (cotton textiles, an arsenal, conscript factories), but British pressure forced Egypt to lower tariffs in 1838, exposing Egyptian industries to British competition. Most failed.'},
+
+    {id:'wh_u5_mcq_028', topic:'5.6', bigIdea:'ECN', difficulty:'challenging',
+      stem:'India\'s experience during the 19th century is best described as',
+      choices:[
+        {id:'A', text:'deindustrialization, with British policies undermining Indian textile manufacturing and reorienting the economy toward raw materials.'},
+        {id:'B', text:'rapid Indian-led industrialization, with the Indian textile industry outpacing British industry by the late nineteenth century.'},
+        {id:'C', text:'a wholesale shift of global manufacturing capacity to Mumbai, which became the world\'s largest industrial city by the year 1850.'},
+        {id:'D', text:'complete economic isolation from the British Empire, with no measurable direct effects on any existing Indian craft or manufacturing industries.'}
+      ], correct:'A',
+      explanation:'India had been a major textile exporter, but British colonial policy (tariffs against Indian goods, machine-made British imports, taxes) deindustrialized India during the 1800s, reorienting it toward exporting raw cotton and indigo.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 8 — ECONOMIC INNOVATIONS  (Topic 5.7)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r8', num:8, topic:'5.7', title:'Economic Innovations', icon:'💰', themes:['ECN'],
+   desc:'Capitalism, stock markets, limited liability corporations, monopolies, Standard Oil, multinationals (United Fruit, HSBC), the gold standard.',
+   type:'mcq', group:'skills', label:'Round 8 — Economic Innovations', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_029', topic:'5.7', bigIdea:'ECN', difficulty:'accessible',
+      stem:'A limited liability corporation differed from earlier business arrangements primarily because',
+      choices:[
+        {id:'A', text:'investors\' personal financial losses were capped at the amount they had originally invested, not at their full personal wealth.'},
+        {id:'B', text:'investors were legally required to participate in the daily management decisions of every firm in which they owned shares.'},
+        {id:'C', text:'corporations were forbidden by law from issuing any kind of public stock or selling shares to small individual investors.'},
+        {id:'D', text:'limited liability firms could only ever be founded by hereditary noble aristocrats personally holding a royal patent of nobility.'}
+      ], correct:'A',
+      explanation:'Limited liability meant investors risked only what they invested, not their personal estates. This dramatically reduced the personal risk of investing and let firms raise large amounts of capital from many small investors.'},
+
+    {id:'wh_u5_mcq_030', topic:'5.7', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Standard Oil Company illustrates the late 19th-century rise of',
+      choices:[
+        {id:'A', text:'monopolies and trusts, in which a single firm came to dominate an entire industry through aggressive horizontal integration.'},
+        {id:'B', text:'state-owned enterprises, in which national governments directly operated all of the major firms in a given industry.'},
+        {id:'C', text:'small-firm cooperatives in which thousands of independent producers shared profits equally with one another.'},
+        {id:'D', text:'guild-based commerce, in which medieval-style merchant associations continued to dominate industrial production into the 1900s.'}
+      ], correct:'A',
+      explanation:'Rockefeller\'s Standard Oil came to control most American oil refining through aggressive acquisitions and pricing tactics. It became the textbook example of late-19th-century monopoly capitalism.'},
+
+    {id:'wh_u5_mcq_031', topic:'5.7', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Multinational corporations such as the United Fruit Company and HSBC are best understood as',
+      choices:[
+        {id:'A', text:'firms that operated across national borders and were able to reshape both economies and politics in the regions where they did business.'},
+        {id:'B', text:'small family-run trading partnerships that operated solely within a single country and rarely engaged in any kind of foreign trade.'},
+        {id:'C', text:'state-run nationalized enterprises managed directly by central government bureaucracies in each country where they operated.'},
+        {id:'D', text:'religious-charity organizations whose stated primary missions actually involved spreading Christianity rather than seeking commercial profit.'}
+      ], correct:'A',
+      explanation:'United Fruit (Latin American bananas), HSBC (Asian banking), and other multinationals operated in many countries, often shaping local politics. Their reach is a defining feature of late-19th-century globalization.'},
+
+    {id:'wh_u5_mcq_032', topic:'5.7', bigIdea:'ECN', difficulty:'challenging',
+      stem:'A scholar describing the late 19th century as the first true "global economy" would most likely emphasize',
+      choices:[
+        {id:'A', text:'the gold standard, mass migration, multinational corporations, and global commodity markets that linked distant regions tightly together.'},
+        {id:'B', text:'the persistence of Mongol-era trade networks across Eurasia as the principal mechanism for international economic integration.'},
+        {id:'C', text:'the deliberate isolation of major industrial powers, which limited cross-border trade to a few luxury goods between European empires.'},
+        {id:'D', text:'a sharp drop in the rate of global migration during this era, reflecting the closing of borders to laborers seeking jobs in industrial economies.'}
+      ], correct:'A',
+      explanation:'The late 19th century featured the gold standard, massive transoceanic migration, multinational corporations, telegraph-linked global commodity markets, and steamship-cheapened trade. The result was the first deeply integrated global economy.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 9 — REACTIONS & SOCIETY  (Topics 5.8-5.10)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r9', num:9, topic:'5.8–5.10', title:'Reactions & Society', icon:'✊', themes:['SIO','ECN','CDI'],
+   desc:'Marx and the Communist Manifesto, Luddites, labor unions, Tanzimat, Taiping Rebellion, urbanization, suffrage, Seneca Falls. CCOT for Topic 5.10.',
+   type:'mcq', group:'skills', label:'Round 9 — Reactions & Society', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u5_mcq_033', topic:'5.8', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The Communist Manifesto (1848), by Karl Marx and Friedrich Engels, most directly argued that',
+      choices:[
+        {id:'A', text:'history advances through class conflict and capitalism would eventually be overthrown by an organized working-class revolution.'},
+        {id:'B', text:'capitalism was the final stage of human social development and class conflict had ended in industrial European society.'},
+        {id:'C', text:'industrial workers needed to support and strengthen monarchies as the only true defense against rising capitalist power.'},
+        {id:'D', text:'private property rights in industrial economies should be carefully expanded so as to give every worker individual factory ownership.'}
+      ], correct:'A',
+      explanation:'Marx and Engels argued that history is driven by class conflict (most recently between bourgeoisie and proletariat) and that capitalism\'s contradictions would eventually produce a working-class revolution against it.'},
+
+    {id:'wh_u5_mcq_034', topic:'5.8', bigIdea:'SIO', difficulty:'moderate',
+      stem:'The Luddite movement in early-19th-century Britain is best described as',
+      choices:[
+        {id:'A', text:'workers who attacked mechanized factory equipment because they believed it was destroying their craft livelihoods.'},
+        {id:'B', text:'a religious revival in which factory workers organized strikes for stronger British government enforcement of Sunday rest.'},
+        {id:'C', text:'a political party that successfully won British parliamentary seats by demanding national universal manhood suffrage.'},
+        {id:'D', text:'a guild of skilled artisans who endorsed and helped to fund early factory mechanization across the British Midlands.'}
+      ], correct:'A',
+      explanation:'Luddites, named after the legendary Ned Ludd, smashed industrial machinery they saw as destroying skilled handcraft livelihoods. The term has come to mean someone hostile to new technology.'},
+
+    {id:'wh_u5_mcq_035', topic:'5.9', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Ottoman Tanzimat reforms of the mid-19th century were',
+      choices:[
+        {id:'A', text:'state-led modernization efforts that aimed to update Ottoman institutions, education, and law to compete with European powers.'},
+        {id:'B', text:'a religious revival movement that aimed to restore strict Islamic orthodoxy throughout all parts of the Ottoman Empire.'},
+        {id:'C', text:'a series of military campaigns that successfully recovered for the Ottomans most of the territory they had lost in the Balkans.'},
+        {id:'D', text:'an internal Janissary uprising that briefly returned the Ottoman government to its pre-Suleiman political organization.'}
+      ], correct:'A',
+      explanation:'The Tanzimat (1839-1876) were Ottoman reforms aiming to modernize the state along European lines: legal equality for non-Muslim subjects, codified law, modern schools and military, and a new bureaucracy.'},
+
+    {id:'wh_u5_mcq_036', topic:'5.10', bigIdea:'SIO', difficulty:'challenging',
+      stem:'The 1848 Seneca Falls Convention and the broader 19th-century women\'s suffrage movement are best understood as',
+      choices:[
+        {id:'A', text:'an extension of Enlightenment natural-rights arguments demanding political and legal equality for women on the same grounds as men.'},
+        {id:'B', text:'a movement to permanently restrict women to traditional domestic roles and reverse earlier gains in women\'s legal status.'},
+        {id:'C', text:'a religious revival movement that asked women to withdraw entirely from public political life across the Atlantic world.'},
+        {id:'D', text:'a labor union movement focused exclusively on industrial factory workers and explicitly rejecting the demand for political voting rights.'}
+      ], correct:'A',
+      explanation:'Seneca Falls (1848) issued a Declaration of Sentiments closely modeled on the U.S. Declaration of Independence, demanding equal rights for women. The suffrage movement extended Enlightenment natural-rights logic to gender equality.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 10 - 12 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
   {id:'r10', num:10, topic:'5.1–5.10', title:'Document Analysis', icon:'📜', themes:['GOV','ECN'],
    desc:'5 primary-source stimulus drills — Declaration of Independence, Declaration of Rights of Man, Letter from Jamaica, Communist Manifesto. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'5.1–5.10', title:'SAQ Practice',  icon:'✍️', themes:['GOV','ECN'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'5.1–5.10', title:'SAQ Practice', icon:'✍️', themes:['GOV','ECN'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — effects of Enlightenment ideas, causes of industrialization.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'5.1–5.10', title:'LEQ Practice',  icon:'📝', themes:['GOV'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'5.1–5.10', title:'LEQ Practice', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. "Evaluate the extent to which industrial development between 1750 and 1900 changed economic systems."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -1100,7 +1718,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -1117,10 +1735,462 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 5.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -1154,6 +2224,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1194,11 +2266,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
