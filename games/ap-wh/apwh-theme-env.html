@@ -175,6 +175,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -186,6 +322,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -473,12 +616,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your ENV vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every era of the course: the Black Death and Little Ice Age, the Columbian Exchange, the environmental costs of industrialization, the Dust Bowl and total war, and the modern environmental movement through climate change. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -599,6 +748,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — THEME: HUMANS & ENVIRONMENT (ENV)
@@ -608,42 +805,587 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_th_env';
 const UNIT_TITLE = 'Theme: Humans & Environment';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Theme: Humans & Environment (ENV)
+//  6 MCQ rounds across periods, 36 questions total (Pass 1)
+//    r1 Era 1 (1200–1450 Black Death/Little Ice Age): 5
+//    r2 Era 2A (1450–1750 Land Empires - lighter): 4
+//    r3 Era 2B (1450–1750 Columbian Exchange): 7
+//    r4 Era 3 (1750–1900 Industrial Costs): 6
+//    r5 Era 4 (1900–1945 Dust Bowl & War): 5
+//    r6 Era 5-6 (1945–Present Greens & Climate): 9
+//  Plus 3 Pass-2 stubs: Comparison, CCOT, LEQ
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Era Checks (chronological detail recall) ──
-  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Black Death & Little Ice Age', icon:'🦠', themes:['ENV'],
-   desc:'The Black Death (1347–52) traveling Mongol-era Silk Roads; killing 30–60% of Europe and Egypt. Little Ice Age (~1300–1850). Champa rice double-cropping fueling Song China population doubling. Drawn from Units 1–2.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Land Empires (briefer)', icon:'🌲', themes:['ENV'],
-   desc:'Less unit-specific environmental content; CED emphasizes governance and military for Unit 3. Threads to know: deforestation for shipbuilding, Russian fur-trade frontier into Siberia, Maunder Minimum, Manchu Qing agricultural frontiers. Drawn from Unit 3.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: The Columbian Exchange', icon:'🌽', themes:['ENV'],
-   desc:'The most important environmental event in modern history. Plant and animal exchange (potato, maize, sweet potato, manioc → Eurasia/Africa; wheat, sugar, horses, cattle → Americas). The Great Dying (~90% Indigenous depopulation). Plantation monoculture and Potosí mercury contamination. Drawn from Unit 4.',
-   type:'mcq', questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Industrial Costs', icon:'🏭', themes:['ENV'],
-   desc:'Industrial Revolution\'s environmental costs. Coal smoke in Manchester and London. Deforestation. Industrial agriculture (steel plow, barbed wire, synthetic fertilizers). Buffalo near-extinction. Irish Potato Famine (1845–52). Bazalgette sewers; John Snow on cholera. Yellowstone (1872). Drawn from Units 5–6.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Dust Bowl & War', icon:'🌪️', themes:['ENV'],
-   desc:'The Dust Bowl (1930s, "Black Sunday" 1935). WWI Verdun "Zone Rouge" and Belgian "iron harvest." WWII strategic bombing and Pacific island devastation. Soviet collectivization and the Holodomor (1932–33). The Trinity test (1945) and the dawn of radioactive contamination. Drawn from Unit 7.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Greens, Disasters & Climate', icon:'🌍', themes:['ENV'],
-   desc:'Green Revolution (Borlaug). Silent Spring (1962), EPA (1970), Earth Day (1970). Bhopal (1984), Chernobyl (1986), Aral Sea, Montreal Protocol (1987). Anthropogenic climate change. IPCC (1988), Rio (1992), Kyoto (1997), Paris Agreement (2015). Drawn from Units 8–9.',
-   type:'mcq', questions:12, group:'core'},
 
-  // ── Synthesis Rounds ──
-  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['ENV'],
-   desc:'Direct cross-period comparison questions. Compare disease events (Black Death vs. Great Dying vs. COVID-19), agricultural transformations (Champa rice vs. American crops vs. Green Revolution), or industrial pollution scales (Manchester smog vs. Bhopal/Chernobyl vs. global climate change).',
-   type:'comparison', questions:8, group:'skills'},
-  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['ENV'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — ERA 1: BLACK DEATH & LITTLE ICE AGE  (1200–1450)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'1200–1450', title:'Era 1: Black Death & Little Ice Age', icon:'🦠', themes:['ENV'],
+   desc:'The Black Death traveling Mongol-era Silk Roads. Little Ice Age. Champa rice double-cropping fueling Song China population doubling.',
+   type:'mcq', group:'core', label:'Round 1 — Era 1: Black Death & Little Ice Age', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_env_mcq_001', topic:'1200–1450', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The 14th-century Black Death is best understood as',
+      choices:[
+        {id:'A', text:'a bubonic plague pandemic that killed an estimated 30 to 60 percent of European and Egyptian populations.'},
+        {id:'B', text:'a smallpox pandemic that originated in the Americas and was carried east through the Atlantic to Europe.'},
+        {id:'C', text:'a brief regional disease outbreak confined to England with little measurable impact on the rest of Europe.'},
+        {id:'D', text:'a famine caused by drought and crop failure with no connection to any infectious disease event in the 14th century.'}
+      ], correct:'A',
+      explanation:'The Black Death (1347-1352) was a bubonic plague pandemic that killed an estimated 30-60% of Europe\'s population, plus enormous numbers in Egypt and the Middle East. It is the deadliest pandemic in recorded human history per capita.'},
+
+    {id:'wh_th_env_mcq_002', topic:'1200–1450', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A scholar describing how the Black Death spread to Europe would most likely emphasize that it traveled along',
+      choices:[
+        {id:'A', text:'the Mongol-era Silk Roads and Black Sea trade routes that connected Central Asia to the Mediterranean.'},
+        {id:'B', text:'Atlantic trade routes between West Africa and the Iberian peninsula during the early 14th century.'},
+        {id:'C', text:'sub-Saharan trans-African overland routes that crossed the Sahara from south to north into Egypt.'},
+        {id:'D', text:'the Polynesian maritime trade routes that connected Polynesia and East Asia across the western Pacific Ocean.'}
+      ], correct:'A',
+      explanation:'The Black Death originated in Central Asia, traveled west along Mongol-era Silk Roads, and entered Europe through the Black Sea (Caffa) and Mediterranean trade. The Pax Mongolica that enabled long-distance trade also enabled rapid disease transmission.'},
+
+    {id:'wh_th_env_mcq_003', topic:'1200–1450', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A historian describing the long-term effects of the Black Death in Western Europe would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'created severe labor shortages that helped weaken serfdom and gave surviving peasants greater bargaining power.',
+        },
+        {id:'B', text:'strengthened serfdom across Western Europe by giving feudal lords full new powers over rural peasant communities.',
+        },
+        {id:'C', text:'had no measurable economic effect on European labor markets or social hierarchies after about the year 1400.',
+        },
+        {id:'D', text:'led to the rapid restoration of Roman imperial political authority across most of late-medieval Western Europe.',
+        }
+      ], correct:'A',
+      explanation:'The Black Death\'s mass mortality created severe labor shortages, raising the bargaining power of surviving peasants and accelerating the long decline of serfdom in Western Europe. (In Eastern Europe and Russia, the opposite trend prevailed.)'},
+
+    {id:'wh_th_env_mcq_004', topic:'1200–1450', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Champa rice, imported from Vietnam to Song China during this period, contributed to environmental and demographic change because it',
+      choices:[
+        {id:'A', text:'allowed two harvests per year and helped support a doubling of the Chinese population during the Song.',
+        },
+        {id:'B', text:'rapidly displaced traditional Chinese agriculture and led to a sharp population decline during the Song era.',
+        },
+        {id:'C', text:'was a luxury crop reserved for elites and never reached the broader Song peasant agricultural population.',
+        },
+        {id:'D', text:'completely failed to grow in Chinese soils and was abandoned by Chinese farmers within a decade of its arrival.',
+        }
+      ], correct:'A',
+      explanation:'Fast-ripening, drought-resistant Champa rice allowed double-cropping in southern China. Combined with Song irrigation and infrastructure, it supported a doubling of population to over 100 million. It is a classic example of biological exchange driving demographic change.'},
+
+    {id:'wh_th_env_mcq_005', topic:'1200–1450', bigIdea:'ENV', difficulty:'challenging',
+      stem:'The Little Ice Age, beginning around 1300, is best characterized as',
+      choices:[
+        {id:'A', text:'a period of cooler global temperatures that contributed to crop failures, famine, and broader social instability.',
+        },
+        {id:'B', text:'a brief regional cooling event that affected only Iceland and Greenland during the 14th and 15th centuries.',
+        },
+        {id:'C', text:'a period of rapid global warming that produced strong agricultural surpluses across most of late-medieval Europe.',
+        },
+        {id:'D', text:'a 19th-century scientific theory that has since been disproved by modern climate research and discarded by historians.',
+        }
+      ], correct:'A',
+      explanation:'The Little Ice Age (~1300-1850) was a period of cooler temperatures across the Northern Hemisphere. It contributed to harvest failures (the Great Famine of 1315-1322), broader social stress, and is often cited alongside the Black Death as a 14th-century "general crisis."'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — ERA 2A: LAND EMPIRES  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'1450–1750', title:'Era 2A: Land Empires', icon:'🌲', themes:['ENV'],
+   desc:'Deforestation for shipbuilding, Russian fur-trade frontier into Siberia, Maunder Minimum, Manchu Qing agricultural frontiers.',
+   type:'mcq', group:'core', label:'Round 2 — Era 2A: Land Empires', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_th_env_mcq_006', topic:'1450–1750', bigIdea:'ENV', difficulty:'accessible',
+      stem:'Deforestation across early modern Europe was driven most directly by',
+      choices:[
+        {id:'A', text:'expanding shipbuilding for naval and commercial fleets, alongside fuel demand for iron-smelting and urban heating.',
+        },
+        {id:'B', text:'a coordinated European plan to clear all of the forests for the construction of new wide stone-paved imperial roads.',
+        },
+        {id:'C', text:'a religious revival that called for clearing all of Europe\'s forested land for Catholic monastic agricultural communities.',
+        },
+        {id:'D', text:'a sudden natural climate shift that killed off most of Europe\'s temperate forests during the 16th and 17th centuries.',
+        }
+      ], correct:'A',
+      explanation:'Early modern European deforestation was driven by shipbuilding (especially for Spain, Portugal, England, and the Dutch), iron-smelting fuel needs, and urban firewood demand. By 1700, Britain in particular was running short of timber, accelerating the eventual turn to coal.'},
+
+    {id:'wh_th_env_mcq_007', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The Russian fur trade in 16th- and 17th-century Siberia is best understood as',
+      choices:[
+        {id:'A', text:'a major eastward expansion driven by sable and ermine demand that also brought disease and political control to indigenous peoples.',
+        },
+        {id:'B', text:'a small-scale local Russian trade that produced no measurable effect on Siberian indigenous populations or environment.',
+        },
+        {id:'C', text:'a coordinated Mongol-led trading system that managed all of the fur exports from northern Eurasia to Western European markets.',
+        },
+        {id:'D', text:'a 19th-century industrial enterprise that had no precursors at all in earlier early modern Russian or broader Eurasian commercial history.',
+        }
+      ], correct:'A',
+      explanation:'Russian eastward expansion into Siberia was driven by demand for sable, ermine, and other furs. As in the Atlantic world, expansion brought Old World diseases that decimated indigenous populations, alongside Russian political control via tribute (yasak).'},
+
+    {id:'wh_th_env_mcq_008', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The Maunder Minimum (~1645-1715) is best characterized as',
+      choices:[
+        {id:'A', text:'a period of unusually low solar activity that overlapped with the coldest phase of the Little Ice Age.',
+        },
+        {id:'B', text:'a 17th-century Caribbean hurricane cycle that struck Spanish colonial possessions throughout the era.',
+        },
+        {id:'C', text:'a brief 17th-century period of unusually high global temperatures and rapid agricultural surpluses across all of Europe.',
+        },
+        {id:'D', text:'an early modern Dutch agricultural reform program that introduced new field rotation systems across northern Europe.',
+        }
+      ], correct:'A',
+      explanation:'The Maunder Minimum (~1645-1715) was a period of greatly reduced sunspot activity. It overlapped with the coldest phase of the Little Ice Age and is cited as a likely contributor to 17th-century European harvest failures, conflicts, and political crises.'},
+
+    {id:'wh_th_env_mcq_009', topic:'1450–1750', bigIdea:'ENV', difficulty:'challenging',
+      stem:'A scholar describing the agricultural frontier of Manchu Qing China would most likely emphasize that the dynasty',
+      choices:[
+        {id:'A', text:'expanded farmland into peripheral regions, supported by American crops, helping the population reach roughly 400 million by 1800.',
+        },
+        {id:'B', text:'imposed strict limits on Chinese farmland during the entire Qing era and prevented any major peasant agricultural expansion.',
+        },
+        {id:'C', text:'banned all American crops from the Qing empire and rejected any contact with Atlantic trading networks throughout this era.',
+        },
+        {id:'D', text:'completely abandoned all of the existing cropland during the entirety of the 17th century and shifted all of China to subsistence pastoralism.',
+        }
+      ], correct:'A',
+      explanation:'Manchu Qing rule expanded the agricultural frontier into Sichuan, the southwest, and Manchuria. American crops (sweet potato, maize, peanuts) supported cultivation of marginal lands. China\'s population roughly tripled to 400 million between 1500 and 1800.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — ERA 2B: THE COLUMBIAN EXCHANGE  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'1450–1750', title:'Era 2B: The Columbian Exchange', icon:'🌽', themes:['ENV'],
+   desc:'Plant and animal exchange. The Great Dying. Plantation monoculture and Potosí mercury contamination.',
+   type:'mcq', group:'core', label:'Round 3 — Era 2B: The Columbian Exchange', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_env_mcq_010', topic:'1450–1750', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Columbian Exchange is best understood as',
+      choices:[
+        {id:'A', text:'a sustained transfer of plants, animals, diseases, and people between the Eastern and Western Hemispheres after 1492.',
+        },
+        {id:'B', text:'a single 1492 voyage by Christopher Columbus that produced no lasting environmental or biological changes anywhere.',
+        },
+        {id:'C', text:'a brief regional exchange of crops between Spain and Portugal that ended within a single decade after Columbus\'s landfall.',
+        },
+        {id:'D', text:'a Pacific Ocean trading network that mainly connected China and the Philippines without crossing the Atlantic at all.',
+        }
+      ], correct:'A',
+      explanation:'The Columbian Exchange refers to the sustained, multi-century transfer of plants, animals, microbes, and people between hemispheres after 1492. It is one of the most consequential environmental and biological events in modern world history.'},
+
+    {id:'wh_th_env_mcq_011', topic:'1450–1750', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Great Dying refers most directly to',
+      choices:[
+        {id:'A', text:'the catastrophic decline of indigenous American populations after contact, largely from Old World infectious diseases.',
+        },
+        {id:'B', text:'the 14th-century Black Death pandemic that affected European, North African, and Middle Eastern populations.',
+        },
+        {id:'C', text:'a famine in early modern China caused by the Manchu conquest and the loss of farmland during the Qing transition.',
+        },
+        {id:'D', text:'a 17th-century plague outbreak in northern India that killed roughly half of the entire Mughal urban population in the period.',
+        }
+      ], correct:'A',
+      explanation:'The Great Dying is the catastrophic decline of indigenous American populations after European contact, largely from Old World infectious diseases (smallpox, measles, influenza, typhus) to which they had no immunity. Estimates suggest 90% mortality in the worst-affected regions.'},
+
+    {id:'wh_th_env_mcq_012', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A historian listing American crops that transformed Eastern Hemisphere diets would most likely include',
+      choices:[
+        {id:'A', text:'potatoes, maize, sweet potatoes, and manioc, which supported population growth in Europe, Africa, and Asia.',
+        },
+        {id:'B', text:'wheat, rice, barley, and millet, which were carried from the Americas to Eurasia by Spanish and Portuguese ships.',
+        },
+        {id:'C', text:'apples, grapes, olives, and figs, which were unknown in Europe before the 15th-century voyages of European exploration.',
+        },
+        {id:'D', text:'almonds, walnuts, and pistachios, which originated entirely in the Americas before being brought to Eurasian markets.',
+        }
+      ], correct:'A',
+      explanation:'American crops transformed Old World diets: potatoes drove population growth in Europe and Russia, maize spread across Africa and southern China, sweet potatoes and manioc supported Qing and African demographic growth. Tomatoes and chiles reshaped global cuisines.'},
+
+    {id:'wh_th_env_mcq_013', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A scholar describing animal transfers in the Columbian Exchange would most likely emphasize',
+      choices:[
+        {id:'A', text:'that horses, cattle, pigs, and sheep transformed indigenous American economies, hunting, and warfare.',
+        },
+        {id:'B', text:'that bison, llamas, and turkeys reshaped European agriculture in the 16th and 17th centuries.',
+        },
+        {id:'C', text:'that no significant animal exchange between the hemispheres took place during the early modern period.',
+        },
+        {id:'D', text:'that camels became the dominant working animal across the Americas during the late 16th century.',
+        }
+      ], correct:'A',
+      explanation:'Old World animals (especially horses, cattle, pigs, and sheep) transformed the Americas. Horses revolutionized Plains indigenous warfare and hunting; cattle and pigs reshaped agricultural ecology. The transfer was overwhelmingly east-to-west; few American animals reached Eurasia.'},
+
+    {id:'wh_th_env_mcq_014', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Plantation monoculture in the colonial Atlantic world is best characterized as',
+      choices:[
+        {id:'A', text:'large-scale single-crop production of sugar, tobacco, or cotton, dependent on enslaved labor and soil-depleting practices.',
+        },
+        {id:'B', text:'small-scale family farming of diverse food crops, conducted mainly by free European peasants in colonial America.',
+        },
+        {id:'C', text:'subsistence agriculture organized by indigenous communities that resisted any kind of large-scale market production.',
+        },
+        {id:'D', text:'a state-sponsored Spanish program of mixed crop and livestock farming with no significant use of any kind of forced labor anywhere in the system.',
+        }
+      ], correct:'A',
+      explanation:'Plantation monoculture produced sugar, tobacco, cotton, and other commodities at unprecedented scale, using enslaved African labor. The system depleted soils, destroyed local ecologies, and shaped the Atlantic world\'s economic, social, and demographic structure.'},
+
+    {id:'wh_th_env_mcq_015', topic:'1450–1750', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Mercury contamination at Potos&iacute; in colonial Bolivia resulted most directly from',
+      choices:[
+        {id:'A', text:'the silver-amalgamation refining process that poisoned indigenous mit\'a workers and surrounding ecosystems.',
+        },
+        {id:'B', text:'the development of new strict environmental regulations that successfully prevented all colonial industrial pollution.',
+        },
+        {id:'C', text:'a coordinated Spanish reforestation program that introduced mercury-rich trees throughout the local highland Andes.',
+        },
+        {id:'D', text:'an indigenous Andean agricultural practice predating Spanish conquest that contaminated the regional water supply naturally.',
+        }
+      ], correct:'A',
+      explanation:'Spanish silver refining at Potosí used mercury (mostly from Huancavelica) in the patio amalgamation process. The mercury poisoned indigenous mit\'a workers and surrounding ecosystems, leaving lasting environmental damage that persists in the region today.'},
+
+    {id:'wh_th_env_mcq_016', topic:'1450–1750', bigIdea:'ENV', difficulty:'challenging',
+      stem:'A scholar arguing that the Columbian Exchange may be the most consequential environmental event in modern history would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'reshaped global ecology, demographics, and economy at a scale matched by few other single processes in modern history.',
+        },
+        {id:'B', text:'remained confined to a small region of the Caribbean and produced few effects beyond the early Spanish colonial empire.',
+        },
+        {id:'C', text:'produced no demographic or ecological effects beyond the year 1500 and ended within a single decade after Columbus.',
+        },
+        {id:'D', text:'was a brief 19th-century industrial process that used no biological or agricultural exchanges in either hemisphere.',
+        }
+      ], correct:'A',
+      explanation:'The Columbian Exchange reshaped global demography (the Great Dying, African slave trade, European colonization), agriculture (American crops fed the Old World, Old World livestock transformed the New), and ecology. Few processes in modern world history match its scale.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — ERA 3: INDUSTRIAL COSTS  (1750–1900)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'1750–1900', title:'Era 3: Industrial Costs', icon:'🏭', themes:['ENV'],
+   desc:'Coal smoke, deforestation, industrial agriculture, buffalo near-extinction, Irish Potato Famine, Bazalgette sewers, John Snow, Yellowstone (1872).',
+   type:'mcq', group:'core', label:'Round 4 — Era 3: Industrial Costs', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_th_env_mcq_017', topic:'1750–1900', bigIdea:'ENV', difficulty:'accessible',
+      stem:'A historian describing the environmental impact of 19th-century coal-powered industry would most likely emphasize',
+      choices:[
+        {id:'A', text:'severe air pollution in cities like Manchester and London, plus widespread deforestation and water contamination.',
+        },
+        {id:'B', text:'a strong improvement in urban air quality across most major British and European industrial centers after about 1850.',
+        },
+        {id:'C', text:'a rapid 19th-century shift from coal to renewable energy that prevented all industrial environmental degradation.',
+        },
+        {id:'D', text:'a coordinated international treaty banning coal use that protected most of European urban environmental health.',
+        }
+      ], correct:'A',
+      explanation:'Coal-powered industrialization produced severe urban air pollution (the "London fog" of soot and sulfur), water contamination from factory effluent, and accelerated deforestation. The environmental costs were the underside of the productivity gains of the Industrial Revolution.'},
+
+    {id:'wh_th_env_mcq_018', topic:'1750–1900', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The 1845-1852 Irish Potato Famine is best characterized as',
+      choices:[
+        {id:'A', text:'a catastrophic blight on a single staple crop made worse by British colonial policy and continued grain exports.',
+        },
+        {id:'B', text:'a brief regional crop failure that produced few demographic effects on 19th-century Irish society or economy.',
+        },
+        {id:'C', text:'a successful British famine-relief program that prevented mass mortality in mid-19th-century rural Ireland.',
+        },
+        {id:'D', text:'a 19th-century Italian agricultural crisis that had no measurable effect on either Irish or British food security throughout this era.',
+        }
+      ], correct:'A',
+      explanation:'A potato blight (Phytophthora infestans) destroyed Ireland\'s main staple crop. British colonial policy and continued grain exports during the famine deepened the crisis. About one million Irish died and another million emigrated, transforming Irish demographics for over a century.'},
+
+    {id:'wh_th_env_mcq_019', topic:'1750–1900', bigIdea:'ENV', difficulty:'moderate',
+      stem:'19th-century industrial agriculture in the United States was transformed most directly by',
+      choices:[
+        {id:'A', text:'innovations like the steel plow, mechanical reaper, and barbed wire that opened the Great Plains to large-scale farming.',
+        },
+        {id:'B', text:'a deliberate U.S. federal program to return farmland to indigenous communal stewardship throughout the 19th century.',
+        },
+        {id:'C', text:'a complete late-19th-century U.S. abandonment of all of the cropland in the Great Plains region of North America.',
+        },
+        {id:'D', text:'the imposition of strict ecological-protection laws that prevented all of the conversion of prairie to large-scale farmland.',
+        }
+      ], correct:'A',
+      explanation:'19th-century U.S. industrial agriculture was transformed by John Deere\'s steel plow (1837), McCormick\'s mechanical reaper, barbed wire (1874), and railroads. Together they enabled the conversion of the Great Plains from prairie ecosystem to large-scale wheat and corn farming.'},
+
+    {id:'wh_th_env_mcq_020', topic:'1750–1900', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A scholar describing the near-extinction of the North American bison in the 19th century would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'resulted from commercial hide hunting and was tied to U.S. policy aimed at undermining Plains indigenous nations.',
+        },
+        {id:'B', text:'was a purely natural population collapse with no connection to U.S. policy or commercial hunting in the 19th century.',
+        },
+        {id:'C', text:'was reversed within a decade by a successful late-19th-century U.S. federal bison conservation breeding program.',
+        },
+        {id:'D', text:'had no measurable effect on Plains indigenous nations or on the broader environmental history of North America.',
+        }
+      ], correct:'A',
+      explanation:'Commercial hide hunting reduced North American bison from tens of millions to fewer than a thousand by 1900. The collapse was tied to U.S. policy that recognized destroying the bison would undermine Plains indigenous nations\' subsistence and resistance.'},
+
+    {id:'wh_th_env_mcq_021', topic:'1750–1900', bigIdea:'ENV', difficulty:'moderate',
+      stem:'John Snow\'s 1854 investigation of the London Broad Street cholera outbreak is significant because it',
+      choices:[
+        {id:'A', text:'used early epidemiological mapping to link cholera to contaminated water and helped launch modern public health.',
+        },
+        {id:'B', text:'definitively proved that cholera was caused by airborne miasmas and ended all 19th-century investigation of water-borne disease.',
+        },
+        {id:'C', text:'led directly to the immediate eradication of cholera worldwide by 1855 through coordinated international vaccination.',
+        },
+        {id:'D', text:'was a brief medical study with no lasting effect on public health or on the broader history of urban sanitation reform.',
+        }
+      ], correct:'A',
+      explanation:'Snow\'s map of cholera deaths around the Broad Street pump linked the disease to contaminated water (rather than to "miasma"). His work was foundational to modern epidemiology and helped drive the urban sanitation reforms of the later 19th century.'},
+
+    {id:'wh_th_env_mcq_022', topic:'1750–1900', bigIdea:'ENV', difficulty:'challenging',
+      stem:'The 1872 establishment of Yellowstone National Park is most often cited as significant because it',
+      choices:[
+        {id:'A', text:'created the first national park and helped launch the modern conservation movement worldwide.',
+        },
+        {id:'B', text:'led directly to the immediate end of all U.S. industrial pollution and large-scale environmental degradation.',
+        },
+        {id:'C', text:'permanently closed the entire western United States to any kind of agricultural or commercial development.',
+        },
+        {id:'D', text:'was a brief 19th-century experiment in conservation that had no lasting effect on later land-protection policy.',
+        }
+      ], correct:'A',
+      explanation:'Yellowstone (1872) was the world\'s first national park. It established the model for state-protected wilderness that spread internationally over the next century, helping launch the modern conservation movement (alongside writers like Muir and Thoreau).'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — ERA 4: DUST BOWL & WAR  (1900–1945)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'1900–1945', title:'Era 4: Dust Bowl & War', icon:'🌪️', themes:['ENV'],
+   desc:'Dust Bowl. WWI Verdun "Zone Rouge." Soviet collectivization and the Holodomor. WWII strategic bombing. Trinity test (1945).',
+   type:'mcq', group:'core', label:'Round 5 — Era 4: Dust Bowl & War', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_env_mcq_023', topic:'1900–1945', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The 1930s Dust Bowl is best characterized as',
+      choices:[
+        {id:'A', text:'a severe ecological disaster on the U.S. Great Plains caused by drought combined with poor land-management practices.',
+        },
+        {id:'B', text:'a brief 1930s flood event in the U.S. Mississippi River basin with little broader environmental or economic effect.',
+        },
+        {id:'C', text:'a coordinated U.S. federal reforestation program that successfully prevented all soil erosion across the Great Plains.',
+        },
+        {id:'D', text:'a 19th-century natural climate cycle that ended decades before any large-scale U.S. agricultural settlement of the plains.',
+        }
+      ], correct:'A',
+      explanation:'The Dust Bowl was a severe ecological disaster on the U.S. Great Plains, caused by drought combined with farming practices unsuited to the semi-arid prairie. "Black Sunday" (April 14, 1935) was its most dramatic moment. It deepened Depression-era hardship.'},
+
+    {id:'wh_th_env_mcq_024', topic:'1900–1945', bigIdea:'ENV', difficulty:'moderate',
+      stem:'WWI\'s Verdun "Zone Rouge" is best understood as',
+      choices:[
+        {id:'A', text:'a still-unhabitable battlefield region in northeastern France contaminated by unexploded munitions and chemical residue.',
+        },
+        {id:'B', text:'a peaceful agricultural reserve established by France after WWI that protected farmland from any further industrial use.',
+        },
+        {id:'C', text:'a Soviet collective-farming district set up after WWI to demonstrate Bolshevik agricultural reform across post-war Europe.',
+        },
+        {id:'D', text:'a German imperial nature park created during the early 20th century as a model for European wildlife conservation.',
+        }
+      ], correct:'A',
+      explanation:'The Verdun "Zone Rouge" remains contaminated by unexploded WWI munitions, chemical weapons residue, and human remains. Belgian farmers still recover thousands of tons of "iron harvest" each year. The Zone Rouge is a striking symbol of total-war environmental destruction.'},
+
+    {id:'wh_th_env_mcq_025', topic:'1900–1945', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Stalin\'s collectivization of Soviet agriculture and the resulting Holodomor (1932-1933) are best characterized as',
+      choices:[
+        {id:'A', text:'forced state-directed restructuring of farming that produced famine in Ukraine and elsewhere, killing millions.',
+        },
+        {id:'B', text:'a peaceful voluntary reform that produced strong agricultural surpluses across the entire Soviet Union by 1933.',
+        },
+        {id:'C', text:'a free-market liberalization of Soviet agriculture aimed at increasing private farm ownership for ordinary peasants.',
+        },
+        {id:'D', text:'a brief experiment that Stalin abandoned in the early 1930s in favor of a return to traditional Russian peasant farming.',
+        }
+      ], correct:'A',
+      explanation:'Soviet collectivization (1929+) forced peasants onto state-controlled farms, often violently. Combined with grain requisitioning and policy choices, it produced mass famine, especially in Ukraine (the Holodomor). Estimated death tolls range from 5 to 7 million people.'},
+
+    {id:'wh_th_env_mcq_026', topic:'1900–1945', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A historian describing the environmental effects of WWII would most likely emphasize',
+      choices:[
+        {id:'A', text:'strategic bombing of European and Japanese cities, defoliation campaigns, and devastation of Pacific islands.',
+        },
+        {id:'B', text:'a complete absence of any environmental damage during WWII because of strict international wartime conservation efforts.',
+        },
+        {id:'C', text:'a peaceful agricultural reform that produced rapid recovery of farmland across Europe and East Asia by 1945.',
+        },
+        {id:'D', text:'a complete WWII demilitarization of Europe that had no environmental effects beyond the ones produced by WWI.',
+        }
+      ], correct:'A',
+      explanation:'WWII produced massive environmental damage: strategic bombing destroyed European and Japanese cities; combat devastated Pacific islands and parts of Eastern Europe; resource extraction expanded; and the war ended with the introduction of atomic weapons and radioactive contamination.'},
+
+    {id:'wh_th_env_mcq_027', topic:'1900–1945', bigIdea:'ENV', difficulty:'challenging',
+      stem:'The July 1945 Trinity test is most often cited as significant for environmental history because it',
+      choices:[
+        {id:'A', text:'inaugurated the era of radioactive contamination of the global atmosphere by human-made nuclear weapons.',
+        },
+        {id:'B', text:'led directly to a permanent worldwide ban on nuclear weapons and an immediate end to all nuclear testing.',
+        },
+        {id:'C', text:'was a brief military experiment with no measurable effect on the broader history of human environmental impact.',
+        },
+        {id:'D', text:'produced no detectable radioactive contamination because of the small size of the original 1945 test detonation.',
+        }
+      ], correct:'A',
+      explanation:'The Trinity test (July 16, 1945) was the first detonation of a nuclear weapon. It inaugurated the era of radioactive contamination of the global atmosphere from nuclear testing. Some scientists cite it as a candidate marker for the start of the proposed "Anthropocene" geological epoch.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ERA 5–6: GREENS, DISASTERS & CLIMATE  (1945–Present)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'1945–Present', title:'Era 5–6: Greens, Disasters & Climate', icon:'🌍', themes:['ENV'],
+   desc:'Green Revolution. Silent Spring (1962), EPA (1970). Bhopal (1984), Chernobyl (1986), Aral Sea, Montreal Protocol (1987). Climate change. IPCC, Rio, Kyoto, Paris.',
+   type:'mcq', group:'core', label:'Round 6 — Era 5–6: Greens, Disasters & Climate', color:'var(--acc)', draw:9, questions:[
+
+    {id:'wh_th_env_mcq_028', topic:'1945–Present', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The Green Revolution of the mid-20th century, led by figures like Norman Borlaug, most directly involved',
+      choices:[
+        {id:'A', text:'high-yield grain varieties, chemical fertilizers, and irrigation that dramatically raised farm output worldwide.',
+        },
+        {id:'B', text:'a global movement to return all agricultural land to traditional precolonial subsistence farming methods.',
+        },
+        {id:'C', text:'a series of environmental laws that banned chemical fertilizers and pesticides across most agricultural regions.',
+        },
+        {id:'D', text:'a coordinated UN program that distributed agricultural land equally to peasant farmers in every developing country worldwide for free.',
+        }
+      ], correct:'A',
+      explanation:'The Green Revolution combined high-yield wheat and rice varieties (developed by Borlaug and others), synthetic fertilizers, pesticides, and improved irrigation. It dramatically raised yields in Mexico, India, and elsewhere, averting predicted famines.'},
+
+    {id:'wh_th_env_mcq_029', topic:'1945–Present', bigIdea:'ENV', difficulty:'accessible',
+      stem:'Rachel Carson\'s 1962 book Silent Spring is best known for',
+      choices:[
+        {id:'A', text:'documenting the harm caused by pesticides like DDT and helping to launch the modern environmental movement.',
+        },
+        {id:'B', text:'arguing that environmental concerns were overstated and that pesticides should be used more widely on every farm.',
+        },
+        {id:'C', text:'serving as the first large-scale defense of nuclear power as a clean alternative to fossil-fuel energy generation.',
+        },
+        {id:'D', text:'rejecting all scientific approaches to ecology in favor of religious explanations of changes in the natural world.',
+        }
+      ], correct:'A',
+      explanation:'Silent Spring documented how pesticides like DDT moved through ecosystems, harming birds and other wildlife. It catalyzed the modern environmental movement and contributed to the eventual U.S. ban on DDT in 1972 and the founding of the EPA.'},
+
+    {id:'wh_th_env_mcq_030', topic:'1945–Present', bigIdea:'ENV', difficulty:'moderate',
+      stem:'A scholar comparing the 1984 Bhopal gas disaster to the 1986 Chernobyl reactor disaster would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'exposed the dangers of late-20th-century industrial technology and harmed thousands of nearby civilians.',
+        },
+        {id:'B', text:'caused only minor harm and produced no significant policy responses or any lasting environmental effects.',
+        },
+        {id:'C', text:'were quickly contained natural disasters with no connection to industrial technology or government policy.',
+        },
+        {id:'D', text:'produced strong international agreements that eliminated all major industrial accidents after the late 1980s.',
+        }
+      ], correct:'A',
+      explanation:'Both Bhopal (Union Carbide gas leak in India, killing thousands) and Chernobyl (Soviet nuclear reactor explosion contaminating large parts of Ukraine and Belarus) exposed the dangers of late-20th-century industrial technology. Both produced calls for regulation and accountability.'},
+
+    {id:'wh_th_env_mcq_031', topic:'1945–Present', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The Aral Sea, once the world\'s fourth-largest lake, shrank dramatically in the late 20th century because',
+      choices:[
+        {id:'A', text:'Soviet irrigation diverted its main feeder rivers for cotton cultivation, drying up the lake within a few decades.',
+        },
+        {id:'B', text:'a sudden volcanic eruption in the early 1970s drained all of the lake\'s water through a deep new fissure.',
+        },
+        {id:'C', text:'a coordinated UN environmental program drained the lake to convert the area to wildlife conservation reserves.',
+        },
+        {id:'D', text:'a permanent shift in the regional climate patterns reduced rainfall enough to dry the lake by the late 1960s and the early 1970s.',
+        }
+      ], correct:'A',
+      explanation:'Soviet irrigation diverted the Amu Darya and Syr Darya rivers for cotton cultivation in Central Asia. The Aral Sea lost most of its water within decades, leaving toxic salt flats, devastating regional fisheries, and producing one of the worst environmental disasters of the 20th century.'},
+
+    {id:'wh_th_env_mcq_032', topic:'1945–Present', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The 1987 Montreal Protocol is best understood as',
+      choices:[
+        {id:'A', text:'an international agreement that successfully phased out ozone-depleting chemicals like CFCs.',
+        },
+        {id:'B', text:'a bilateral U.S.-Canada agreement that focused on regional acid-rain pollution but did not address ozone depletion.',
+        },
+        {id:'C', text:'a 19th-century international convention that established the world\'s first wildlife conservation reserves.',
+        },
+        {id:'D', text:'a 21st-century climate-change agreement that focused on coordinating greenhouse gas emissions reductions.',
+        }
+      ], correct:'A',
+      explanation:'The Montreal Protocol (1987) phased out ozone-depleting chemicals like chlorofluorocarbons (CFCs). It is generally considered the most successful international environmental treaty: the ozone hole over Antarctica has been gradually shrinking since the 2000s.'},
+
+    {id:'wh_th_env_mcq_033', topic:'1945–Present', bigIdea:'ENV', difficulty:'moderate',
+      stem:'Modern climate change is most directly attributed by the scientific community to',
+      choices:[
+        {id:'A', text:'human emissions of greenhouse gases from fossil-fuel combustion, deforestation, and industrial agriculture.',
+        },
+        {id:'B', text:'natural variations in solar activity that are entirely unrelated to any human industrial economic behavior.',
+        },
+        {id:'C', text:'a recent shift in Earth\'s orbital position around the sun that began at the start of the 20th century.',
+        },
+        {id:'D', text:'volcanic eruptions during the early 21st century that briefly raised the average global temperature for a few years.',
+        }
+      ], correct:'A',
+      explanation:'Modern climate change is overwhelmingly attributed by scientists to human-emitted greenhouse gases (especially CO2 and methane) from fossil fuel use, deforestation, and industrial agriculture. The scientific consensus on this is exceptionally strong.'},
+
+    {id:'wh_th_env_mcq_034', topic:'1945–Present', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The 2015 Paris Agreement is best characterized as',
+      choices:[
+        {id:'A', text:'an international agreement in which countries set their own voluntary emissions targets to limit global warming.',
+        },
+        {id:'B', text:'a binding international treaty with strong enforcement powers that imposed identical emissions cuts on every nation.',
+        },
+        {id:'C', text:'a U.S.-China bilateral deal that committed only the world\'s two largest economies to limiting greenhouse gas emissions.',
+        },
+        {id:'D', text:'a private business agreement among major corporations that did not involve any participating national governments.',
+        }
+      ], correct:'A',
+      explanation:'The Paris Agreement (signed by nearly all UN members) commits countries to set their own emissions targets ("nationally determined contributions") and report progress, but lacks binding enforcement. It was a deliberate compromise to maximize participation.'},
+
+    {id:'wh_th_env_mcq_035', topic:'1945–Present', bigIdea:'ENV', difficulty:'challenging',
+      stem:'A scholar arguing that the late 20th century was a uniquely transformative era in human-environment relations would most likely emphasize',
+      choices:[
+        {id:'A', text:'the unprecedented scale of human impact on climate, biodiversity, oceans, and atmosphere since 1950.',
+        },
+        {id:'B', text:'a near-total absence of human environmental impact during the 20th century compared to all earlier historical eras.',
+        },
+        {id:'C', text:'a deliberate global policy shift that rapidly reversed all major industrial environmental damage by about 1990.',
+        },
+        {id:'D', text:'a long-term decline in human population that reduced overall human environmental impact during the 20th century.',
+        }
+      ], correct:'A',
+      explanation:'Many scientists describe the post-1950 acceleration of human impact on Earth as a defining feature of modern environmental history. Climate change, biodiversity loss, ocean acidification, and atmospheric pollution have all expanded sharply, leading some to propose the term "Anthropocene" for this era.'},
+
+    {id:'wh_th_env_mcq_036', topic:'1945–Present', bigIdea:'ENV', difficulty:'challenging',
+      stem:'A scholar comparing the 14th-century Black Death to the 21st-century COVID-19 pandemic would most likely emphasize',
+      choices:[
+        {id:'A', text:'that both spread along the long-distance trade and travel networks of their respective eras, though at different speeds.',
+        },
+        {id:'B', text:'that COVID-19 spread purely along sailing-ship routes while the Black Death spread purely through pre-modern overland trade.',
+        },
+        {id:'C', text:'that neither pandemic had any connection to global trade or travel networks of any kind in their respective eras.',
+        },
+        {id:'D', text:'that the Black Death was confined to Europe while COVID-19 was confined to China during their respective outbreaks.',
+        }
+      ], correct:'A',
+      explanation:'Both pandemics spread along the long-distance trade and travel networks of their eras: the Black Death along Mongol-era Silk Roads and Mediterranean shipping; COVID-19 through global air travel and shipping. The contrast in speed (decades vs. weeks) reflects the speed of modern travel.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 9 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['ENV'],
+   desc:'Direct cross-period comparison: disease events (Black Death vs. Great Dying vs. COVID-19), agricultural transformations (Champa rice vs. American crops vs. Green Revolution), industrial pollution scales (Manchester smog vs. Bhopal/Chernobyl vs. global climate change).',
+   type:'comparison', group:'skills', label:'Round 7 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
+  {id:'r8', num:8, topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['ENV'],
    desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in the human-environment relationship from 1200 to present. Argumentation 6.B with three specific examples per claim.',
-   type:'ccot', questions:6, group:'skills'},
+   type:'ccot', group:'skills', label:'Round 8 — CCOT Practice', color:'var(--bronze)', draw:1, questions:6, sets:[]},
 
-  // ── LEQ Synthesis ──
-  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['ENV'],
+  {id:'r9', num:9, topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['ENV'],
    desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which the Columbian Exchange transformed the world environment" or "Compare the role of disease in two different periods." 800–1000 word target.',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 9 — LEQ Synthesis', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (cross-period environment terms) ─────────────────
 // Organized by ERA so students can review chronologically OR by category
@@ -842,7 +1584,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -859,9 +1601,488 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Humans & Environment theme.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
+}
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ')
+    // Accented-letter entities (common in proper nouns)
+    .replace(/&aacute;/g, 'á').replace(/&Aacute;/g, 'Á')
+    .replace(/&eacute;/g, 'é').replace(/&Eacute;/g, 'É')
+    .replace(/&iacute;/g, 'í').replace(/&Iacute;/g, 'Í')
+    .replace(/&oacute;/g, 'ó').replace(/&Oacute;/g, 'Ó')
+    .replace(/&uacute;/g, 'ú').replace(/&Uacute;/g, 'Ú')
+    .replace(/&agrave;/g, 'à').replace(/&Agrave;/g, 'À')
+    .replace(/&egrave;/g, 'è').replace(/&Egrave;/g, 'È')
+    .replace(/&igrave;/g, 'ì').replace(/&Igrave;/g, 'Ì')
+    .replace(/&ograve;/g, 'ò').replace(/&Ograve;/g, 'Ò')
+    .replace(/&ugrave;/g, 'ù').replace(/&Ugrave;/g, 'Ù')
+    .replace(/&acirc;/g, 'â').replace(/&Acirc;/g, 'Â')
+    .replace(/&ecirc;/g, 'ê').replace(/&Ecirc;/g, 'Ê')
+    .replace(/&icirc;/g, 'î').replace(/&Icirc;/g, 'Î')
+    .replace(/&ocirc;/g, 'ô').replace(/&Ocirc;/g, 'Ô')
+    .replace(/&ucirc;/g, 'û').replace(/&Ucirc;/g, 'Û')
+    .replace(/&auml;/g, 'ä').replace(/&Auml;/g, 'Ä')
+    .replace(/&euml;/g, 'ë').replace(/&Euml;/g, 'Ë')
+    .replace(/&iuml;/g, 'ï').replace(/&Iuml;/g, 'Ï')
+    .replace(/&ouml;/g, 'ö').replace(/&Ouml;/g, 'Ö')
+    .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
+    .replace(/&ntilde;/g, 'ñ').replace(/&Ntilde;/g, 'Ñ')
+    .replace(/&atilde;/g, 'ã').replace(/&Atilde;/g, 'Ã')
+    .replace(/&otilde;/g, 'õ').replace(/&Otilde;/g, 'Õ')
+    .replace(/&ccedil;/g, 'ç').replace(/&Ccedil;/g, 'Ç')
+    .replace(/&aring;/g, 'å').replace(/&Aring;/g, 'Å')
+    .replace(/&aelig;/g, 'æ').replace(/&AElig;/g, 'Æ')
+    .replace(/&oslash;/g, 'ø').replace(/&Oslash;/g, 'Ø')
+    .replace(/&szlig;/g, 'ß');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
 }
 
 
@@ -896,6 +2117,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -936,11 +2159,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
