@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -591,12 +734,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 8 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every CED topic in the unit: the Cold War, the spread of communism, decolonization, the new states of Asia and Africa, global protest movements, and the end of the Soviet Union. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -744,6 +893,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 8 DATA
@@ -752,51 +949,576 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u8';
 const UNIT_TITLE = 'Cold War & Decolonization';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 4 Cold War + 5 decolonization/end + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 8 Cold War & Decolonization (c. 1945 – 1991)
+//  8 MCQ rounds, 36 questions total (Pass 1):
+//    r1=4 r2=5 r3=4 r4=5 r5=5 r6=4 r7=5 r8=4
+//  Plus 4 Pass-2 stubs (Causation synthesis + DocAnalysis + SAQ + LEQ)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Cold War (Topics 8.1–8.4) ──
-  {id:'r1',  num:1,  topic:'8.1', title:'Setting the Stage', icon:'🕊️', themes:['GOV'],
-   desc:'Yalta and Potsdam conferences, the United Nations, the Universal Declaration of Human Rights, post-WWII reconstruction, why decolonization accelerated.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r2',  num:2,  topic:'8.2', title:'The Cold War', icon:'☢️', themes:['GOV','CDI'],
-   desc:'Iron Curtain, Truman Doctrine, Marshall Plan, Berlin Blockade, NATO vs. Warsaw Pact, Korean War, Cuban Missile Crisis, Vietnam War, nuclear arms race, MAD.',
-   type:'mcq',  questions:14, group:'core'},
-  {id:'r3',  num:3,  topic:'8.3', title:'Effects of the Cold War', icon:'🚀', themes:['TEC','SIO'],
-   desc:'Nuclear proliferation, proxy wars, Space Race (Sputnik to Apollo), cultural Cold War, military-industrial complex, McCarthyism, Stasi.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r4',  num:4,  topic:'8.4', title:'Spread of Communism', icon:'🚩', themes:['GOV','ECN'],
-   desc:'Chinese Revolution (1949), Mao\'s Great Leap Forward and Cultural Revolution, Deng Xiaoping reforms, Cuban Revolution under Castro, Soviet satellite states.',
-   type:'mcq',  questions:12, group:'core'},
 
-  // ── Decolonization & End (Topics 8.5–8.9) ──
-  {id:'r5',  num:5,  topic:'8.5', title:'Decolonization', icon:'🌅', themes:['GOV','CDI'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — SETTING THE STAGE  (Topic 8.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'8.1', title:'Setting the Stage', icon:'🕊️', themes:['GOV'],
+   desc:'Yalta and Potsdam conferences, the United Nations, the Universal Declaration of Human Rights, post-WWII reconstruction.',
+   type:'mcq', group:'core', label:'Round 1 — Setting the Stage', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u8_mcq_001', topic:'8.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The United Nations, founded in 1945, differed from the League of Nations primarily because it',
+      choices:[
+        {id:'A', text:'included the United States as a charter member and gave its Security Council enforcement powers.'},
+        {id:'B', text:'rejected all major powers and was governed only by smaller postwar states from across the globe.'},
+        {id:'C', text:'replaced national militaries with a single permanent international standing army based in New York.'},
+        {id:'D', text:'banned all the existing nuclear weapons and dismantled every weapons program by the end of 1948.'}
+      ], correct:'A',
+      explanation:'The U.S. joined the UN at its founding (it had refused to join the League). The UN Security Council, with five permanent veto-holding members, also had enforcement powers the League lacked.'},
+
+    {id:'wh_u8_mcq_002', topic:'8.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1945 Yalta and Potsdam conferences are best understood as',
+      choices:[
+        {id:'A', text:'wartime Allied meetings that planned the postwar order but exposed deep tensions between the U.S. and the USSR.'},
+        {id:'B', text:'meetings that produced a unified U.S.-Soviet vision for postwar Europe and avoided any major future disagreements.'},
+        {id:'C', text:'meetings between Axis and Allied diplomats that formally negotiated the surrender terms ending the Second World War.'},
+        {id:'D', text:'United Nations conferences that established the formal voting structure of the new General Assembly chamber.'}
+      ], correct:'A',
+      explanation:'Yalta and Potsdam set up postwar arrangements (occupation zones in Germany, Soviet entry into the Pacific war, free elections in Eastern Europe). Disagreements at Potsdam, especially over Eastern Europe, foreshadowed the Cold War.'},
+
+    {id:'wh_u8_mcq_003', topic:'8.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1948 Genocide Convention is best characterized as',
+      choices:[
+        {id:'A', text:'a UN treaty that defined genocide as a crime under international law and was a direct response to the Holocaust.'},
+        {id:'B', text:'a U.S.-Soviet treaty that outlawed nuclear testing and weapons stockpiling everywhere across the globe.'},
+        {id:'C', text:'a 19th-century European treaty that abolished the Atlantic slave trade across all of the colonial empires.'},
+        {id:'D', text:'a regional African treaty that successfully ended ethnic violence in colonial Rwanda and Burundi during the late 1940s and 1950s.'}
+      ], correct:'A',
+      explanation:'The 1948 Genocide Convention defined genocide and made it a crime under international law. It was a direct postwar response to the Holocaust and other wartime atrocities.'},
+
+    {id:'wh_u8_mcq_004', topic:'8.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Decolonization accelerated rapidly after WWII most directly because',
+      choices:[
+        {id:'A', text:'European powers were exhausted by war, anti-colonial movements were strengthened, and the U.S. and USSR opposed colonialism.'},
+        {id:'B', text:'European powers had emerged from WWII far stronger than before and used new resources to expand their colonial holdings.'},
+        {id:'C', text:'colonized peoples voluntarily accepted continued imperial rule because of European economic and military prestige after the war.'},
+        {id:'D', text:'the United Nations passed a binding postwar resolution that immediately required every European empire to end colonial rule.'}
+      ], correct:'A',
+      explanation:'WWII left European powers exhausted and bankrupt; colonial peoples\' wartime service strengthened independence movements; and the two new superpowers (US and USSR) generally opposed European colonialism. These together drove rapid postwar decolonization.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — THE COLD WAR  (Topic 8.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'8.2', title:'The Cold War', icon:'☢️', themes:['GOV','CDI'],
+   desc:'Iron Curtain, Truman Doctrine, Marshall Plan, Berlin Blockade, NATO vs. Warsaw Pact, Korean War, Cuban Missile Crisis, Vietnam War, nuclear arms race, MAD.',
+   type:'mcq', group:'core', label:'Round 2 — The Cold War', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u8_mcq_005', topic:'8.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1947 Truman Doctrine committed the United States to',
+      choices:[
+        {id:'A', text:'containing the spread of communism by aiding nations under threat of communist takeover.'},
+        {id:'B', text:'rolling back the Soviet Union by direct military invasion of every Eastern European nation.'},
+        {id:'C', text:'a complete withdrawal from European affairs and a return to pre-WWII American isolationism.'},
+        {id:'D', text:'a permanent military alliance with the USSR to jointly police all of postwar Europe together.'}
+      ], correct:'A',
+      explanation:'The Truman Doctrine, prompted by communist threats in Greece and Turkey, committed the U.S. to support nations resisting communist takeover. It was the foundation of the Cold War U.S. policy of containment.'},
+
+    {id:'wh_u8_mcq_006', topic:'8.2', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The Marshall Plan (1948-1952) provided',
+      choices:[
+        {id:'A', text:'large U.S. economic aid to Western Europe to rebuild postwar economies and resist communist appeal.'},
+        {id:'B', text:'large U.S. military aid to the Soviet Union to support its rebuilding of Eastern European economies.'},
+        {id:'C', text:'a permanent withdrawal of all U.S. forces from Europe in exchange for a Soviet pledge of nonaggression.'},
+        {id:'D', text:'a complete dismantling of all West German industry to permanently prevent any future German rearmament.'}
+      ], correct:'A',
+      explanation:'The Marshall Plan provided about $13 billion in U.S. aid to rebuild Western European economies. It strengthened the recipients politically against communist parties and tied them economically to the U.S.'},
+
+    {id:'wh_u8_mcq_007', topic:'8.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'NATO and the Warsaw Pact represented',
+      choices:[
+        {id:'A', text:'the Western and Soviet-led military alliances that institutionalized Cold War European division.'},
+        {id:'B', text:'two competing UN agencies that managed humanitarian aid for European refugees after WWII.'},
+        {id:'C', text:'two economic free-trade zones that gradually integrated all European economies after 1949.'},
+        {id:'D', text:'two religious organizations that mediated between Catholic and Orthodox Christian Cold War states.'}
+      ], correct:'A',
+      explanation:'NATO (1949, US-led Western bloc) and the Warsaw Pact (1955, Soviet-led Eastern bloc) institutionalized the Cold War military division of Europe. Each was a mutual-defense treaty against the other side.'},
+
+    {id:'wh_u8_mcq_008', topic:'8.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1962 Cuban Missile Crisis is generally considered the closest the Cold War came to nuclear war because',
+      choices:[
+        {id:'A', text:'the US blockaded Cuba to remove Soviet missiles, with both sides putting nuclear forces on alert.'},
+        {id:'B', text:'the Soviets actually launched nuclear missiles at Cuba, which were destroyed in mid-flight by US defenses.'},
+        {id:'C', text:'NATO troops invaded eastern Cuba and were nearly wiped out by Cuban and Soviet defending forces.'},
+        {id:'D', text:'the Cuban government formally declared a nuclear war against both the U.S. and the USSR simultaneously.'}
+      ], correct:'A',
+      explanation:'After U.S. spy planes detected Soviet nuclear missiles in Cuba, JFK ordered a naval quarantine. Both sides went to high nuclear alert before Khrushchev agreed to remove the missiles in exchange for a U.S. pledge not to invade Cuba.'},
+
+    {id:'wh_u8_mcq_009', topic:'8.2', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The doctrine of Mutual Assured Destruction (MAD) held that nuclear war between superpowers was unlikely because',
+      choices:[
+        {id:'A', text:'each side\'s nuclear arsenal was so devastating that any nuclear attack would lead to total mutual destruction.',
+        },
+        {id:'B', text:'the United Nations had built powerful satellite defenses that could intercept any incoming nuclear missile.',
+        },
+        {id:'C', text:'a permanent U.S.-Soviet treaty of the 1950s had completely banned the use of nuclear weapons in all conflicts.',
+        },
+        {id:'D', text:'the two superpowers were closely allied and had publicly pledged never to use force against each other for any reason whatsoever.',
+        }
+      ], correct:'A',
+      explanation:'MAD held that since both sides had enough nuclear weapons to destroy the other (even after a first strike), any nuclear attack would be suicidal. Deterrence rested on the credibility of mutual destruction, not on defense.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — EFFECTS OF THE COLD WAR  (Topic 8.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'8.3', title:'Effects of the Cold War', icon:'🚀', themes:['TEC','SIO'],
+   desc:'Nuclear proliferation, proxy wars, Space Race (Sputnik to Apollo), cultural Cold War, military-industrial complex, McCarthyism, Stasi.',
+   type:'mcq', group:'core', label:'Round 3 — Effects of the Cold War', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u8_mcq_010', topic:'8.3', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The 1957 Soviet launch of Sputnik most directly',
+      choices:[
+        {id:'A', text:'began the Space Race and prompted major U.S. investment in science, technology, and education.'},
+        {id:'B', text:'ended the nuclear arms race and led directly to the U.S.-Soviet test ban treaty of 1957.'},
+        {id:'C', text:'prevented the Soviets from achieving any further space technology success during the entire 1960s.'},
+        {id:'D', text:'produced a unified U.S.-Soviet space agency that jointly funded all major Apollo era space missions.'}
+      ], correct:'A',
+      explanation:'Sputnik shocked Americans into believing the Soviets had pulled ahead in technology. The U.S. responded with NASA (1958), the National Defense Education Act, and major science funding, fueling the Space Race.'},
+
+    {id:'wh_u8_mcq_011', topic:'8.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Korean (1950-53) and Vietnam (1955-75) Wars are best characterized as',
+      choices:[
+        {id:'A', text:'Cold War proxy conflicts in which superpowers backed opposing sides without directly fighting each other.',
+        },
+        {id:'B', text:'direct military conflicts between U.S. and Soviet forces fought on the territory of the two superpowers.',
+        },
+        {id:'C', text:'colonial wars fought entirely between European powers and the local indigenous independence movements.',
+        },
+        {id:'D', text:'civil wars that the U.S. and USSR carefully avoided supporting in any way to prevent any further escalation.',
+        }
+      ], correct:'A',
+      explanation:'Korea and Vietnam were the largest Cold War proxy wars. The U.S. backed the South in each; the Soviets and Chinese backed the North. Superpowers fought through clients rather than directly to avoid nuclear escalation.'},
+
+    {id:'wh_u8_mcq_012', topic:'8.3', bigIdea:'SIO', difficulty:'moderate',
+      stem:'McCarthyism in the early-1950s United States is best understood as',
+      choices:[
+        {id:'A', text:'a wave of anti-communist political investigations that targeted U.S. citizens suspected of communist sympathies.',
+        },
+        {id:'B', text:'a successful Soviet propaganda campaign that recruited large numbers of American citizens into the Communist Party.',
+        },
+        {id:'C', text:'a federal civil rights initiative that protected the political speech of suspected American communist sympathizers.',
+        },
+        {id:'D', text:'a peaceful diplomatic effort that built durable cooperation between the United States and the Soviet Union.',
+        }
+      ], correct:'A',
+      explanation:'Senator Joseph McCarthy led aggressive anti-communist investigations in the early 1950s, accusing many Americans (especially in government, the military, and Hollywood) of communist ties. Many lost jobs without due process.'},
+
+    {id:'wh_u8_mcq_013', topic:'8.3', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The Stasi in East Germany is best understood as',
+      choices:[
+        {id:'A', text:'a secret police force that built one of the most extensive surveillance systems in modern history.',
+        },
+        {id:'B', text:'a postwar West German political party that pushed for the rapid reunification of the divided country.',
+        },
+        {id:'C', text:'an East German economic agency that successfully managed industrial growth throughout the entire Cold War.',
+        },
+        {id:'D', text:'a NATO military intelligence unit that gathered information on Warsaw Pact forces for the Western alliance.',
+        }
+      ], correct:'A',
+      explanation:'The Stasi (East German secret police) maintained a vast network of officers and informants, surveilling roughly one in six citizens. Their archive after 1989 documented one of the most pervasive surveillance regimes ever built.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — SPREAD OF COMMUNISM  (Topic 8.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'8.4', title:'Spread of Communism', icon:'🚩', themes:['GOV','ECN'],
+   desc:'Chinese Revolution (1949), Mao\'s Great Leap Forward and Cultural Revolution, Deng Xiaoping reforms, Cuban Revolution under Castro, Soviet satellite states.',
+   type:'mcq', group:'core', label:'Round 4 — Spread of Communism', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u8_mcq_014', topic:'8.4', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1949 Chinese Revolution resulted most directly in',
+      choices:[
+        {id:'A', text:'the Communist victory over the Nationalists and the founding of the People\'s Republic of China under Mao.',
+        },
+        {id:'B', text:'a Nationalist victory over the Communists and the establishment of a constitutional democracy in China.',
+        },
+        {id:'C', text:'a peaceful constitutional reform that left both major Chinese political parties in a coalition government.',
+        },
+        {id:'D', text:'the restoration of the Qing dynasty under a hereditary emperor descended from the prior royal family.',
+        }
+      ], correct:'A',
+      explanation:'After the Chinese Civil War resumed in 1946, Mao\'s Communists defeated Chiang Kai-shek\'s Nationalists. The PRC was founded in October 1949; the Nationalists fled to Taiwan. China became the most populous communist state.'},
+
+    {id:'wh_u8_mcq_015', topic:'8.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Mao\'s Great Leap Forward (1958-1962) attempted to',
+      choices:[
+        {id:'A', text:'rapidly industrialize China through commune-based agriculture and steel production, with catastrophic results.',
+        },
+        {id:'B', text:'restore capitalism in China by allowing private factory ownership for the first time after the 1949 revolution.',
+        },
+        {id:'C', text:'shift the Chinese economy back to subsistence farming by abolishing all of the new urban industrial centers.',
+        },
+        {id:'D', text:'transfer Chinese economic planning authority to the United Nations\' new global development agency in Geneva.',
+        }
+      ], correct:'A',
+      explanation:'The Great Leap Forward forced rural collectivization and backyard steel production. Misreporting and policy failures triggered famine that killed 30+ million people, one of the worst man-made disasters in modern history.'},
+
+    {id:'wh_u8_mcq_016', topic:'8.4', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Mao\'s Cultural Revolution (1966-1976) is best characterized as',
+      choices:[
+        {id:'A', text:'an ideological campaign that purged perceived class enemies and disrupted Chinese education for a decade.',
+        },
+        {id:'B', text:'a peaceful liberalization of Chinese culture that promoted Western art, music, and Christian religion.',
+        },
+        {id:'C', text:'an economic reform program that opened China to substantial foreign investment for the first time after 1949.',
+        },
+        {id:'D', text:'a Confucian-revival movement that restored traditional Chinese imperial ideology and practice across the country.',
+        }
+      ], correct:'A',
+      explanation:'The Cultural Revolution mobilized Red Guards to attack alleged class enemies (intellectuals, party rivals, traditional culture). Universities closed, families turned on each other, and millions were persecuted before Mao\'s 1976 death ended it.'},
+
+    {id:'wh_u8_mcq_017', topic:'8.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Deng Xiaoping\'s post-1978 reforms in China are best understood as',
+      choices:[
+        {id:'A', text:'a turn toward market mechanisms and foreign investment while keeping Communist Party political control.',
+        },
+        {id:'B', text:'a complete return to Maoist economic policies including new mass agricultural collectivization campaigns.',
+        },
+        {id:'C', text:'a liberal democratic transition that ended Communist Party rule across the entire mainland of China.',
+        },
+        {id:'D', text:'a long economic withdrawal from global trade that completely isolated China from foreign capital flows.',
+        }
+      ], correct:'A',
+      explanation:'Deng\'s "reform and opening" introduced market mechanisms (household farming, special economic zones, foreign investment) while preserving one-party rule. The combination drove unprecedented growth, lifting hundreds of millions out of poverty.'},
+
+    {id:'wh_u8_mcq_018', topic:'8.4', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1959 Cuban Revolution under Fidel Castro is significant primarily because it',
+      choices:[
+        {id:'A', text:'brought a communist government to the Western Hemisphere and pushed Cuba into a long alliance with the USSR.',
+        },
+        {id:'B', text:'restored a liberal democracy in Cuba that lasted throughout the entire late 20th-century period.',
+        },
+        {id:'C', text:'led to a long-term Cuban alliance with the United States that lasted into the early 21st century.',
+        },
+        {id:'D', text:'ended communism in Latin America and discouraged any further communist movements throughout the entire western hemisphere.',
+        }
+      ], correct:'A',
+      explanation:'Castro\'s revolution overthrew the U.S.-backed Batista regime. Cuba aligned with the USSR, leading to the 1961 Bay of Pigs and the 1962 Missile Crisis, and exporting revolutionary aid across Latin America and Africa for decades.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — DECOLONIZATION  (Topic 8.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'8.5', title:'Decolonization', icon:'🌅', themes:['GOV','CDI'],
    desc:'India and Partition (1947), Vietnamese independence (Dien Bien Phu), Ghana under Nkrumah (1957), Algerian War, "Year of Africa" (1960), Israel founded (1948).',
-   type:'mcq',  questions:14, group:'skills'},
-  {id:'r6',  num:6,  topic:'8.6', title:'Newly Independent States', icon:'🤝', themes:['GOV','ECN','SIO'],
+   type:'mcq', group:'skills', label:'Round 5 — Decolonization', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u8_mcq_019', topic:'8.5', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1947 Partition of British India produced',
+      choices:[
+        {id:'A', text:'two new states, India and Pakistan, and triggered massive religious violence and refugee movement.',
+        },
+        {id:'B', text:'a single unified Indian state that retained close formal political ties to the United Kingdom.',
+        },
+        {id:'C', text:'three new states divided cleanly along religious lines with peaceful population transfers between them.',
+        },
+        {id:'D', text:'a continued British colonial administration in India that lasted until the closing years of the 1960s.',
+        }
+      ], correct:'A',
+      explanation:'British India was partitioned in 1947 into Hindu-majority India and Muslim-majority Pakistan. The partition triggered enormous violence (estimated half a million to two million deaths) and the displacement of about 15 million people.'},
+
+    {id:'wh_u8_mcq_020', topic:'8.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1954 Battle of Dien Bien Phu was significant because it',
+      choices:[
+        {id:'A', text:'ended French colonial rule in Indochina after Vietnamese forces under Ho Chi Minh defeated the French army.',
+        },
+        {id:'B', text:'restored full French colonial control over Vietnam and discouraged any future Vietnamese armed resistance.',
+        },
+        {id:'C', text:'marked the start of direct U.S. ground combat operations in Vietnam during the early decades of the Cold War.',
+        },
+        {id:'D', text:'led to the immediate reunification of North and South Vietnam under one centralized national government.',
+        }
+      ], correct:'A',
+      explanation:'At Dien Bien Phu, Vietnamese forces under General Vo Nguyen Giap decisively defeated the French. France withdrew from Indochina; the 1954 Geneva Accords divided Vietnam at the 17th parallel, setting up later Cold War conflict.'},
+
+    {id:'wh_u8_mcq_021', topic:'8.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'In 1957, Ghana under Kwame Nkrumah became significant in African history because it',
+      choices:[
+        {id:'A', text:'was the first sub-Saharan African colony to win independence, inspiring later African liberation movements.',
+        },
+        {id:'B', text:'voluntarily returned to British colonial rule after a few years of independence in the late 1950s.',
+        },
+        {id:'C', text:'was the last African colony to win independence from any of the major European colonial powers.',
+        },
+        {id:'D', text:'restored a precolonial Asante kingdom and rejected all forms of modern Western political and economic institutions.',
+        }
+      ], correct:'A',
+      explanation:'Ghana was the first sub-Saharan African colony to gain independence (March 1957). Nkrumah\'s pan-African leadership inspired liberation movements across Africa, and 1960 became known as "the Year of Africa" with 17 new states.'},
+
+    {id:'wh_u8_mcq_022', topic:'8.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1954-1962 Algerian War of Independence is best characterized as',
+      choices:[
+        {id:'A', text:'a brutal anti-colonial war between the FLN and France that ended with Algerian independence in 1962.',
+        },
+        {id:'B', text:'a peaceful negotiated transition that ended French rule in Algeria within just a couple of years.',
+        },
+        {id:'C', text:'a Cold War proxy battle between the U.S. and USSR fought entirely within the borders of Algeria.',
+        },
+        {id:'D', text:'a brief border conflict between Algeria and Morocco that drew only minor French military involvement.',
+        }
+      ], correct:'A',
+      explanation:'The Algerian National Liberation Front (FLN) fought a long, bloody war against French rule (1954-1962). The conflict involved widespread violence and torture, brought down the Fourth French Republic, and ended in Algerian independence.'},
+
+    {id:'wh_u8_mcq_023', topic:'8.5', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The 1948 founding of the State of Israel is best understood as',
+      choices:[
+        {id:'A', text:'the result of Zionist movement, the Holocaust, and a UN partition plan, sparking ongoing regional conflict.',
+        },
+        {id:'B', text:'a peaceful negotiated settlement that produced lasting cooperation between Jewish and Arab populations.',
+        },
+        {id:'C', text:'a unilateral British colonial decision that imposed Jewish governance on the entire former Mandate territory.',
+        },
+        {id:'D', text:'a Cold War decision in which the USSR alone backed Israel\'s creation against the wishes of all Western powers.',
+        }
+      ], correct:'A',
+      explanation:'Israel was founded after decades of Zionist organizing, the Holocaust, and the 1947 UN Partition Plan. The 1948 Arab-Israeli War followed, displacing hundreds of thousands of Palestinians and beginning a long-running regional conflict.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — NEWLY INDEPENDENT STATES  (Topic 8.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'8.6', title:'Newly Independent States', icon:'🤝', themes:['GOV','ECN','SIO'],
    desc:'Non-Aligned Movement (Bandung 1955), Nasser, Nehru, Indira Gandhi, Nyerere, Sirimavo Bandaranaike. Post-colonial migrations to former metropoles.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r7',  num:7,  topic:'8.7', title:'Global Resistance', icon:'✊', themes:['SIO','GOV','CDI'],
+   type:'mcq', group:'skills', label:'Round 6 — Newly Independent States', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u8_mcq_024', topic:'8.6', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Non-Aligned Movement, formalized at the 1955 Bandung Conference, sought to',
+      choices:[
+        {id:'A', text:'create an independent bloc of newly decolonized states aligned with neither the U.S. nor the Soviet Union.',
+        },
+        {id:'B', text:'unify all newly independent states into a single political federation under shared communist leadership.',
+        },
+        {id:'C', text:'establish a permanent military alliance with the United States and NATO against the Soviet Union.',
+        },
+        {id:'D', text:'restore the European colonial rule in Asia and Africa under new joint UN trusteeship administrative authority and oversight.',
+        }
+      ], correct:'A',
+      explanation:'Bandung brought together representatives from 29 Asian and African states, including Nehru (India), Nasser (Egypt), Sukarno (Indonesia), and Zhou Enlai (China). They sought to chart an independent course outside the Cold War blocs.'},
+
+    {id:'wh_u8_mcq_025', topic:'8.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Egyptian President Gamal Abdel Nasser is best known for',
+      choices:[
+        {id:'A', text:'nationalizing the Suez Canal in 1956 and emerging as a leading symbol of Arab nationalism in the postwar era.',
+        },
+        {id:'B', text:'restoring British colonial rule over Egypt and the Suez Canal during the closing years of the 1950s.',
+        },
+        {id:'C', text:'aligning Egypt formally with NATO and rejecting any cooperation with other newly decolonized Middle Eastern states.',
+        },
+        {id:'D', text:'leading a Sunni-Shi\'a religious unification movement that ended sectarian conflict throughout the Middle East.',
+        }
+      ], correct:'A',
+      explanation:'Nasser nationalized the Suez Canal in 1956, triggering the Suez Crisis. He became a leading voice of Arab nationalism and pan-Arabism, and a major figure in the Non-Aligned Movement.'},
+
+    {id:'wh_u8_mcq_026', topic:'8.6', bigIdea:'SIO', difficulty:'moderate',
+      stem:'Sirimavo Bandaranaike of Sri Lanka and Indira Gandhi of India share the distinction of',
+      choices:[
+        {id:'A', text:'serving as the first women to lead their respective countries as elected heads of national government.',
+        },
+        {id:'B', text:'leading their countries\' first postwar military coups against earlier elected civilian governments.',
+        },
+        {id:'C', text:'serving as British colonial administrators of South Asia during the closing decades of imperial rule.',
+        },
+        {id:'D', text:'organizing communist parties that briefly took power in their respective home countries during the 1960s and 1970s.',
+        }
+      ], correct:'A',
+      explanation:'Sirimavo Bandaranaike of Sri Lanka (1960) and Indira Gandhi of India (1966) were among the first women in the world to lead modern nation-states as elected prime ministers.'},
+
+    {id:'wh_u8_mcq_027', topic:'8.6', bigIdea:'SIO', difficulty:'challenging',
+      stem:'Post-colonial migration patterns in the late 20th century commonly involved',
+      choices:[
+        {id:'A', text:'people from former colonies migrating to former colonial metropoles, often filling postwar labor shortages.',
+        },
+        {id:'B', text:'Europeans relocating in large numbers from former colonial metropoles back into their former overseas colonies.',
+        },
+        {id:'C', text:'colonial-era migration patterns going completely into reverse, with no movement at all from south to north.',
+        },
+        {id:'D', text:'a near-total halt of cross-border migration as newly independent states sealed their borders against outsiders.',
+        }
+      ], correct:'A',
+      explanation:'Postwar Europe drew migrants from former colonies to fill labor shortages: Caribbean and South Asian migrants to Britain, Algerians and West Africans to France, Indonesians to the Netherlands. These flows reshaped European societies.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — GLOBAL RESISTANCE  (Topic 8.7)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'8.7', title:'Global Resistance', icon:'✊', themes:['SIO','GOV','CDI'],
    desc:'U.S. Civil Rights Movement (MLK), anti-apartheid (Mandela), Solidarity in Poland, Tiananmen Square (1989), Iranian Revolution (1979), women\'s movements.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r8',  num:8,  topic:'8.8', title:'End of the Cold War', icon:'🧱', themes:['GOV','ECN'],
+   type:'mcq', group:'skills', label:'Round 7 — Global Resistance', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u8_mcq_028', topic:'8.7', bigIdea:'SIO', difficulty:'accessible',
+      stem:'The U.S. Civil Rights Movement, especially under Martin Luther King Jr., is best characterized as',
+      choices:[
+        {id:'A', text:'a nonviolent campaign against racial segregation and disenfranchisement, drawing partly on Gandhi\'s example.',
+        },
+        {id:'B', text:'a violent armed insurgency that overthrew the U.S. federal government during the closing years of the 1960s.',
+        },
+        {id:'C', text:'a peaceful movement that achieved its full goals immediately upon its founding, requiring no further struggle.',
+        },
+        {id:'D', text:'a religious revival that focused exclusively on church reform and avoided political and economic questions.',
+        }
+      ], correct:'A',
+      explanation:'King\'s civil rights movement used nonviolent direct action (sit-ins, marches, boycotts), explicitly drawing on Gandhi\'s satyagraha. It produced the Civil Rights Act (1964) and Voting Rights Act (1965).'},
+
+    {id:'wh_u8_mcq_029', topic:'8.7', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The South African anti-apartheid movement, led by figures including Nelson Mandela, eventually succeeded in',
+      choices:[
+        {id:'A', text:'ending the legal racial-segregation system in 1994 and bringing Mandela to office as the first elected Black president.',
+        },
+        {id:'B', text:'establishing a permanent white-minority government that lasted through the closing decades of the 20th century.',
+        },
+        {id:'C', text:'partitioning South Africa into two separate states divided cleanly along race-based national territorial borders.',
+        },
+        {id:'D', text:'restoring British colonial rule across South Africa as the only solution to the country\'s racial and political conflicts.',
+        }
+      ], correct:'A',
+      explanation:'After decades of resistance and international sanctions, apartheid laws were repealed in the early 1990s. Mandela was released from prison in 1990 and won the 1994 election as South Africa\'s first Black president.'},
+
+    {id:'wh_u8_mcq_030', topic:'8.7', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Solidarity in Poland during the 1980s is best understood as',
+      choices:[
+        {id:'A', text:'an independent labor union and political movement that contributed to the collapse of communism in Eastern Europe.',
+        },
+        {id:'B', text:'an official Polish state agency that managed all of the country\'s industrial production during the late 1980s.',
+        },
+        {id:'C', text:'a Soviet-backed political party that suppressed opposition to communism in Poland during the early 1980s.',
+        },
+        {id:'D', text:'a Catholic religious order that focused entirely on educational and charitable work, avoiding all political activity.',
+        }
+      ], correct:'A',
+      explanation:'Solidarity, founded by Lech Wałęsa in 1980, was the first independent labor union in the Soviet bloc. Despite martial law (1981) and repression, it persisted and helped lead to communist Poland\'s peaceful collapse in 1989.'},
+
+    {id:'wh_u8_mcq_031', topic:'8.7', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1979 Iranian Revolution is best understood as',
+      choices:[
+        {id:'A', text:'an Islamic revolution that overthrew the U.S.-backed Shah and established a theocratic state under Khomeini.',
+        },
+        {id:'B', text:'a communist revolution that aligned Iran with the Soviet Union for the duration of the Cold War.',
+        },
+        {id:'C', text:'a peaceful constitutional reform that gave Iran a Western-style liberal democracy with multiple parties.',
+        },
+        {id:'D', text:'a brief monarchist coup that restored the Shah\'s power and suppressed all later Iranian opposition movements.',
+        }
+      ], correct:'A',
+      explanation:'The 1979 revolution overthrew Mohammad Reza Shah Pahlavi, establishing the Islamic Republic of Iran under Ayatollah Khomeini. It was a major rebuke to U.S. influence and inaugurated political Islamism as a force in global politics.'},
+
+    {id:'wh_u8_mcq_032', topic:'8.7', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The 1989 Tiananmen Square protests in China are best characterized as',
+      choices:[
+        {id:'A', text:'pro-democracy demonstrations led mostly by students that ended in a violent military crackdown by the government.',
+        },
+        {id:'B', text:'a successful student-led democratic transition that ended Chinese Communist Party rule across all of mainland China.',
+        },
+        {id:'C', text:'an anti-democratic counter-revolution led by old hardliners who blocked Deng Xiaoping\'s economic reforms.',
+        },
+        {id:'D', text:'a foreign-organized invasion in which Western troops briefly occupied the central government district of Beijing.',
+        }
+      ], correct:'A',
+      explanation:'In May-June 1989, large pro-democracy protests centered on Tiananmen Square. The Chinese government declared martial law and used the army to clear the square, killing hundreds or more. Political reform was halted; economic reform continued.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 8 — END OF THE COLD WAR  (Topic 8.8)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r8', num:8, topic:'8.8', title:'End of the Cold War', icon:'🧱', themes:['GOV','ECN'],
    desc:'Soviet stagnation, Reagan buildup, Soviet-Afghan War failure, Gorbachev\'s glasnost and perestroika, fall of the Berlin Wall (1989), collapse of USSR (1991).',
-   type:'mcq',  questions:10, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 8 — End of the Cold War', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u8_mcq_033', topic:'8.8', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Mikhail Gorbachev\'s reforms in the late 1980s, glasnost and perestroika, were intended to',
+      choices:[
+        {id:'A', text:'open the Soviet system to greater public discussion and restructure the economy without abandoning socialism.',
+        },
+        {id:'B', text:'restore Stalinist political control by fully reversing all of the reforms of the prior Soviet leadership.',
+        },
+        {id:'C', text:'immediately convert the Soviet Union into a Western-style capitalist multiparty liberal democracy.',
+        },
+        {id:'D', text:'expand Soviet military commitments worldwide by sending more Soviet troops to support new socialist regimes abroad.',
+        }
+      ], correct:'A',
+      explanation:'Glasnost ("openness") allowed greater public discussion and press freedom; perestroika ("restructuring") tried to reform the planned economy. Together they unintentionally accelerated the Soviet system\'s collapse.'},
+
+    {id:'wh_u8_mcq_034', topic:'8.8', bigIdea:'ECN', difficulty:'moderate',
+      stem:'A major underlying cause of late Soviet decline was',
+      choices:[
+        {id:'A', text:'long-term economic stagnation, an arms-race burden, and the costly failed Soviet war in Afghanistan.',
+        },
+        {id:'B', text:'a short period of rapid Soviet economic growth that produced widespread political contentment with the system.',
+        },
+        {id:'C', text:'an unbroken Soviet diplomatic record of consistent victories on every Cold War front during the late Cold War.',
+        },
+        {id:'D', text:'a wave of new Soviet alliances that secured permanent client states across all of the developing world.',
+        }
+      ], correct:'A',
+      explanation:'By the 1980s, the Soviet economy was stagnating, the arms race with the U.S. was straining its budget, and the Soviet-Afghan War (1979-89) was a costly defeat. These pressures created the context for Gorbachev\'s reforms.'},
+
+    {id:'wh_u8_mcq_035', topic:'8.8', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The November 1989 fall of the Berlin Wall is best understood as',
+      choices:[
+        {id:'A', text:'a defining moment in the rapid collapse of communist governments across Eastern Europe in 1989.',
+        },
+        {id:'B', text:'a Soviet-led military victory that reasserted Eastern European communism for the rest of the 20th century.',
+        },
+        {id:'C', text:'a NATO-led military operation that physically forced the East German government to remove the Berlin barrier.',
+        },
+        {id:'D', text:'a UN peacekeeping action that installed a temporary international government across the divided city of Berlin.',
+        }
+      ], correct:'A',
+      explanation:'The fall of the Berlin Wall on November 9, 1989 symbolized the collapse of communist Eastern Europe. Within weeks, communist governments fell in Czechoslovakia, Bulgaria, and Romania; Germany reunified within a year.'},
+
+    {id:'wh_u8_mcq_036', topic:'8.8', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1991 collapse of the Soviet Union resulted most directly in',
+      choices:[
+        {id:'A', text:'the dissolution of the USSR into 15 independent republics, including a non-communist Russian Federation.',
+        },
+        {id:'B', text:'a brief restoration of Soviet communism under a unified post-Gorbachev hardline party leadership.',
+        },
+        {id:'C', text:'an immediate reunification of Russia with all of the former Eastern Bloc states under a new federal union.',
+        },
+        {id:'D', text:'a permanent UN trusteeship that governed all of the former Soviet territory through the late 1990s.',
+        }
+      ], correct:'A',
+      explanation:'The Soviet Union officially dissolved in December 1991, splitting into 15 independent republics: the Russian Federation, Ukraine, Belarus, the Baltic states, the Caucasus republics, and the Central Asian states.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 9 - 12 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
   {id:'r9',  num:9,  topic:'8.9', title:'Causation in the Cold War', icon:'🔗', themes:['GOV'],
    desc:'Topic 8.9 in full: explicit causation analysis. WWII → Cold War, WWII → decolonization, intersection of both processes. Argumentation 6.B.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'synthesis', group:'skills', label:'Round 9 — Causation', color:'var(--bronze)', draw:1, questions:8, sets:[]},
 
-  // ── Free-Response Practice ──
   {id:'r10', num:10, topic:'8.1–8.9', title:'Document Analysis', icon:'📜', themes:['GOV','CDI'],
    desc:'5 primary-source stimulus drills — Truman Doctrine, Bandung Conference, MLK\'s Letter from Birmingham Jail, Gorbachev speeches. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
   {id:'r11', num:11, topic:'8.1–8.9', title:'SAQ Practice', icon:'✍️', themes:['GOV','ECN'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — comparing US and Soviet methods; effects of decolonization.',
-   type:'saq', questions:2, group:'frq'},
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
   {id:'r12', num:12, topic:'8.1–8.9', title:'LEQ Practice', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. "Evaluate the extent to which decolonization changed political structures in Asia and Africa."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -1018,7 +1740,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -1035,10 +1757,462 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 8.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -1072,6 +2246,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1112,11 +2288,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
