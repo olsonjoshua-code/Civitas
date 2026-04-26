@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -579,12 +722,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 7 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every CED topic in the unit: shifting power after 1900, the World Wars and the interwar era, the rise of fascism, and the major mass atrocities of the twentieth century. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -733,6 +882,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 7 DATA
@@ -741,51 +938,468 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u7';
 const UNIT_TITLE = 'Global Conflict';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 5 WWI/interwar + 4 WWII/atrocities + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 7 Global Conflict (c. 1900 – 1945)
+//  8 MCQ rounds, 36 questions total (Pass 1):
+//    r1=5 r2=4 r3=5 r4=4 r5=5 r6=4 r7=5 r8=4
+//  Plus 4 Pass-2 stubs (Causation synthesis + DocAnalysis + SAQ + LEQ)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── WWI & Interwar (Topics 7.1–7.5) ──
-  {id:'r1',  num:1,  topic:'7.1', title:'Shifting Power After 1900', icon:'⚡', themes:['GOV','CDI'],
-   desc:'Russian Revolution (1917), Bolsheviks under Lenin, Mexican Revolution, fall of Qing/Ottoman/Austro-Hungarian empires, Atatürk and modern Turkey.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r2',  num:2,  topic:'7.2', title:'Causes of WWI', icon:'💣', themes:['GOV','CDI'],
-   desc:'MAIN causes: Militarism, Alliances, Imperialism, Nationalism. Triple Alliance vs. Triple Entente. Assassination of Franz Ferdinand at Sarajevo. The July Crisis.',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r3',  num:3,  topic:'7.3', title:'Conducting WWI', icon:'⚔️', themes:['TEC','SIO'],
-   desc:'Trench warfare, machine guns, poison gas, tanks, U-boats. Total war on the home front. Colonial troops. Treaty of Versailles and the League of Nations.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'7.4', title:'Interwar Economy', icon:'📉', themes:['ECN','GOV'],
-   desc:'The Great Depression. Government responses: New Deal (US), Five-Year Plans (USSR), fascist corporatism (Italy), Nazi rearmament (Germany).',
-   type:'mcq',  questions:10, group:'core'},
-  {id:'r5',  num:5,  topic:'7.5', title:'Unresolved Tensions', icon:'⚠️', themes:['GOV','CDI'],
-   desc:'Rise of fascism: Mussolini\'s Italy, Hitler\'s Germany, Franco\'s Spain. Anti-colonial nationalism: Gandhi\'s Salt March, May Fourth Movement, Mao vs. Chiang.',
-   type:'mcq',  questions:12, group:'core'},
 
-  // ── WWII & Atrocities (Topics 7.6–7.9) ──
-  {id:'r6',  num:6,  topic:'7.6', title:'Causes of WWII', icon:'🌪️', themes:['GOV','ECN'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — SHIFTING POWER AFTER 1900  (Topic 7.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'7.1', title:'Shifting Power After 1900', icon:'⚡', themes:['GOV','CDI'],
+   desc:'Russian Revolution (1917), Bolsheviks under Lenin, Mexican Revolution, fall of Qing/Ottoman/Austro-Hungarian empires, Atatürk and modern Turkey.',
+   type:'mcq', group:'core', label:'Round 1 — Shifting Power After 1900', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u7_mcq_001', topic:'7.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1917 Russian Revolution resulted most directly in',
+      choices:[
+        {id:'A', text:'the overthrow of the Romanov dynasty and the founding of the world\'s first communist state under Lenin.'},
+        {id:'B', text:'the restoration of Tsar Nicholas II to full power and the elimination of all Russian revolutionary parties.'},
+        {id:'C', text:'a peaceful constitutional monarchy in which the Russian tsar shared power with an elected parliament.'},
+        {id:'D', text:'the partition of Russia into separate German, French, and British zones of long-term colonial occupation.'}
+      ], correct:'A',
+      explanation:'The February Revolution overthrew the tsar; the October Revolution brought Lenin\'s Bolsheviks to power. The result was the world\'s first communist state, which became the USSR in 1922.'},
+
+    {id:'wh_u7_mcq_002', topic:'7.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Lenin\'s slogan "Peace, Land, Bread" appealed most directly to',
+      choices:[
+        {id:'A', text:'war-weary soldiers, land-hungry peasants, and hungry urban workers who had grown desperate by 1917.'},
+        {id:'B', text:'the Russian Orthodox clergy and the established hereditary tsarist landowning aristocracy alike.'},
+        {id:'C', text:'European industrialists who had loaned vast sums of money to support the Russian war effort.'},
+        {id:'D', text:'the Romanov dynasty itself, which Lenin hoped to persuade to voluntarily surrender power peacefully.'}
+      ], correct:'A',
+      explanation:'Lenin\'s slogan addressed the three urgent demands of war-weary Russians: end the war, redistribute land to peasants, and feed the cities. It was a key reason the Bolsheviks succeeded where the Provisional Government failed.'},
+
+    {id:'wh_u7_mcq_003', topic:'7.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Mexican Revolution (1910-1920) is best understood as',
+      choices:[
+        {id:'A', text:'a long, factional civil war that overthrew the dictator Porfirio Díaz and produced the 1917 constitution.'},
+        {id:'B', text:'a brief and largely peaceful constitutional reform led by Mexico\'s Catholic clergy and elite landowners.'},
+        {id:'C', text:'a foreign invasion in which the United States overthrew Díaz and installed a new pro-American leadership.'},
+        {id:'D', text:'a nationalist reform movement that immediately granted Spain a renewed colonial role in Mexican government.'}
+      ], correct:'A',
+      explanation:'The Mexican Revolution overthrew Porfirio Díaz and produced a long, multi-factional civil war. The 1917 constitution incorporated land reform, labor rights, and limits on the Catholic Church and on foreign ownership.'},
+
+    {id:'wh_u7_mcq_004', topic:'7.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Following its WWI defeat, the Ottoman Empire collapsed and was succeeded most directly by',
+      choices:[
+        {id:'A', text:'the Republic of Turkey under Mustafa Kemal Atatürk, who pursued sweeping secular reforms after 1923.'},
+        {id:'B', text:'a restored caliphate under a hereditary dynasty that ruled the entire Middle East from Constantinople.'},
+        {id:'C', text:'a unified Arab nation-state covering all former Ottoman territory in the Middle East and North Africa.'},
+        {id:'D', text:'a French-British federation that jointly governed the entire former Ottoman Empire as a single colony.'}
+      ], correct:'A',
+      explanation:'After Ottoman defeat in WWI, Mustafa Kemal led a successful war to establish modern Turkey (1923), abolished the caliphate, and pursued secular reforms (Latin script, women\'s rights, Western legal codes).'},
+
+    {id:'wh_u7_mcq_005', topic:'7.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar describing the period 1910-1923 as a "great unraveling of empires" would most likely emphasize the',
+      choices:[
+        {id:'A', text:'collapse of the Qing, Ottoman, Russian, and Austro-Hungarian empires within roughly a decade of one another.'},
+        {id:'B', text:'long-term territorial expansion of all the major European empires throughout this entire historical period.'},
+        {id:'C', text:'establishment of new colonial empires by Japan, Germany, and Italy across most of sub-Saharan Africa by 1920.'},
+        {id:'D', text:'voluntary peaceful disbanding of every European empire at the conclusion of the First World War in 1918.'}
+      ], correct:'A',
+      explanation:'Within roughly a decade, four major empires collapsed: the Qing (1911), Russian (1917), Ottoman (post-WWI), and Austro-Hungarian (post-WWI). Their fall reshaped global politics and created new states across Eurasia.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — CAUSES OF WWI  (Topic 7.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'7.2', title:'Causes of WWI', icon:'💣', themes:['GOV','CDI'],
+   desc:'MAIN causes: Militarism, Alliances, Imperialism, Nationalism. Triple Alliance vs. Triple Entente. Assassination of Franz Ferdinand. The July Crisis.',
+   type:'mcq', group:'core', label:'Round 2 — Causes of WWI', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u7_mcq_006', topic:'7.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The "MAIN" causes of WWI are typically taught as',
+      choices:[
+        {id:'A', text:'militarism, alliances, imperialism, and nationalism, which together created the conditions for a major European war.'},
+        {id:'B', text:'monarchism, abolitionism, industrialism, and naturalism, which jointly produced rivalry across early-20th-century Europe.'},
+        {id:'C', text:'mercantilism, absolutism, individualism, and neo-feudalism, which together explain the outbreak of war in 1914.'},
+        {id:'D', text:'monetarism, atheism, internationalism, and neutralism, which combined to drive every great power to enter the war.'}
+      ], correct:'A',
+      explanation:'The standard AP framing for WWI causes is MAIN: militarism (arms races), alliances (Triple Entente vs. Triple Alliance), imperialism (colonial rivalry), and nationalism (especially in the Balkans).'},
+
+    {id:'wh_u7_mcq_007', topic:'7.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The June 1914 assassination of Archduke Franz Ferdinand most directly triggered',
+      choices:[
+        {id:'A', text:'the July Crisis, in which alliance commitments rapidly drew the major European powers into a general war.'},
+        {id:'B', text:'a sustained period of European peace that delayed the outbreak of war by another decade after the assassination.'},
+        {id:'C', text:'the establishment of the League of Nations to mediate disputes among rival European great powers in 1914.'},
+        {id:'D', text:'the immediate American entry into the war on the side of the Allied powers in the late summer of 1914.'}
+      ], correct:'A',
+      explanation:'Franz Ferdinand\'s assassination in Sarajevo set off the July Crisis: Austria\'s ultimatum to Serbia activated alliance commitments, drawing in Russia, Germany, France, and Britain within weeks.'},
+
+    {id:'wh_u7_mcq_008', topic:'7.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'On the eve of WWI, the major European alliance systems were',
+      choices:[
+        {id:'A', text:'the Triple Alliance (Germany, Austria-Hungary, Italy) and the Triple Entente (France, Britain, Russia).'},
+        {id:'B', text:'the Holy Alliance (Russia, Prussia, Austria) and a unified democratic alliance (France, Britain, Italy).'},
+        {id:'C', text:'a single Concert of Europe in which all the major powers belonged to one large alliance system together.'},
+        {id:'D', text:'a single Atlantic Alliance led by the United States that bound all the major European powers together.'}
+      ], correct:'A',
+      explanation:'The two competing blocs in 1914 were the Triple Alliance (Germany, Austria-Hungary, Italy) and the Triple Entente (France, Britain, Russia). Italy switched sides during the war; the Ottomans joined the Central Powers.'},
+
+    {id:'wh_u7_mcq_009', topic:'7.2', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Nationalism contributed to WWI most directly by',
+      choices:[
+        {id:'A', text:'fueling Slavic separatism in the Balkans, especially Serbia\'s ambitions against the Austro-Hungarian Empire.'},
+        {id:'B', text:'ending all rivalry among the great European powers and producing a long-lasting period of cooperative peace.'},
+        {id:'C', text:'producing a unified single European federation under shared political leadership before the start of the war.'},
+        {id:'D', text:'pushing every European state to abandon its overseas empire in favor of strict isolationism and neutrality.'}
+      ], correct:'A',
+      explanation:'Balkan nationalism, especially Serbian ambitions to unite South Slavs against Austria-Hungary, created the volatile situation that exploded after Sarajevo. Nationalism also drove great-power rivalry and arms races.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — CONDUCTING WWI  (Topic 7.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'7.3', title:'Conducting WWI', icon:'⚔️', themes:['TEC','SIO'],
+   desc:'Trench warfare, machine guns, poison gas, tanks, U-boats. Total war on the home front. Colonial troops. Treaty of Versailles and the League of Nations.',
+   type:'mcq', group:'core', label:'Round 3 — Conducting WWI', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u7_mcq_010', topic:'7.3', bigIdea:'TEC', difficulty:'accessible',
+      stem:'Trench warfare on the Western Front of WWI most directly resulted from',
+      choices:[
+        {id:'A', text:'machine guns and artillery making frontal assaults across open ground extremely deadly to attacking troops.'},
+        {id:'B', text:'a peace treaty in 1915 that froze front lines and required all troops to remain stationed in fixed defensive positions.'},
+        {id:'C', text:'an Allied decision to fight the entire war underground in tunnels rather than risk surface combat for any reason.'},
+        {id:'D', text:'a German shortage of soldiers, which forced the German army to dig in along defensive lines rather than launch attacks.'}
+      ], correct:'A',
+      explanation:'Industrial-era weaponry (machine guns, accurate artillery, barbed wire) made traditional infantry assaults catastrophically deadly. Both sides dug elaborate trench networks, producing years of grinding stalemate on the Western Front.'},
+
+    {id:'wh_u7_mcq_011', topic:'7.3', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The "total war" mobilization of WWI on the home front is best illustrated by',
+      choices:[
+        {id:'A', text:'governments rationing food, drafting soldiers, redirecting industry to war production, and using widespread propaganda.'},
+        {id:'B', text:'governments deliberately keeping civilian economies completely separate from any active wartime military operations.'},
+        {id:'C', text:'governments allowing factories to continue making peacetime consumer goods exclusively throughout the entire war.'},
+        {id:'D', text:'governments outsourcing all of the weapons production to neutral nations to keep the war from disrupting domestic life back home.'}
+      ], correct:'A',
+      explanation:'WWI was a total war: governments mobilized whole societies. Industry was redirected to munitions, food was rationed, men were conscripted, women entered factories, and propaganda saturated daily life.'},
+
+    {id:'wh_u7_mcq_012', topic:'7.3', bigIdea:'SIO', difficulty:'moderate',
+      stem:'Colonial troops from Africa, India, and elsewhere contributed to WWI by',
+      choices:[
+        {id:'A', text:'fighting and laboring for European powers, an experience that sharpened later anti-colonial nationalist movements.'},
+        {id:'B', text:'refusing to participate in the war and successfully forcing European powers to end their colonial empires by 1916.'},
+        {id:'C', text:'forming a single neutral African military bloc that mediated peace negotiations between the warring European powers.'},
+        {id:'D', text:'fighting only on European soil, since colonial powers refused to deploy any troops against any non-European armies.'}
+      ], correct:'A',
+      explanation:'Hundreds of thousands of colonial troops (Indian, Senegalese, North African, Caribbean) fought for European empires. The experience of war service combined with continued racism abroad sharpened post-war anti-colonial movements.'},
+
+    {id:'wh_u7_mcq_013', topic:'7.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1919 Treaty of Versailles imposed on Germany',
+      choices:[
+        {id:'A', text:'territorial losses, military restrictions, large reparations, and a war-guilt clause assigning Germany blame for the conflict.'},
+        {id:'B', text:'a generous peace that left German power and military forces fully intact at their pre-war scale and effectiveness.'},
+        {id:'C', text:'permanent occupation of Berlin by combined American and Russian forces under joint League of Nations command.'},
+        {id:'D', text:'an immediate full restoration of all German colonies along with substantial new German territorial gains in central and eastern Europe.'}
+      ], correct:'A',
+      explanation:'Versailles imposed severe terms: Germany lost colonies and territory, faced strict military limits, paid huge reparations, and accepted Article 231 (the "war guilt" clause). Resentment of the treaty fed later German politics.'},
+
+    {id:'wh_u7_mcq_014', topic:'7.3', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The League of Nations, established by the Treaty of Versailles, is generally judged a failure mainly because it',
+      choices:[
+        {id:'A', text:'lacked U.S. membership and any independent military force, leaving it unable to deter major aggression in the 1930s.'},
+        {id:'B', text:'successfully prevented any major international conflict throughout the entire interwar period before the year 1939.'},
+        {id:'C', text:'evolved into a strong military alliance that defeated fascist regimes early in the closing years of the 1930s.'},
+        {id:'D', text:'forced all the member states to surrender their entire national sovereignty to a single binding global federal government.'}
+      ], correct:'A',
+      explanation:'The U.S. Senate refused to ratify the Treaty, so the U.S. never joined. Without the world\'s largest economy and lacking any standing military force, the League could not enforce decisions or deter Japanese, Italian, or German aggression.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — INTERWAR ECONOMY  (Topic 7.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'7.4', title:'Interwar Economy', icon:'📉', themes:['ECN','GOV'],
+   desc:'The Great Depression. Government responses: New Deal (US), Five-Year Plans (USSR), fascist corporatism (Italy), Nazi rearmament (Germany).',
+   type:'mcq', group:'core', label:'Round 4 — Interwar Economy', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u7_mcq_015', topic:'7.4', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The Great Depression that began in 1929 was distinctive because it',
+      choices:[
+        {id:'A', text:'spread globally through the integrated world economy, producing widespread unemployment in many industrial nations.'},
+        {id:'B', text:'remained localized within the United States and never spread to any other major industrial economy of the period.'},
+        {id:'C', text:'affected only a few small Latin American economies that were heavily dependent on a few primary commodity exports.'},
+        {id:'D', text:'produced rapid economic growth and full employment across all of the major industrial nations within a couple of months.'}
+      ], correct:'A',
+      explanation:'The Depression was unprecedented in its global reach. Through trade and finance, the U.S. crash spread to industrialized economies worldwide, producing mass unemployment and reshaping politics for a generation.'},
+
+    {id:'wh_u7_mcq_016', topic:'7.4', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Franklin Roosevelt\'s New Deal in the United States is best understood as',
+      choices:[
+        {id:'A', text:'a series of federal programs that expanded government economic intervention and built a basic welfare state.'},
+        {id:'B', text:'a sustained policy of laissez-faire economics that opposed any new federal government action against the Depression.'},
+        {id:'C', text:'a fascist-inspired political movement that abolished the U.S. Constitution and established one-party rule throughout America.'},
+        {id:'D', text:'a Soviet-style central planning system in which the federal government nationalized all U.S. private industry by 1935.'}
+      ], correct:'A',
+      explanation:'The New Deal expanded the federal role through programs like the WPA, Social Security, and the SEC. It rejected laissez-faire and built durable welfare-state institutions, but stopped well short of socialism.'},
+
+    {id:'wh_u7_mcq_017', topic:'7.4', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Stalin\'s Five-Year Plans in the USSR (beginning 1928) were intended primarily to',
+      choices:[
+        {id:'A', text:'rapidly industrialize the Soviet economy through state-directed planning, often with brutal social and human costs.'},
+        {id:'B', text:'restore capitalism in the Soviet Union by allowing private factory ownership for the first time after 1928.'},
+        {id:'C', text:'reduce Soviet industrial output and shift the entire economy back to small subsistence peasant agriculture.'},
+        {id:'D', text:'fully integrate the entire Soviet economy with the gold-standard global financial system of the 1930s and the early 1940s.'}
+      ], correct:'A',
+      explanation:'The Five-Year Plans aimed at rapid forced industrialization, especially heavy industry. They achieved enormous output gains but at devastating human cost (Ukrainian famine of 1932-33, mass purges, gulag system).'},
+
+    {id:'wh_u7_mcq_018', topic:'7.4', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Mussolini\'s fascist corporatism in Italy attempted to',
+      choices:[
+        {id:'A', text:'organize the economy into state-supervised corporations that linked owners and workers under one-party government control.'},
+        {id:'B', text:'establish a stateless free-market system that abolished all government regulation of any kind across Italian industry.'},
+        {id:'C', text:'restore feudal medieval Italian guild structures that completely replaced industrial production with workshop crafts.'},
+        {id:'D', text:'implement a direct democracy in which Italian workers personally voted on all of the major policy decisions of every industry.'}
+      ], correct:'A',
+      explanation:'Italian fascist corporatism organized employers and workers into state-supervised "corporations" by industry, claiming to transcend class conflict. In practice, the state and party dominated, suppressing independent unions.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — UNRESOLVED TENSIONS  (Topic 7.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'7.5', title:'Unresolved Tensions', icon:'⚠️', themes:['GOV','CDI'],
+   desc:'Rise of fascism: Mussolini\'s Italy, Hitler\'s Germany, Franco\'s Spain. Anti-colonial nationalism: Gandhi\'s Salt March, May Fourth Movement, Mao vs. Chiang.',
+   type:'mcq', group:'core', label:'Round 5 — Unresolved Tensions', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u7_mcq_019', topic:'7.5', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Hitler\'s rise to power in Germany was driven most directly by',
+      choices:[
+        {id:'A', text:'resentment of the Treaty of Versailles, the Great Depression, and democratic instability in Weimar Germany.'},
+        {id:'B', text:'a Soviet-organized military invasion that imposed a fascist regime on Germany in the early 1930s.'},
+        {id:'C', text:'the rapid economic boom of the 1920s, which made Germans newly wealthy and politically content with their government.'},
+        {id:'D', text:'a single peaceful constitutional reform that gave Hitler full executive authority through a popular referendum.'}
+      ], correct:'A',
+      explanation:'Hitler\'s rise depended on widespread resentment of Versailles, the Depression\'s mass unemployment, and the Weimar Republic\'s fragility. Nazi seats jumped after 1929; Hitler became chancellor in 1933.'},
+
+    {id:'wh_u7_mcq_020', topic:'7.5', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Gandhi\'s 1930 Salt March is best understood as',
+      choices:[
+        {id:'A', text:'a nonviolent protest in which Indians broke the British salt monopoly to demonstrate civil disobedience to colonial rule.'},
+        {id:'B', text:'a violent military campaign in which armed Indian troops attacked British colonial garrisons to demand independence.'},
+        {id:'C', text:'a religious pilgrimage to Mecca in which Indian Muslims sought to escape British rule by emigrating to Arabia.'},
+        {id:'D', text:'a public celebration of British rule in which Indians publicly affirmed their loyalty to the British colonial government in India.'}
+      ], correct:'A',
+      explanation:'The Salt March was a 240-mile walk to make salt from the sea, defying the British monopoly. It crystallized mass nonviolent resistance (satyagraha) and made Gandhi a global symbol of anti-colonial nationalism.'},
+
+    {id:'wh_u7_mcq_021', topic:'7.5', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The May Fourth Movement of 1919 in China was significant primarily because it',
+      choices:[
+        {id:'A', text:'protested the Versailles Treaty\'s award of former German concessions in Shandong to Japan rather than to China.'},
+        {id:'B', text:'led to the immediate restoration of full Qing dynasty rule across northern and southern China.'},
+        {id:'C', text:'forced the Western powers to return Hong Kong and Macau to Chinese sovereignty during the year 1919.'},
+        {id:'D', text:'resulted in a successful Chinese military invasion of Japan in revenge for earlier wartime humiliations across Asia.'}
+      ], correct:'A',
+      explanation:'May Fourth protests erupted when news arrived that Versailles transferred German concessions in Shandong to Japan. The movement galvanized Chinese nationalism and helped birth both the Communist Party and the modern nationalist movement.'},
+
+    {id:'wh_u7_mcq_022', topic:'7.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'In China during the 1930s and 1940s, the principal political conflict was between',
+      choices:[
+        {id:'A', text:'Chiang Kai-shek\'s Nationalists (Guomindang) and Mao Zedong\'s Communists, suspended only briefly to fight Japan.'},
+        {id:'B', text:'a restored Qing dynasty and a Western-backed liberal democratic Chinese government based in Shanghai.'},
+        {id:'C', text:'a Chinese Catholic Christian movement and a Buddhist political party allied with the Tibetan religious leadership.'},
+        {id:'D', text:'two equally Westernizing political parties that differed mainly in their preferred relationships with Britain and France.'}
+      ], correct:'A',
+      explanation:'The Chinese Civil War pitted Chiang\'s Nationalists against Mao\'s Communists. They paused fighting in 1937 to resist Japan, then resumed; the Communists won in 1949 and founded the PRC.'},
+
+    {id:'wh_u7_mcq_023', topic:'7.5', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A common feature of fascist movements in Italy, Germany, and Spain in the interwar period was that they',
+      choices:[
+        {id:'A', text:'rejected liberal democracy, glorified the nation, and used political violence to suppress communists and other rivals.'},
+        {id:'B', text:'embraced liberal parliamentary democracy and protected free expression, religious diversity, and minority political rights.'},
+        {id:'C', text:'rejected nationalism in favor of a unified pan-European political identity grounded in cosmopolitan internationalism.'},
+        {id:'D', text:'favored international socialism over national identity and worked closely with the Soviet Union from the outset.'}
+      ], correct:'A',
+      explanation:'Fascist movements rejected liberal democracy, glorified the nation, embraced violence, and targeted communists, socialists, and other "enemies." Differences existed (racial ideology in Germany, Catholic conservatism in Spain) but the core pattern was shared.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — CAUSES OF WWII  (Topic 7.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'7.6', title:'Causes of WWII', icon:'🌪️', themes:['GOV','ECN'],
    desc:'Treaty of Versailles backlash, Great Depression, failure of League, appeasement (Munich Agreement), Japanese expansion, Nazi-Soviet Pact.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r7',  num:7,  topic:'7.7', title:'Conducting WWII', icon:'🪖', themes:['TEC','SIO'],
+   type:'mcq', group:'skills', label:'Round 6 — Causes of WWII', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u7_mcq_024', topic:'7.6', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1938 Munich Agreement is most often cited as a key example of',
+      choices:[
+        {id:'A', text:'appeasement, in which Britain and France allowed Nazi Germany to annex Czechoslovakia\'s Sudetenland to avoid war.'},
+        {id:'B', text:'a successful collective security agreement that prevented Hitler from any further German territorial expansion.'},
+        {id:'C', text:'a mutual defense pact in which Britain, France, and Czechoslovakia jointly committed to military resistance.'},
+        {id:'D', text:'an early international agreement that immediately launched a coordinated European war effort against Nazi Germany.'}
+      ], correct:'A',
+      explanation:'At Munich, Britain and France agreed to let Nazi Germany annex the Sudetenland, hoping to satisfy Hitler. Within months, Germany occupied the rest of Czechoslovakia. Munich became the textbook example of failed appeasement.'},
+
+    {id:'wh_u7_mcq_025', topic:'7.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Japanese expansion in East Asia during the 1930s is best understood as',
+      choices:[
+        {id:'A', text:'an effort to secure raw materials and strategic territory through invasion of Manchuria and then most of China.'},
+        {id:'B', text:'a peaceful diplomatic mission that merely sought voluntary trade agreements with neighboring Asian states.'},
+        {id:'C', text:'a religious campaign to convert all of East Asia to a single state-sponsored Japanese form of Buddhism.'},
+        {id:'D', text:'a defensive war fought entirely within the Japanese home islands without any continental Asian mainland operations.'}
+      ], correct:'A',
+      explanation:'Japan invaded Manchuria in 1931, launched full-scale war on China in 1937, and then expanded into Southeast Asia by 1941. The drive was for raw materials, markets, and strategic depth, with brutal violence against civilians.'},
+
+    {id:'wh_u7_mcq_026', topic:'7.6', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1939 Nazi-Soviet Non-Aggression Pact most directly enabled',
+      choices:[
+        {id:'A', text:'the German invasion of Poland in September 1939, since Hitler no longer feared a two-front European war.'},
+        {id:'B', text:'a long-lasting Nazi-Soviet alliance that endured throughout the entire course of the Second World War in Europe.'},
+        {id:'C', text:'a unified communist movement throughout Europe that briefly halted the rise of fascism in continental Europe.'},
+        {id:'D', text:'the immediate American entry into the war on the Allied side at the start of September of the year 1939.'}
+      ], correct:'A',
+      explanation:'The Nazi-Soviet Pact freed Hitler to invade Poland without facing a Soviet eastern front. A secret protocol divided Eastern Europe between the two powers. The pact lasted until Germany invaded the USSR in 1941.'},
+
+    {id:'wh_u7_mcq_027', topic:'7.6', bigIdea:'ECN', difficulty:'challenging',
+      stem:'The Great Depression contributed to the outbreak of WWII most directly by',
+      choices:[
+        {id:'A', text:'undermining democratic governments, fueling fascist movements, and pushing states toward economic nationalism.'},
+        {id:'B', text:'producing widespread economic prosperity that gave democratic governments the resources to deter fascist aggression.'},
+        {id:'C', text:'forcing fascist regimes to immediately abandon their territorial ambitions due to financial weakness at home.'},
+        {id:'D', text:'creating a strong unified European federation that prevented any individual state from waging an aggressive war.'}
+      ], correct:'A',
+      explanation:'The Depression destabilized democracies (especially Weimar Germany), boosted fascist parties offering radical solutions, and pushed states toward protectionism and autarky. Together these dynamics fueled the path to renewed war.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — CONDUCTING WWII  (Topic 7.7)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'7.7', title:'Conducting WWII', icon:'🪖', themes:['TEC','SIO'],
    desc:'European theater: Blitzkrieg, Battle of Britain, Operation Barbarossa, Stalingrad, D-Day. Pacific theater: Pearl Harbor, Midway, Hiroshima and Nagasaki.',
-   type:'mcq',  questions:14, group:'skills'},
-  {id:'r8',  num:8,  topic:'7.8', title:'Mass Atrocities', icon:'🕯️', themes:['SIO','CDI','GOV'],
+   type:'mcq', group:'skills', label:'Round 7 — Conducting WWII', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_u7_mcq_028', topic:'7.7', bigIdea:'TEC', difficulty:'accessible',
+      stem:'German Blitzkrieg tactics in the early years of WWII relied most directly on',
+      choices:[
+        {id:'A', text:'fast-moving combined arms attacks that integrated tanks, aircraft, motorized infantry, and radio communication.'},
+        {id:'B', text:'long static trench warfare modeled on the lengthy WWI Western Front of the previous European generation.'},
+        {id:'C', text:'massed cavalry charges across the European plains that aimed to overwhelm enemy defenses with shock value.'},
+        {id:'D', text:'naval blockades that gradually starved enemy populations into surrendering through sustained economic and trade pressure.'}
+      ], correct:'A',
+      explanation:'Blitzkrieg ("lightning war") combined fast-moving armor, motorized infantry, and air support, coordinated by radio. It overwhelmed Polish, French, and (initially) Soviet forces who were geared toward WWI-style defenses.'},
+
+    {id:'wh_u7_mcq_029', topic:'7.7', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Japan\'s December 7, 1941 attack on Pearl Harbor most directly resulted in',
+      choices:[
+        {id:'A', text:'U.S. entry into WWII on the side of the Allies, which transformed the conflict into a fully global war.'},
+        {id:'B', text:'an immediate Japanese surrender to a coalition of European Allied forces in early 1942.'},
+        {id:'C', text:'a non-aggression pact between the United States and Japan that lasted until the end of the year 1945.'},
+        {id:'D', text:'a successful Japanese amphibious invasion of the entire U.S. mainland during the early months of the year 1942.'}
+      ], correct:'A',
+      explanation:'Pearl Harbor brought the U.S. into the war the next day. Combined with Hitler\'s declaration of war on the U.S. days later, this turned WWII into a single global conflict that the Axis ultimately could not sustain.'},
+
+    {id:'wh_u7_mcq_030', topic:'7.7', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The Battle of Stalingrad (1942-43) is generally considered a turning point in WWII because it',
+      choices:[
+        {id:'A', text:'destroyed an entire German army and shifted the strategic initiative on the Eastern Front to the Soviet Union.'},
+        {id:'B', text:'ended the war in Europe by leading directly to a complete and unconditional German surrender during early 1943.'},
+        {id:'C', text:'forced the Soviet Union to make a separate peace with Germany and exit the war altogether.'},
+        {id:'D', text:'allowed German forces to fully capture Moscow and bring the war on the Eastern Front to a swift overall Nazi victory.'}
+      ], correct:'A',
+      explanation:'Stalingrad destroyed Germany\'s 6th Army (about 250,000 men captured or killed) and ended Hitler\'s ability to take the strategic offensive in the east. From early 1943 on, Soviet forces drove German lines steadily back toward Berlin.'},
+
+    {id:'wh_u7_mcq_031', topic:'7.7', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The June 6, 1944 D-Day landings in Normandy were significant primarily because they',
+      choices:[
+        {id:'A', text:'opened a long-awaited Western Front in Europe and began the Allied campaign to liberate German-occupied France.'},
+        {id:'B', text:'marked the formal final surrender of Nazi Germany to combined Allied forces in northwestern Europe.'},
+        {id:'C', text:'allowed the Soviet Red Army to immediately withdraw from the Eastern European theater of operations.'},
+        {id:'D', text:'led directly to the early use of nuclear weapons in Europe by the Western Allied forces against the Nazi German state.'}
+      ], correct:'A',
+      explanation:'D-Day opened a major Western Front in Europe (the USSR had borne the main burden of fighting Germany since 1941). The Normandy invasion began the liberation of France and the Allied advance toward Germany.'},
+
+    {id:'wh_u7_mcq_032', topic:'7.7', bigIdea:'TEC', difficulty:'challenging',
+      stem:'The August 1945 atomic bombings of Hiroshima and Nagasaki are most often cited as significant because they',
+      choices:[
+        {id:'A', text:'ended the Pacific war within days and inaugurated the nuclear age, reshaping global power for decades after.'},
+        {id:'B', text:'failed to alter the course of the Pacific war, which continued for another year after the bombings of August.'},
+        {id:'C', text:'destroyed the Japanese imperial fleet and forced an immediate Japanese reoccupation of the Philippines after.'},
+        {id:'D', text:'led directly to the Soviet declaration of war on Japan, which had remained neutral until the August 1945 attacks.'}
+      ], correct:'A',
+      explanation:'The atomic bombings, combined with the Soviet entry into the Pacific war, led to Japan\'s surrender within days. The bombings began the nuclear age, reshaping international politics, deterrence, and the postwar global order.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 8 — MASS ATROCITIES  (Topic 7.8)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r8', num:8, topic:'7.8', title:'Mass Atrocities', icon:'🕯️', themes:['SIO','CDI','GOV'],
    desc:'Armenian Genocide, Holodomor, the Holocaust, Cambodian genocide under Khmer Rouge, Rwandan genocide, Srebrenica. Universal Declaration of Human Rights.',
-   type:'mcq',  questions:10, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 8 — Mass Atrocities', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u7_mcq_033', topic:'7.8', bigIdea:'SIO', difficulty:'accessible',
+      stem:'The Armenian Genocide of 1915-1923 was carried out',
+      choices:[
+        {id:'A', text:'by the Ottoman state, which deported and killed roughly 1.5 million Armenians during and after the First World War.'},
+        {id:'B', text:'by Russia, which forcibly relocated the entire Armenian population to remote regions of Siberia after 1915.'},
+        {id:'C', text:'by the British colonial government in occupied Turkey at the conclusion of the First World War in 1918.'},
+        {id:'D', text:'as part of the formal Treaty of Versailles, which authorized large population transfers across the eastern Mediterranean.'}
+      ], correct:'A',
+      explanation:'The late Ottoman government targeted Armenian civilians during WWI through deportations, massacres, and forced marches. Roughly 1.5 million Armenians died, in what most historians and many governments now classify as genocide.'},
+
+    {id:'wh_u7_mcq_034', topic:'7.8', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Soviet Holodomor (1932-33) refers most directly to',
+      choices:[
+        {id:'A', text:'a man-made famine in Ukraine, caused by Stalin\'s collectivization and grain-requisition policies, that killed millions.'},
+        {id:'B', text:'a long Russian famine of the late nineteenth century that struck before the Soviet Union was officially established.'},
+        {id:'C', text:'a Nazi-organized famine deliberately imposed on Ukraine during the German occupation of the Soviet Union.'},
+        {id:'D', text:'a natural famine that hit across the entire Soviet Union and that struck the Ukrainian agricultural region especially hard.'}
+      ], correct:'A',
+      explanation:'The Holodomor was a man-made famine caused by Stalin\'s forced collectivization, grain seizures, and movement restrictions. Estimates of Ukrainian deaths range from 3 to 7 million; many historians and governments classify it as genocide.'},
+
+    {id:'wh_u7_mcq_035', topic:'7.8', bigIdea:'SIO', difficulty:'moderate',
+      stem:'The Holocaust is best characterized as',
+      choices:[
+        {id:'A', text:'the systematic Nazi murder of approximately six million Jews along with millions of others targeted on racial or political grounds.'},
+        {id:'B', text:'a single battlefield event that took place during the early stages of the Second World War in Eastern Europe.'},
+        {id:'C', text:'a general label for civilian wartime casualties suffered across Europe during the long fighting of the Second World War.'},
+        {id:'D', text:'a postwar legal and economic settlement that financially compensated Holocaust survivors during the closing years of the late 1940s.'}
+      ], correct:'A',
+      explanation:'The Holocaust was the systematic Nazi genocide of approximately six million European Jews, alongside millions of Roma, Soviet POWs, Polish civilians, disabled people, LGBTQ+ people, and others targeted by Nazi racial ideology.'},
+
+    {id:'wh_u7_mcq_036', topic:'7.8', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1948 Universal Declaration of Human Rights is best understood as',
+      choices:[
+        {id:'A', text:'a postwar UN document affirming individual rights as a global response to the atrocities of the Second World War.'},
+        {id:'B', text:'a binding legal treaty that immediately created an international criminal court with strong direct enforcement powers.'},
+        {id:'C', text:'a U.S. domestic civil rights bill that was modeled directly on the wartime Atlantic Charter declaration.'},
+        {id:'D', text:'a religious manifesto that committed all UN member states to common adoption of the Christian biblical legal tradition.'}
+      ], correct:'A',
+      explanation:'The Universal Declaration of Human Rights (1948), drafted by an international committee chaired by Eleanor Roosevelt, asserted basic individual rights. It was a direct response to the Holocaust and other wartime atrocities.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 9 - 12 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
   {id:'r9',  num:9,  topic:'7.9', title:'Causation in Global Conflict', icon:'🔗', themes:['GOV'],
    desc:'Topic 7.9 in full: explicit causation analysis. Versailles → Depression → Hitler → WWII. Imperialism + nationalism → WWI. Argumentation 6.B.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'synthesis', group:'skills', label:'Round 9 — Causation', color:'var(--bronze)', draw:1, questions:8, sets:[]},
 
-  // ── Free-Response Practice ──
   {id:'r10', num:10, topic:'7.1–7.9', title:'Document Analysis', icon:'📜', themes:['GOV','CDI'],
    desc:'5 primary-source stimulus drills — Wilson\'s Fourteen Points, Treaty of Versailles, Mein Kampf excerpts, Holocaust testimonies, Atlantic Charter. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'7.1–7.9', title:'SAQ Practice',  icon:'✍️', themes:['GOV','ECN'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'7.1–7.9', title:'SAQ Practice', icon:'✍️', themes:['GOV','ECN'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — comparing causes of WWI and WWII; effects of the Great Depression.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'7.1–7.9', title:'LEQ Practice',  icon:'📝', themes:['GOV'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'7.1–7.9', title:'LEQ Practice', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. "Evaluate the extent to which the causes of WWII differed from the causes of WWI."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -1013,7 +1627,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -1030,10 +1644,462 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 7.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -1067,6 +2133,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1107,11 +2175,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
