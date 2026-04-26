@@ -175,6 +175,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -186,6 +322,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -417,12 +560,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your CDI vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every era of the course: religious world systems, the Reformation and Atlantic encounters, the Enlightenment, modernist mass politics, and the cultural Cold War through globalization. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -543,6 +692,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — THEME: CULTURAL DEVELOPMENTS & INTERACTIONS (CDI)
@@ -551,38 +748,583 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_th_cdi';
 const UNIT_TITLE = 'Theme: Cultural Developments & Interactions';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Theme: Cultural Developments & Interactions (CDI)
+//  6 MCQ rounds across periods, 36 questions total (Pass 1)
+//    r1 Era 1 (1200–1450): 5
+//    r2 Era 2A (1450–1750 Reformation/Renaissance): 6
+//    r3 Era 2B (1450–1750 Atlantic Encounters): 5
+//    r4 Era 3 (1750–1900 Enlightenment): 7
+//    r5 Era 4 (1900–1945 Modernism & Mass Politics): 6
+//    r6 Era 5-6 (1945–Present): 7
+//  Plus 3 Pass-2 stubs: Comparison, CCOT, LEQ
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Religious World Systems', icon:'☸️', themes:['CDI'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — ERA 1: RELIGIOUS WORLD SYSTEMS  (1200–1450)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'1200–1450', title:'Era 1: Religious World Systems', icon:'☸️', themes:['CDI'],
    desc:'Buddhism, Christianity, Islam, Hinduism, Confucianism. Mongol religious tolerance. Mansa Musa\'s hajj. Sufi mysticism. Drawn from Units 1–2.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Reformation & Renaissance', icon:'✝️', themes:['CDI'],
+   type:'mcq', group:'core', label:'Round 1 — Era 1: Religious World Systems', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_cdi_mcq_001', topic:'1200–1450', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Sufism, the Bhakti movement, and Mahayana Buddhism are most often grouped together because they all',
+      choices:[
+        {id:'A', text:'emphasized direct personal devotion to the divine over strict adherence to formal ritual hierarchies.'},
+        {id:'B', text:'rejected their parent religious traditions in favor of one new universal global faith for all believers.'},
+        {id:'C', text:'were sponsored exclusively by the centralized imperial states of the late medieval period in Asia.'},
+        {id:'D', text:'completely replaced the older Confucian and classical traditions throughout most of mainland Asia.'}
+      ], correct:'A',
+      explanation:'Sufi Islam, Hindu Bhakti, and Mahayana Buddhism (especially Pure Land) all emphasized accessible personal devotion. They appealed across class lines and contributed to the spread of their parent religions among ordinary people during this period.'},
+
+    {id:'wh_th_cdi_mcq_002', topic:'1200–1450', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A scholar comparing the spread of Buddhism along the Silk Roads and Islam across the Indian Ocean would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'spread along major trade routes through merchants and missionaries, blending with local traditions wherever they took root.'},
+        {id:'B', text:'were imposed by force of arms by single unified empires and never adapted to any local cultural conditions whatsoever.'},
+        {id:'C', text:'remained confined to small isolated regions and never reshaped the broader cultural landscape of either Asia or Africa.'},
+        {id:'D', text:'rejected commercial activity entirely and were carried exclusively by ascetic monks who completely refused to associate with merchants.'}
+      ], correct:'A',
+      explanation:'Both religions spread primarily through trade networks, carried by merchants and supported by missionaries. Both adapted to local conditions: Buddhism blended with Daoism in China, Islam absorbed Sufi mysticism that drew on Hindu and pre-Islamic practice.'},
+
+    {id:'wh_th_cdi_mcq_003', topic:'1200–1450', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Mongol religious policy across the Mongol Empire is best characterized as',
+      choices:[
+        {id:'A', text:'broad tolerance, with khans permitting Buddhism, Christianity, Islam, and Daoism within a single multi-ethnic state.'},
+        {id:'B', text:'forced conversion of all subjects to a single state-sponsored Mongol shamanism throughout the entire conquered empire.'},
+        {id:'C', text:'a sustained campaign to eliminate Islam from Persia and replace it with traditional Tibetan Buddhist religious practice.'},
+        {id:'D', text:'strict enforcement of Sunni Islam in all four khanates from the moment of the Mongol conquest of Central Asia.'}
+      ], correct:'A',
+      explanation:'Mongol religious tolerance was a defining feature of the empire. Khans patronized multiple religions and recruited religious advisors of different faiths. The Ilkhanate eventually converted to Islam, but only after decades of pluralistic rule.'},
+
+    {id:'wh_th_cdi_mcq_004', topic:'1200–1450', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Mansa Musa\'s 1324-1325 hajj to Mecca is most often cited as significant for cultural history because it',
+      choices:[
+        {id:'A', text:'displayed Mali\'s wealth to the Islamic world and brought back scholars, architects, and books to Timbuktu.',
+        },
+        {id:'B', text:'led directly to the founding of the city of Mecca as the new political capital of West African Islam.',
+        },
+        {id:'C', text:'caused the immediate conversion of the entire Mali population from traditional African religion to Sunni Islam.',
+        },
+        {id:'D', text:'isolated Mali from the rest of the Islamic world by ending all trans-Saharan caravan trade for over a century.',
+        }
+      ], correct:'A',
+      explanation:'Musa\'s hajj advertised Mali\'s wealth so dramatically that he allegedly destabilized the Egyptian gold market. He returned with Islamic scholars and architects who helped make Timbuktu (especially Sankore Madrasah) a major center of Islamic learning.'},
+
+    {id:'wh_th_cdi_mcq_005', topic:'1200–1450', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Neo-Confucianism in Song China is best understood as',
+      choices:[
+        {id:'A', text:'a synthesis blending classical Confucian ethics with elements drawn from Buddhism and Daoism and reinforcing patriarchal hierarchy.',
+        },
+        {id:'B', text:'a complete rejection of Confucian thought in favor of a wholly new philosophical system imported from western Europe.',
+        },
+        {id:'C', text:'a popular religious revival that placed religious devotion above the older ethical and political teachings of Confucianism.',
+        },
+        {id:'D', text:'a Mongol imperial doctrine imposed on all of China after 1279 that completely replaced all of the earlier Han Chinese philosophical traditions throughout the country.',
+        }
+      ], correct:'A',
+      explanation:'Neo-Confucianism (developed especially by Zhu Xi) blended classical Confucian ethics with metaphysical ideas drawn from Buddhism and Daoism. It reinforced strict patriarchal hierarchies and the social practice of foot binding spread among elites in this era.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — ERA 2A: REFORMATION & RENAISSANCE  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'1450–1750', title:'Era 2A: Reformation & Renaissance', icon:'✝️', themes:['CDI'],
    desc:'Renaissance and humanism. Protestant Reformation (Luther, Calvin). Catholic Counter-Reformation. Sunni-Shi\'a divide. Akbar\'s Din-i Ilahi. Sikhism. Scientific Revolution. Drawn from Unit 3.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Atlantic Encounters', icon:'⛪', themes:['CDI'],
-   desc:'Atlantic missions. Syncretic religions (Vodou, Candombl&eacute;, Santer&iacute;a). Casta system culture. Globalized cuisine from Columbian Exchange. Drawn from Unit 4.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: The Enlightenment Age', icon:'💡', themes:['CDI'],
-   desc:'Enlightenment philosophes (Locke, Rousseau, Voltaire). Romanticism. Second Great Awakening. Wahhabism. Marx and the Communist Manifesto. Wollstonecraft, de Gouges, abolitionism. Drawn from Units 5–6.',
-   type:'mcq', questions:12, group:'core'},
-  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Modernism & Mass Politics', icon:'🎨', themes:['CDI'],
-   desc:'Three competing ideologies (liberal democracy, communism, fascism). Modern art (Picasso, Dadaism, Surrealism). Propaganda. N&eacute;gritude, Harlem Renaissance. Existentialism. Drawn from Unit 7.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['CDI'],
-   desc:'Cultural Cold War. Civil rights and identity movements. Iranian Revolution. Liberation theology. Hollywood, Bollywood, K-pop, anime. Religious fundamentalism. Drawn from Units 8–9.',
-   type:'mcq', questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 2 — Era 2A: Reformation & Renaissance', color:'var(--acc)', draw:6, questions:[
 
-  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['CDI'],
+    {id:'wh_th_cdi_mcq_006', topic:'1450–1750', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Renaissance humanism is best characterized as',
+      choices:[
+        {id:'A', text:'a movement that emphasized human capability, classical learning, and earthly life alongside Christian belief.',
+        },
+        {id:'B', text:'a movement that rejected all forms of Christianity in favor of a return to classical Greek and Roman pagan religion.',
+        },
+        {id:'C', text:'a strictly secular movement that banned all religious imagery and writing throughout most of Catholic Italy.',
+        },
+        {id:'D', text:'a peasant rebellion that sought to abolish all elite culture and replace it with traditional folk religious practice.',
+        }
+      ], correct:'A',
+      explanation:'Renaissance humanism emphasized human dignity, classical Greek and Roman learning, and engagement with the secular world, all alongside (not against) Christian faith. It was elite urban culture, not a popular movement.'},
+
+    {id:'wh_th_cdi_mcq_007', topic:'1450–1750', bigIdea:'CDI', difficulty:'accessible',
+      stem:'A scholar describing the long-term effects of the Protestant Reformation would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'fragmented western Christianity, weakened papal authority, and contributed to long Catholic-Protestant conflicts.',
+        },
+        {id:'B', text:'unified all of European Christianity under a single new Protestant church based in Rome by about 1600.',
+        },
+        {id:'C', text:'led to the immediate restoration of medieval Catholic political authority across all of post-Reformation Europe.',
+        },
+        {id:'D', text:'produced no lasting religious or political consequences in any part of Europe beyond the death of Martin Luther in 1546.',
+        }
+      ], correct:'A',
+      explanation:'The Reformation permanently fragmented western Christianity, weakened papal political authority, and led to over a century of religious conflict (including the Thirty Years\' War). The 1648 Peace of Westphalia codified state sovereignty over religion.'},
+
+    {id:'wh_th_cdi_mcq_008', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A historian describing Akbar\'s Din-i Ilahi alongside the Sunni-Shi\'a split between the Ottomans and Safavids would most likely emphasize that',
+      choices:[
+        {id:'A', text:'this period saw both major efforts at religious blending and major efforts to harden religious boundaries between rivals.',
+        },
+        {id:'B', text:'rulers across Asia and the Middle East had largely abandoned religion as a tool of statecraft by the year 1600.',
+        },
+        {id:'C', text:'religious tolerance was the universal political norm everywhere across Eurasia throughout this entire period.',
+        },
+        {id:'D', text:'every major early-modern empire in Asia and the Middle East practiced strict orthodox Sunni Islam at all times without any exception.',
+        }
+      ], correct:'A',
+      explanation:'The same period saw efforts at religious blending (Akbar\'s Din-i Ilahi, Sikhism\'s blend of Hindu and Sufi elements) and efforts to harden religious boundaries (Safavid Twelver Shi\'ism vs. Ottoman Sunni orthodoxy, the Catholic-Protestant divide).'},
+
+    {id:'wh_th_cdi_mcq_009', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Sikhism, founded in the late 15th century by Guru Nanak, is best understood as',
+      choices:[
+        {id:'A', text:'a syncretic faith drawing on both Hindu Bhakti and Islamic Sufi traditions in northern India.',
+        },
+        {id:'B', text:'an offshoot of Twelver Shi\'a Islam organized to support Safavid expansion eastward into the Punjab region.',
+        },
+        {id:'C', text:'a strictly orthodox Hindu reform movement that aimed to expel all Muslims from northern India by force.',
+        },
+        {id:'D', text:'a Christian missionary church founded by Catholic Jesuit priests during evangelizing tours of Mughal India.',
+        }
+      ], correct:'A',
+      explanation:'Sikhism emerged in Punjab from a synthesis of Hindu Bhakti and Islamic Sufi influences. It emphasized one God, rejected caste hierarchy, and rejected outward religious ritualism in favor of personal devotion.'},
+
+    {id:'wh_th_cdi_mcq_010', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Catholic Counter-Reformation responded to Protestant criticism most directly by',
+      choices:[
+        {id:'A', text:'convening the Council of Trent to clarify Catholic doctrine, reform abuses, and reaffirm core Catholic teachings.',
+        },
+        {id:'B', text:'merging the Catholic and Protestant churches into a single unified Christian institution under the Pope.',
+        },
+        {id:'C', text:'declaring open religious toleration for every Protestant sect across Catholic-ruled European territories.',
+        },
+        {id:'D', text:'abolishing all of the Catholic monasteries and selling off their lands to fund Spanish colonization in the Americas during this period.',
+        }
+      ], correct:'A',
+      explanation:'The Council of Trent (1545-1563) reaffirmed Catholic doctrine on contested points, reformed clerical abuses, and authorized new religious orders (notably the Jesuits) to spread Catholic teaching globally and combat Protestant influence.'},
+
+    {id:'wh_th_cdi_mcq_011', topic:'1450–1750', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar arguing that the Scientific Revolution had cultural roots reaching beyond Europe would most likely emphasize',
+      choices:[
+        {id:'A', text:'European reliance on Islamic and Indian astronomical, mathematical, and medical knowledge developed across many earlier centuries.',
+        },
+        {id:'B', text:'the rapid wholesale invention of every modern scientific principle by European scholars within just a single generation.',
+        },
+        {id:'C', text:'a deliberate European rejection of all Islamic and Indian intellectual influence by the start of the seventeenth century.',
+        },
+        {id:'D', text:'a sustained European commitment to subsistence farming that completely replaced earlier urban Mediterranean intellectual traditions.',
+        }
+      ], correct:'A',
+      explanation:'The Scientific Revolution drew heavily on earlier Islamic, Indian, and Chinese scholarship. Astronomy (Tusi), mathematics (Indian numerals, algebra), and medicine (Ibn Sina) all reached Europe through translation and trade, providing key foundations.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — ERA 2B: ATLANTIC ENCOUNTERS  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'1450–1750', title:'Era 2B: Atlantic Encounters', icon:'⛪', themes:['CDI'],
+   desc:'Atlantic missions. Syncretic religions (Vodou, Candomblé, Santería). Casta system culture. Globalized cuisine from Columbian Exchange. Drawn from Unit 4.',
+   type:'mcq', group:'core', label:'Round 3 — Era 2B: Atlantic Encounters', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_cdi_mcq_012', topic:'1450–1750', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Vodou, Candomblé, and Santería are best understood as',
+      choices:[
+        {id:'A', text:'syncretic religions that blended West African traditions with Catholicism in the colonial Atlantic world.',
+        },
+        {id:'B', text:'orthodox Catholic devotional movements imported directly from Iberia without any African religious influence.',
+        },
+        {id:'C', text:'movements that completely rejected both African and Catholic traditions in favor of indigenous American religion.',
+        },
+        {id:'D', text:'official state religions of independent Caribbean nations established during the late seventeenth century.',
+        }
+      ], correct:'A',
+      explanation:'Vodou (Haiti), Candomblé (Brazil), and Santería (Cuba) emerged when enslaved Africans blended West African religious traditions with the Catholicism imposed by enslavers. The result was new syncretic faiths still practiced today.'},
+
+    {id:'wh_th_cdi_mcq_013', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Spanish and Portuguese missionary efforts in the Americas and the Philippines are best characterized as',
+      choices:[
+        {id:'A', text:'large-scale conversion campaigns that produced majority-Catholic populations through both persuasion and coercion.',
+        },
+        {id:'B', text:'small-scale individual efforts that converted only a few thousand indigenous people across all of the colonial era.',
+        },
+        {id:'C', text:'movements aimed mainly at converting Spanish settlers and largely ignoring indigenous American populations entirely.',
+        },
+        {id:'D', text:'efforts that the Iberian crowns banned outright in order to preserve traditional indigenous American religious practices.',
+        }
+      ], correct:'A',
+      explanation:'Iberian missionaries (especially Franciscans, Dominicans, and Jesuits) carried out large-scale conversion campaigns. They produced lasting Catholic majorities in Latin America and the Philippines through a mix of persuasion, education, and coercion.'},
+
+    {id:'wh_th_cdi_mcq_014', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A scholar describing colonial Latin American casta paintings would most likely emphasize that they',
+      choices:[
+        {id:'A', text:'visualized racial-social hierarchy by depicting elaborate categories of mixed European, African, and indigenous ancestry.',
+        },
+        {id:'B', text:'rejected racial classification and instead celebrated the complete equality of all colonial-era Latin Americans.',
+        },
+        {id:'C', text:'served as religious devotional images of saints and were not connected to any racial or social hierarchy at all.',
+        },
+        {id:'D', text:'were entirely produced by indigenous American artists and refused all influence from any of the European painting traditions of the period.',
+        }
+      ], correct:'A',
+      explanation:'Casta paintings visualized the elaborate Spanish colonial racial hierarchy, depicting categories like mestizo, mulatto, and zambo. They reflected and reinforced a culture organized around ancestry, ranking peninsulares and creoles above mixed-race and Black colonists.'},
+
+    {id:'wh_th_cdi_mcq_015', topic:'1450–1750', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Columbian Exchange transformed global cuisine most directly by',
+      choices:[
+        {id:'A', text:'introducing potatoes, maize, tomatoes, chiles, and chocolate from the Americas into Afro-Eurasian diets.',
+        },
+        {id:'B', text:'eliminating wheat and rice from European and Asian diets and replacing them with subsistence American grains only.',
+        },
+        {id:'C', text:'standardizing global cuisine into a single menu identical from Lisbon to Beijing throughout most of the colonial era.',
+        },
+        {id:'D', text:'forcing all colonial European settlers in the Americas to abandon European food entirely in favor of indigenous diets.',
+        }
+      ], correct:'A',
+      explanation:'American crops transformed cuisines globally: potatoes in Europe and Russia, maize in Africa and southern China, tomatoes and chiles across Eurasia, chocolate as a global commodity. Food cultures were reshaped without losing their distinctive character.'},
+
+    {id:'wh_th_cdi_mcq_016', topic:'1450–1750', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar comparing the spread of Catholicism in Iberian colonies to the spread of Sufi Islam in earlier eras would most likely emphasize',
+      choices:[
+        {id:'A', text:'that both spread along major trade and migration networks and absorbed local cultural elements where they took root.',
+        },
+        {id:'B', text:'that Catholicism spread purely through coercion while Sufism spread purely through voluntary peaceful conversion.',
+        },
+        {id:'C', text:'that neither religion ever traveled along established trade networks and both spread mainly through state-led wars.',
+        },
+        {id:'D', text:'that Catholic missionaries throughout the Americas never blended their faith with any of the local indigenous religious traditions.',
+        }
+      ], correct:'A',
+      explanation:'Both spread along trade and migration networks. Both blended with local cultures: Sufi Islam absorbed Hindu and pre-Islamic practice in South Asia; colonial Catholicism absorbed indigenous and African elements (saint veneration, syncretic religions, festival traditions).'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — ERA 3: THE ENLIGHTENMENT AGE  (1750–1900)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'1750–1900', title:'Era 3: The Enlightenment Age', icon:'💡', themes:['CDI'],
+   desc:'Enlightenment philosophes (Locke, Rousseau, Voltaire). Romanticism. Second Great Awakening. Wahhabism. Marx and the Communist Manifesto. Wollstonecraft, de Gouges, abolitionism.',
+   type:'mcq', group:'core', label:'Round 4 — Era 3: The Enlightenment Age', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_cdi_mcq_017', topic:'1750–1900', bigIdea:'CDI', difficulty:'accessible',
+      stem:'A common thread among Locke, Voltaire, Rousseau, and Montesquieu was their shared commitment to',
+      choices:[
+        {id:'A', text:'reasoning about politics and society in terms of natural rights, social contract, and limits on absolute power.',
+        },
+        {id:'B', text:'restoring the divine right of kings as the only legitimate basis of political authority across Europe.',
+        },
+        {id:'C', text:'rejecting all use of human reason and grounding political theory only in religious revelation.',
+        },
+        {id:'D', text:'defending traditional feudal hierarchies as the only proper foundation of political life in 18th-century France and other major European states.',
+        }
+      ], correct:'A',
+      explanation:'The major Enlightenment thinkers shared commitments to reasoning about politics in terms of natural rights, the social contract, popular sovereignty, and limits on power. Their ideas underpinned the American, French, Haitian, and Latin American revolutions.'},
+
+    {id:'wh_th_cdi_mcq_018', topic:'1750–1900', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Mary Wollstonecraft and Olympe de Gouges most directly extended Enlightenment thought by',
+      choices:[
+        {id:'A', text:'arguing that natural-rights principles applied equally to women and demanding political and educational equality.',
+        },
+        {id:'B', text:'rejecting Enlightenment ideas as inherently incompatible with women\'s equality across early modern Europe.',
+        },
+        {id:'C', text:'organizing royalist movements that defended absolute monarchy against the natural-rights tradition.',
+        },
+        {id:'D', text:'writing exclusively religious devotional literature that completely avoided any kind of political or philosophical content of any kind.',
+        }
+      ], correct:'A',
+      explanation:'Wollstonecraft\'s Vindication of the Rights of Woman (1792) and de Gouges\'s Declaration of the Rights of Woman and Female Citizen (1791) extended natural-rights logic to gender equality, demanding the same political and educational rights men were claiming.'},
+
+    {id:'wh_th_cdi_mcq_019', topic:'1750–1900', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A historian describing 19th-century abolitionism would most likely emphasize that it drew on',
+      choices:[
+        {id:'A', text:'Enlightenment natural-rights principles combined with Christian arguments about human dignity.',
+        },
+        {id:'B', text:'a deliberate rejection of natural rights in favor of strict economic arguments about colonial profitability.',
+        },
+        {id:'C', text:'African religious traditions imposed by enslaved people on the political systems of slaveholding societies.',
+        },
+        {id:'D', text:'Catholic Counter-Reformation theology that had no connection to any earlier Enlightenment thought at all.',
+        }
+      ], correct:'A',
+      explanation:'19th-century abolitionists (Wilberforce, Equiano, Quaker activists, the Garrisonians) combined Enlightenment natural-rights arguments with Christian appeals to human dignity. Religious and Enlightenment frames reinforced each other across the movement.'},
+
+    {id:'wh_th_cdi_mcq_020', topic:'1750–1900', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Romanticism in 19th-century European art and literature is best understood as',
+      choices:[
+        {id:'A', text:'a movement that emphasized emotion, nature, and national identity as a reaction against Enlightenment rationalism.',
+        },
+        {id:'B', text:'an extension of Enlightenment rationalism that rejected emotion in favor of pure logical analysis of human society.',
+        },
+        {id:'C', text:'a religious revival movement that aimed to restore medieval Catholic devotional practice across Europe.',
+        },
+        {id:'D', text:'a strictly classical movement that rejected all influence from contemporary politics or national identity.',
+        }
+      ], correct:'A',
+      explanation:'Romanticism, as a movement, emphasized emotion, the sublime in nature, and national-folk identity. It both reacted against pure Enlightenment rationalism and reinforced 19th-century nationalism (German, Italian, Irish folk-revival traditions).'},
+
+    {id:'wh_th_cdi_mcq_021', topic:'1750–1900', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Wahhabism, emerging in the 18th-century Arabian Peninsula, is best characterized as',
+      choices:[
+        {id:'A', text:'a strict Sunni Islamic reform movement that called for return to early Islamic practice and rejection of later innovations.',
+        },
+        {id:'B', text:'a peaceful interfaith movement that sought to merge Sunni and Shi\'a Islam into a single unified religious tradition.',
+        },
+        {id:'C', text:'an Enlightenment-inspired movement that aimed to align Islam with European secular liberal political thought.',
+        },
+        {id:'D', text:'a syncretic religious movement that blended Islamic, Christian, and Hindu devotional practices throughout central Arabia in the 18th century.',
+        }
+      ], correct:'A',
+      explanation:'Wahhabism (founded by Muhammad ibn Abd al-Wahhab) was a strict Sunni reform movement calling for return to a literal early-Islamic practice and rejection of later innovations like saint veneration. It allied with the al-Saud family and shaped modern Saudi Islam.'},
+
+    {id:'wh_th_cdi_mcq_022', topic:'1750–1900', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The Communist Manifesto (1848), by Marx and Engels, most directly argued that',
+      choices:[
+        {id:'A', text:'history advances through class conflict and capitalism would be overthrown by an organized working-class revolution.',
+        },
+        {id:'B', text:'capitalism was the final stage of human history and class conflict had ended in industrial European society.',
+        },
+        {id:'C', text:'industrial workers should support strong monarchies as the only true defense against rising capitalist economic power.',
+        },
+        {id:'D', text:'private property in industrial economies should be expanded to give every worker individual factory ownership.',
+        }
+      ], correct:'A',
+      explanation:'Marx and Engels argued that history is driven by class conflict (most recently between bourgeoisie and proletariat) and that capitalism\'s contradictions would eventually lead to a working-class revolution against it. Their ideas shaped the next 150 years of global politics.'},
+
+    {id:'wh_th_cdi_mcq_023', topic:'1750–1900', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar describing the late-19th-century rise of Social Darwinism alongside the "civilizing mission" rationale for empire would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'used pseudo-scientific or moral framings to justify European racial and political dominance over colonized peoples.',
+        },
+        {id:'B', text:'rejected European imperial expansion entirely and argued for full immediate decolonization of European empires.',
+        },
+        {id:'C', text:'were religious revivals that focused exclusively on Christian missionary work and avoided any political ideology.',
+        },
+        {id:'D', text:'were limited to academic philosophical debates and had no real influence on the actual imperial state policy of any major European power in this era.',
+        }
+      ], correct:'A',
+      explanation:'Both Social Darwinism (misapplying biology to nations and races) and the "civilizing mission" framed imperial domination in pseudo-scientific or moral terms. Together they provided the cultural justification for the late-19th-century Scramble and imperial expansion.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — ERA 4: MODERNISM & MASS POLITICS  (1900–1945)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'1900–1945', title:'Era 4: Modernism & Mass Politics', icon:'🎨', themes:['CDI'],
+   desc:'Three competing ideologies (liberal democracy, communism, fascism). Modern art (Picasso, Dadaism, Surrealism). Propaganda. Négritude, Harlem Renaissance. Existentialism.',
+   type:'mcq', group:'core', label:'Round 5 — Era 4: Modernism & Mass Politics', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_th_cdi_mcq_024', topic:'1900–1945', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The interwar period (1918-1939) is often described as a contest among three competing ideologies. These were',
+      choices:[
+        {id:'A', text:'liberal democracy, communism, and fascism, each promising a different solution to the crises of the era.',
+        },
+        {id:'B', text:'absolute monarchy, divine-right kingship, and theocracy, each rooted in religious legitimation of state authority.',
+        },
+        {id:'C', text:'mercantilism, neoliberalism, and Keynesian economics, none of which had any major political consequences.',
+        },
+        {id:'D', text:'Confucianism, Sufi Islam, and Mahayana Buddhism, all competing for influence over interwar European societies.',
+        }
+      ], correct:'A',
+      explanation:'The interwar period was an open contest among liberal democracy (Anglo-French-American style), communism (Soviet Union after 1917), and fascism (Italy from 1922, Germany from 1933, Spain from 1939). The Depression deepened this competition.'},
+
+    {id:'wh_th_cdi_mcq_025', topic:'1900–1945', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Modernist art movements such as Cubism, Dadaism, and Surrealism are best characterized as',
+      choices:[
+        {id:'A', text:'movements that broke from traditional representation, often reflecting trauma and disillusionment of WWI and modern life.',
+        },
+        {id:'B', text:'movements that returned strictly to classical Greek and Roman artistic conventions of formal representation.',
+        },
+        {id:'C', text:'state-sponsored Catholic devotional movements organized to revive medieval European religious painting.',
+        },
+        {id:'D', text:'movements limited entirely to a single small region of France and never spreading beyond the small Parisian artistic circles of the 1920s.',
+        }
+      ], correct:'A',
+      explanation:'Cubism (Picasso, Braque), Dadaism, and Surrealism all broke from realistic representation. They often reflected the disillusionment of WWI and the disorientation of modern industrial life, becoming defining cultural products of the era.'},
+
+    {id:'wh_th_cdi_mcq_026', topic:'1900–1945', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Propaganda became culturally important in the interwar period most directly because',
+      choices:[
+        {id:'A', text:'mass media (radio, film, posters) allowed states to shape public opinion at unprecedented scale and speed.',
+        },
+        {id:'B', text:'a coordinated UN program required every state to adopt a single uniform global propaganda style by the year 1925.',
+        },
+        {id:'C', text:'most early-20th-century governments banned mass media entirely, leaving propaganda as the only form of public communication.',
+        },
+        {id:'D', text:'mass-media technologies disappeared in the interwar period, forcing states to rely on pre-industrial communication methods.',
+        }
+      ], correct:'A',
+      explanation:'Radio, film, and mass-print posters allowed interwar states (especially Nazi Germany, the Soviet Union, and wartime democracies) to shape mass public opinion at unprecedented scale. Propaganda became central to total-war mobilization and authoritarian rule.'},
+
+    {id:'wh_th_cdi_mcq_027', topic:'1900–1945', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Négritude and the Harlem Renaissance are best understood as',
+      choices:[
+        {id:'A', text:'cultural movements that affirmed Black identity, art, and intellectual life in the colonial Atlantic world.',
+        },
+        {id:'B', text:'European modernist movements that focused exclusively on white avant-garde artists in interwar Paris and London.',
+        },
+        {id:'C', text:'religious revival movements led by African-American preachers who rejected secular art and intellectual life.',
+        },
+        {id:'D', text:'state-sponsored cultural projects funded directly by colonial European governments to assimilate Black populations.',
+        }
+      ], correct:'A',
+      explanation:'Négritude (Aimé Césaire, Léopold Sédar Senghor) and the Harlem Renaissance (Langston Hughes, Zora Neale Hurston, Duke Ellington) affirmed Black identity, art, and intellectual life. They contributed to later anti-colonial and civil-rights movements globally.'},
+
+    {id:'wh_th_cdi_mcq_028', topic:'1900–1945', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Existentialism, emerging especially after WWII through thinkers like Sartre and de Beauvoir, is best understood as',
+      choices:[
+        {id:'A', text:'a philosophy emphasizing individual freedom and meaning-making in a world without preordained moral structures.',
+        },
+        {id:'B', text:'a religious revival movement that aimed to restore traditional medieval Catholic moral certainty after the war.',
+        },
+        {id:'C', text:'a strictly empirical scientific philosophy that rejected questions of personal meaning as inherently meaningless.',
+        },
+        {id:'D', text:'a state-sponsored Soviet political doctrine imposed throughout post-war Eastern Europe by the late 1940s.',
+        }
+      ], correct:'A',
+      explanation:'Existentialism, especially the post-WWII French school (Sartre, Camus, de Beauvoir), emphasized individual freedom, responsibility, and meaning-making in a world without preordained moral structures. It captured the disorientation of post-war European intellectual life.'},
+
+    {id:'wh_th_cdi_mcq_029', topic:'1900–1945', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar comparing fascist propaganda to Soviet socialist realism would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'used controlled mass culture to glorify the regime and demand collective submission to a unifying political ideology.',
+        },
+        {id:'B', text:'permitted full artistic freedom and openly invited criticism of the regime in literature, film, and the visual arts.',
+        },
+        {id:'C', text:'rejected any role for the state in cultural life and left art entirely to private patronage and the open market.',
+        },
+        {id:'D', text:'were strictly religious art movements with no political content or any role in shaping public opinion in either country.',
+        }
+      ], correct:'A',
+      explanation:'Fascist propaganda art and Soviet socialist realism both used state-controlled mass culture to glorify the regime. Both demanded that art serve collective political ends; both suppressed dissent. They illustrate how 20th-century mass politics colonized cultural life.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ERA 5–6: COLD WAR TO GLOBALIZATION  (1945–Present)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['CDI'],
+   desc:'Cultural Cold War. Civil rights and identity movements. Iranian Revolution. Liberation theology. Hollywood, Bollywood, K-pop, anime. Religious fundamentalism.',
+   type:'mcq', group:'core', label:'Round 6 — Era 5–6: Cold War to Globalization', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_cdi_mcq_030', topic:'1945–Present', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The 1979 Iranian Revolution is best understood as',
+      choices:[
+        {id:'A', text:'an Islamic revolution that overthrew the U.S.-backed Shah and established a theocratic state under Khomeini.',
+        },
+        {id:'B', text:'a communist revolution that aligned Iran with the Soviet Union for the duration of the late Cold War.',
+        },
+        {id:'C', text:'a peaceful constitutional reform that gave Iran a Western-style liberal democracy with multiple parties.',
+        },
+        {id:'D', text:'a brief and unsuccessful monarchist coup that restored the Shah\'s power and suppressed all of the various opposition movements in Iran.',
+        }
+      ], correct:'A',
+      explanation:'The 1979 revolution overthrew Mohammad Reza Shah Pahlavi and established the Islamic Republic of Iran under Ayatollah Khomeini. It was a major rebuke to U.S. influence and inaugurated political Islamism as a force in modern global politics.'},
+
+    {id:'wh_th_cdi_mcq_031', topic:'1945–Present', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Liberation theology, emerging in 20th-century Latin America, is best characterized as',
+      choices:[
+        {id:'A', text:'a Catholic movement that emphasized the church\'s commitment to the poor and influenced social activism in the region.',
+        },
+        {id:'B', text:'a Catholic revival of medieval European theology that rejected any engagement with modern social or political life.',
+        },
+        {id:'C', text:'a Protestant movement organized solely in North America with no influence on Latin American Catholic communities.',
+        },
+        {id:'D', text:'a state-sponsored secular movement in Cuba that aimed to abolish all of the existing religious practice across all of Latin America after 1959.',
+        }
+      ], correct:'A',
+      explanation:'Liberation theology, articulated especially by Latin American Catholic theologians like Gustavo Gutiérrez, emphasized the church\'s preferential option for the poor. It shaped social and political activism across mid- to late-20th-century Latin America.'},
+
+    {id:'wh_th_cdi_mcq_032', topic:'1945–Present', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Hollywood, Bollywood, K-pop, and anime are best understood as',
+      choices:[
+        {id:'A', text:'cultural exports from particular countries that have gained large global audiences in the late 20th and early 21st centuries.',
+        },
+        {id:'B', text:'cultural products produced and consumed entirely within a single country with no significant international export.',
+        },
+        {id:'C', text:'a coordinated UN cultural program promoting shared global art forms across all of the major continents and regions.',
+        },
+        {id:'D', text:'religious cultural products produced by all of the major faith traditions and circulated only among believers worldwide for use in religious devotion.',
+        }
+      ], correct:'A',
+      explanation:'Hollywood (US), Bollywood (India), K-pop (South Korea), and anime (Japan) are major cultural exports that have built large global followings. Their reach reflects the late-20th-century pattern of cultural globalization through mass-media networks.'},
+
+    {id:'wh_th_cdi_mcq_033', topic:'1945–Present', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Late-20th-century religious fundamentalisms (Christian, Islamic, Hindu, Jewish) shared a common pattern of',
+      choices:[
+        {id:'A', text:'returning to strict traditional practice, often as reactions against secularism and Western cultural influence.',
+        },
+        {id:'B', text:'merging all of the major world religions into a single peaceful interfaith global movement of believers.',
+        },
+        {id:'C', text:'rejecting traditional religious practice in favor of strictly secular humanist organizing across global societies.',
+        },
+        {id:'D', text:'completely rejecting any role for religion in modern political and social life across most major societies.',
+        }
+      ], correct:'A',
+      explanation:'Late-20th-century fundamentalisms across multiple religions shared a return to strict traditional practice, often framed as reaction against secularism and Western cultural influence. They became powerful political forces in many regions.'},
+
+    {id:'wh_th_cdi_mcq_034', topic:'1945–Present', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A scholar comparing the late-20th-century LGBTQ+ rights movement to earlier women\'s suffrage movements would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'extended Enlightenment natural-rights and equality arguments to groups previously excluded from full legal recognition.',
+        },
+        {id:'B', text:'rejected Enlightenment thought and grounded their claims entirely in religious revival movements rather than in legal reasoning.',
+        },
+        {id:'C', text:'were limited entirely to a single country and never spread beyond their original regional national borders.',
+        },
+        {id:'D', text:'aimed to permanently restrict their respective groups to traditional roles within existing patriarchal hierarchies.',
+        }
+      ], correct:'A',
+      explanation:'Both movements extended Enlightenment natural-rights and equality arguments to groups previously excluded from full legal recognition. Both moved from initial small-scale organizing to broader cultural and legal change over generations.'},
+
+    {id:'wh_th_cdi_mcq_035', topic:'1945–Present', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The "cultural Cold War" between the United States and the Soviet Union is best understood as',
+      choices:[
+        {id:'A', text:'a sustained competition for global cultural influence through art, music, sport, science, and consumer goods.',
+        },
+        {id:'B', text:'a brief direct military conflict between U.S. and Soviet forces fought entirely within Europe and Central Asia.',
+        },
+        {id:'C', text:'a peaceful joint cultural program in which the U.S. and USSR co-produced art and music throughout the Cold War.',
+        },
+        {id:'D', text:'a series of UN cultural exchange programs that included no participation from either of the two superpowers.',
+        }
+      ], correct:'A',
+      explanation:'The cultural Cold War saw both superpowers pursue global influence through music, sport (Olympic rivalry), science (the Space Race), film, literature, and consumer goods. Cultural prestige was a key arena of late-20th-century superpower competition.'},
+
+    {id:'wh_th_cdi_mcq_036', topic:'1945–Present', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A scholar arguing that 21st-century social media represents both a continuity and a change in cultural history would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'continues the long pattern of trade-borne cultural exchange but at a speed and scale unprecedented in earlier eras.',
+        },
+        {id:'B', text:'fully replaces all earlier cultural exchange networks and renders all pre-internet cultural history irrelevant.',
+        },
+        {id:'C', text:'has had no measurable effect on global cultural exchange and is best understood as a regional consumer phenomenon.',
+        },
+        {id:'D', text:'restricts most online content to single national audiences and has discouraged any kind of cross-border cultural exchange.',
+        }
+      ], correct:'A',
+      explanation:'Social media continues the long-running pattern of cultural exchange along communication networks (Silk Roads, Indian Ocean, internet). The change is in speed and scale: exchange that took years now takes seconds, with new challenges of disinformation and algorithmic curation.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 9 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['CDI'],
    desc:'Cross-period comparison: spread of religions across periods; reform/revival movements (Reformation vs. Wahhabism vs. Iranian Revolution); cultural exchange (Silk Roads vs. internet).',
-   type:'comparison', questions:8, group:'skills'},
-  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['CDI'],
-   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in religion, ideology, and culture from 1200 to present. Argumentation 6.B.',
-   type:'ccot', questions:6, group:'skills'},
+   type:'comparison', group:'skills', label:'Round 7 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
 
-  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['CDI'],
+  {id:'r8', num:8, topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['CDI'],
+   desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in religion, ideology, and culture from 1200 to present. Argumentation 6.B.',
+   type:'ccot', group:'skills', label:'Round 8 — CCOT Practice', color:'var(--bronze)', draw:1, questions:6, sets:[]},
+
+  {id:'r9', num:9, topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['CDI'],
    desc:'1 full Long Essay Question with rubric scoring. Sample prompt: "Evaluate the extent to which religious reform movements changed politics across two different periods."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 9 — LEQ Synthesis', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY ─────────────────────────────────────────────────────
 const VOCAB = {
@@ -784,7 +1526,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -801,9 +1543,488 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Cultural Developments theme.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
+}
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ')
+    // Accented-letter entities (common in proper nouns)
+    .replace(/&aacute;/g, 'á').replace(/&Aacute;/g, 'Á')
+    .replace(/&eacute;/g, 'é').replace(/&Eacute;/g, 'É')
+    .replace(/&iacute;/g, 'í').replace(/&Iacute;/g, 'Í')
+    .replace(/&oacute;/g, 'ó').replace(/&Oacute;/g, 'Ó')
+    .replace(/&uacute;/g, 'ú').replace(/&Uacute;/g, 'Ú')
+    .replace(/&agrave;/g, 'à').replace(/&Agrave;/g, 'À')
+    .replace(/&egrave;/g, 'è').replace(/&Egrave;/g, 'È')
+    .replace(/&igrave;/g, 'ì').replace(/&Igrave;/g, 'Ì')
+    .replace(/&ograve;/g, 'ò').replace(/&Ograve;/g, 'Ò')
+    .replace(/&ugrave;/g, 'ù').replace(/&Ugrave;/g, 'Ù')
+    .replace(/&acirc;/g, 'â').replace(/&Acirc;/g, 'Â')
+    .replace(/&ecirc;/g, 'ê').replace(/&Ecirc;/g, 'Ê')
+    .replace(/&icirc;/g, 'î').replace(/&Icirc;/g, 'Î')
+    .replace(/&ocirc;/g, 'ô').replace(/&Ocirc;/g, 'Ô')
+    .replace(/&ucirc;/g, 'û').replace(/&Ucirc;/g, 'Û')
+    .replace(/&auml;/g, 'ä').replace(/&Auml;/g, 'Ä')
+    .replace(/&euml;/g, 'ë').replace(/&Euml;/g, 'Ë')
+    .replace(/&iuml;/g, 'ï').replace(/&Iuml;/g, 'Ï')
+    .replace(/&ouml;/g, 'ö').replace(/&Ouml;/g, 'Ö')
+    .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
+    .replace(/&ntilde;/g, 'ñ').replace(/&Ntilde;/g, 'Ñ')
+    .replace(/&atilde;/g, 'ã').replace(/&Atilde;/g, 'Ã')
+    .replace(/&otilde;/g, 'õ').replace(/&Otilde;/g, 'Õ')
+    .replace(/&ccedil;/g, 'ç').replace(/&Ccedil;/g, 'Ç')
+    .replace(/&aring;/g, 'å').replace(/&Aring;/g, 'Å')
+    .replace(/&aelig;/g, 'æ').replace(/&AElig;/g, 'Æ')
+    .replace(/&oslash;/g, 'ø').replace(/&Oslash;/g, 'Ø')
+    .replace(/&szlig;/g, 'ß');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
 }
 
 
@@ -838,6 +2059,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -878,11 +2101,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
