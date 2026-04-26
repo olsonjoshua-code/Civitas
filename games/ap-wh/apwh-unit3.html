@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -462,12 +605,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 3 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from the four major land-based empires plus thematic terms. Mix of term-to-definition and definition-to-term prompts. Score well to earn gold for the Civitas vault.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -562,6 +711,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 3 DATA
@@ -570,50 +767,459 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u3';
 const UNIT_TITLE = 'Land-Based Empires';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 11 total: 4 empire-focused + 1 secondary states + 3 thematic deep dives + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 3 Land-Based Empires (c. 1450 – c. 1750)
+//  7 MCQ rounds (36 questions total) + 4 Pass-2 stubs
+//   r1-r4: 6 questions each (the four empires, Topic 3.1)
+//   r5-r7: 4 questions each (Other Empires, Administration, Belief Systems)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── The Four Empires (Topic 3.1) ──
-  {id:'r1',  num:1,  topic:'3.1', title:'The Ottomans',     icon:'🕌', themes:['GOV','TEC','CDI'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — THE OTTOMANS  (Topic 3.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'3.1', title:'The Ottomans', icon:'🕌', themes:['GOV','TEC','CDI'],
    desc:'Mehmed II conquers Constantinople, Suleiman the Magnificent, the Janissaries, the devshirme system, and the millet system.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r2',  num:2,  topic:'3.1', title:'The Safavids',      icon:'🐎', themes:['GOV','CDI'],
+   type:'mcq', group:'core', label:'Round 1 — The Ottomans', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u3_mcq_001', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1453 Ottoman conquest of Constantinople by Mehmed II is most often cited as the event that',
+      choices:[
+        {id:'A', text:'ended the Byzantine Empire and established the Ottomans as a major Mediterranean power.'},
+        {id:'B', text:'began the Crusades, leading to the European reconquest of Jerusalem and most of the Holy Land.'},
+        {id:'C', text:'unified Sunni and Shia Islam under one caliph and ended sectarian conflict in the Middle East.'},
+        {id:'D', text:'forced the Ottoman dynasty to accept Christian rule and pay annual tribute to the Pope in Rome.'}
+      ], correct:'A',
+      explanation:'Mehmed II\'s 1453 capture of Constantinople ended the thousand-year Byzantine Empire and gave the Ottomans control of the strategic crossroads between Europe and Asia.'},
+
+    {id:'wh_u3_mcq_002', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Ottoman devshirme system is best described as',
+      choices:[
+        {id:'A', text:'a levy in which Christian boys were taken from Balkan villages, converted to Islam, and trained for state service.'},
+        {id:'B', text:'an annual cash tax that the sultan collected from Christian merchants trading throughout the Balkans.'},
+        {id:'C', text:'a network of religious schools that trained Sunni clerics for service across the entire Islamic world.'},
+        {id:'D', text:'a forced resettlement program that moved Anatolian Turks to depopulated regions along the European Ottoman frontier.'}
+      ], correct:'A',
+      explanation:'Devshirme ("collection") was the Ottoman levy of Christian boys, mostly from the Balkans. They were converted to Islam, given elite training, and channeled into the Janissary corps or palace administration.'},
+
+    {id:'wh_u3_mcq_003', topic:'3.1', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The Janissaries are best characterized as',
+      choices:[
+        {id:'A', text:'an elite Ottoman infantry corps trained in firearms and personally loyal to the sultan rather than to a tribe.'},
+        {id:'B', text:'a Safavid tribal cavalry force whose horsemen swore personal loyalty oaths to the dynasty\'s shah.'},
+        {id:'C', text:'a Mughal palace guard recruited from the warrior Rajput families of northwestern India and Punjab.'},
+        {id:'D', text:'a Manchu banner army that imposed Qing dynasty rule on the Han Chinese after the imperial conquest of the city of Beijing.'}
+      ], correct:'A',
+      explanation:'Janissaries were elite Ottoman infantry, originally drawn from the devshirme. They mastered gunpowder weapons and reported directly to the sultan, giving the dynasty a force independent of Turkic tribal cavalry.'},
+
+    {id:'wh_u3_mcq_004', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Ottoman millet system contributed to the stability of the empire most directly by',
+      choices:[
+        {id:'A', text:'allowing each major religious community to govern its own internal affairs under its religious leaders.'},
+        {id:'B', text:'requiring all subjects, regardless of religion, to convert to Sunni Islam within ten years of conquest.'},
+        {id:'C', text:'banning Christian and Jewish worship throughout the empire and confiscating all non-Muslim property.'},
+        {id:'D', text:'imposing a single uniform Ottoman legal code that completely replaced all preexisting religious laws and customs.'}
+      ], correct:'A',
+      explanation:'The millet system organized non-Muslim subjects (Orthodox Christians, Armenians, Jews) into self-governing religious communities with their own laws and leaders, in exchange for paying the jizya tax.'},
+
+    {id:'wh_u3_mcq_005', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Suleiman the Magnificent (r. 1520-1566) is most associated with',
+      choices:[
+        {id:'A', text:'the peak of Ottoman territorial expansion and the codification of Ottoman law into a unified legal system.'},
+        {id:'B', text:'the loss of Constantinople to the Habsburgs and the permanent retreat of Ottoman forces from Europe.'},
+        {id:'C', text:'the formal Ottoman conversion to Twelver Shi\'a Islam and a long alliance with the Persian Safavid state.'},
+        {id:'D', text:'a deliberate policy of religious persecution that expelled all Jewish and Christian subjects from the empire.'}
+      ], correct:'A',
+      explanation:'Under Suleiman, the Ottoman Empire reached its largest extent (besieging Vienna in 1529) and Suleiman codified Ottoman secular law (kanun), earning him the title "the Lawgiver" within the empire.'},
+
+    {id:'wh_u3_mcq_006', topic:'3.1', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The Ottoman use of architecture, such as the Suleymaniye Mosque, served as a tool of imperial legitimation primarily because it',
+      choices:[
+        {id:'A', text:'visually displayed the sultan\'s wealth, piety, and connection to Islamic and Roman imperial traditions.'},
+        {id:'B', text:'physically defended the capital from European attack and replaced the older Byzantine city walls.'},
+        {id:'C', text:'served as a Janissary military training camp for new recruits arriving from the Balkan devshirme.'},
+        {id:'D', text:'was paid for by the European powers as part of a major Ottoman-Habsburg peace treaty signed in the 1500s.'}
+      ], correct:'A',
+      explanation:'Monumental architecture displayed wealth, religious devotion, and political continuity. Sinan\'s Suleymaniye Mosque deliberately echoed Hagia Sophia, presenting the sultan as the heir to both Islamic and Roman imperial legacies.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — THE SAFAVIDS  (Topic 3.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'3.1', title:'The Safavids', icon:'🐎', themes:['GOV','CDI'],
    desc:'Shah Ismail imposes Twelver Shi\'ism, the Battle of Chaldiran, Shah Abbas the Great, and the splendor of Isfahan.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r3',  num:3,  topic:'3.1', title:'The Mughals',       icon:'🏯', themes:['GOV','CDI'],
+   type:'mcq', group:'core', label:'Round 2 — The Safavids', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u3_mcq_007', topic:'3.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Shah Ismail, the founder of the Safavid Empire, is best known for',
+      choices:[
+        {id:'A', text:'imposing Twelver Shi\'a Islam as the state religion of Persia, creating a lasting religious divide with the Ottomans.'},
+        {id:'B', text:'leading a Sunni revival across Persia and signing a permanent peace treaty with the Sunni Ottoman sultan.'},
+        {id:'C', text:'converting all of Central Asia to Sufi Islam and establishing a friendly alliance with the Mughal emperors.'},
+        {id:'D', text:'unifying Sunnis and Shi\'a under a single caliph elected by representatives of both major Persian religious traditions.'}
+      ], correct:'A',
+      explanation:'Ismail\'s imposition of Twelver Shi\'ism on Persia (most of which had been Sunni) gave Persia a distinctive religious identity and created an enduring rivalry with the Sunni Ottomans.'},
+
+    {id:'wh_u3_mcq_008', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1514 Battle of Chaldiran was significant primarily because it',
+      choices:[
+        {id:'A', text:'demonstrated the military advantage of Ottoman gunpowder firearms over Safavid cavalry that lacked them.'},
+        {id:'B', text:'marked the Safavid victory that drove the Ottomans permanently out of Anatolia and most of the Middle East.'},
+        {id:'C', text:'forced the Ottomans to convert to Twelver Shi\'a Islam, ending their religious rivalry with Safavid Persia.'},
+        {id:'D', text:'led the Mughals to ally with the Safavids in a joint campaign against the European Habsburg dynasty.'}
+      ], correct:'A',
+      explanation:'At Chaldiran, Ottoman gunpowder weapons (cannon and Janissary muskets) defeated Safavid cavalry, which had relied on traditional warriors. The battle showed how decisive firearms had become for early-modern empires.'},
+
+    {id:'wh_u3_mcq_009', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Shah Abbas the Great strengthened the Safavid state most directly by',
+      choices:[
+        {id:'A', text:'creating a new slave-soldier corps of ghulams who answered directly to the shah, not to the older tribal lords.'},
+        {id:'B', text:'eliminating the imperial bureaucracy and ruling Persia personally without administrators or appointed officials.'},
+        {id:'C', text:'converting the entire Safavid state to Sunni Islam and inviting Ottoman merchants to settle in the new capital.'},
+        {id:'D', text:'abandoning Persia\'s position in Indian Ocean trade and isolating the empire from foreign commerce entirely.'}
+      ], correct:'A',
+      explanation:'Like the Ottoman devshirme, Shah Abbas built up the ghulams (Caucasian slave-soldiers loyal only to the shah) to break the power of the old Turkic tribal cavalry that had dominated early Safavid politics.'},
+
+    {id:'wh_u3_mcq_010', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Isfahan, made the Safavid capital under Shah Abbas, became famous for',
+      choices:[
+        {id:'A', text:'its monumental Islamic architecture, with mosques and a vast central plaza that displayed Safavid power.'},
+        {id:'B', text:'its strategic position as the only deep-water port giving the Safavid Empire direct access to maritime trade.'},
+        {id:'C', text:'serving as the joint capital of both the Sunni Ottomans and the Shi\'a Safavids during a long period of peace.'},
+        {id:'D', text:'hosting the founding meeting of the Catholic Counter-Reformation council convened by Pope Paul III in Persia.'}
+      ], correct:'A',
+      explanation:'Isfahan under Shah Abbas was rebuilt with grand architecture, including the Naqsh-e Jahan Square (one of the largest urban plazas in the world), the Shah Mosque, and the Ali Qapu palace.'},
+
+    {id:'wh_u3_mcq_011', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Persian carpets and silk exports were significant for the Safavid economy primarily because they',
+      choices:[
+        {id:'A', text:'generated substantial revenue for the state through international trade with both European and Asian markets.'},
+        {id:'B', text:'were given as religious gifts only to other Shi\'a states and not used as commercial trade goods at all.'},
+        {id:'C', text:'served entirely as a domestic industry that produced fabrics solely for use within the Persian royal household.'},
+        {id:'D', text:'represented a forced labor system that the Safavid state imposed on conquered Sunni Anatolian populations.'}
+      ], correct:'A',
+      explanation:'Persian carpets and silk were major exports under the Safavids, generating hard currency through trade with Mughal India, Ottoman markets, and European buyers like the Dutch and English.'},
+
+    {id:'wh_u3_mcq_012', topic:'3.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar comparing the Ottoman devshirme and the Safavid ghulam system would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'created elite military corps loyal directly to the ruler, bypassing older tribal and aristocratic power bases.'},
+        {id:'B', text:'were religious schools that trained children of conquered peoples to serve as Christian missionaries abroad.'},
+        {id:'C', text:'recruited only volunteer soldiers and paid them generous land grants in newly conquered border provinces.'},
+        {id:'D', text:'ended quickly after the death of their founders, having proved unable to outlast the rulers who first created them.'}
+      ], correct:'A',
+      explanation:'Both systems built personal-loyalty military elites (Janissaries from devshirme; ghulams in Persia) who were drawn from outside the dominant tribal aristocracy and answered to the ruler alone, strengthening centralized authority.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — THE MUGHALS  (Topic 3.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'3.1', title:'The Mughals', icon:'🏯', themes:['GOV','CDI'],
    desc:'Babur\'s conquest, Akbar\'s religious tolerance and Din-i Ilahi, the zamindar system, the Taj Mahal, and Aurangzeb\'s orthodoxy.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'3.1', title:'The Manchu / Qing', icon:'🐉', themes:['GOV','CDI'],
+   type:'mcq', group:'core', label:'Round 3 — The Mughals', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u3_mcq_013', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Babur, the founder of the Mughal Empire, established his rule in northern India by',
+      choices:[
+        {id:'A', text:'defeating the Delhi Sultanate at the Battle of Panipat in 1526, using gunpowder artillery to decisive effect.'},
+        {id:'B', text:'inheriting the entire Indian throne peacefully through marriage to the daughter of the last Delhi sultan.'},
+        {id:'C', text:'allying with the Safavid shah and the Ottoman sultan to jointly conquer the Indian subcontinent together.'},
+        {id:'D', text:'leading a Sufi religious movement whose followers gradually expelled the Delhi rulers without any military conflict.'}
+      ], correct:'A',
+      explanation:'Babur (a Timurid descendant from Central Asia) used field artillery and matchlock muskets to defeat the much larger Delhi army at Panipat in 1526. This victory founded the Mughal dynasty in India.'},
+
+    {id:'wh_u3_mcq_014', topic:'3.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Emperor Akbar (r. 1556-1605) is best known for his policies of',
+      choices:[
+        {id:'A', text:'religious tolerance, including the abolition of the jizya tax on non-Muslim subjects throughout the empire.'},
+        {id:'B', text:'enforcing strict Sunni orthodoxy and persecuting Hindus, Sikhs, and Shi\'a Muslims everywhere within the empire.'},
+        {id:'C', text:'rejecting all Hindu participation in government and reserving every senior position for Sunni Muslim nobles.'},
+        {id:'D', text:'breaking off all diplomatic relations with neighboring Hindu kingdoms and pursuing a long policy of isolation.'}
+      ], correct:'A',
+      explanation:'Akbar pursued sulh-i kul ("universal peace"), abolishing the jizya, marrying Rajput princesses, and incorporating Hindus into senior government posts. This pluralism was a hallmark of his reign.'},
+
+    {id:'wh_u3_mcq_015', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Mughal zamindar system most closely resembled which other early-modern arrangement?',
+      choices:[
+        {id:'A', text:'European tax-farming, in which intermediaries collected revenue for the state while keeping a portion for themselves.'},
+        {id:'B', text:'the Ming civil service exam, in which all officials were recruited through competitive written examinations.'},
+        {id:'C', text:'the Ottoman millet system, in which religious communities governed themselves under their own internal laws.'},
+        {id:'D', text:'the Spanish encomienda system, in which conquistadors received the right to demand labor from indigenous local people.'}
+      ], correct:'A',
+      explanation:'Zamindars were local landholders who collected land tax for the Mughal state and kept a share. This is structurally close to European tax-farming arrangements (and to the Ottoman iltizam), in which intermediaries did the work of collection.'},
+
+    {id:'wh_u3_mcq_016', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Akbar\'s short-lived Din-i Ilahi is best understood as',
+      choices:[
+        {id:'A', text:'a syncretic court religion intended to unify Hindu and Muslim spiritual ideas under the emperor\'s personal direction.'},
+        {id:'B', text:'a strictly orthodox Sunni revival movement that sought to purge the Mughal court of Hindu cultural influence.'},
+        {id:'C', text:'an early Sikh organization led personally by Akbar in close coordination with the founding teachings of Guru Nanak.'},
+        {id:'D', text:'a Christian missionary mission sent by Akbar to convert all the Mughal subjects to Catholicism throughout northern India.'}
+      ], correct:'A',
+      explanation:'Din-i Ilahi ("Divine Faith") was Akbar\'s blended court religion, drawing on Islamic, Hindu, and other traditions. It centered on personal devotion to Akbar and never spread widely beyond the inner court.'},
+
+    {id:'wh_u3_mcq_017', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Aurangzeb (r. 1658-1707) reversed many of Akbar\'s religious policies most notably by',
+      choices:[
+        {id:'A', text:'reimposing the jizya tax on Hindus and pursuing a stricter Sunni orthodoxy in court ritual and law.'},
+        {id:'B', text:'promoting religious blending similar to the Din-i Ilahi to unify Mughal subjects under a single faith.'},
+        {id:'C', text:'establishing the Sikh religion as the official faith of the empire across the entire Indian subcontinent.'},
+        {id:'D', text:'abolishing all Mughal taxes on non-Muslims and inviting Christian missionaries to settle in northern India.'}
+      ], correct:'A',
+      explanation:'Aurangzeb reimposed the jizya in 1679 and enforced stricter Islamic law. His orthodoxy alienated Hindu, Sikh, and Maratha communities, contributing to growing internal conflict in his later reign.'},
+
+    {id:'wh_u3_mcq_018', topic:'3.1', bigIdea:'CDI', difficulty:'challenging',
+      stem:'The Taj Mahal, built by Shah Jahan, served as a tool of imperial legitimation in part because it',
+      choices:[
+        {id:'A', text:'visually displayed the wealth, piety, and Persian-Islamic cultural lineage that the Mughal dynasty drew on.'},
+        {id:'B', text:'served as a fortified military stronghold protecting the imperial capital from Safavid invasion attempts.'},
+        {id:'C', text:'was paid for entirely by jizya revenues collected from the Hindu population during a single calendar year.'},
+        {id:'D', text:'physically connected the city of Agra by a roofed causeway to the Mughal religious shrine of Mecca in Arabia.'}
+      ], correct:'A',
+      explanation:'The Taj Mahal showcased Mughal wealth, Shah Jahan\'s devotion to his deceased wife, and the Persian-Indo-Islamic synthesis the dynasty cultivated. Like the Suleymaniye, it was political theater in stone.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — THE MANCHU / QING  (Topic 3.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'3.1', title:'The Manchu / Qing', icon:'🐉', themes:['GOV','CDI'],
    desc:'Manchu conquest of Ming China, the Qing dynasty, Kangxi and Qianlong, the queue, and Confucian-bureaucratic continuity.',
-   type:'mcq',  questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 4 — The Manchu / Qing', color:'var(--acc)', draw:6, questions:[
 
-  // ── Secondary States (also Topic 3.1) ──
-  {id:'r5',  num:5,  topic:'3.1', title:'Other Empires',     icon:'⚔️', themes:['GOV','CDI'],
-   desc:'Songhai vs. Morocco at the Battle of Tondibi, Tokugawa Japan, Romanov Russia under Peter the Great, and Bourbon France under Louis XIV.',
-   type:'mcq',  questions:10, group:'core'},
+    {id:'wh_u3_mcq_019', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Qing dynasty originated when',
+      choices:[
+        {id:'A', text:'Manchu forces from the northeast conquered Ming China in 1644, founding a new ruling dynasty in Beijing.'},
+        {id:'B', text:'Han Chinese rebels overthrew the existing Ming emperor and proclaimed a new Confucian republican government.'},
+        {id:'C', text:'a Mongol khan claimed the Mandate of Heaven and reestablished Yuan dynasty rule across all of mainland China.'},
+        {id:'D', text:'Ottoman forces invaded northern China through Central Asia and installed a Sunni Turkic sultan in Beijing.'}
+      ], correct:'A',
+      explanation:'The Manchus, a non-Han people from the northeast, exploited a peasant rebellion against the weakened Ming and entered Beijing in 1644, founding the Qing dynasty (1644-1911).'},
 
-  // ── Thematic Deep Dives (Topics 3.2–3.4) ──
-  {id:'r6',  num:6,  topic:'3.2', title:'Administration',    icon:'⚖️', themes:['GOV','SIO'],
+    {id:'wh_u3_mcq_020', topic:'3.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Qing maintained their rule over the Han Chinese majority population most directly by',
+      choices:[
+        {id:'A', text:'preserving the Confucian civil service exam and most of the Ming bureaucracy that they had inherited.'},
+        {id:'B', text:'replacing the entire Ming bureaucracy with Manchu nobles and abolishing the civil service exam permanently.'},
+        {id:'C', text:'forcing every Han subject to convert to Manchu shamanism and abandon Confucian rituals throughout China.'},
+        {id:'D', text:'eliminating all government positions held by Han Chinese in favor of Mongol and Tibetan administrators.'}
+      ], correct:'A',
+      explanation:'The Qing kept the Confucian-bureaucratic apparatus, including the civil service exam. By co-opting the Han educated elite, the Manchus stabilized their rule despite being a small ethnic minority.'},
+
+    {id:'wh_u3_mcq_021', topic:'3.1', bigIdea:'SIO', difficulty:'moderate',
+      stem:'The Qing imposition of the queue (a long single braid) on Han Chinese men served most directly as',
+      choices:[
+        {id:'A', text:'a visible mark of submission to Manchu rule, with refusal punishable by death under the new dynasty.'},
+        {id:'B', text:'a religious practice required by Manchu Buddhist orthodoxy that all Qing subjects were obliged to follow.'},
+        {id:'C', text:'a hygiene policy modeled on Ottoman barber-surgeon traditions imported through the Silk Road in the 1700s.'},
+        {id:'D', text:'a fashion choice spread voluntarily by Han elites who admired the appearance of Manchu warrior aristocrats.'}
+      ], correct:'A',
+      explanation:'The Manchu queue was forcibly imposed on Han men as a sign of submission to Qing rule. The slogan "lose your hair or lose your head" reflects how seriously the Qing enforced this visible marker.'},
+
+    {id:'wh_u3_mcq_022', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Kangxi Emperor (r. 1661-1722) and the Qianlong Emperor (r. 1735-1796) are most often associated with',
+      choices:[
+        {id:'A', text:'the consolidation and territorial expansion of Qing rule, which made China one of the largest empires of the era.'},
+        {id:'B', text:'the collapse of the Qing dynasty and the European partition of mainland China into competing colonial spheres.'},
+        {id:'C', text:'the wholesale abolition of the imperial civil service exam in favor of the European university model.'},
+        {id:'D', text:'the official Qing conversion to Christianity through the influence of European Jesuit missionaries serving in Beijing.'}
+      ], correct:'A',
+      explanation:'Kangxi and Qianlong oversaw the height of Qing power. They expanded Qing control over Mongolia, Tibet, and Xinjiang, sponsored major cultural projects, and managed a population that grew enormously during the period.'},
+
+    {id:'wh_u3_mcq_023', topic:'3.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The 1793 Macartney Mission from Britain to the court of Qianlong is significant primarily because it',
+      choices:[
+        {id:'A', text:'illustrated Qing self-confidence: the emperor refused British trade demands, viewing China as self-sufficient.'},
+        {id:'B', text:'opened all Chinese ports to free British trade and established lasting Qing-British diplomatic relations on equal terms.'},
+        {id:'C', text:'forced the Qing to convert to Christianity and accept Catholic missionaries in every province across the empire.'},
+        {id:'D', text:'led directly to the British conquest of southern China and the founding of Hong Kong in the late 1700s.'}
+      ], correct:'A',
+      explanation:'Qianlong famously wrote that China possessed "all things" and had no need of British manufactures. The exchange illustrates Qing confidence (and a misreading of European industrial momentum) at the empire\'s peak.'},
+
+    {id:'wh_u3_mcq_024', topic:'3.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar comparing the Manchu Qing to the Mughals would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'were ethnic-minority dynasties that ruled vast majority populations through co-opted administrative institutions.'},
+        {id:'B', text:'were native dynasties whose rulers shared the language, religion, and ancestry of nearly all of their subjects.'},
+        {id:'C', text:'rejected gunpowder weapons and fought their wars largely with pre-modern cavalry and traditional infantry.'},
+        {id:'D', text:'practiced strict religious uniformity and persecuted nearly all minority faiths within their imperial territories.'}
+      ], correct:'A',
+      explanation:'Both were minority-rule dynasties: the Manchus over Han Chinese, the Mughals over Hindu Indians. Both stabilized rule by adopting and using preexisting administrative systems (Confucian bureaucracy, zamindar tax-farming).'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — OTHER EMPIRES  (Topic 3.1, secondary states)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'3.1', title:'Other Empires', icon:'⚔️', themes:['GOV','CDI'],
+   desc:'Songhai vs. Morocco at Tondibi, Tokugawa Japan, Romanov Russia under Peter the Great, and Bourbon France under Louis XIV.',
+   type:'mcq', group:'core', label:'Round 5 — Other Empires', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u3_mcq_025', topic:'3.1', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The 1591 Battle of Tondibi resulted in the fall of the Songhai Empire most directly because',
+      choices:[
+        {id:'A', text:'a Moroccan force armed with gunpowder firearms defeated a much larger Songhai army that lacked them.'},
+        {id:'B', text:'the Songhai rulers voluntarily surrendered their West African capital to a Moroccan diplomatic mission.'},
+        {id:'C', text:'Portuguese naval forces sailed up the Niger River and bombarded the Songhai capital from the sea.'},
+        {id:'D', text:'a long internal Sunni-Shi\'a religious civil war within the empire weakened it so badly that it fell apart.'}
+      ], correct:'A',
+      explanation:'A small Moroccan force crossed the Sahara and used arquebuses and cannon to defeat the much larger Songhai army at Tondibi. The battle is a textbook case of gunpowder altering military balances even far from Eurasia.'},
+
+    {id:'wh_u3_mcq_026', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Tokugawa Shogunate consolidated power in Japan most directly by',
+      choices:[
+        {id:'A', text:'requiring daimyo lords to spend alternate years at the shogun\'s capital, keeping their families in Edo as hostages.'},
+        {id:'B', text:'opening Japanese ports to unrestricted European trade and welcoming Christian missionaries to all major cities.'},
+        {id:'C', text:'replacing the entire samurai warrior class with a peasant militia recruited under a new universal draft system.'},
+        {id:'D', text:'restoring the Japanese emperor\'s direct political authority and permanently abolishing the office of the shogun completely.'}
+      ], correct:'A',
+      explanation:'The sankin-kotai ("alternate attendance") system kept daimyo families in Edo year-round and required the lords to alternate residence. This drained their finances and kept them politically loyal to the shogun.'},
+
+    {id:'wh_u3_mcq_027', topic:'3.1', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Peter the Great strengthened the Romanov state most directly by',
+      choices:[
+        {id:'A', text:'westernizing the Russian military and bureaucracy and building St. Petersburg as a window onto Europe.'},
+        {id:'B', text:'returning the Russian capital to Moscow and rejecting any contact with Protestant or Catholic Europe.'},
+        {id:'C', text:'breaking the alliance between Russia and the Holy Roman Empire and isolating Russia from European affairs.'},
+        {id:'D', text:'abolishing serfdom across the Russian empire and granting full legal equality to all peasant subjects.'}
+      ], correct:'A',
+      explanation:'Peter modernized the Russian military along Western lines, reorganized the bureaucracy, required nobles to perform state service, and built St. Petersburg (1703) as a deliberate Westernizing gesture.'},
+
+    {id:'wh_u3_mcq_028', topic:'3.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Louis XIV of France justified his absolutist rule using the doctrine of',
+      choices:[
+        {id:'A', text:'divine right, the claim that kings drew their authority directly from God and answered to no earthly power.'},
+        {id:'B', text:'popular sovereignty, the claim that all royal authority ultimately derived from the consent of free citizens.'},
+        {id:'C', text:'parliamentary supremacy, in which the king served as a ceremonial figurehead under the elected legislature.'},
+        {id:'D', text:'pure feudal contract, in which the king governed only by the formal consent of the great noble families.'}
+      ], correct:'A',
+      explanation:'Louis XIV claimed divine-right kingship: his authority came from God, not from nobles or parliament. The Palace of Versailles was both court and political theater that displayed this absolutist ideology.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ADMINISTRATION  (Topic 3.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'3.2', title:'Administration', icon:'⚖️', themes:['GOV','SIO'],
    desc:'How rulers legitimized power: bureaucracies, tax systems (devshirme, zamindar, iltizam), divine right, art and architecture.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r7',  num:7,  topic:'3.3', title:'Belief Systems',    icon:'☪️', themes:['CDI','GOV'],
-   desc:'Sunni-Shi\'a divide, Protestant Reformation, Sikhism, Akbar vs. Aurangzeb, the Catholic Counter-Reformation, the Thirty Years\' War.',
-   type:'mcq',  questions:12, group:'skills'},
-  {id:'r8',  num:8,  topic:'3.4', title:'Comparison',        icon:'🔍', themes:['GOV'],
-   desc:'Topic 3.4 in full: explicit comparison across the four empires. Argumentation 6.B — support claims with specific evidence.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'mcq', group:'skills', label:'Round 6 — Administration', color:'var(--acc)', draw:4, questions:[
 
-  // ── Free-Response Practice ──
+    {id:'wh_u3_mcq_029', topic:'3.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'In the Ottoman iltizam system, tax collection was carried out by',
+      choices:[
+        {id:'A', text:'private individuals who bid for the right to collect taxes in a region and kept any surplus revenue.'},
+        {id:'B', text:'a salaried imperial bureaucracy whose officials reported directly to the sultan in the Topkapi Palace.'},
+        {id:'C', text:'Christian Janissary garrisons stationed in every province to enforce tax obligations on the local population.'},
+        {id:'D', text:'religious clerics from each millet community who collected funds and forwarded them to the imperial treasury.'}
+      ], correct:'A',
+      explanation:'Iltizam was Ottoman tax-farming: private contractors bought the right to collect taxes in a district and pocketed anything above their bid. It was efficient short-term, but encouraged abuse of taxpayers over time.'},
+
+    {id:'wh_u3_mcq_030', topic:'3.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Tokugawa policy of paying samurai in rice stipends rather than granting them land most directly',
+      choices:[
+        {id:'A', text:'transformed samurai from independent warlords into salaried officials economically dependent on the state.'},
+        {id:'B', text:'allowed samurai families to accumulate vast independent landholdings outside the shogun\'s authority.'},
+        {id:'C', text:'created an elite cavalry force loyal to the emperor in Kyoto rather than to the shogun in Edo.'},
+        {id:'D', text:'forced all samurai to convert to Buddhism and serve as monks in religious temples scattered across the country.'}
+      ], correct:'A',
+      explanation:'Stipends in rice (rather than land grants) tied samurai income to the state rather than to autonomous landed estates. Over time, samurai became more like bureaucrats than independent warriors.'},
+
+    {id:'wh_u3_mcq_031', topic:'3.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Versailles, the palace built by Louis XIV, served as a tool of royal control most directly by',
+      choices:[
+        {id:'A', text:'gathering the French nobility into a single court where the king could observe and manage them in person.'},
+        {id:'B', text:'serving as the new headquarters of an elected French parliament that limited the king\'s formal authority.'},
+        {id:'C', text:'functioning as a fortified frontier outpost that defended Paris against Habsburg armies invading from Spain.'},
+        {id:'D', text:'housing a network of Catholic schools where French peasants received free instruction in Latin and theology.'}
+      ], correct:'A',
+      explanation:'By moving the court to Versailles and requiring nobles to attend, Louis XIV could keep tabs on potential rivals. The elaborate court ritual occupied nobles in symbolic competition rather than political opposition.'},
+
+    {id:'wh_u3_mcq_032', topic:'3.2', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A common pattern across Ottoman, Mughal, Safavid, and Bourbon imperial art and architecture in this period was that',
+      choices:[
+        {id:'A', text:'rulers used monumental building projects to display wealth, piety, and the dynasty\'s legitimacy to subjects.'},
+        {id:'B', text:'monarchs deliberately avoided patronizing the arts so that state revenues could be used only for warfare.'},
+        {id:'C', text:'religious institutions, not rulers, were the only patrons of large-scale art and architecture in this period.'},
+        {id:'D', text:'imperial art was made strictly for private royal viewing and never displayed in any public urban setting.'}
+      ], correct:'A',
+      explanation:'Across all four empires, rulers used monumental architecture (Suleymaniye, Taj Mahal, Isfahan\'s plaza, Versailles) as a tool of legitimation, signaling wealth, religious devotion, and dynastic permanence to subjects.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 7 — BELIEF SYSTEMS  (Topic 3.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'3.3', title:'Belief Systems', icon:'☪️', themes:['CDI','GOV'],
+   desc:'Sunni-Shi\'a divide, Protestant Reformation, Sikhism, Akbar vs. Aurangzeb, the Catholic Counter-Reformation, the Thirty Years\' War.',
+   type:'mcq', group:'skills', label:'Round 7 — Belief Systems', color:'var(--acc)', draw:4, questions:[
+
+    {id:'wh_u3_mcq_033', topic:'3.3', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Martin Luther\'s Ninety-Five Theses (1517) most directly criticized',
+      choices:[
+        {id:'A', text:'the sale of indulgences and other Catholic Church practices that Luther considered corrupt and unscriptural.'},
+        {id:'B', text:'the Sunni-Shi\'a religious split and the Battle of Chaldiran fought between the Ottomans and the Safavids.'},
+        {id:'C', text:'the Mughal policy of religious tolerance, which Luther argued was incompatible with Christian doctrine.'},
+        {id:'D', text:'the Tokugawa Shogunate\'s ban on Christianity in Japan, which Luther personally protested in writing from Wittenberg.'}
+      ], correct:'A',
+      explanation:'Luther\'s 95 Theses (1517) attacked indulgences and other practices he viewed as scripturally unfounded. The protest sparked the Protestant Reformation and the long European religious upheaval that followed.'},
+
+    {id:'wh_u3_mcq_034', topic:'3.3', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Catholic Counter-Reformation responded to Protestant criticism most directly by',
+      choices:[
+        {id:'A', text:'convening the Council of Trent to clarify Catholic doctrine, reform abuses, and reaffirm core Catholic teachings.'},
+        {id:'B', text:'merging the Catholic and Protestant churches into a single unified Christian institution under the Pope.'},
+        {id:'C', text:'abolishing all Catholic monasteries and selling off their lands to fund the early Spanish colonization of Mexico.'},
+        {id:'D', text:'declaring open religious toleration of every single Protestant sect across all Catholic-ruled European territories.'}
+      ], correct:'A',
+      explanation:'The Council of Trent (1545-1563) reaffirmed Catholic doctrine on issues Protestants had attacked, reformed clerical abuses, and authorized new religious orders (notably the Jesuits) to spread Catholic teaching.'},
+
+    {id:'wh_u3_mcq_035', topic:'3.3', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Sikhism, founded in the late 15th century by Guru Nanak, is best understood as',
+      choices:[
+        {id:'A', text:'a syncretic faith that drew on both Hindu Bhakti devotion and Islamic Sufi mysticism in northern India.'},
+        {id:'B', text:'a strictly orthodox Hindu reform movement that aimed to expel all Muslims from the Indian subcontinent.'},
+        {id:'C', text:'an offshoot of Twelver Shi\'a Islam organized to support Safavid expansion eastward into the Punjab region.'},
+        {id:'D', text:'a Christian missionary church founded by Jesuit priests during their evangelizing tours of Mughal India.'}
+      ], correct:'A',
+      explanation:'Sikhism emerged in Punjab from a synthesis of Hindu Bhakti and Islamic Sufi influences, emphasizing one God and rejecting both caste hierarchy and outward religious ritualism.'},
+
+    {id:'wh_u3_mcq_036', topic:'3.3', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1648 Peace of Westphalia, which ended the Thirty Years\' War, is most often cited as significant because it',
+      choices:[
+        {id:'A', text:'recognized state sovereignty in religious affairs, weakening the political authority of the Pope across Europe.'},
+        {id:'B', text:'unified Catholic and Protestant Europe into a single religious commonwealth under the Holy Roman Emperor.'},
+        {id:'C', text:'forced all European states to convert to Calvinist Protestantism within a generation of the treaty\'s signing.'},
+        {id:'D', text:'formally restored the medieval feudal system across Europe and abolished the new institution of the nation-state.'}
+      ], correct:'A',
+      explanation:'The Peace of Westphalia recognized that rulers determined the religion of their states, weakening papal influence over European politics and helping establish the modern principle of state sovereignty.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 8 - 11 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r8',  num:8,  topic:'3.4', title:'Comparison', icon:'🔍', themes:['GOV'],
+   desc:'Topic 3.4 in full: explicit comparison across the four empires. Argumentation 6.B — support claims with specific evidence.',
+   type:'synthesis', group:'skills', label:'Round 8 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
   {id:'r9',  num:9,  topic:'3.1–3.4', title:'Document Analysis', icon:'📜', themes:['GOV','CDI'],
    desc:'5 primary-source stimulus drills — Akbar\'s court, Mehmed\'s decree, the Akbarnama, Luther\'s 95 Theses. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r10', num:10, topic:'3.1–3.4', title:'SAQ Practice',  icon:'✍️', themes:['GOV','CDI'],
+   type:'documents', group:'frq', label:'Round 9 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r10', num:10, topic:'3.1–3.4', title:'SAQ Practice', icon:'✍️', themes:['GOV','CDI'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — methods of imperial expansion and legitimation.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r11', num:11, topic:'3.1–3.4', title:'LEQ Practice',  icon:'📝', themes:['GOV'],
+   type:'saq', group:'frq', label:'Round 10 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r11', num:11, topic:'3.1–3.4', title:'LEQ Practice', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. "Compare the methods used by rulers of two land-based empires to legitimize their power, c. 1450–1750."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 11 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -813,7 +1419,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -830,10 +1436,455 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 3.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -867,6 +1918,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -907,11 +1960,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
