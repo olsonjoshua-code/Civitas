@@ -174,6 +174,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -185,6 +321,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -457,12 +600,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your GOV vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every era of the course: vast land empires, the gunpowder empires and maritime empires, Atlantic revolutions and 19th-century imperial expansion, the collapse of empires and rise of competing ideologies, and the Cold War through globalization. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -583,6 +732,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — THEME: GOVERNANCE (GOV)
@@ -592,42 +789,591 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_th_gov';
 const UNIT_TITLE = 'Theme: Governance';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Theme: Governance (GOV)
+//  6 MCQ rounds across periods, 36 questions total (Pass 1)
+//    r1 Era 1 (1200–1450 Vast Land Empires): 5
+//    r2 Era 2A (1450–1750 Gunpowder Empires): 6
+//    r3 Era 2B (1450–1750 Maritime Empires): 6
+//    r4 Era 3 (1750–1900 Revolutions & Empire): 7
+//    r5 Era 4 (1900–1945 Empires Collapse): 5
+//    r6 Era 5-6 (1945–Present Cold War to Globalization): 7
+//  Plus 3 Pass-2 stubs: Comparison, CCOT, LEQ
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Era Checks (chronological detail recall) ──
-  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Vast Land Empires', icon:'🐎', themes:['GOV'],
-   desc:'Mongol Empire, Yuan China, Confucian civil service exam, Mali under Mansa Musa, Delhi Sultanate, European/Japanese feudalism. Drawn from Units 1–2.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Gunpowder Empires', icon:'🏛️', themes:['GOV'],
-   desc:'The four required gunpowder empires: Ottoman (Janissaries, devshirme, millet), Safavid (Twelver Shi\'ism), Mughal (Akbar/Aurangzeb), Manchu Qing. European absolutism. Drawn from Unit 3.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Maritime Empires', icon:'⛵', themes:['GOV'],
-   desc:'Spanish viceroyalties and casta system, Dutch VOC and British East India Company as joint-stock sovereigns, Portuguese cartaz. Resistance: Pueblo Revolt, Maroons. Drawn from Unit 4.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: Revolutions & Empire', icon:'⚖️', themes:['GOV'],
-   desc:'Atlantic Revolutions, the three required documents (Declaration of Independence, Rights of Man, Letter from Jamaica), Italian/German unification, Berlin Conference, British Raj. Drawn from Units 5–6.',
-   type:'mcq', questions:12, group:'core'},
-  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Empires Collapse', icon:'💥', themes:['GOV'],
-   desc:'Russian Revolution and Bolsheviks, Mexican Revolution, fall of four empires (Ottoman/Russian/Austro-Hungarian/Qing), competing ideologies (liberal democracy, communism, fascism). Drawn from Unit 7.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['GOV'],
-   desc:'Cold War alliances (NATO/Warsaw Pact), decolonization (India, Ghana, Algeria), Non-Aligned Movement, end of Cold War, modern global institutions (UN, EU, ICC), populism. Drawn from Units 8–9.',
-   type:'mcq', questions:12, group:'core'},
 
-  // ── Synthesis Rounds ──
-  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['GOV'],
-   desc:'Direct cross-period comparison questions. Compare imperial expansion methods (Mongol vs. Ottoman vs. British), legitimation strategies (Mandate of Heaven vs. divine right vs. popular sovereignty), or resistance movements (Sepoy 1857 vs. Tiananmen 1989).',
-   type:'comparison', questions:8, group:'skills'},
-  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['GOV'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — ERA 1: VAST LAND EMPIRES  (1200–1450)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'1200–1450', title:'Era 1: Vast Land Empires', icon:'🐎', themes:['GOV'],
+   desc:'Mongol Empire, Yuan China, Confucian civil service exam, Mali under Mansa Musa, Delhi Sultanate, European/Japanese feudalism.',
+   type:'mcq', group:'core', label:'Round 1 — Era 1: Vast Land Empires', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_gov_mcq_001', topic:'1200–1450', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Mongol Empire under Chinggis Khan and his successors is best characterized as',
+      choices:[
+        {id:'A', text:'the largest contiguous land empire in history, expanded through cavalry warfare and integrated by trade and tolerance.'},
+        {id:'B', text:'a small regional Central Asian state that never expanded beyond the Mongolian steppe before the year 1300.'},
+        {id:'C', text:'a maritime empire that built its power on naval expansion across the Indian Ocean during the 13th century.'},
+        {id:'D', text:'a religious confederacy organized solely to spread Tibetan Buddhism throughout most of late medieval Eurasia and beyond.'}
+      ], correct:'A',
+      explanation:'The Mongol Empire became the largest contiguous land empire ever, stretching from Korea to Eastern Europe. Mongol cavalry warfare, religious tolerance, and the Pax Mongolica enabled trade and intellectual exchange across Eurasia.'},
+
+    {id:'wh_th_gov_mcq_002', topic:'1200–1450', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A scholar comparing the Chinese civil service examination to medieval European feudalism would most likely emphasize that the two systems differed because',
+      choices:[
+        {id:'A', text:'China selected officials through a merit-based examination while Europe relied on hereditary land grants for service.',
+        },
+        {id:'B', text:'European feudalism used a uniform written examination while China relied entirely on hereditary aristocratic appointments.',
+        },
+        {id:'C', text:'both China and Europe used identical merit-based examinations to select all of their major government officials by 1300.',
+        },
+        {id:'D', text:'neither system involved any form of governance and both relied entirely on direct rule by individual peasant communities.',
+        }
+      ], correct:'A',
+      explanation:'China\'s civil service exam selected officials based on knowledge of Confucian classics, theoretically open to any educated male (though wealthy families had advantages). Medieval European feudalism organized governance through hereditary land grants in exchange for military service.'},
+
+    {id:'wh_th_gov_mcq_003', topic:'1200–1450', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Mali under Mansa Musa and the Delhi Sultanate share a common feature in that both',
+      choices:[
+        {id:'A', text:'were Islamic states that ruled large non-Muslim populations and integrated Islamic governance with local traditions.',
+        },
+        {id:'B', text:'were Confucian bureaucratic states that recruited officials primarily through merit-based examination systems.',
+        },
+        {id:'C', text:'were maritime trading empires that controlled major Indian Ocean trade routes during the 13th and 14th centuries.',
+        },
+        {id:'D', text:'were small city-states that never extended their rule beyond a single urban center during the entire late medieval era.',
+        }
+      ], correct:'A',
+      explanation:'Both Mali (under Mansa Musa) and the Delhi Sultanate were Islamic states governing large non-Muslim populations (traditional African religions in West Africa, Hindu majority in India). Both integrated Islamic governance with local political and cultural traditions.'},
+
+    {id:'wh_th_gov_mcq_004', topic:'1200–1450', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Japanese and European feudalism are most often compared because',
+      choices:[
+        {id:'A', text:'both organized governance through personal bonds between warrior elites and a hierarchy of land-based obligations.',
+        },
+        {id:'B', text:'both relied entirely on a centralized Confucian imperial bureaucracy modeled on Tang and Song dynasty China.',
+        },
+        {id:'C', text:'both rejected warrior elites in favor of broad popular sovereignty across the entirety of the medieval period.',
+        },
+        {id:'D', text:'both were maritime systems that organized governance around control of the major sea-borne trade routes of the era.',
+        }
+      ], correct:'A',
+      explanation:'Both systems organized governance through personal bonds between warrior elites (samurai/knights) bound to lords (daimyo/nobles) by oaths of loyalty in exchange for land. The structural parallels make Japan-Europe comparison a standard AP question.'},
+
+    {id:'wh_th_gov_mcq_005', topic:'1200–1450', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A historian arguing that the Yuan dynasty (1271-1368) was distinctive among Chinese dynasties would most likely emphasize that the Yuan',
+      choices:[
+        {id:'A', text:'was a Mongol-led foreign dynasty that ruled Han Chinese subjects and imposed an ethnic-based legal hierarchy.',
+        },
+        {id:'B', text:'was a Han Chinese dynasty that voluntarily adopted Mongol governance practices and ethnic legal categories.',
+        },
+        {id:'C', text:'completely rejected all earlier Chinese dynastic traditions and refused to adopt any Confucian governance practices.',
+        },
+        {id:'D', text:'was a brief decade-long Mongol experiment that left no lasting effect on subsequent Chinese dynastic governance.',
+        }
+      ], correct:'A',
+      explanation:'The Yuan was a Mongol-led foreign dynasty (founded by Khubilai Khan) ruling Han Chinese subjects. The dynasty imposed an ethnic-based legal hierarchy with Mongols at the top, foreign administrators next, and Han Chinese (especially southerners) at the bottom.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — ERA 2A: GUNPOWDER EMPIRES  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'1450–1750', title:'Era 2A: Gunpowder Empires', icon:'🏛️', themes:['GOV'],
+   desc:'The four gunpowder empires: Ottoman, Safavid, Mughal, Manchu Qing. European absolutism.',
+   type:'mcq', group:'core', label:'Round 2 — Era 2A: Gunpowder Empires', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_th_gov_mcq_006', topic:'1450–1750', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The four "gunpowder empires" of the early modern period are typically identified as',
+      choices:[
+        {id:'A', text:'the Ottoman, Safavid, Mughal, and Manchu Qing, each unified by gunpowder weapons and centralized governance.',
+        },
+        {id:'B', text:'Spain, Portugal, Britain, and France, each a maritime power that built large overseas colonial empires.',
+        },
+        {id:'C', text:'Russia, Sweden, Poland, and Austria, each a Northern European land empire of the 17th and 18th centuries.',
+        },
+        {id:'D', text:'Mali, Songhai, Ethiopia, and Great Zimbabwe, each a sub-Saharan African state of the entire early modern period from 1450 to 1750.',
+        }
+      ], correct:'A',
+      explanation:'The Ottoman, Safavid, Mughal, and Manchu Qing are typically called the "gunpowder empires." Each unified vast territory using gunpowder weapons and centralized administration; together they dominated Eurasia from roughly 1450 to 1750.'},
+
+    {id:'wh_th_gov_mcq_007', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Ottoman devshirme system is best understood as',
+      choices:[
+        {id:'A', text:'a recruitment system that trained young Christian boys to serve as elite Janissary soldiers and high officials.',
+        },
+        {id:'B', text:'a tax-collection system that allowed local Ottoman elites to extract surplus from peasant agricultural communities.',
+        },
+        {id:'C', text:'a religious framework that organized Christian and Jewish religious communities under Ottoman imperial rule.',
+        },
+        {id:'D', text:'a Sunni-Shi\'a doctrinal disagreement about succession to the Prophet that divided the Ottoman Muslim community.',
+        }
+      ], correct:'A',
+      explanation:'The devshirme ("collection") recruited young Christian boys (especially from the Balkans), converted them to Islam, and trained them to serve as elite Janissary soldiers and high officials. It was a key tool of Ottoman state-building and elite recruitment.'},
+
+    {id:'wh_th_gov_mcq_008', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A scholar comparing Akbar\'s Mughal religious policy to Aurangzeb\'s would most likely emphasize that the two rulers',
+      choices:[
+        {id:'A', text:'pursued contrasting strategies: Akbar\'s tolerance and the Din-i Ilahi vs. Aurangzeb\'s strict Sunni orthodoxy and the jizya.',
+        },
+        {id:'B', text:'pursued identical strategies of strict Sunni orthodoxy with no significant change in policy across the Mughal era.',
+        },
+        {id:'C', text:'both rejected Islam entirely and ruled the Mughal Empire as openly secular non-religious political states.',
+        },
+        {id:'D', text:'both converted to Hinduism during their reigns and abandoned all of the Islamic legal traditions throughout the entire Mughal imperial system.',
+        }
+      ], correct:'A',
+      explanation:'Akbar pursued tolerance, abolished the jizya, and developed his syncretic Din-i Ilahi. Aurangzeb reversed course, reimposing the jizya and enforcing strict Sunni orthodoxy. The contrast is a standard AP comparison about Mughal religious policy.'},
+
+    {id:'wh_th_gov_mcq_009', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Ottoman millet system organized non-Muslim communities by',
+      choices:[
+        {id:'A', text:'allowing each religious community to govern its own internal affairs under its own religious leadership.',
+        },
+        {id:'B', text:'forcing the immediate religious conversion of all of the non-Muslim subjects to Sunni Islam by 1500.',
+        },
+        {id:'C', text:'expelling all non-Muslim communities from Ottoman territory and confiscating all of their land and property.',
+        },
+        {id:'D', text:'imposing a uniform Ottoman secular legal code identical to that used for Sunni Muslim Ottoman subjects.',
+        }
+      ], correct:'A',
+      explanation:'The Ottoman millet system allowed non-Muslim religious communities (Greek Orthodox, Armenian, Jewish) to govern their own internal affairs (family law, education, religious practice) under their own religious leaders, while paying a special tax (jizya).'},
+
+    {id:'wh_th_gov_mcq_010', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'European absolutism, exemplified by Louis XIV of France and Peter the Great of Russia, is best characterized as',
+      choices:[
+        {id:'A', text:'the centralization of monarchical power, often in alliance with a professional army and a state bureaucracy.',
+        },
+        {id:'B', text:'the deliberate decentralization of monarchical power and the transfer of authority to local communities.',
+        },
+        {id:'C', text:'a constitutional limitation of royal authority and the rise of representative parliamentary institutions across Europe.',
+        },
+        {id:'D', text:'a religious revival in which monarchs voluntarily transferred their authority to leadership of the Catholic Church.',
+        }
+      ], correct:'A',
+      explanation:'Absolutism centralized monarchical power, often through professional standing armies, state bureaucracies, court rituals (like Versailles), and the suppression of rival nobility. Louis XIV ("L\'état, c\'est moi") and Peter the Great are textbook examples.'},
+
+    {id:'wh_th_gov_mcq_011', topic:'1450–1750', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that the Manchu Qing dynasty\'s legitimacy strategies were distinctive would most likely emphasize that the Qing',
+      choices:[
+        {id:'A', text:'presented different faces to Han Chinese, Mongol, Tibetan, and Manchu subjects to maintain a multi-ethnic empire.',
+        },
+        {id:'B', text:'imposed a single uniform Manchu cultural and political identity on every group of subjects across the empire.',
+        },
+        {id:'C', text:'completely rejected all Han Chinese governance traditions in favor of a strict Mongol political and legal model.',
+        },
+        {id:'D', text:'limited their rule strictly to ethnic Manchus and refused to engage politically with any Han Chinese subjects whatsoever throughout the era.',
+        }
+      ], correct:'A',
+      explanation:'The Qing presented different "faces" to different subjects: Confucian emperors to Han Chinese, Great Khans to Mongols, patrons of Tibetan Buddhism to Tibetans, and Manchu warriors to bannermen. This multi-ethnic legitimation strategy held the empire together.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — ERA 2B: MARITIME EMPIRES  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'1450–1750', title:'Era 2B: Maritime Empires', icon:'⛵', themes:['GOV'],
+   desc:'Spanish viceroyalties and casta system, Dutch VOC and British East India Company as joint-stock sovereigns, Portuguese cartaz. Resistance: Pueblo Revolt, Maroons.',
+   type:'mcq', group:'core', label:'Round 3 — Era 2B: Maritime Empires', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_th_gov_mcq_012', topic:'1450–1750', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Spanish colonial governance in the Americas was organized around',
+      choices:[
+        {id:'A', text:'viceroyalties (New Spain, Peru) and a racial casta hierarchy ranking peninsulares above creoles, mestizos, and others.',
+        },
+        {id:'B', text:'small autonomous republics that elected their own governors and operated free of any Spanish royal authority.',
+        },
+        {id:'C', text:'a single unified Spanish American government based in Madrid that directly administered every part of the colonies.',
+        },
+        {id:'D', text:'an Aztec-led confederation that retained pre-Columbian governance across nearly all of Spanish-controlled territory throughout this entire era.',
+        }
+      ], correct:'A',
+      explanation:'Spanish colonial governance was organized into viceroyalties (New Spain in 1535, Peru in 1542, later New Granada and Río de la Plata) and a racial casta hierarchy. Peninsulares (Iberian-born Spaniards) ranked highest; creoles (American-born Spaniards) next.'},
+
+    {id:'wh_th_gov_mcq_013', topic:'1450–1750', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Dutch East India Company (VOC) and the British East India Company are best characterized as',
+      choices:[
+        {id:'A', text:'joint-stock companies with state-granted monopolies, militaries, and broad authority to govern foreign territory.',
+        },
+        {id:'B', text:'small private merchant partnerships with no special legal privileges from their respective European home states.',
+        },
+        {id:'C', text:'religious missionary organizations that focused mainly on converting Asian and African peoples to Christianity.',
+        },
+        {id:'D', text:'agencies of the United Nations that regulated international trade between Europe and Asia throughout the era after the year 1600.',
+        }
+      ], correct:'A',
+      explanation:'The VOC (1602) and EIC (1600) were joint-stock companies granted state-backed monopolies. They had their own armies and navies, could wage war and sign treaties, and effectively governed large foreign territories, prefiguring the modern corporation but also the colonial state.'},
+
+    {id:'wh_th_gov_mcq_014', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Portuguese cartaz system is best understood as',
+      choices:[
+        {id:'A', text:'a licensing scheme that required Indian Ocean ships to pay Portugal for permits or face naval attack.',
+        },
+        {id:'B', text:'a tax-farming arrangement that allowed Portuguese settlers to collect tribute from Brazilian indigenous communities.',
+        },
+        {id:'C', text:'a religious framework that organized Catholic missionary activity throughout the Portuguese Indian Ocean colonial empire.',
+        },
+        {id:'D', text:'a Portuguese banking system that managed all of the gold and silver flows between Asia, Africa, and the Atlantic world.',
+        }
+      ], correct:'A',
+      explanation:'The cartaz was a licensing scheme requiring Indian Ocean ships to buy permits from Portugal. Ships without cartazes faced attack from Portuguese naval forces. It established Portugal\'s short-lived Indian Ocean dominance through coercive control of sea-borne trade.'},
+
+    {id:'wh_th_gov_mcq_015', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A historian comparing the 1680 Pueblo Revolt to Maroon communities in the Caribbean and Brazil would most likely emphasize that both',
+      choices:[
+        {id:'A', text:'represented effective resistance to Spanish or other colonial rule and produced lasting autonomy for participants.',
+        },
+        {id:'B', text:'were brief and unsuccessful resistance movements that produced no lasting autonomy in their respective regions.',
+        },
+        {id:'C', text:'were colonial European projects that aimed to expand European political control over indigenous and enslaved populations.',
+        },
+        {id:'D', text:'were religious revival movements that did not involve any meaningful political resistance to colonial power.',
+        }
+      ], correct:'A',
+      explanation:'The Pueblo Revolt (1680) drove Spanish colonists out of New Mexico for over a decade. Maroon communities (especially in Jamaica, Haiti, Brazil\'s Palmares) sustained autonomy for generations. Both demonstrate that colonial subjects effectively resisted imperial rule.'},
+
+    {id:'wh_th_gov_mcq_016', topic:'1450–1750', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A scholar comparing Spanish American governance to British North American governance would most likely emphasize that the two systems differed because',
+      choices:[
+        {id:'A', text:'Spanish rule was more tightly centralized through viceroys while British colonies developed stronger local representative bodies.',
+        },
+        {id:'B', text:'British rule was more tightly centralized than Spanish rule and gave colonies fewer rights of local self-government.',
+        },
+        {id:'C', text:'both empires used identical centralized political structures and gave their colonies identical rights of representation.',
+        },
+        {id:'D', text:'neither empire imposed any meaningful political structure on any of its colonial holdings throughout the entirety of the early modern era from 1450 to 1750.',
+        }
+      ], correct:'A',
+      explanation:'Spanish American governance was tightly centralized through viceroys and the Council of the Indies. British North American colonies developed stronger local representative bodies (colonial assemblies, town meetings). The contrast helps explain different paths to independence.'},
+
+    {id:'wh_th_gov_mcq_017', topic:'1450–1750', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that the early modern Atlantic world saw a new kind of imperial governance would most likely emphasize',
+      choices:[
+        {id:'A', text:'private chartered companies and racialized slavery as defining features of Atlantic imperial rule.',
+        },
+        {id:'B', text:'centralized Confucian bureaucracies as the defining political institution of the Atlantic colonial empires.',
+        },
+        {id:'C', text:'religious tolerance modeled on the Mongol Empire as the defining feature of all Atlantic colonial governance.',
+        },
+        {id:'D', text:'small autonomous indigenous republics as the dominant political form across most of the Atlantic colonial empires.',
+        }
+      ], correct:'A',
+      explanation:'Atlantic imperial governance featured new political forms: chartered companies (VOC, EIC) acting as quasi-states, and large-scale racialized chattel slavery. Together they distinguished early modern Atlantic empires from the older land-based governance models of Eurasia.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — ERA 3: REVOLUTIONS & EMPIRE  (1750–1900)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'1750–1900', title:'Era 3: Revolutions & Empire', icon:'⚖️', themes:['GOV'],
+   desc:'Atlantic Revolutions, the three required documents (Declaration of Independence, Rights of Man, Letter from Jamaica), Italian/German unification, Berlin Conference, British Raj.',
+   type:'mcq', group:'core', label:'Round 4 — Era 3: Revolutions & Empire', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_gov_mcq_018', topic:'1750–1900', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The American (1776), French (1789), Haitian (1791), and Latin American Atlantic Revolutions shared a common ideological foundation in',
+      choices:[
+        {id:'A', text:'Enlightenment principles of natural rights, popular sovereignty, and limits on absolute political power.',
+        },
+        {id:'B', text:'the divine right of kings and a return to traditional medieval feudal political and religious authority.',
+        },
+        {id:'C', text:'Confucian classical ethics and the merit-based recruitment of officials through written examinations.',
+        },
+        {id:'D', text:'Mongol-style steppe military traditions and the cavalry-based conquest of large continental land empires.',
+        }
+      ], correct:'A',
+      explanation:'The Atlantic Revolutions drew on shared Enlightenment ideas: natural rights (Locke), the social contract and popular sovereignty (Rousseau), and limits on absolute power (Montesquieu). Each revolution adapted those principles to its specific context.'},
+
+    {id:'wh_th_gov_mcq_019', topic:'1750–1900', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1791-1804 Haitian Revolution is best understood as',
+      choices:[
+        {id:'A', text:'the first successful slave revolution in modern history, producing the second independent state in the Americas.',
+        },
+        {id:'B', text:'a brief unsuccessful uprising that left the French colonial system in Haiti unchanged throughout the 19th century.',
+        },
+        {id:'C', text:'a Spanish-led colonial conflict that resulted in a transfer of Haiti from French to Spanish imperial control.',
+        },
+        {id:'D', text:'a peaceful constitutional reform that gradually emancipated Haitian enslaved people across multiple generations.',
+        }
+      ], correct:'A',
+      explanation:'The Haitian Revolution (led by Toussaint L\'Ouverture and others) was the first successful slave revolution. It produced Haiti as the second independent state in the Americas (after the U.S.) and the first Black-led republic. It terrified slaveholders across the Atlantic.'},
+
+    {id:'wh_th_gov_mcq_020', topic:'1750–1900', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A scholar describing Bolívar\'s 1815 Letter from Jamaica would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'argued for Latin American independence from Spain and laid out a political vision for the new republics.',
+        },
+        {id:'B', text:'argued for the restoration of Spanish colonial rule and the abandonment of all Latin American independence movements.',
+        },
+        {id:'C', text:'rejected Enlightenment principles and called for a return to colonial monarchy across the Americas.',
+        },
+        {id:'D', text:'served as a personal religious confession with no significant political content or revolutionary argument.',
+        }
+      ], correct:'A',
+      explanation:'Bolívar\'s Letter from Jamaica (1815) argued for Latin American independence from Spain and laid out his vision for the political future of the new republics. It is one of the three required documents of the Atlantic Revolutions in the AP World CED.'},
+
+    {id:'wh_th_gov_mcq_021', topic:'1750–1900', bigIdea:'GOV', difficulty:'moderate',
+      stem:'19th-century Italian and German unification are best characterized as',
+      choices:[
+        {id:'A', text:'nationalist movements that consolidated multiple states into single nation-states under conservative leaders.',
+        },
+        {id:'B', text:'liberal democratic revolutions that immediately produced parliamentary republics across most of central Europe.',
+        },
+        {id:'C', text:'colonial movements that focused mainly on extending European empire into sub-Saharan Africa and Asia.',
+        },
+        {id:'D', text:'religious revival movements that united Catholic and Protestant states under common theological leadership.',
+        }
+      ], correct:'A',
+      explanation:'Italian unification (Cavour, Garibaldi, completed 1870) and German unification (Bismarck, completed 1871) consolidated multiple states into single nation-states under conservative leaders. Both emphasized realpolitik over liberal democratic ideology.'},
+
+    {id:'wh_th_gov_mcq_022', topic:'1750–1900', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1884-1885 Berlin Conference is best understood as',
+      choices:[
+        {id:'A', text:'a meeting of European powers that established rules for the colonial partition of Africa.',
+        },
+        {id:'B', text:'a meeting of African states that organized a continental defense against any further European colonial expansion.',
+        },
+        {id:'C', text:'a meeting of Atlantic Revolutionary leaders that drafted founding documents for newly independent Latin American republics.',
+        },
+        {id:'D', text:'a meeting of Asian powers that established rules for joint Chinese-Japanese governance of mainland Southeast Asia.',
+        }
+      ], correct:'A',
+      explanation:'The Berlin Conference (1884-1885), called by Bismarck, established rules for European partition of Africa: claims required "effective occupation," and the Congo became Leopold II\'s personal property. It accelerated the late-19th-century Scramble for Africa.'},
+
+    {id:'wh_th_gov_mcq_023', topic:'1750–1900', bigIdea:'GOV', difficulty:'challenging',
+      stem:'The 1857 Sepoy Mutiny / Indian Rebellion led most directly to',
+      choices:[
+        {id:'A', text:'the British Crown taking direct control of India from the East India Company, beginning the British Raj.',
+        },
+        {id:'B', text:'an immediate British withdrawal from all of the Indian subcontinent and the founding of an independent India.',
+        },
+        {id:'C', text:'a successful Mughal restoration that returned the subcontinent to pre-British political and economic conditions.',
+        },
+        {id:'D', text:'a peaceful constitutional reform that left British East India Company rule entirely unchanged after 1857.',
+        }
+      ], correct:'A',
+      explanation:'After the 1857 rebellion, the British Crown took direct control of India from the East India Company (1858), beginning the formal British Raj. Queen Victoria became Empress of India in 1877.'},
+
+    {id:'wh_th_gov_mcq_024', topic:'1750–1900', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that 19th-century imperial expansion differed structurally from earlier imperial expansion would most likely emphasize that 19th-century imperialism',
+      choices:[
+        {id:'A', text:'used industrial military technology, telegraph communication, and pseudo-scientific racial ideology to justify rule.',
+        },
+        {id:'B', text:'used identical methods to early-modern empires and produced no measurable change in colonial governance approaches.',
+        },
+        {id:'C', text:'rejected imperial expansion entirely in favor of voluntary partnerships between European and colonized peoples.',
+        },
+        {id:'D', text:'relied entirely on cavalry warfare and traditional pre-industrial communication and transportation systems throughout the late 19th century period.',
+        }
+      ], correct:'A',
+      explanation:'19th-century imperialism used industrial-era tools: steamships, railroads, the Maxim gun, the telegraph, and quinine (against malaria). It also drew on Social Darwinism and "civilizing mission" ideology to justify rule, marking a structural shift from earlier imperialism.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — ERA 4: EMPIRES COLLAPSE  (1900–1945)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'1900–1945', title:'Era 4: Empires Collapse', icon:'💥', themes:['GOV'],
+   desc:'Russian Revolution and Bolsheviks, Mexican Revolution, fall of four empires, competing ideologies (liberal democracy, communism, fascism).',
+   type:'mcq', group:'core', label:'Round 5 — Era 4: Empires Collapse', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_gov_mcq_025', topic:'1900–1945', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1917 Russian Revolution most directly resulted in',
+      choices:[
+        {id:'A', text:'the overthrow of the tsar and the eventual founding of the Soviet Union under Bolshevik communist leadership.',
+        },
+        {id:'B', text:'the strengthening of the Russian tsarist autocracy and the suppression of all major Russian revolutionary movements.',
+        },
+        {id:'C', text:'the immediate transformation of Russia into a Western-style liberal democracy with multiple competing parties.',
+        },
+        {id:'D', text:'the direct German conquest and annexation of all Russian imperial territory by the close of the year 1918.',
+        }
+      ], correct:'A',
+      explanation:'The 1917 Revolution overthrew Tsar Nicholas II in February, then brought Lenin\'s Bolsheviks to power in October. The civil war that followed (1918-1922) ended with the founding of the Soviet Union, the first major communist state.'},
+
+    {id:'wh_th_gov_mcq_026', topic:'1900–1945', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A historian describing WWI\'s effects on imperial politics would most likely emphasize that',
+      choices:[
+        {id:'A', text:'four major empires (Ottoman, Russian, Austro-Hungarian, German) collapsed during or shortly after the war.',
+        },
+        {id:'B', text:'all four major empires emerged from WWI with stronger institutions and broader imperial territorial holdings.',
+        },
+        {id:'C', text:'no major imperial state experienced any significant political transformation during or after the First World War.',
+        },
+        {id:'D', text:'WWI produced an immediate global wave of decolonization that ended every European colonial empire by the year 1920.',
+        }
+      ], correct:'A',
+      explanation:'Four major empires collapsed during or shortly after WWI: the Romanov Russian (1917), Habsburg Austro-Hungarian (1918), Hohenzollern German (1918), and Ottoman (1922 with the Turkish Republic). The end of these empires reshaped 20th-century geopolitics.'},
+
+    {id:'wh_th_gov_mcq_027', topic:'1900–1945', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1910-1920 Mexican Revolution is best understood as',
+      choices:[
+        {id:'A', text:'a complex revolution that overthrew Porfirio Díaz and produced a constitution promising land reform and labor rights.',
+        },
+        {id:'B', text:'a brief Mexican monarchist coup that restored Spanish colonial rule across the entirety of the country by 1915.',
+        },
+        {id:'C', text:'a U.S.-led military invasion that established direct American control over Mexican governance throughout the 1910s.',
+        },
+        {id:'D', text:'a peaceful constitutional reform that left all of the Mexican social and economic structures completely unchanged after the year 1920.',
+        }
+      ], correct:'A',
+      explanation:'The Mexican Revolution overthrew Porfirio Díaz in 1911. Multiple factions (Madero, Villa, Zapata, Carranza, Obregón) struggled for over a decade. The 1917 Constitution promised major land reform and labor rights, though much was implemented slowly.'},
+
+    {id:'wh_th_gov_mcq_028', topic:'1900–1945', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The interwar period (1918-1939) is often described as a contest among three major political ideologies, namely',
+      choices:[
+        {id:'A', text:'liberal democracy, communism, and fascism, each promising a different solution to the era\'s political and economic crises.',
+        },
+        {id:'B', text:'absolute monarchy, divine-right kingship, and theocracy, each rooted in a religious legitimation of state authority.',
+        },
+        {id:'C', text:'mercantilism, neoliberalism, and Keynesian economics, none of which had any major political consequences in the era.',
+        },
+        {id:'D', text:'Confucianism, Sufi Islam, and Mahayana Buddhism, all competing actively for influence across the industrial European societies of the interwar era.',
+        }
+      ], correct:'A',
+      explanation:'The interwar period was an open contest among liberal democracy (Anglo-French-American), communism (Soviet Union after 1917), and fascism (Italy from 1922, Germany from 1933, Spain from 1939). The Great Depression deepened this competition.'},
+
+    {id:'wh_th_gov_mcq_029', topic:'1900–1945', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that fascism was a distinctively interwar phenomenon would most likely emphasize that fascist regimes',
+      choices:[
+        {id:'A', text:'combined ultranationalism, the cult of a strong leader, and the use of mass-media propaganda and political violence.',
+        },
+        {id:'B', text:'were liberal democratic movements organized around the protection of individual minority rights across European states.',
+        },
+        {id:'C', text:'were peaceful religious revival movements that aimed to merge Catholic and Protestant churches into one institution.',
+        },
+        {id:'D', text:'were Marxist revolutionary movements that aimed to abolish private property across most major industrial societies.',
+        }
+      ], correct:'A',
+      explanation:'Interwar fascism (Mussolini\'s Italy, Hitler\'s Germany, Franco\'s Spain) combined ultranationalism, the cult of a strong leader (Duce/Führer/Caudillo), mass-media propaganda, and political violence. It rejected both liberal democracy and Marxist socialism in favor of a third path.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ERA 5–6: COLD WAR TO GLOBALIZATION  (1945–Present)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'1945–Present', title:'Era 5–6: Cold War to Globalization', icon:'🌐', themes:['GOV'],
+   desc:'Cold War alliances (NATO/Warsaw Pact), decolonization (India, Ghana, Algeria), Non-Aligned Movement, end of Cold War, modern global institutions, populism.',
+   type:'mcq', group:'core', label:'Round 6 — Era 5–6: Cold War to Globalization', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_gov_mcq_030', topic:'1945–Present', bigIdea:'GOV', difficulty:'accessible',
+      stem:'NATO and the Warsaw Pact represented',
+      choices:[
+        {id:'A', text:'the Western and Soviet-led military alliances that institutionalized the Cold War division of Europe.',
+        },
+        {id:'B', text:'two competing UN agencies that managed humanitarian aid for European refugees after WWII.',
+        },
+        {id:'C', text:'two economic free-trade zones that gradually integrated all European economies after about 1949.',
+        },
+        {id:'D', text:'two religious organizations that mediated between the Catholic and Orthodox Christian Cold War states across post-war Europe.',
+        }
+      ], correct:'A',
+      explanation:'NATO (1949, US-led Western bloc) and the Warsaw Pact (1955, Soviet-led Eastern bloc) institutionalized the Cold War military division of Europe. Each was a mutual-defense treaty against the other side; the rivalry shaped European politics until 1991.'},
+
+    {id:'wh_th_gov_mcq_031', topic:'1945–Present', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The 1947 Partition of British India produced',
+      choices:[
+        {id:'A', text:'two new states, India and Pakistan, and triggered massive religious violence and refugee movement.',
+        },
+        {id:'B', text:'a single unified Indian state that retained close formal political ties to the United Kingdom thereafter.',
+        },
+        {id:'C', text:'three new states divided cleanly along religious lines with peaceful population transfers between them.',
+        },
+        {id:'D', text:'a continued British colonial administration in India that lasted until the closing years of the 1960s.',
+        }
+      ], correct:'A',
+      explanation:'British India was partitioned in 1947 into Hindu-majority India and Muslim-majority Pakistan. The partition triggered massive violence (estimates range from 500,000 to 2 million deaths) and the displacement of about 15 million people.'},
+
+    {id:'wh_th_gov_mcq_032', topic:'1945–Present', bigIdea:'GOV', difficulty:'moderate',
+      stem:'A historian comparing the 1957 Ghanaian and 1962 Algerian paths to independence would most likely emphasize that',
+      choices:[
+        {id:'A', text:'Ghana achieved independence largely through negotiation while Algeria fought a long, bloody anti-colonial war with France.',
+        },
+        {id:'B', text:'both colonies achieved independence through identical peaceful negotiations with their respective European colonial rulers.',
+        },
+        {id:'C', text:'both colonies achieved independence through identical long armed wars against their respective European colonial rulers.',
+        },
+        {id:'D', text:'neither colony achieved independence and both remained under European colonial rule throughout the late 20th century.',
+        }
+      ], correct:'A',
+      explanation:'Ghana achieved independence (1957) under Nkrumah largely through political negotiation with Britain. Algeria fought a long, bloody war (1954-1962) with France, ending in independence after enormous violence and the collapse of the French Fourth Republic.'},
+
+    {id:'wh_th_gov_mcq_033', topic:'1945–Present', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Non-Aligned Movement, formalized at the 1955 Bandung Conference, sought to',
+      choices:[
+        {id:'A', text:'create an independent bloc of newly decolonized states aligned with neither the U.S. nor the Soviet Union.',
+        },
+        {id:'B', text:'unify all newly independent states into a single political federation under shared communist leadership.',
+        },
+        {id:'C', text:'establish a permanent military alliance with the United States and NATO against the Soviet Union.',
+        },
+        {id:'D', text:'restore the European colonial rule in Asia and Africa under joint UN trusteeship administrative authority and oversight.',
+        }
+      ], correct:'A',
+      explanation:'Bandung (1955) brought together representatives from 29 Asian and African states (Nehru, Nasser, Sukarno, Zhou Enlai). They sought to chart an independent course outside the Cold War blocs, asserting the political voice of the post-colonial Global South.'},
+
+    {id:'wh_th_gov_mcq_034', topic:'1945–Present', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1991 collapse of the Soviet Union resulted most directly in',
+      choices:[
+        {id:'A', text:'the dissolution of the USSR into 15 independent republics, including a non-communist Russian Federation.',
+        },
+        {id:'B', text:'a brief restoration of Soviet communism under a unified post-Gorbachev hardline party leadership group.',
+        },
+        {id:'C', text:'an immediate reunification of Russia with all of the former Eastern Bloc states under a single new federal union.',
+        },
+        {id:'D', text:'a permanent UN trusteeship that governed all of the former Soviet territory through the late 1990s and beyond.',
+        }
+      ], correct:'A',
+      explanation:'The Soviet Union officially dissolved in December 1991, splitting into 15 independent republics (the Russian Federation, Ukraine, Belarus, the Baltic states, the Caucasus republics, the Central Asian states). The Cold War was over.'},
+
+    {id:'wh_th_gov_mcq_035', topic:'1945–Present', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Modern global governance, especially through bodies like the UN and the ICC, is best characterized as',
+      choices:[
+        {id:'A', text:'a layered system in which national states cooperate through international institutions with limited enforcement powers.',
+        },
+        {id:'B', text:'a single world government that has fully replaced national states across the entire planet over recent decades.',
+        },
+        {id:'C', text:'a system that lets national states act alone, with no role for international organizations or transnational civil society.',
+        },
+        {id:'D', text:'a religious framework in which faith institutions exclusively manage all of the major global political and legal disputes.',
+        }
+      ], correct:'A',
+      explanation:'Modern global governance is layered: the UN provides a global forum; regional bodies (EU, AU, ASEAN) handle subregional issues; the ICC pursues war crimes; treaties handle specific policy areas. National states remain the primary actors, with limited enforcement against state interests.'},
+
+    {id:'wh_th_gov_mcq_036', topic:'1945–Present', bigIdea:'GOV', difficulty:'challenging',
+      stem:'A scholar arguing that early-21st-century right-wing populism (including Brexit) represents continuity with earlier governance patterns would most likely emphasize',
+      choices:[
+        {id:'A', text:'parallels with past nationalist backlashes against globalization, immigration, and elite governance.',
+        },
+        {id:'B', text:'a complete absence of any historical precedent for the populist movements of the early 21st century.',
+        },
+        {id:'C', text:'parallels with medieval theocratic government rather than with any modern nationalist political tradition.',
+        },
+        {id:'D', text:'parallels only with mid-20th-century liberal democratic movements and not with any earlier nationalist backlashes.',
+        }
+      ], correct:'A',
+      explanation:'21st-century populist movements draw on patterns familiar from earlier eras: nationalist backlashes against globalization, anti-immigration politics, and skepticism of elite governance. Comparisons to interwar Europe and to late-19th-century anti-globalization politics are common.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 9 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['GOV'],
+   desc:'Direct cross-period comparison: imperial expansion methods (Mongol vs. Ottoman vs. British), legitimation strategies (Mandate of Heaven vs. divine right vs. popular sovereignty), or resistance movements (Sepoy 1857 vs. Tiananmen 1989).',
+   type:'comparison', group:'skills', label:'Round 7 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
+  {id:'r8', num:8, topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['GOV'],
    desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in governance from 1200 to present. Argumentation 6.B with three specific examples per claim.',
-   type:'ccot', questions:6, group:'skills'},
+   type:'ccot', group:'skills', label:'Round 8 — CCOT Practice', color:'var(--bronze)', draw:1, questions:6, sets:[]},
 
-  // ── LEQ Synthesis ──
-  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['GOV'],
+  {id:'r9', num:9, topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which methods of imperial expansion changed from 1450 to 1900" or "Compare how rulers legitimized power in two different periods." 800–1000 word target.',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 9 — LEQ Synthesis', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (cross-period governance terms) ─────────────────
 // Organized by ERA so students can review chronologically OR by category
@@ -838,7 +1584,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -855,9 +1601,488 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Governance theme.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
+}
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ')
+    // Accented-letter entities (common in proper nouns)
+    .replace(/&aacute;/g, 'á').replace(/&Aacute;/g, 'Á')
+    .replace(/&eacute;/g, 'é').replace(/&Eacute;/g, 'É')
+    .replace(/&iacute;/g, 'í').replace(/&Iacute;/g, 'Í')
+    .replace(/&oacute;/g, 'ó').replace(/&Oacute;/g, 'Ó')
+    .replace(/&uacute;/g, 'ú').replace(/&Uacute;/g, 'Ú')
+    .replace(/&agrave;/g, 'à').replace(/&Agrave;/g, 'À')
+    .replace(/&egrave;/g, 'è').replace(/&Egrave;/g, 'È')
+    .replace(/&igrave;/g, 'ì').replace(/&Igrave;/g, 'Ì')
+    .replace(/&ograve;/g, 'ò').replace(/&Ograve;/g, 'Ò')
+    .replace(/&ugrave;/g, 'ù').replace(/&Ugrave;/g, 'Ù')
+    .replace(/&acirc;/g, 'â').replace(/&Acirc;/g, 'Â')
+    .replace(/&ecirc;/g, 'ê').replace(/&Ecirc;/g, 'Ê')
+    .replace(/&icirc;/g, 'î').replace(/&Icirc;/g, 'Î')
+    .replace(/&ocirc;/g, 'ô').replace(/&Ocirc;/g, 'Ô')
+    .replace(/&ucirc;/g, 'û').replace(/&Ucirc;/g, 'Û')
+    .replace(/&auml;/g, 'ä').replace(/&Auml;/g, 'Ä')
+    .replace(/&euml;/g, 'ë').replace(/&Euml;/g, 'Ë')
+    .replace(/&iuml;/g, 'ï').replace(/&Iuml;/g, 'Ï')
+    .replace(/&ouml;/g, 'ö').replace(/&Ouml;/g, 'Ö')
+    .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
+    .replace(/&ntilde;/g, 'ñ').replace(/&Ntilde;/g, 'Ñ')
+    .replace(/&atilde;/g, 'ã').replace(/&Atilde;/g, 'Ã')
+    .replace(/&otilde;/g, 'õ').replace(/&Otilde;/g, 'Õ')
+    .replace(/&ccedil;/g, 'ç').replace(/&Ccedil;/g, 'Ç')
+    .replace(/&aring;/g, 'å').replace(/&Aring;/g, 'Å')
+    .replace(/&aelig;/g, 'æ').replace(/&AElig;/g, 'Æ')
+    .replace(/&oslash;/g, 'ø').replace(/&Oslash;/g, 'Ø')
+    .replace(/&szlig;/g, 'ß');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
 }
 
 
@@ -892,6 +2117,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -932,11 +2159,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
