@@ -174,6 +174,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -185,6 +321,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -479,12 +622,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of theme vocabulary. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your TEC vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from every era of the course: the Song-era inventions of connection, gunpowder weapons and the printing press, the maritime technology that connected the world, the Industrial Revolutions, the technology of total war and the atom, and the Space Race through AI. Mix of term-to-definition and definition-to-term prompts.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -605,6 +754,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — THEME: TECHNOLOGY & INNOVATION (TEC)
@@ -614,42 +811,591 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_th_tec';
 const UNIT_TITLE = 'Theme: Technology & Innovation';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 9 total: 6 era checks + 1 comparison + 1 CCOT + 1 LEQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Theme: Technology & Innovation (TEC)
+//  6 MCQ rounds across periods, 36 questions total (Pass 1)
+//    r1 Era 1 (1200–1450 Inventions of Connection): 5
+//    r2 Era 2A (1450–1750 Gunpowder & Printing Press): 5
+//    r3 Era 2B (1450–1750 Maritime Technology): 5
+//    r4 Era 3 (1750–1900 Industrial Revolutions): 7
+//    r5 Era 4 (1900–1945 Industrial Killing & the Atom): 6
+//    r6 Era 5-6 (1945–Present Space Race to AI): 8
+//  Plus 3 Pass-2 stubs: Comparison, CCOT, LEQ
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Era Checks (chronological detail recall) ──
-  {id:'r1',  num:1,  topic:'1200–1450', title:'Era 1: Inventions of Connection', icon:'🧭', themes:['TEC'],
-   desc:'Song China innovations (compass, gunpowder, paper money, woodblock + movable-type printing). Champa rice. Indian Ocean ship technology: dhows, junks, lateen sail, astrolabe, sternpost rudder. Drawn from Units 1–2.',
-   type:'mcq', questions:8, group:'core'},
-  {id:'r2',  num:2,  topic:'1450–1750', title:'Era 2A: Gunpowder Reshapes Land Power', icon:'💣', themes:['TEC'],
-   desc:'Gunpowder weaponry as the defining technology: Constantinople 1453 (Orban\'s cannons), Mughal artillery at Panipat (1526), Manchu hybrid armies. Gutenberg printing press (~1450) and the Reformation. Drawn from Unit 3.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r3',  num:3,  topic:'1450–1750', title:'Era 2B: Ships That Connected the World', icon:'⛵', themes:['TEC'],
-   desc:'The maritime technology cluster: caravel, carrack, galleon, fluyt. Lateen sail, sternpost rudder, ship-mounted cannon. Improved cartography (Mercator 1569). Drawn from Unit 4.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r4',  num:4,  topic:'1750–1900', title:'Era 3: The Industrial Revolutions', icon:'🚂', themes:['TEC'],
-   desc:'First Industrial Revolution: Watt\'s steam engine (1769), spinning jenny, water frame, mule, power loom, Stephenson\'s Rocket. Second Industrial Revolution: Bessemer steel (1856), telegraph (1844), telephone, electricity, internal combustion. Imperial weapons: Maxim gun, gunboats, quinine. Drawn from Units 5–6.',
-   type:'mcq', questions:12, group:'core'},
-  {id:'r5',  num:5,  topic:'1900–1945', title:'Era 4: Industrial Killing & the Atom', icon:'☢️', themes:['TEC'],
-   desc:'WWI machine guns, tanks, U-boats, aircraft, poison gas, radio. WWII strategic bombing, radar, code-breaking (Enigma/Turing), V-2 rocket. The Manhattan Project and the atomic bombs at Hiroshima and Nagasaki (Aug 1945). Drawn from Unit 7.',
-   type:'mcq', questions:10, group:'core'},
-  {id:'r6',  num:6,  topic:'1945–Present', title:'Era 5–6: Space Race to AI', icon:'🚀', themes:['TEC'],
-   desc:'Sputnik (1957), Apollo 11 (1969), hydrogen bomb, ICBMs, MAD. Green Revolution (Borlaug). Transistor (1947), integrated circuit (1958), ARPANET (1969), personal computer, World Wide Web (Berners-Lee 1991), iPhone (2007), social media, AI. Drawn from Units 8–9.',
-   type:'mcq', questions:12, group:'core'},
 
-  // ── Synthesis Rounds ──
-  {id:'r7',  num:7,  topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['TEC'],
-   desc:'Direct cross-period comparison questions. Compare information revolutions (Song printing vs. Gutenberg vs. internet), military technology shifts (gunpowder vs. industrial vs. nuclear/digital), or imperial-enabling technology (caravels vs. railroads/Maxim guns vs. drones).',
-   type:'comparison', questions:8, group:'skills'},
-  {id:'r8',  num:8,  topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['TEC'],
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — ERA 1: INVENTIONS OF CONNECTION  (1200–1450)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'1200–1450', title:'Era 1: Inventions of Connection', icon:'🧭', themes:['TEC'],
+   desc:'Song China innovations (compass, gunpowder, paper money, woodblock + movable-type printing). Champa rice. Indian Ocean ship technology.',
+   type:'mcq', group:'core', label:'Round 1 — Era 1: Inventions of Connection', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_tec_mcq_001', topic:'1200–1450', bigIdea:'TEC', difficulty:'accessible',
+      stem:'Song China during this period was an early world center of technological innovation, producing or refining',
+      choices:[
+        {id:'A', text:'gunpowder, the magnetic compass, paper money, and movable-type printing.'},
+        {id:'B', text:'the steam engine, the internal combustion engine, electrical generators, and modern semiconductors.'},
+        {id:'C', text:'the telegraph, the telephone, the radio, and the early modern stationary atomic battery.'},
+        {id:'D', text:'industrial-scale steel plows, mechanical reapers, barbed wire, and steam-powered railway locomotives.'}
+      ], correct:'A',
+      explanation:'Song China developed or refined gunpowder (originally for fireworks), the magnetic compass (for navigation), paper money (jiaozi), and movable-type printing (Bi Sheng, ~1040). These innovations spread across Eurasia and shaped the next several centuries of world history.'},
+
+    {id:'wh_th_tec_mcq_002', topic:'1200–1450', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A scholar describing the Indian Ocean maritime technology of this period would most likely emphasize',
+      choices:[
+        {id:'A', text:'the cluster of dhows, junks, lateen sails, the magnetic compass, and the astrolabe used for monsoon-driven trade.',
+        },
+        {id:'B', text:'the use of steam engines and iron-hulled ships across the Indian Ocean during the late medieval period.',
+        },
+        {id:'C', text:'the absence of any specialized maritime technology that distinguished the Indian Ocean from inland river trade.',
+        },
+        {id:'D', text:'the use of nuclear-powered submarines that emerged during the early 14th-century Indian Ocean monsoon trade era of the period.',
+        }
+      ], correct:'A',
+      explanation:'Indian Ocean trade relied on a technology cluster: Arab dhows with lateen sails, Chinese junks, the compass and astrolabe for navigation, and detailed knowledge of monsoon wind patterns. Together these enabled the long-distance maritime trade that linked East Africa to East Asia.'},
+
+    {id:'wh_th_tec_mcq_003', topic:'1200–1450', bigIdea:'TEC', difficulty:'moderate',
+      stem:'Champa rice, imported from Vietnam to Song China, contributed to environmental and demographic change because it',
+      choices:[
+        {id:'A', text:'allowed two harvests per year and helped support a doubling of the Chinese population during the Song.',
+        },
+        {id:'B', text:'rapidly displaced traditional Chinese agriculture and led to a sharp population decline during the Song era.',
+        },
+        {id:'C', text:'was a luxury crop reserved for elites and never reached the broader Song peasant agricultural population.',
+        },
+        {id:'D', text:'completely failed to grow in Chinese soils and was abandoned by Chinese farmers within a decade of its arrival.',
+        }
+      ], correct:'A',
+      explanation:'Fast-ripening, drought-resistant Champa rice allowed double-cropping in southern China. Combined with Song irrigation infrastructure, it supported a doubling of population to over 100 million. It is a classic example of biological-technological exchange driving demographic change.'},
+
+    {id:'wh_th_tec_mcq_004', topic:'1200–1450', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A scholar describing the diffusion of Song Chinese technology across Eurasia would most likely emphasize that gunpowder, the compass, and paper',
+      choices:[
+        {id:'A', text:'spread westward along Mongol-era Silk Roads and reshaped warfare, navigation, and information across other societies.',
+        },
+        {id:'B', text:'remained confined to East Asia throughout the entire late medieval era and never reached Eurasia or Europe.',
+        },
+        {id:'C', text:'were carried only by sea-borne missionaries from East Asia to West Africa during the late 14th century.',
+        },
+        {id:'D', text:'were rejected by all of the major Islamic, African, and European societies and were never adopted in any form outside of China itself.',
+        }
+      ], correct:'A',
+      explanation:'These Song innovations spread westward via Mongol-era Silk Roads and Indian Ocean trade. Gunpowder reshaped warfare across Eurasia; the magnetic compass enabled long-distance maritime navigation; paper transformed administration, religion, and the spread of literacy.'},
+
+    {id:'wh_th_tec_mcq_005', topic:'1200–1450', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar arguing that the Song Chinese paper-money system was a major financial innovation would most likely emphasize that it',
+      choices:[
+        {id:'A', text:'replaced heavy copper coins with portable currency and supported large-scale long-distance internal trade.',
+        },
+        {id:'B', text:'returned the Chinese economy to barter-based exchange and ended the broader use of metal coinage in the empire.',
+        },
+        {id:'C', text:'was a brief Song experiment that produced no lasting impact on later Chinese or world financial systems.',
+        },
+        {id:'D', text:'was a 19th-century European invention adopted by China only after the late-Qing-era opening to Atlantic trade.',
+        }
+      ], correct:'A',
+      explanation:'Song paper money (jiaozi) was the world\'s first widely used paper currency. It replaced heavy copper coins with portable notes, supporting large-scale long-distance internal trade. The system inspired later imitations across Eurasia and prefigured modern fiat currency.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — ERA 2A: GUNPOWDER & PRINTING PRESS  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'1450–1750', title:'Era 2A: Gunpowder Reshapes Land Power', icon:'💣', themes:['TEC'],
+   desc:'Gunpowder weaponry as the defining technology. Constantinople 1453, Mughal artillery, Manchu hybrid armies. Gutenberg printing press.',
+   type:'mcq', group:'core', label:'Round 2 — Era 2A: Gunpowder Reshapes Land Power', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_tec_mcq_006', topic:'1450–1750', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The 1453 Ottoman conquest of Constantinople is most often cited as significant for technological history because it',
+      choices:[
+        {id:'A', text:'demonstrated how massive gunpowder cannons could break previously impregnable medieval fortifications.',
+        },
+        {id:'B', text:'demonstrated that Byzantine fortifications could withstand all forms of gunpowder weapons developed in the era.',
+        },
+        {id:'C', text:'restored the medieval cavalry-based warfare that had defined European fighting before the development of gunpowder.',
+        },
+        {id:'D', text:'was the first known battle to use steam-powered military technology developed by Ottoman engineers in the era.',
+        }
+      ], correct:'A',
+      explanation:'Mehmed II\'s siege of Constantinople used massive cannons (notably Orban\'s "Basilica" cannon) that could break the previously impregnable Theodosian Walls. The fall of Constantinople in 1453 is a textbook moment in the gunpowder transformation of warfare.'},
+
+    {id:'wh_th_tec_mcq_007', topic:'1450–1750', bigIdea:'TEC', difficulty:'accessible',
+      stem:'Gutenberg\'s printing press (~1450) most directly contributed to',
+      choices:[
+        {id:'A', text:'the rapid spread of the Reformation, the rise of vernacular literature, and broader European literacy.',
+        },
+        {id:'B', text:'a sharp 15th-century decline in European reading and the rapid disappearance of vernacular European languages.',
+        },
+        {id:'C', text:'the immediate suppression of all of the existing European universities by the early-modern Catholic Church.',
+        },
+        {id:'D', text:'the centralization of all European book production in a single Vatican-controlled publishing institution.',
+        }
+      ], correct:'A',
+      explanation:'Gutenberg\'s movable-type press dramatically lowered the cost of producing books. It enabled the rapid spread of the Protestant Reformation (Luther\'s 95 Theses, vernacular Bibles), the rise of vernacular literature, and broader European literacy.'},
+
+    {id:'wh_th_tec_mcq_008', topic:'1450–1750', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A historian comparing Gutenberg\'s printing press to Song China\'s earlier movable-type printing would most likely emphasize that',
+      choices:[
+        {id:'A', text:'Gutenberg\'s press worked better with alphabetic European scripts than movable type did with Chinese characters.',
+        },
+        {id:'B', text:'Gutenberg directly copied Chinese movable type and contributed no original technological innovation of his own.',
+        },
+        {id:'C', text:'movable-type printing in China was much more widespread than Gutenberg\'s press throughout the early modern era.',
+        },
+        {id:'D', text:'neither system involved any kind of printing technology or contributed to literacy in their respective societies.',
+        }
+      ], correct:'A',
+      explanation:'Movable-type printing originated in Song China (Bi Sheng, c. 1040). Gutenberg\'s press was independently developed and worked better with alphabetic scripts (small character sets) than with Chinese characters (thousands of distinct signs), helping explain its faster European spread.'},
+
+    {id:'wh_th_tec_mcq_009', topic:'1450–1750', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The "gunpowder empires" (Ottoman, Safavid, Mughal, Manchu Qing) shared a common technological feature in that all four',
+      choices:[
+        {id:'A', text:'used gunpowder weapons (cannons and firearms) to consolidate and expand their political control.',
+        },
+        {id:'B', text:'rejected all gunpowder weapons and relied entirely on traditional cavalry warfare throughout their imperial era.',
+        },
+        {id:'C', text:'depended entirely on naval gunpowder weapons and avoided any kind of land-based gunpowder warfare.',
+        },
+        {id:'D', text:'shared a single unified industrial weapons-manufacturing system based in early modern Western Europe.',
+        }
+      ], correct:'A',
+      explanation:'All four "gunpowder empires" used cannons and firearms to consolidate and expand. Ottoman cannons at Constantinople, Mughal artillery at Panipat (1526), Safavid arquebusiers, and Manchu hybrid forces are textbook examples of gunpowder-driven imperial expansion.'},
+
+    {id:'wh_th_tec_mcq_010', topic:'1450–1750', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar comparing the impact of the printing press on the Reformation to the impact of social media on 21st-century political movements would most likely emphasize that both technologies',
+      choices:[
+        {id:'A', text:'lowered the cost of mass communication and enabled rapid spread of dissent against established institutions.',
+        },
+        {id:'B', text:'centralized communication in state institutions and effectively suppressed political and religious dissent.',
+        },
+        {id:'C', text:'were limited to a small region and had no measurable effect on broader political or religious developments.',
+        },
+        {id:'D', text:'were brief experimental technologies that produced no measurable impact on social movements in their respective eras.',
+        }
+      ], correct:'A',
+      explanation:'Both technologies sharply lowered the cost of mass communication and enabled rapid spread of dissent against established institutions: the press for the Reformation against the Catholic Church, social media for movements like the Arab Spring against authoritarian regimes.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — ERA 2B: SHIPS THAT CONNECTED THE WORLD  (1450–1750)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'1450–1750', title:'Era 2B: Ships That Connected the World', icon:'⛵', themes:['TEC'],
+   desc:'Caravel, carrack, galleon, fluyt. Lateen sail, sternpost rudder, ship-mounted cannon. Improved cartography (Mercator 1569).',
+   type:'mcq', group:'core', label:'Round 3 — Era 2B: Ships That Connected the World', color:'var(--acc)', draw:5, questions:[
+
+    {id:'wh_th_tec_mcq_011', topic:'1450–1750', bigIdea:'TEC', difficulty:'accessible',
+      stem:'European maritime exploration of the late 15th and 16th centuries depended on a cluster of technologies including',
+      choices:[
+        {id:'A', text:'the caravel, lateen sail, magnetic compass, astrolabe, and improved cartography.',
+        },
+        {id:'B', text:'the steam engine, iron-hulled ships, and submarine telegraph cables developed during the early 16th century.',
+        },
+        {id:'C', text:'industrial-scale steel construction and the long-haul nuclear-powered submarine technology of the late 1500s.',
+        },
+        {id:'D', text:'the railway locomotive and the long-distance electrical telegraph network developed during the 16th century.',
+        }
+      ], correct:'A',
+      explanation:'European long-distance exploration depended on a cluster of borrowed and refined technologies: the maneuverable caravel, lateen sails (from the Indian Ocean), the magnetic compass and astrolabe (Chinese and Islamic in origin), and improved European cartography.'},
+
+    {id:'wh_th_tec_mcq_012', topic:'1450–1750', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A historian arguing that early modern European ships were not entirely original European inventions would most likely emphasize',
+      choices:[
+        {id:'A', text:'European reliance on Indian Ocean lateen sails, the Chinese compass, and Islamic astronomical instruments.',
+        },
+        {id:'B', text:'European wholesale invention of every maritime technology between roughly 1400 and 1500 within Western Europe alone.',
+        },
+        {id:'C', text:'a deliberate European rejection of all Indian Ocean and Islamic maritime knowledge during the entire early modern era.',
+        },
+        {id:'D', text:'a sustained European dependence on early industrial steam engines for all major maritime exploration after about 1450.',
+        }
+      ], correct:'A',
+      explanation:'European long-distance maritime expansion drew heavily on technology developed elsewhere: the lateen sail (Indian Ocean), the magnetic compass (China), the astrolabe (Hellenistic and refined in the Islamic world). European innovation combined and refined these into a new ocean-going package.'},
+
+    {id:'wh_th_tec_mcq_013', topic:'1450–1750', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The ship-mounted cannon is most often cited as significant for early-modern history because it',
+      choices:[
+        {id:'A', text:'allowed European ships to project military force at a distance and dominate sea-borne commercial trade lanes.',
+        },
+        {id:'B', text:'allowed European ships to carry no offensive armament and to focus solely on rapid commercial transportation of goods.',
+        },
+        {id:'C', text:'was rejected by major European naval powers in favor of older medieval boarding-and-melee tactics.',
+        },
+        {id:'D', text:'was a 19th-century industrial invention with no significant role in the early modern Atlantic naval expansion.',
+        }
+      ], correct:'A',
+      explanation:'Ship-mounted cannon allowed European vessels to project military force at a distance, attacking other ships or coastal fortifications without boarding. Combined with Atlantic ships and Indian Ocean experience, it underpinned European maritime dominance after about 1500.'},
+
+    {id:'wh_th_tec_mcq_014', topic:'1450–1750', bigIdea:'TEC', difficulty:'moderate',
+      stem:'Mercator\'s 1569 projection was significant because it',
+      choices:[
+        {id:'A', text:'showed lines of constant compass bearing as straight lines, which made it valuable for long-distance ocean navigation.',
+        },
+        {id:'B', text:'was the first map ever drawn that depicted the African continent in any kind of accurate geographic detail.',
+        },
+        {id:'C', text:'rejected all earlier European cartography and produced a complete return to medieval religious mappa-mundi mapmaking.',
+        },
+        {id:'D', text:'was a brief 16th-century cartographic experiment with no measurable effect on any later European or non-European map-making practice.',
+        }
+      ], correct:'A',
+      explanation:'Mercator\'s 1569 projection rendered lines of constant compass bearing (rhumb lines) as straight lines, which made it invaluable for long-distance ocean navigation. It distorted the size of polar regions but was the standard navigation projection for centuries.'},
+
+    {id:'wh_th_tec_mcq_015', topic:'1450–1750', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar arguing that early-modern European maritime technology represented a synthesis rather than a wholly new invention would most likely emphasize that',
+      choices:[
+        {id:'A', text:'European ships combined Indian Ocean, East Asian, and Mediterranean elements into a new ocean-going package.',
+        },
+        {id:'B', text:'European ships were entirely new inventions with no debt to any earlier non-European maritime tradition.',
+        },
+        {id:'C', text:'European ships were drawn entirely from existing African maritime designs and added nothing original of their own.',
+        },
+        {id:'D', text:'European maritime technology declined sharply after 1450 and contributed nothing to the early modern naval era.',
+        }
+      ], correct:'A',
+      explanation:'Early modern European maritime technology was a synthesis: lateen sails from the Indian Ocean, the compass from China, the astrolabe refined in the Islamic world, and the sternpost rudder from China combined with European hull-building traditions. The synthesis was distinctive but not entirely original.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — ERA 3: THE INDUSTRIAL REVOLUTIONS  (1750–1900)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'1750–1900', title:'Era 3: The Industrial Revolutions', icon:'🚂', themes:['TEC'],
+   desc:'First Industrial Revolution: Watt\'s steam engine, spinning jenny, water frame, mule, power loom. Second Industrial Revolution: Bessemer steel, telegraph, electricity. Imperial weapons.',
+   type:'mcq', group:'core', label:'Round 4 — Era 3: The Industrial Revolutions', color:'var(--acc)', draw:7, questions:[
+
+    {id:'wh_th_tec_mcq_016', topic:'1750–1900', bigIdea:'TEC', difficulty:'accessible',
+      stem:'James Watt\'s improved steam engine (1769) is most often cited as a turning point in industrial history because it',
+      choices:[
+        {id:'A', text:'provided efficient mechanical power that could drive factories, mines, and later locomotives and steamships.',
+        },
+        {id:'B', text:'replaced all human labor in 18th-century British factories within a few years of its initial invention.',
+        },
+        {id:'C', text:'eliminated the need for coal as an energy source and ended the rise of coal-driven industrialization in Britain.',
+        },
+        {id:'D', text:'served as the foundation for the late-20th-century internal combustion engine in automobiles and aircraft.',
+        }
+      ], correct:'A',
+      explanation:'Watt\'s improved steam engine (more efficient than earlier Newcomen designs) provided reliable mechanical power that could drive factories, mines, and later locomotives (Stephenson\'s Rocket, 1829) and steamships. It is the textbook starting point of mechanized industry.'},
+
+    {id:'wh_th_tec_mcq_017', topic:'1750–1900', bigIdea:'TEC', difficulty:'accessible',
+      stem:'Stephenson\'s Rocket (1829) and the railway technology that followed most directly transformed',
+      choices:[
+        {id:'A', text:'overland transportation, allowing mass movement of goods and passengers at unprecedented speed and scale.',
+        },
+        {id:'B', text:'maritime transportation, allowing the rapid replacement of all 19th-century ocean-going sailing ships by 1840.',
+        },
+        {id:'C', text:'agricultural production, allowing rapid 19th-century mechanization of plowing across all of the European farmland.',
+        },
+        {id:'D', text:'electronic communication, providing the foundation for the late-19th-century telegraph and telephone networks.',
+        }
+      ], correct:'A',
+      explanation:'Stephenson\'s Rocket and the railway technology that followed transformed overland transportation. Within a generation, railroads connected industrial cities, enabled mass movement of goods and passengers, and reshaped national economies, military logistics, and urban geography.'},
+
+    {id:'wh_th_tec_mcq_018', topic:'1750–1900', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A scholar describing the Second Industrial Revolution (~1870-1914) would most likely emphasize',
+      choices:[
+        {id:'A', text:'Bessemer steel, electricity, the telephone, the internal combustion engine, and chemical industries.',
+        },
+        {id:'B', text:'Watt\'s steam engine and the spinning jenny as the defining technologies of the late 19th-century industrial era.',
+        },
+        {id:'C', text:'a return to subsistence farming and craft production across most of late-19th-century Europe and North America.',
+        },
+        {id:'D', text:'the decline of factory production and the rise of pre-industrial workshop manufacturing across the era.',
+        }
+      ], correct:'A',
+      explanation:'The Second Industrial Revolution (~1870-1914) saw new technologies: Bessemer steel (1856), electricity (Edison\'s grid, 1882), the telephone (Bell, 1876), the internal combustion engine, and chemical industries. The U.S. and Germany overtook Britain as industrial leaders in this era.'},
+
+    {id:'wh_th_tec_mcq_019', topic:'1750–1900', bigIdea:'TEC', difficulty:'moderate',
+      stem:'Samuel Morse\'s 1844 telegraph is most often cited as significant because it',
+      choices:[
+        {id:'A', text:'allowed near-instantaneous long-distance communication and reshaped business, journalism, and warfare.',
+        },
+        {id:'B', text:'replaced all 19th-century postal systems within a single decade and ended physical mail throughout the U.S.',
+        },
+        {id:'C', text:'was a brief mid-19th-century invention that had no measurable effect on long-distance communication.',
+        },
+        {id:'D', text:'was the first time that any electrical signal was successfully sent across the United States during the 19th century.',
+        }
+      ], correct:'A',
+      explanation:'Morse\'s telegraph allowed near-instantaneous long-distance communication. Combined with submarine cables (the first transatlantic cable in 1866), it reshaped business (commodity prices), journalism (wire services), warfare (command and control), and global empire.'},
+
+    {id:'wh_th_tec_mcq_020', topic:'1750–1900', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A historian listing the technologies that enabled late-19th-century European imperial expansion in Africa would most likely include',
+      choices:[
+        {id:'A', text:'the Maxim gun, steamboats, railroads, the telegraph, and quinine against malaria.',
+        },
+        {id:'B', text:'the steam engine and the spinning jenny but no military or medical innovations of any significance.',
+        },
+        {id:'C', text:'the personal computer, the satellite, and the early World Wide Web during the late 19th century.',
+        },
+        {id:'D', text:'pre-industrial cavalry, traditional sailing ships, and pre-telegraph long-distance courier networks only.',
+        }
+      ], correct:'A',
+      explanation:'Late-19th-century European imperialism in Africa depended on industrial-era tools: the Maxim machine gun (1884), steamboats and railroads for transport, the telegraph for command-and-control, and quinine to allow Europeans to survive malaria-prone regions.'},
+
+    {id:'wh_th_tec_mcq_021', topic:'1750–1900', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar comparing the First Industrial Revolution to the Second Industrial Revolution would most likely emphasize that the Second',
+      choices:[
+        {id:'A', text:'shifted leadership from Britain to Germany and the U.S. and centered on steel, electricity, and chemicals.',
+        },
+        {id:'B', text:'preserved British industrial leadership, with no significant role for German or American industrial innovation.',
+        },
+        {id:'C', text:'returned the global economy to pre-industrial subsistence farming throughout most of the late 19th century.',
+        },
+        {id:'D', text:'was technologically identical to the First Industrial Revolution and produced no new industrial technologies.',
+        }
+      ], correct:'A',
+      explanation:'The Second Industrial Revolution shifted industrial leadership from Britain to Germany and the U.S. It centered on new sectors: Bessemer steel, electricity, the telephone, internal combustion, and industrial chemistry, marking a structural shift from the First Industrial Revolution.'},
+
+    {id:'wh_th_tec_mcq_022', topic:'1750–1900', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar arguing that 19th-century industrial technology fundamentally changed the relationship between the West and the rest of the world would most likely emphasize',
+      choices:[
+        {id:'A', text:'the way industrial-era weapons and transportation enabled European powers to project force at unprecedented scale and reach.',
+        },
+        {id:'B', text:'the way 19th-century industrial technology completely eliminated all forms of cross-cultural exchange between regions.',
+        },
+        {id:'C', text:'the way industrial technology produced near-total equality between European and non-European societies by 1900.',
+        },
+        {id:'D', text:'the way 19th-century industrial Europe completely abandoned all forms of foreign engagement and turned strictly inward across the entire 19th century.',
+        }
+      ], correct:'A',
+      explanation:'19th-century industrial-era weapons (Maxim gun, ironclad gunboats), transportation (railroads, steamships), and communication (telegraph) allowed European powers to project force at an unprecedented scale and reach. Together they produced the late-19th-century "power gap" that drove the New Imperialism.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — ERA 4: INDUSTRIAL KILLING & THE ATOM  (1900–1945)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'1900–1945', title:'Era 4: Industrial Killing & the Atom', icon:'☢️', themes:['TEC'],
+   desc:'WWI machine guns, tanks, U-boats, aircraft, poison gas, radio. WWII strategic bombing, radar, code-breaking (Enigma/Turing), V-2 rocket. Manhattan Project. Hiroshima and Nagasaki.',
+   type:'mcq', group:'core', label:'Round 5 — Era 4: Industrial Killing & the Atom', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_th_tec_mcq_023', topic:'1900–1945', bigIdea:'TEC', difficulty:'accessible',
+      stem:'A historian listing the major military technologies of WWI would most likely include',
+      choices:[
+        {id:'A', text:'machine guns, barbed wire, poison gas, tanks, U-boats, military aircraft, and radio.',
+        },
+        {id:'B', text:'pre-industrial cavalry, medieval siege weapons, and pre-modern artillery as the defining WWI battlefield technologies.',
+        },
+        {id:'C', text:'nuclear weapons, jet aircraft, and intercontinental ballistic missiles as the defining technologies of WWI.',
+        },
+        {id:'D', text:'the personal computer, the early World Wide Web, and the first integrated circuit during the WWI era.',
+        }
+      ], correct:'A',
+      explanation:'WWI saw industrial mass-produced weapons: machine guns, barbed wire, poison gas (chlorine, mustard, phosgene), tanks (1916), U-boats, military aircraft (reconnaissance, then combat), and radio. Their convergence produced the deadlocked trench warfare and mass casualties that defined the war.'},
+
+    {id:'wh_th_tec_mcq_024', topic:'1900–1945', bigIdea:'TEC', difficulty:'moderate',
+      stem:'WWI machine guns and barbed wire are most often cited as significant because together they',
+      choices:[
+        {id:'A', text:'produced the trench-warfare deadlock on the Western Front and contributed to massive casualties.',
+        },
+        {id:'B', text:'allowed rapid Allied breakthroughs and produced a quick decisive end to the First World War by 1915.',
+        },
+        {id:'C', text:'were rejected by all of the major WWI combatants in favor of medieval-era siege warfare technologies.',
+        },
+        {id:'D', text:'were entirely defensive technologies that produced no measurable effect on combat casualties during the war.',
+        }
+      ], correct:'A',
+      explanation:'Machine guns and barbed wire favored defenders, producing the deadlocked trench warfare on the Western Front. Combined with massed artillery, they made offensives extremely costly and contributed to the unprecedented casualties (about 9 million military deaths in WWI).'},
+
+    {id:'wh_th_tec_mcq_025', topic:'1900–1945', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A historian describing the Allied technological advantage in WWII would most likely emphasize',
+      choices:[
+        {id:'A', text:'radar, code-breaking like the work at Bletchley Park, and U.S. industrial capacity for mass production.',
+        },
+        {id:'B', text:'a complete Allied technological inferiority to Axis forces throughout the entirety of WWII.',
+        },
+        {id:'C', text:'a complete Allied avoidance of any electronic or industrial technology during the entire WWII conflict.',
+        },
+        {id:'D', text:'a 19th-century cavalry-based Allied warfare that defeated all modern Axis industrial military technology.',
+        }
+      ], correct:'A',
+      explanation:'The Allies\' WWII technological advantages included radar (key to the Battle of Britain), code-breaking (Bletchley Park, Turing, Enigma), and U.S. industrial mass production. Together they helped the Allies offset early Axis tactical advantages and ultimately win the war.'},
+
+    {id:'wh_th_tec_mcq_026', topic:'1900–1945', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The German V-2 rocket is best characterized as',
+      choices:[
+        {id:'A', text:'the first long-range guided ballistic missile and a direct precursor to post-war ICBMs and space launch vehicles.',
+        },
+        {id:'B', text:'a brief WWII propaganda program that never produced any working rockets or missile technology.',
+        },
+        {id:'C', text:'a defensive German anti-aircraft system that successfully prevented all Allied bombing of Germany during the war.',
+        },
+        {id:'D', text:'an Allied long-range missile program based in Britain that helped end WWII through repeated long-range strikes against Germany during the war.',
+        }
+      ], correct:'A',
+      explanation:'The V-2 (1944), developed by Wernher von Braun and others, was the first long-range guided ballistic missile. After the war, both the U.S. (von Braun and others) and the USSR captured German rocket scientists, leading to ICBMs and the Space Race.'},
+
+    {id:'wh_th_tec_mcq_027', topic:'1900–1945', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The 1942-1945 Manhattan Project is best understood as',
+      choices:[
+        {id:'A', text:'a U.S.-led effort, with British and Canadian help, to develop the first nuclear fission weapons during WWII.',
+        },
+        {id:'B', text:'a U.S. peacetime project to develop civilian nuclear power that produced no military weapons of any kind.',
+        },
+        {id:'C', text:'a Soviet-led project that beat the United States to nuclear weapons by several years during World War II.',
+        },
+        {id:'D', text:'a brief German wartime project that successfully produced large nuclear weapons before the close of WWII during the year 1945.',
+        }
+      ], correct:'A',
+      explanation:'The Manhattan Project was a U.S.-led effort (with British and Canadian collaboration) to develop the first nuclear fission weapons. Led scientifically by J. Robert Oppenheimer, it produced the Trinity test (July 1945) and the Hiroshima and Nagasaki bombings (August 1945).'},
+
+    {id:'wh_th_tec_mcq_028', topic:'1900–1945', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar comparing WWI to WWII in technological terms would most likely emphasize that WWII',
+      choices:[
+        {id:'A', text:'saw a major shift toward strategic bombing, electronic warfare, and the development of nuclear weapons.',
+        },
+        {id:'B', text:'returned warfare to pre-industrial cavalry combat and abandoned the industrial weapons of the First World War.',
+        },
+        {id:'C', text:'used identical military technology to WWI with no significant innovations between the two world wars.',
+        },
+        {id:'D', text:'was fought entirely with 19th-century weapons and avoided any new technological developments throughout the war.',
+        }
+      ], correct:'A',
+      explanation:'WWII saw a major shift in military technology: strategic bombing of cities, electronic warfare (radar, code-breaking), guided missiles (V-2), and nuclear weapons. The atom bomb at Hiroshima and Nagasaki marked a qualitative break in the technology of war.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ERA 5–6: SPACE RACE TO AI  (1945–Present)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'1945–Present', title:'Era 5–6: Space Race to AI', icon:'🚀', themes:['TEC'],
+   desc:'Sputnik (1957), Apollo 11. Hydrogen bomb, ICBMs, MAD. Green Revolution. Transistor (1947), integrated circuit (1958), ARPANET (1969), PC, World Wide Web (1991), iPhone (2007), AI.',
+   type:'mcq', group:'core', label:'Round 6 — Era 5–6: Space Race to AI', color:'var(--acc)', draw:8, questions:[
+
+    {id:'wh_th_tec_mcq_029', topic:'1945–Present', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The 1957 Soviet launch of Sputnik most directly',
+      choices:[
+        {id:'A', text:'began the Space Race and prompted major U.S. investment in science, technology, and education.',
+        },
+        {id:'B', text:'ended the nuclear arms race and led directly to a U.S.-Soviet test ban treaty during the year 1957.',
+        },
+        {id:'C', text:'prevented the Soviets from achieving any further space technology success during the entire 1960s.',
+        },
+        {id:'D', text:'produced a unified U.S.-Soviet space agency that jointly funded all major Apollo era space missions.',
+        }
+      ], correct:'A',
+      explanation:'Sputnik shocked Americans into believing the Soviets had pulled ahead in technology. The U.S. responded with NASA (1958), the National Defense Education Act, and major science funding, fueling the Space Race that culminated in Apollo 11 (1969).'},
+
+    {id:'wh_th_tec_mcq_030', topic:'1945–Present', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The doctrine of Mutually Assured Destruction (MAD), developed during the Cold War, held that nuclear war was unlikely because',
+      choices:[
+        {id:'A', text:'each side\'s nuclear arsenal was so devastating that any nuclear attack would lead to total mutual destruction.',
+        },
+        {id:'B', text:'the United Nations had built powerful satellite defenses that could intercept any incoming nuclear missile.',
+        },
+        {id:'C', text:'a permanent U.S.-Soviet treaty of the 1950s had completely banned the use of nuclear weapons in all conflicts.',
+        },
+        {id:'D', text:'the two superpowers were closely allied and had pledged never to use force against each other for any reason whatsoever.',
+        }
+      ], correct:'A',
+      explanation:'MAD held that since both sides had enough nuclear weapons to destroy the other (even after a first strike), any nuclear attack would be suicidal. Deterrence rested on the credibility of mutual destruction, not on defense or arms reduction.'},
+
+    {id:'wh_th_tec_mcq_031', topic:'1945–Present', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The Green Revolution of the mid-20th century, led by figures like Norman Borlaug, is best characterized as',
+      choices:[
+        {id:'A', text:'high-yield grain varieties, chemical fertilizers, and irrigation that dramatically raised farm output worldwide.',
+        },
+        {id:'B', text:'a global movement to return all agricultural land to traditional precolonial subsistence farming methods.',
+        },
+        {id:'C', text:'a series of environmental laws that banned chemical fertilizers and pesticides across most agricultural regions.',
+        },
+        {id:'D', text:'a coordinated UN program that distributed agricultural land equally to peasant farmers in every developing country worldwide for free.',
+        }
+      ], correct:'A',
+      explanation:'The Green Revolution combined high-yield wheat and rice varieties (developed by Borlaug and others), synthetic fertilizers, pesticides, and improved irrigation. It dramatically raised yields in Mexico, India, and elsewhere, averting predicted famines.'},
+
+    {id:'wh_th_tec_mcq_032', topic:'1945–Present', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A historian describing the foundational technologies of the digital revolution would most likely emphasize',
+      choices:[
+        {id:'A', text:'the transistor (1947) and the integrated circuit (1958), which made small, fast electronic computing possible.',
+        },
+        {id:'B', text:'the steam engine (1769) and the spinning jenny (1764) as the foundational technologies of the digital era.',
+        },
+        {id:'C', text:'the telegraph (1844) and the telephone (1876) as the immediate technological precursors of the modern computer.',
+        },
+        {id:'D', text:'the printing press (~1450) and the steam locomotive (1829) as the foundational technologies of the digital revolution.',
+        }
+      ], correct:'A',
+      explanation:'The transistor (Bell Labs, 1947) and the integrated circuit (Kilby and Noyce, 1958) made small, fast electronic computing possible. They are the foundational technologies of the digital revolution, enabling everything from mainframes to smartphones.'},
+
+    {id:'wh_th_tec_mcq_033', topic:'1945–Present', bigIdea:'TEC', difficulty:'moderate',
+      stem:'ARPANET (1969) and Tim Berners-Lee\'s World Wide Web (1991) were significant because together they',
+      choices:[
+        {id:'A', text:'built the technical foundation for the modern internet, transforming global communication and commerce.',
+        },
+        {id:'B', text:'were brief experimental projects with no measurable effect on later digital communication networks anywhere.',
+        },
+        {id:'C', text:'were rejected by every major industrial economy in favor of older 20th-century communication networks.',
+        },
+        {id:'D', text:'centralized all global communication within a single state-run agency by the early 1990s.',
+        }
+      ], correct:'A',
+      explanation:'ARPANET (1969, U.S. Defense Department) demonstrated packet-switched computer networking. Berners-Lee\'s World Wide Web (1991, CERN) built the user-friendly hypertext layer on top of the internet. Together they built the technical foundation for the modern internet.'},
+
+    {id:'wh_th_tec_mcq_034', topic:'1945–Present', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The 2007 launch of the iPhone is most often cited as a turning point because it',
+      choices:[
+        {id:'A', text:'made the internet pocket-sized, accelerating the spread of social media and mobile-app economies worldwide.',
+        },
+        {id:'B', text:'was a brief consumer technology with no measurable effect on broader digital culture or economic life.',
+        },
+        {id:'C', text:'was the first computer ever made and replaced all of the earlier 20th-century mainframe computer systems.',
+        },
+        {id:'D', text:'was rejected by most of the world\'s consumers in favor of older flip-phone technology throughout most of the late 2010s.',
+        }
+      ], correct:'A',
+      explanation:'The 2007 iPhone made the internet truly pocket-sized, integrating browser, camera, GPS, and apps. It accelerated the spread of social media (Facebook, Twitter, Instagram), the mobile-app economy, and reshaped expectations of what "computing" meant globally.'},
+
+    {id:'wh_th_tec_mcq_035', topic:'1945–Present', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar comparing the printing press, the telegraph, and the internet would most likely emphasize that all three',
+      choices:[
+        {id:'A', text:'sharply lowered the cost of long-distance communication and produced major social, political, and economic change.',
+        },
+        {id:'B', text:'centralized communication in state institutions and effectively suppressed political and religious change.',
+        },
+        {id:'C', text:'were technologies confined to a single small region and produced no broader effects on society.',
+        },
+        {id:'D', text:'were brief experimental technologies that produced no measurable impact on social, political, or economic life across their respective eras.',
+        }
+      ], correct:'A',
+      explanation:'The printing press, the telegraph, and the internet each sharply lowered the cost of long-distance communication. Each produced major social, political, and economic change: the Reformation and Scientific Revolution, the 19th-century news economy, and the digital age.'},
+
+    {id:'wh_th_tec_mcq_036', topic:'1945–Present', bigIdea:'TEC', difficulty:'challenging',
+      stem:'A scholar arguing that 21st-century artificial intelligence may represent a transformation comparable to earlier technological revolutions would most likely emphasize that AI',
+      choices:[
+        {id:'A', text:'could reshape labor markets, knowledge work, and warfare at a pace that recalls earlier industrial transitions.',
+        },
+        {id:'B', text:'has had no measurable effect on labor, knowledge work, or warfare since its emergence in the early 21st century.',
+        },
+        {id:'C', text:'is a brief experimental technology with no historical parallels in earlier industrial or digital transformations.',
+        },
+        {id:'D', text:'has been deliberately suppressed by all major world governments and has had no public application in any sector.',
+        }
+      ], correct:'A',
+      explanation:'A common scholarly framing holds that AI could reshape labor markets (automation of cognitive work), knowledge work (research, writing, design), and warfare (autonomous systems, drones) at a pace that recalls the disruptive transitions of earlier industrial revolutions.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 9 — Pass 2 stubs
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7', num:7, topic:'CROSS-PERIOD', title:'Comparison Round', icon:'🔍', themes:['TEC'],
+   desc:'Direct cross-period comparison: information revolutions (Song printing vs. Gutenberg vs. internet), military technology shifts (gunpowder vs. industrial vs. nuclear/digital), or imperial-enabling technology (caravels vs. railroads/Maxim guns vs. drones).',
+   type:'comparison', group:'skills', label:'Round 7 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
+  {id:'r8', num:8, topic:'CCOT', title:'CCOT Practice', icon:'🔄', themes:['TEC'],
    desc:'Continuity and Change Over Time skill drills. Identify what changed and what stayed the same in technology from 1200 to present. Argumentation 6.B with three specific examples per claim.',
-   type:'ccot', questions:6, group:'skills'},
+   type:'ccot', group:'skills', label:'Round 8 — CCOT Practice', color:'var(--bronze)', draw:1, questions:6, sets:[]},
 
-  // ── LEQ Synthesis ──
-  {id:'r9',  num:9,  topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['TEC'],
+  {id:'r9', num:9, topic:'LEQ', title:'LEQ Synthesis', icon:'📝', themes:['TEC'],
    desc:'1 full Long Essay Question with rubric scoring. Sample prompts: "Evaluate the extent to which technology transformed warfare from 1450 to 1945" or "Compare the diffusion of technology in two different periods." 800–1000 word target.',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 9 — LEQ Synthesis', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (cross-period technology terms) ─────────────────
 // Organized by ERA so students can review chronologically OR by category
@@ -857,7 +1603,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -874,9 +1620,488 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the cross-period synthesis content for the Technology & Innovation theme.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
+}
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities (order matters: do specific ones before catch-all)
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&rarr;/g, '→')
+    .replace(/&larr;/g, '←')
+    .replace(/&uarr;/g, '↑')
+    .replace(/&darr;/g, '↓')
+    .replace(/&nbsp;/g, ' ')
+    // Accented-letter entities (common in proper nouns)
+    .replace(/&aacute;/g, 'á').replace(/&Aacute;/g, 'Á')
+    .replace(/&eacute;/g, 'é').replace(/&Eacute;/g, 'É')
+    .replace(/&iacute;/g, 'í').replace(/&Iacute;/g, 'Í')
+    .replace(/&oacute;/g, 'ó').replace(/&Oacute;/g, 'Ó')
+    .replace(/&uacute;/g, 'ú').replace(/&Uacute;/g, 'Ú')
+    .replace(/&agrave;/g, 'à').replace(/&Agrave;/g, 'À')
+    .replace(/&egrave;/g, 'è').replace(/&Egrave;/g, 'È')
+    .replace(/&igrave;/g, 'ì').replace(/&Igrave;/g, 'Ì')
+    .replace(/&ograve;/g, 'ò').replace(/&Ograve;/g, 'Ò')
+    .replace(/&ugrave;/g, 'ù').replace(/&Ugrave;/g, 'Ù')
+    .replace(/&acirc;/g, 'â').replace(/&Acirc;/g, 'Â')
+    .replace(/&ecirc;/g, 'ê').replace(/&Ecirc;/g, 'Ê')
+    .replace(/&icirc;/g, 'î').replace(/&Icirc;/g, 'Î')
+    .replace(/&ocirc;/g, 'ô').replace(/&Ocirc;/g, 'Ô')
+    .replace(/&ucirc;/g, 'û').replace(/&Ucirc;/g, 'Û')
+    .replace(/&auml;/g, 'ä').replace(/&Auml;/g, 'Ä')
+    .replace(/&euml;/g, 'ë').replace(/&Euml;/g, 'Ë')
+    .replace(/&iuml;/g, 'ï').replace(/&Iuml;/g, 'Ï')
+    .replace(/&ouml;/g, 'ö').replace(/&Ouml;/g, 'Ö')
+    .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
+    .replace(/&ntilde;/g, 'ñ').replace(/&Ntilde;/g, 'Ñ')
+    .replace(/&atilde;/g, 'ã').replace(/&Atilde;/g, 'Ã')
+    .replace(/&otilde;/g, 'õ').replace(/&Otilde;/g, 'Õ')
+    .replace(/&ccedil;/g, 'ç').replace(/&Ccedil;/g, 'Ç')
+    .replace(/&aring;/g, 'å').replace(/&Aring;/g, 'Å')
+    .replace(/&aelig;/g, 'æ').replace(/&AElig;/g, 'Æ')
+    .replace(/&oslash;/g, 'ø').replace(/&Oslash;/g, 'Ø')
+    .replace(/&szlig;/g, 'ß');
+  // Catch-all: any remaining named or numeric entity becomes empty
+  s = s.replace(/&#?[a-zA-Z0-9]+;/g, '');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
 }
 
 
@@ -911,6 +2136,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -951,11 +2178,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
