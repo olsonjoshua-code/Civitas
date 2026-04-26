@@ -173,6 +173,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -184,6 +320,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -523,16 +666,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
 
     <!-- ═══════════════════════════════════════════════════
-         VOCAB QUIZ TAB — placeholder for now
+         VOCAB QUIZ TAB — live quiz (mixes term-to-def and def-to-term)
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 2 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from all four trade networks plus consequences and comparison. Mix of term-to-definition and definition-to-term prompts. Score well to earn gold for the Civitas vault.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -662,6 +811,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 2 DATA
@@ -670,53 +867,459 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u2';
 const UNIT_TITLE = 'Networks of Exchange';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 4 trade-network rounds + 2 consequences + 1 comparison + 2 skills + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — Unit 2 Networks of Exchange
+//  6 MCQ rounds with 6 questions each = 36 MCQs (Pass 1)
+//  Stimulus and FRQ rounds carry sets:[] / questions:[] for Pass 2
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Trade Networks (Topics 2.1–2.4) ──
-  {id:'r1',  num:1,  topic:'2.1', title:'The Silk Roads',    icon:'🐪', themes:['ECN','TEC','CDI'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — THE SILK ROADS  (Topic 2.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'2.1', title:'The Silk Roads', icon:'🐪', themes:['ECN','TEC','CDI'],
    desc:'Overland luxury trade across Eurasia. Caravanserai, the camel saddle, paper money, and the technologies that made long-distance commerce possible.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r2',  num:2,  topic:'2.2', title:'The Mongols',        icon:'🏹', themes:['GOV','ECN','TEC'],
+   type:'mcq', group:'core', label:'Round 1 — The Silk Roads', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u2_mcq_001', topic:'2.1', bigIdea:'ECN', difficulty:'accessible',
+      stem:'Goods carried along the Silk Roads in the period c. 1200-1450 were predominantly',
+      choices:[
+        {id:'A', text:'high-value luxury items, because the cost of overland transport made bulk goods unprofitable.'},
+        {id:'B', text:'staple grains and timber, since these were the heaviest and easiest items to load on caravans.'},
+        {id:'C', text:'enslaved laborers shipped overland from West Africa to markets in eastern China.'},
+        {id:'D', text:'fresh fish and dairy products preserved in salt for the long journey across Central Asia.'}
+      ], correct:'A',
+      explanation:'Overland transport was extremely expensive, so only goods with high value per unit weight (silk, porcelain, spices, gems) justified the journey. Bulk goods moved by sea instead.'},
+
+    {id:'wh_u2_mcq_002', topic:'2.1', bigIdea:'TEC', difficulty:'accessible',
+      stem:'A caravanserai was best understood as',
+      choices:[
+        {id:'A', text:'a roadside inn that provided shelter, water, and food for traveling merchants and their pack animals.'},
+        {id:'B', text:'a long-distance Chinese cargo ship designed for use along the southern Indian Ocean monsoon routes.'},
+        {id:'C', text:'a written document that authorized merchants to draw funds from a banking house in another city.'},
+        {id:'D', text:'a fortified state warehouse where Chinese imperial governments stockpiled silk for export to European markets.'}
+      ], correct:'A',
+      explanation:'Caravanserai were inns spaced about a day\'s travel apart along the Silk Roads, often funded by Muslim charitable foundations. Without them, long-distance overland trade would not have been viable.'},
+
+    {id:'wh_u2_mcq_003', topic:'2.1', bigIdea:'TEC', difficulty:'moderate',
+      stem:'Bills of exchange contributed to long-distance trade in the period c. 1200-1450 most directly by',
+      choices:[
+        {id:'A', text:'allowing merchants to transfer credit between cities without physically carrying gold or silver.'},
+        {id:'B', text:'serving as a printed government license that authorized travel along specific overland routes.'},
+        {id:'C', text:'replacing all forms of metal coinage with state-issued paper money across Mongol-ruled territories.'},
+        {id:'D', text:'providing crews with a portable instrument to determine latitude using the position of the stars.'}
+      ], correct:'A',
+      explanation:'Bills of exchange (originally an Islamic-world innovation) functioned like medieval checks. A merchant could deposit funds with one banking house and draw them at a partner house elsewhere, without moving precious metal.'},
+
+    {id:'wh_u2_mcq_004', topic:'2.1', bigIdea:'ECN', difficulty:'moderate',
+      stem:'During the period c. 1200-1450, the Hanseatic League is best understood as',
+      choices:[
+        {id:'A', text:'a confederation of northern European merchant cities that coordinated Baltic and North Sea commerce.'},
+        {id:'B', text:'an alliance of Italian banking families that financed long-distance Mediterranean shipping ventures.'},
+        {id:'C', text:'a religious-military order created during the Crusades to protect overland pilgrim travel routes.'},
+        {id:'D', text:'a Mongol postal relay system that linked Karakorum to all the provincial capitals across the four khanates.'}
+      ], correct:'A',
+      explanation:'The Hanseatic League was a commercial confederation of mostly German-speaking towns that controlled trade in the Baltic and North Sea, the northern European counterpart to the Italian commercial cities.'},
+
+    {id:'wh_u2_mcq_005', topic:'2.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Cities such as Samarkand and Kashgar grew prosperous in this period primarily because they',
+      choices:[
+        {id:'A', text:'served as commercial waypoints where caravans rested, exchanged goods, and replenished supplies.'},
+        {id:'B', text:'controlled the only deep-water ports along the Indian Ocean coast where dhows could safely anchor.'},
+        {id:'C', text:'were imperial capitals from which Chinese emperors directly governed the entire Silk Road network.'},
+        {id:'D', text:'monopolized the production of porcelain and silk for export to markets across Eurasia and beyond.'}
+      ], correct:'A',
+      explanation:'Samarkand and Kashgar were major caravan-route oasis cities. Their wealth came from being commercial nodes where goods, ideas, and travelers passed through, not from production or central political authority.'},
+
+    {id:'wh_u2_mcq_006', topic:'2.1', bigIdea:'TEC', difficulty:'challenging',
+      stem:'Which of the following best illustrates how innovation enabled the expansion of long-distance trade in this period?',
+      choices:[
+        {id:'A', text:'The camel saddle, which let merchants carry heavy loads across deserts that wagons could not cross.'},
+        {id:'B', text:'The horse-drawn plow, which allowed European peasants to grow surplus grain to ship across the Sahara.'},
+        {id:'C', text:'The wheelbarrow, a Chinese invention that became the standard transport vehicle on the overland routes.'},
+        {id:'D', text:'Iron stirrups, which let mounted merchants defend themselves against bandits in the Central Asian steppe.'}
+      ], correct:'A',
+      explanation:'The camel saddle made overland desert trade economically feasible. The CED stresses cause-and-effect reasoning here: technology enabled trade expansion. The other items are real but did not directly drive long-distance commerce.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — THE MONGOLS  (Topic 2.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'2.2', title:'The Mongols', icon:'🏹', themes:['GOV','ECN','TEC'],
    desc:'Genghis Khan, the largest contiguous empire in history, the four khanates, the Pax Mongolica, and the unintended unification of Eurasia.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r3',  num:3,  topic:'2.3', title:'Indian Ocean',       icon:'⛵', themes:['ECN','TEC','GOV'],
+   type:'mcq', group:'core', label:'Round 2 — The Mongols', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u2_mcq_007', topic:'2.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Genghis Khan unified the steppe peoples in the early 13th century primarily by',
+      choices:[
+        {id:'A', text:'reorganizing his armies by units of ten so that loyalty was to him rather than to traditional tribes.'},
+        {id:'B', text:'requiring all conquered peoples to convert to a unified state religion he personally founded.'},
+        {id:'C', text:'distributing imperial coinage stamped with his image to be circulated across the entire steppe.'},
+        {id:'D', text:'establishing a permanent imperial capital in northern China from which to govern the entire Eurasian world.'}
+      ], correct:'A',
+      explanation:'Genghis broke up traditional clan and tribal loyalties by reorganizing the army into decimal units (10s, 100s, 1,000s, 10,000s). This made personal loyalty to him, not to a tribe, the basis of military power.'},
+
+    {id:'wh_u2_mcq_008', topic:'2.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'After the death of Genghis Khan, the Mongol Empire was divided into',
+      choices:[
+        {id:'A', text:'four khanates, including the Yuan in China, the Ilkhanate in Persia, and the Golden Horde in Russia.'},
+        {id:'B', text:'two equal halves, with the western division ruled by the Mamluks and the east governed from Baghdad.'},
+        {id:'C', text:'three city-state federations centered on the trading hubs of Kashgar, Samarkand, and Merv in Asia.'},
+        {id:'D', text:'a single elective monarchy in which a council of generals chose each new ruler from any noble family.'}
+      ], correct:'A',
+      explanation:'The Mongol Empire split into four khanates: the Yuan (China), Chagatai (Central Asia), Ilkhanate (Persia and the Middle East), and the Golden Horde (Russia and the steppe).'},
+
+    {id:'wh_u2_mcq_009', topic:'2.2', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The term Pax Mongolica refers most directly to',
+      choices:[
+        {id:'A', text:'the period of relative peace under Mongol rule that allowed safe travel and trade across Eurasia.'},
+        {id:'B', text:'the formal peace treaty that ended Mongol military campaigns against the Mamluk Sultanate of Egypt.'},
+        {id:'C', text:'the religious tolerance that the Mongol khans extended to subjects under their direct administrative rule.'},
+        {id:'D', text:'the policy by which Kublai Khan reorganized the Chinese civil service exam during the early Yuan dynasty.'}
+      ], correct:'A',
+      explanation:'Pax Mongolica ("Mongol Peace") describes the late 13th and 14th-century era when Mongol-controlled Eurasia was unified enough that merchants like Marco Polo could travel from Europe to China relatively safely.'},
+
+    {id:'wh_u2_mcq_010', topic:'2.2', bigIdea:'TEC', difficulty:'moderate',
+      stem:'A major effect of the Mongol conquests on technological exchange was that',
+      choices:[
+        {id:'A', text:'gunpowder, paper, and printing technologies spread westward from China through Mongol-ruled territories.'},
+        {id:'B', text:'European water-mill technology was rapidly adopted by Chinese farmers under the Yuan dynasty rule.'},
+        {id:'C', text:'Mongol rulers banned the diffusion of military technology to prevent its use against their own armies.'},
+        {id:'D', text:'long-distance technological exchange across Eurasia was effectively halted by the ongoing Mongol warfare.'}
+      ], correct:'A',
+      explanation:'Mongol rule connected Eurasia, accelerating the transmission of Chinese technologies (gunpowder, paper, printing, the compass) westward. Far from blocking exchange, the Mongols actively recruited skilled artisans across their territories.'},
+
+    {id:'wh_u2_mcq_011', topic:'2.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The 1258 Mongol sack of Baghdad is most often cited as the event that',
+      choices:[
+        {id:'A', text:'ended the Abbasid Caliphate and shifted political power in the Islamic heartland to other Muslim states.'},
+        {id:'B', text:'unified the entire Islamic world under a single Mongol-appointed caliph based in the city of Karakorum.'},
+        {id:'C', text:'converted the Mongol ruling family to Sunni Islam and obligated them to defend the Abbasid caliphate.'},
+        {id:'D', text:'forced the Mamluk Sultanate of Egypt to relocate its political and religious capital to the city of Mecca.'}
+      ], correct:'A',
+      explanation:'Hulagu Khan\'s 1258 sack of Baghdad killed the last Abbasid caliph and ended that dynasty. Power in the Islamic heartland passed to the Mamluks (who later defeated the Mongols at Ain Jalut) and other Turkic states.'},
+
+    {id:'wh_u2_mcq_012', topic:'2.2', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Although the Mongols are often remembered for destruction, historians also emphasize that they',
+      choices:[
+        {id:'A', text:'fostered religious tolerance, recruited talent across cultures, and rebuilt the cities they relied on.'},
+        {id:'B', text:'imposed Tibetan Buddhism as a single state religion across all four khanates by the 1290s.'},
+        {id:'C', text:'eliminated long-distance trade in their territories by deliberately destroying every major caravan-route city.'},
+        {id:'D', text:'forced every conquered city to adopt the Mongol script and abandon all preexisting written languages.'}
+      ], correct:'A',
+      explanation:'Mongol rulers were generally tolerant of local religions, employed administrators from many cultures (Persians, Chinese, Uighurs), and rebuilt and protected cities that supported trade or governance.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — INDIAN OCEAN  (Topic 2.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'2.3', title:'Indian Ocean', icon:'⛵', themes:['ECN','TEC','GOV'],
    desc:'The world\'s richest maritime trade — monsoon winds, dhows, Swahili city-states, Calicut, Malacca, Zheng He\'s voyages, and diasporic merchants.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'2.4', title:'Trans-Saharan',      icon:'🐫', themes:['CDI','ECN'],
+   type:'mcq', group:'core', label:'Round 3 — Indian Ocean Trade', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u2_mcq_013', topic:'2.3', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The seasonal pattern of Indian Ocean trade in this period was governed most directly by',
+      choices:[
+        {id:'A', text:'the monsoon winds, which blew predictably from one direction in summer and the reverse in winter.'},
+        {id:'B', text:'the Mongol military calendar, which dictated when merchant fleets could safely sail between ports.'},
+        {id:'C', text:'a treaty among the Swahili city-states that staggered shipping departures by month and by season.'},
+        {id:'D', text:'the Chinese imperial almanac, which sailors across the Indian Ocean used to schedule their voyages.'}
+      ], correct:'A',
+      explanation:'Indian Ocean sailors used the monsoons (southwesterly in summer, northeasterly in winter) to time voyages across vast distances. The wind pattern, more than any human authority, shaped the whole network.'},
+
+    {id:'wh_u2_mcq_014', topic:'2.3', bigIdea:'TEC', difficulty:'accessible',
+      stem:'A dhow is best described as',
+      choices:[
+        {id:'A', text:'an Arab-Indian sailing vessel rigged with triangular lateen sails for use on Indian Ocean routes.'},
+        {id:'B', text:'a Chinese flat-bottomed riverboat designed for use on the Yangtze and the Grand Canal system.'},
+        {id:'C', text:'a Mediterranean galley powered mainly by oars and used for short coastal trade in the Red Sea.'},
+        {id:'D', text:'a Hanseatic League merchant cog used for hauling timber and grain across the Baltic and North Sea.'}
+      ], correct:'A',
+      explanation:'The dhow, with its triangular lateen sail, was the workhorse of Indian Ocean commerce. Its rig let sailors tack against the wind, which was crucial for navigating the monsoon system.'},
+
+    {id:'wh_u2_mcq_015', topic:'2.3', bigIdea:'ECN', difficulty:'moderate',
+      stem:'Diasporic merchant communities, such as Gujarati Muslims in East Africa, contributed to Indian Ocean trade most directly by',
+      choices:[
+        {id:'A', text:'building cross-cultural networks of trust and shared language that lowered the risk of long-distance trade.'},
+        {id:'B', text:'organizing armed naval expeditions that policed the sea lanes between Calicut and the Persian Gulf.'},
+        {id:'C', text:'serving as official Chinese government tax collectors stationed in Indian Ocean port cities by Beijing.'},
+        {id:'D', text:'enforcing a single uniform currency, made out of cowrie shells, across the entire region\'s commercial system.'}
+      ], correct:'A',
+      explanation:'Diasporic merchant communities (Gujaratis, Arabs, Persians, Chinese) settled in foreign ports and used kinship and shared religion or language to coordinate trade across cultural boundaries.'},
+
+    {id:'wh_u2_mcq_016', topic:'2.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Swahili city-states of the East African coast in this period are best understood as',
+      choices:[
+        {id:'A', text:'independent commercial centers whose Muslim merchant elites linked African interior trade to the Indian Ocean.'},
+        {id:'B', text:'a single unified Christian kingdom ruled directly by the Solomonic Ethiopian dynasty from Lalibela.'},
+        {id:'C', text:'tributary provinces of the Mali Empire that paid annual gold tribute to the rulers in distant Timbuktu.'},
+        {id:'D', text:'a formal colonial network of Chinese settlements that was established by the early voyages of the admiral Zheng He.'}
+      ], correct:'A',
+      explanation:'Cities like Kilwa, Mombasa, and Sofala were independent, mostly Muslim Swahili city-states whose wealth came from acting as middlemen between the African interior and Indian Ocean shipping.'},
+
+    {id:'wh_u2_mcq_017', topic:'2.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The voyages of Zheng He in the early 15th century are best characterized as',
+      choices:[
+        {id:'A', text:'state-sponsored Ming expeditions that displayed Chinese power and gathered tribute across the Indian Ocean.'},
+        {id:'B', text:'private commercial ventures financed by southern Chinese merchant guilds without imperial involvement.'},
+        {id:'C', text:'religious pilgrimages organized by Buddhist monks to bring sacred texts back from Sri Lanka and India.'},
+        {id:'D', text:'colonial missions to plant permanent Chinese settlements at Indian Ocean ports for long-term Ming governance.'}
+      ], correct:'A',
+      explanation:'Zheng He\'s seven voyages (1405-1433) were state-sponsored Ming expeditions intended to project Chinese power, collect tribute, and bring foreign envoys to the Ming court. They were not commercial or colonial.'},
+
+    {id:'wh_u2_mcq_018', topic:'2.3', bigIdea:'ECN', difficulty:'challenging',
+      stem:'Compared to the Silk Roads, the Indian Ocean trade network in this period was distinctive in that it',
+      choices:[
+        {id:'A', text:'carried bulk goods like rice, timber, and slaves alongside luxuries, because shipping cost less by sea.'},
+        {id:'B', text:'dealt almost entirely in luxury items, because dhows were too small to transport heavy bulk cargoes.'},
+        {id:'C', text:'was managed by a single political authority that imposed uniform tariffs across all the major port cities.'},
+        {id:'D', text:'relied mainly on overland connections and rarely involved long-distance ocean shipping between regions.'}
+      ], correct:'A',
+      explanation:'Sea transport was much cheaper per ton than overland transport, so Indian Ocean ships carried bulky goods (timber, grain, slaves) along with high-value items. The Silk Roads, by contrast, were mostly luxury-only.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — TRANS-SAHARAN  (Topic 2.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'2.4', title:'Trans-Saharan', icon:'🐫', themes:['CDI','ECN'],
    desc:'Camel caravans across the desert. Mali, Mansa Musa, Timbuktu, the gold-salt trade, and the Islamization of West Africa.',
-   type:'mcq',  questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 4 — Trans-Saharan Trade', color:'var(--acc)', draw:6, questions:[
 
-  // ── Consequences & Comparison (Topics 2.5–2.7) ──
-  {id:'r5',  num:5,  topic:'2.5', title:'Cultural Consequences', icon:'🕌', themes:['CDI'],
-   desc:'How trade spread religions, languages, technologies, and ideas — Sufism, Sikhism, Bhakti, syncretism, the Renaissance roots.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r6',  num:6,  topic:'2.6', title:'Environmental Consequences', icon:'🌱', themes:['ENV'],
+    {id:'wh_u2_mcq_019', topic:'2.4', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The trans-Saharan trade in this period centered most directly on the exchange of',
+      choices:[
+        {id:'A', text:'West African gold for North African and Saharan salt, with both products in short supply on each side.'},
+        {id:'B', text:'European silver coins for Chinese porcelain shipped overland from the eastern end of the Silk Roads.'},
+        {id:'C', text:'Indian cotton textiles for sub-Saharan ivory transported north by Tuareg merchant caravans.'},
+        {id:'D', text:'Mediterranean wine for North African dates, with smaller volumes of trade in Ethiopian incense and frankincense.'}
+      ], correct:'A',
+      explanation:'The defining trade was gold (abundant in West Africa, scarce elsewhere) for salt (abundant in Saharan deposits, essential for human and livestock survival but scarce in the West African forest belt).'},
+
+    {id:'wh_u2_mcq_020', topic:'2.4', bigIdea:'TEC', difficulty:'accessible',
+      stem:'The single most important technology for making the trans-Saharan trade viable was',
+      choices:[
+        {id:'A', text:'the camel saddle, which let drivers load camels efficiently for long desert journeys without supplies.'},
+        {id:'B', text:'the magnetic compass, which allowed Saharan caravan leaders to determine direction during dust storms.'},
+        {id:'C', text:'iron stirrups, which gave Tuareg cavalry escorts the ability to fight effectively from horseback.'},
+        {id:'D', text:'the lateen sail, which permitted Mediterranean ships to reach the West African ports against headwinds.'}
+      ], correct:'A',
+      explanation:'The camel itself, plus saddle designs that let camels carry heavy loads, made the Sahara crossable. The compass came later and was used at sea, not on caravans.'},
+
+    {id:'wh_u2_mcq_021', topic:'2.4', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Mansa Musa\'s 1324-1325 hajj is most often used by historians to illustrate',
+      choices:[
+        {id:'A', text:'the enormous wealth of Mali and the integration of West Africa into the wider Islamic and Mediterranean world.'},
+        {id:'B', text:'the failure of the Mali Empire to establish trade relationships with North African and Egyptian merchants.'},
+        {id:'C', text:'the conversion of all Mali subjects to Sunni Islam through a single mass pilgrimage to the city of Mecca.'},
+        {id:'D', text:'the rejection by the Mali rulers of trans-Saharan trade in favor of new overland connections to Eurasian commerce.'}
+      ], correct:'A',
+      explanation:'Musa\'s lavish pilgrimage spread Malian gold across the Mediterranean, made Mali widely known on European maps, and signaled West Africa\'s integration into the Dar al-Islam.'},
+
+    {id:'wh_u2_mcq_022', topic:'2.4', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Timbuktu in this period was best known as',
+      choices:[
+        {id:'A', text:'a Mali commercial city on the Niger River that became a major center of Islamic scholarship and learning.'},
+        {id:'B', text:'a Berber sea port on the Atlantic coast where European merchants exchanged silver for African gold.'},
+        {id:'C', text:'a fortified Mongol garrison built to control caravan traffic moving across the western Saharan desert.'},
+        {id:'D', text:'a Christian Ethiopian outpost founded by missionaries who came to spread their faith into West African territory.'}
+      ], correct:'A',
+      explanation:'Timbuktu was a major center of trans-Saharan trade and Islamic scholarship. The Sankoré Madrasah attracted students from across the Muslim world, making the city famous for both wealth and learning.'},
+
+    {id:'wh_u2_mcq_023', topic:'2.4', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The Islamization of West Africa during the trans-Saharan trade era is best characterized as',
+      choices:[
+        {id:'A', text:'a gradual top-down process in which rulers and merchants converted while many subjects kept older beliefs.'},
+        {id:'B', text:'a forced mass conversion imposed by visiting Arab armies after the conquest of the Mali capital city.'},
+        {id:'C', text:'a complete replacement of indigenous religions across all of West Africa within roughly fifty years.'},
+        {id:'D', text:'a movement led by visiting Christian missionaries who later founded Sufi brotherhoods in West African cities.'}
+      ], correct:'A',
+      explanation:'Islam spread along trade routes through merchants and Sufi missionaries. Rulers and urban elites converted first; rural and subject populations often retained older religious practices alongside or in place of Islam.'},
+
+    {id:'wh_u2_mcq_024', topic:'2.4', bigIdea:'ECN', difficulty:'challenging',
+      stem:'The Mali Empire under Mansa Musa generated its enormous revenue most directly by',
+      choices:[
+        {id:'A', text:'taxing the trans-Saharan trade and controlling the gold-producing regions south of the Niger River.'},
+        {id:'B', text:'collecting tribute from conquered Mediterranean port cities and from northern Italian banking houses.'},
+        {id:'C', text:'monopolizing Indian Ocean ivory exports and reselling them in markets across the European continent.'},
+        {id:'D', text:'leasing mining concessions to Tuareg merchants in exchange for an annual payment of camel caravans.'}
+      ], correct:'A',
+      explanation:'Mali\'s wealth rested on two pillars: taxing caravans crossing its territory and controlling access to West African goldfields (especially the Bambuk and Bure regions south of the Niger River).'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — CULTURAL CONSEQUENCES  (Topic 2.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'2.5', title:'Cultural Consequences', icon:'🕌', themes:['CDI'],
+   desc:'How trade spread religions, languages, technologies, and ideas — Sufism, Sikhism, Bhakti, syncretism, and Renaissance roots.',
+   type:'mcq', group:'core', label:'Round 5 — Cultural Consequences', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u2_mcq_025', topic:'2.5', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Sufi missionaries contributed to the spread of Islam along trade routes most directly by',
+      choices:[
+        {id:'A', text:'emphasizing personal spiritual experience, which made conversion easier for diverse local populations.'},
+        {id:'B', text:'demanding that converts immediately abandon every existing local custom and adopt strict orthodox practice.'},
+        {id:'C', text:'accompanying Mongol armies as official chaplains who oversaw the legal administration of conquered cities.'},
+        {id:'D', text:'organizing armed religious militias that attacked Hindu temples and Buddhist monasteries on the Silk Roads.'}
+      ], correct:'A',
+      explanation:'Sufi orders emphasized personal mystical experience and were tolerant of local religious practices. This flexibility made Islam easier to adopt for diverse populations along trade routes.'},
+
+    {id:'wh_u2_mcq_026', topic:'2.5', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The Bhakti Movement in South Asia is best described as',
+      choices:[
+        {id:'A', text:'a Hindu devotional reform that emphasized personal love of a chosen deity and downplayed caste distinctions.'},
+        {id:'B', text:'a Muslim missionary effort to convert the entire Hindu majority population of India to orthodox Sunni Islam.'},
+        {id:'C', text:'a Buddhist monastic revival in Sri Lanka that aimed to restore the original teachings of the historical Buddha.'},
+        {id:'D', text:'a Sikh military order founded by Guru Nanak to defend Hindu communities from the rule of the Delhi Sultanate.'}
+      ], correct:'A',
+      explanation:'Bhakti was a Hindu reform movement emphasizing personal devotion (bhakti) to a chosen deity. By bypassing priests and using vernacular languages, it spread devotional practice across caste lines.'},
+
+    {id:'wh_u2_mcq_027', topic:'2.5', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Sikhism, founded in the late 15th century by Guru Nanak, emerged most directly out of',
+      choices:[
+        {id:'A', text:'a syncretic encounter between Hindu Bhakti devotional ideas and Islamic Sufi mystical traditions in South Asia.'},
+        {id:'B', text:'a deliberate top-down conversion campaign launched by the rulers of the Delhi Sultanate in northern India.'},
+        {id:'C', text:'a Christian Nestorian mission that traveled overland from the Byzantine Empire to the Punjab region in India.'},
+        {id:'D', text:'a state-sponsored revival of Vedic Hinduism intended to displace Islam from across the Indian subcontinent entirely.'}
+      ], correct:'A',
+      explanation:'Sikhism arose in Punjab from a syncretic blend of Hindu Bhakti and Islamic Sufi influences, emphasizing one God and rejecting both caste and outward religious ritualism.'},
+
+    {id:'wh_u2_mcq_028', topic:'2.5', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Marco Polo\'s account of his travels is significant primarily because it',
+      choices:[
+        {id:'A', text:'shaped European perceptions of Asia and described the wealth and complexity of Mongol-era Yuan China.'},
+        {id:'B', text:'recorded the formal diplomatic exchanges between the popes in Rome and the great khans in Karakorum.'},
+        {id:'C', text:'served as the personal travel diary of a Genoese merchant who never actually left the Mediterranean basin.'},
+        {id:'D', text:'documented the religious ceremonies of the Sufi orders that operated along the Silk Roads in this period.'}
+      ], correct:'A',
+      explanation:'Polo\'s account, dictated to a writer named Rustichello, became one of medieval Europe\'s most influential descriptions of Asia. It shaped European geographic and cultural ideas about China for centuries.'},
+
+    {id:'wh_u2_mcq_029', topic:'2.5', bigIdea:'CDI', difficulty:'moderate',
+      stem:'A scholar arguing that long-distance trade contributed to the European Renaissance would most likely point to',
+      choices:[
+        {id:'A', text:'the recovery of Greek classical texts via Arabic translations carried into Italy through Mediterranean trade.'},
+        {id:'B', text:'the suppression of Eastern philosophy by Italian merchant elites who preferred to fund original local works.'},
+        {id:'C', text:'the rejection of Islamic learning by European universities, which forced them to develop entirely new methods.'},
+        {id:'D', text:'the elimination of Mediterranean shipping after the 1258 sack of Baghdad by the western Mongol armies.'}
+      ], correct:'A',
+      explanation:'Many Greek classical texts had been preserved in Arabic translations in the Islamic world. Italian merchants and scholars accessed these via Mediterranean trade, and that flow of texts fueled the Renaissance.'},
+
+    {id:'wh_u2_mcq_030', topic:'2.5', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Religious and cultural syncretism along trade routes in this period is best illustrated by',
+      choices:[
+        {id:'A', text:'the blending of local beliefs with Islam in West Africa, where rulers practiced Islam alongside older customs.'},
+        {id:'B', text:'the strict legalistic Islam imposed everywhere by Sufi missionaries, which displaced all preexisting traditions.'},
+        {id:'C', text:'the complete replacement of African indigenous religions by Christianity throughout the entire Sahara region.'},
+        {id:'D', text:'the unification of Hinduism, Buddhism, and Islam into a single official religion across Mongol-ruled Eurasia.'}
+      ], correct:'A',
+      explanation:'Syncretism (blending of religious traditions) was widespread. West African rulers might practice Islam at court while their subjects maintained older religious customs, with the two traditions coexisting and influencing each other.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — ENVIRONMENTAL CONSEQUENCES  (Topic 2.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'2.6', title:'Environmental Consequences', icon:'🌱', themes:['ENV'],
    desc:'Crop diffusion (champa rice, bananas, citrus, sugar) and the Black Death — how the same routes spread food and disease.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r7',  num:7,  topic:'2.7', title:'Comparison',         icon:'⚖️', themes:['ECN'],
-   desc:'Topic 2.7 in full: explicit comparison of the four trade networks. Argumentation 6.B — support claims with specific evidence.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'mcq', group:'core', label:'Round 6 — Environmental Consequences', color:'var(--acc)', draw:6, questions:[
 
-  // ── Synthesis Rounds ──
-  {id:'r8',  num:8,  topic:'2.1–2.7', title:'Map Mastery',    icon:'🗺️', themes:['ENV','ECN'],
+    {id:'wh_u2_mcq_031', topic:'2.6', bigIdea:'ENV', difficulty:'accessible',
+      stem:'The introduction of champa rice into Song China contributed most directly to',
+      choices:[
+        {id:'A', text:'a rapid population increase, because champa rice ripened quickly and tolerated drought better than older strains.'},
+        {id:'B', text:'a sharp decline in Chinese agricultural output, because peasants abandoned older indigenous rice varieties.'},
+        {id:'C', text:'the Chinese conquest of Vietnam, which was launched specifically to secure new champa rice growing areas.'},
+        {id:'D', text:'a shift away from rice cultivation entirely, because the new champa strain proved poorly suited to most Chinese soil.'}
+      ], correct:'A',
+      explanation:'Champa rice (originally from Vietnam) ripened in about half the time of traditional varieties and was drought-resistant. It enabled multiple harvests per year and supported population growth past 100 million in Song China.'},
+
+    {id:'wh_u2_mcq_032', topic:'2.6', bigIdea:'ENV', difficulty:'accessible',
+      stem:'Bananas spread from Southeast Asia into Africa during this period most directly because',
+      choices:[
+        {id:'A', text:'Indian Ocean trade carried bananas across the sea, allowing African farmers to plant them in new climates.'},
+        {id:'B', text:'Mongol military campaigns transported the fruit overland through Central Asia to North African cities.'},
+        {id:'C', text:'European missionaries deliberately introduced banana cultivation to feed Christian converts in the highlands.'},
+        {id:'D', text:'the Mali Empire imported bananas from Mexica markets to support trans-Saharan caravan supply networks.'}
+      ], correct:'A',
+      explanation:'Bananas spread from Southeast Asia across the Indian Ocean to East Africa, where they thrived and supported population expansion in regions where grains grew poorly. The diffusion was driven by Indian Ocean trade.'},
+
+    {id:'wh_u2_mcq_033', topic:'2.6', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The spread of sugarcane cultivation across the Mediterranean during this period most directly required',
+      choices:[
+        {id:'A', text:'large amounts of intensive labor and water, since sugarcane processing was demanding and resource-heavy.'},
+        {id:'B', text:'cool dry climates similar to those of the northern European plains where wheat was the staple grain.'},
+        {id:'C', text:'a free-wage labor system that quickly replaced slavery throughout the Mediterranean by the year 1300.'},
+        {id:'D', text:'official Mongol decrees authorizing the use of imperial irrigation systems for cash-crop sugar agriculture.'}
+      ], correct:'A',
+      explanation:'Sugarcane needed intensive labor and substantial water. Mediterranean producers used coerced labor systems (often enslaved workers) to meet these demands, foreshadowing the later Atlantic plantation system.'},
+
+    {id:'wh_u2_mcq_034', topic:'2.6', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The Black Death (1346-1353) is best understood as',
+      choices:[
+        {id:'A', text:'a bubonic plague pandemic that spread along trade routes from Central Asia into the Middle East and Europe.'},
+        {id:'B', text:'a local European famine caused by the collapse of grain imports from the Mongol-ruled lands of China.'},
+        {id:'C', text:'a disease that emerged in West Africa and was carried across the Sahara by trans-Saharan trade caravans.'},
+        {id:'D', text:'an outbreak of smallpox that originated in the Americas before being brought back into Europe by Atlantic sailors.'}
+      ], correct:'A',
+      explanation:'The Black Death was bubonic plague (Yersinia pestis), which spread out of Central Asia along trade routes (including the Silk Roads and Mediterranean shipping) into the Middle East and Europe in the mid-14th century.'},
+
+    {id:'wh_u2_mcq_035', topic:'2.6', bigIdea:'ENV', difficulty:'moderate',
+      stem:'In Western Europe, a major social effect of the Black Death was that',
+      choices:[
+        {id:'A', text:'severe labor shortages let surviving peasants demand higher wages, gradually weakening the serfdom system.'},
+        {id:'B', text:'feudal lords successfully pressured surviving peasants to accept stricter labor obligations than ever before.'},
+        {id:'C', text:'the bubonic plague pandemic had no measurable economic effects because the death toll was actually small.'},
+        {id:'D', text:'the Christian Catholic Church gained substantial new authority by demonstrating effective control of the disease.'}
+      ], correct:'A',
+      explanation:'Estimates suggest 30-50% of Europe\'s population died. Surviving workers gained leverage to demand pay and freedom, gradually loosening the serf-lord bond in much of Western Europe.'},
+
+    {id:'wh_u2_mcq_036', topic:'2.6', bigIdea:'ENV', difficulty:'challenging',
+      stem:'Which statement best captures the environmental dynamic of the period c. 1200-1450?',
+      choices:[
+        {id:'A', text:'The same trade routes that spread useful crops also spread devastating diseases, with major demographic effects.'},
+        {id:'B', text:'Long-distance trade had no observable environmental consequences during this period of European history.'},
+        {id:'C', text:'Disease diffusion ran in only one direction, from western Europe outward toward the rest of the inhabited world.'},
+        {id:'D', text:'Crop diffusion was deliberately stopped by every major state in order to prevent the resulting population growth.'}
+      ], correct:'A',
+      explanation:'The CED stresses this two-sided pattern. Trade routes carried champa rice, bananas, sugar, and citrus (boosting populations) and also carried plague and other diseases (devastating populations). Same network, opposite effects.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 12 — Pass 2 stubs
+  //  Stimulus rounds keep an empty sets:[] so the runner doesn't blow up
+  //  if a teacher clicks them too early. They show a friendly "Coming soon".
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7',  num:7,  topic:'2.7', title:'Comparison', icon:'⚖️', themes:['ECN'],
+   desc:'Topic 2.7 in full: explicit comparison of the four trade networks. Argumentation 6.B — support claims with specific evidence.',
+   type:'synthesis', group:'skills', label:'Round 7 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
+  {id:'r8',  num:8,  topic:'2.1–2.7', title:'Map Mastery', icon:'🗺️', themes:['ENV','ECN'],
    desc:'Place all four trade networks and their major nodes on a world map. Identify monsoon zones, caravan routes, and gold-salt corridors.',
-   type:'map',  questions:10, group:'skills'},
+   type:'map', group:'skills', label:'Round 8 — Map Mastery', color:'var(--bronze)', draw:1, questions:10, sets:[]},
+
   {id:'r9',  num:9,  topic:'2.2–2.5', title:'Travelers\' Accounts', icon:'📜', themes:['CDI','SIO'],
    desc:'Marco Polo, Ibn Battuta, Margery Kempe — sourcing skill (HAPP). Practice identifying POV, purpose, and historical situation.',
-   type:'documents', questions:6, group:'skills'},
+   type:'documents', group:'skills', label:'Round 9 — Travelers\' Accounts', color:'var(--bronze)', draw:1, questions:6, sets:[]},
 
-  // ── Free-Response Practice ──
   {id:'r10', num:10, topic:'2.1–2.7', title:'Document Analysis', icon:'🖋️', themes:['ECN','CDI'],
    desc:'5 primary-source stimulus drills — merchant guidebooks, plague chronicles, Mongol decrees, Mansa Musa accounts. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'2.1–2.7', title:'SAQ Practice',  icon:'✍️', themes:['ECN','CDI'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'2.1–2.7', title:'SAQ Practice', icon:'✍️', themes:['ECN','CDI'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation focus — causes and effects of trade-network expansion.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'2.1–2.7', title:'LEQ Practice',  icon:'📝', themes:['ECN'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'2.1–2.7', title:'LEQ Practice', icon:'📝', themes:['ECN'],
    desc:'1 full Long Essay Question with rubric scoring. "Compare the effects of two trade networks on the cultures involved, c. 1200–1450."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -924,7 +1527,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -941,10 +1544,455 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 2.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
 }
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
+}
+
+
 
 
 // ════════════════════════════════════════════════════════════════════
@@ -978,6 +2026,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -1018,11 +2068,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
