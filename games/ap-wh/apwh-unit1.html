@@ -176,6 +176,142 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 .prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--bronze));transition:width .6s;border-radius:2px;width:0}
 
+/* ══════════════════════════════════════
+   GAME ENGINE  (ported from APG, WH-themed)
+══════════════════════════════════════ */
+@keyframes correctFlash{0%{background:rgba(42,170,80,.0)}30%{background:rgba(42,170,80,.15)}100%{background:rgba(42,170,80,.0)}}
+@keyframes wrongFlash{0%{background:rgba(224,64,64,.0)}30%{background:rgba(224,64,64,.12)}100%{background:rgba(224,64,64,.0)}}
+@keyframes goldFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+#game{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Game header */
+#game-header{background:rgba(20,8,8,.97);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:16px;padding:10px 24px;flex-shrink:0;backdrop-filter:blur(12px)}
+#game-back{font-family:var(--bebas);font-size:11px;letter-spacing:1px;background:transparent;
+  border:1px solid var(--border2);color:var(--text3);padding:5px 12px;cursor:pointer;transition:all .15s}
+#game-back:hover{border-color:var(--acc);color:var(--acc2)}
+#game-round-label{font-family:var(--bebas);font-size:14px;color:var(--bronze2);letter-spacing:3px;flex:1}
+#game-progress-wrap{display:flex;align-items:center;gap:10px}
+.gp-pips{display:flex;gap:4px}
+.gp-pip{width:24px;height:4px;background:var(--border2);border-radius:2px;transition:background .3s}
+.gp-pip.done{background:var(--bronze)}
+.gp-pip.active{background:var(--bronze2);animation:pulse 1.5s infinite}
+#game-gold-disp{font-family:var(--bebas);font-size:14px;color:var(--gc)}
+
+/* Round intro screen */
+#round-intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100}
+.ri-icon{font-size:64px;margin-bottom:20px;animation:pop .5s ease both}
+.ri-round{font-family:var(--dm);font-size:9px;letter-spacing:3px;color:var(--bronze2);margin-bottom:6px}
+.ri-title{font-family:var(--playfair);font-size:clamp(24px,5vw,40px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.ri-desc{font-family:var(--crimson);font-size:16px;color:var(--text2);font-style:italic;max-width:480px;line-height:1.7;margin-bottom:8px}
+.ri-docs{font-family:var(--dm);font-size:10px;color:var(--bronze2);margin-bottom:28px}
+.ri-btn{font-family:var(--bebas);font-size:16px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden}
+.ri-btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:scaleX(0);
+  transform-origin:left;transition:transform .2s;z-index:0}
+.ri-btn:hover::before{transform:scaleX(1)}
+.ri-btn:hover{color:#fff}
+.ri-btn span{position:relative;z-index:1}
+
+/* Question area */
+#question-area{flex:1;overflow-y:auto;padding:20px 24px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Question card */
+.question-card{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;
+  animation:slideUp .3s ease both}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-num{font-family:var(--bebas);font-size:11px;color:var(--text3);letter-spacing:1px}
+.q-tag{font-family:var(--dm);font-size:7px;padding:2px 7px;border:1px solid;letter-spacing:.5px;border-radius:2px}
+.q-tag.topic{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.bi-CDI{border-color:rgba(224,136,64,.5);color:var(--orange2)}
+.q-tag.bi-GOV{border-color:rgba(72,120,208,.5);color:var(--blue2)}
+.q-tag.bi-ECN{border-color:rgba(245,200,66,.5);color:var(--gc)}
+.q-tag.bi-SIO{border-color:rgba(104,152,232,.5);color:#8898d8}
+.q-tag.bi-TEC{border-color:rgba(144,128,224,.5);color:var(--purple2)}
+.q-tag.bi-ENV{border-color:rgba(64,200,112,.5);color:var(--green2)}
+.q-tag.diff-accessible{border-color:var(--green);color:var(--green2)}
+.q-tag.diff-moderate{border-color:var(--amber);color:var(--amber)}
+.q-tag.diff-challenging{border-color:var(--red);color:var(--red2)}
+.q-stem{font-family:var(--crimson);font-size:20px;color:var(--cream);line-height:1.65;margin-bottom:22px}
+
+/* Vocab quiz prompt-tag styling */
+.q-tag.kind-t2d{border-color:var(--bronze);color:var(--bronze2)}
+.q-tag.kind-d2t{border-color:var(--acc);color:var(--acc3)}
+
+/* Choices */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--bg3);border:1.5px solid var(--border2);padding:14px 18px;cursor:pointer;
+  display:flex;align-items:flex-start;gap:12px;transition:all .15s;position:relative;overflow:hidden}
+.choice:hover:not(.answered){border-color:var(--bronze2);background:rgba(212,168,71,.06)}
+.choice-letter{font-family:var(--bebas);font-size:20px;color:var(--text3);flex-shrink:0;width:22px;transition:color .15s}
+.choice-text{font-family:var(--crimson);font-size:17px;color:var(--text2);line-height:1.55;transition:color .15s}
+.choice.selected{border-color:var(--bronze);background:rgba(212,168,71,.08)}
+.choice.selected .choice-letter,.choice.selected .choice-text{color:var(--bronze2)}
+.choice.correct{border-color:var(--green)!important;background:rgba(42,170,80,.08)!important;animation:correctFlash .5s ease}
+.choice.correct .choice-letter,.choice.correct .choice-text{color:var(--green2)!important}
+.choice.wrong{border-color:var(--red)!important;background:rgba(224,64,64,.06)!important;animation:wrongFlash .5s ease}
+.choice.wrong .choice-letter,.choice.wrong .choice-text{color:var(--red2)!important}
+.choice.answered{cursor:default}
+.choice.dimmed{opacity:.35}
+
+/* Explanation */
+.explanation{background:rgba(42,170,80,.06);border:1px solid rgba(42,170,80,.2);
+  border-left:3px solid var(--green);padding:14px 18px;margin-top:10px;
+  font-family:var(--crimson);font-size:14px;color:var(--text2);line-height:1.7;
+  animation:fadeIn .3s ease}
+.explanation strong{color:var(--green2)}
+.explanation.wrong-exp{background:rgba(224,64,64,.06);border-color:rgba(224,64,64,.2);border-left-color:var(--red)}
+.explanation.wrong-exp strong{color:var(--red2)}
+
+/* Submit / Next buttons */
+#btn-submit{display:none!important}
+#btn-next{font-family:var(--bebas);font-size:14px;letter-spacing:2px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:12px 32px;cursor:pointer;transition:all .2s;display:none}
+#btn-next:hover{background:var(--acc);color:#fff}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 20px;flex-shrink:0}
+
+/* ── ROUND COMPLETE ── */
+#round-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:40px;z-index:100;overflow-y:auto}
+.rc-icon{font-size:56px;margin-bottom:16px;animation:pop .5s ease both}
+.rc-title{font-family:var(--playfair);font-size:32px;color:var(--cream);font-weight:700;margin-bottom:6px}
+.rc-score{font-family:var(--bebas);font-size:64px;line-height:1;margin-bottom:4px}
+.rc-sub{font-family:var(--dm);font-size:11px;color:var(--text3);letter-spacing:2px;margin-bottom:24px}
+.rc-stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.rc-stat{background:var(--bg2);border:1px solid var(--border);padding:14px 20px;text-align:center}
+.rc-stat-val{font-family:var(--bebas);font-size:28px}
+.rc-stat-lbl{font-family:var(--dm);font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.rc-next-btn{font-family:var(--bebas);font-size:15px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--acc);color:var(--acc2);padding:14px 40px;cursor:pointer;transition:all .2s;margin:0 6px}
+.rc-next-btn:hover{background:var(--acc);color:#fff}
+.rc-next-btn.secondary{border-color:var(--border2);color:var(--text3)}
+.rc-next-btn.secondary:hover{background:transparent;border-color:var(--bronze);color:var(--bronze2)}
+
+/* Gold particle */
+.gold-particle{position:fixed;font-family:var(--bebas);font-size:16px;color:var(--gc);
+  pointer-events:none;z-index:9000;animation:goldFloat 1.8s ease-out forwards;
+  text-shadow:0 0 8px rgba(245,200,66,.5)}
+
+/* Notification */
+.notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--acc);padding:8px 18px;font-family:var(--dm);font-size:11px;
+  color:var(--acc2);z-index:10000;animation:pop .3s;white-space:nowrap;pointer-events:none}
+
+/* Vocab quiz launcher card */
+.quiz-launcher{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;margin-bottom:20px;text-align:center}
+.quiz-launcher-title{font-family:var(--playfair);font-size:22px;color:var(--cream);margin-bottom:8px}
+.quiz-launcher-desc{font-family:var(--crimson);font-size:14px;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:18px;max-width:560px;margin-left:auto;margin-right:auto}
+.quiz-launcher-btn{font-family:var(--bebas);font-size:14px;letter-spacing:3px;background:transparent;
+  border:2px solid var(--bronze);color:var(--bronze2);padding:12px 36px;cursor:pointer;transition:all .2s}
+.quiz-launcher-btn:hover{background:var(--bronze);color:var(--bg)}
+.quiz-stats-row{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.quiz-stat-pill{background:var(--bg3);border:1px solid var(--border2);padding:6px 14px;font-family:var(--dm);font-size:10px;color:var(--text2);letter-spacing:1px}
+.quiz-stat-pill strong{color:var(--bronze2);font-family:var(--bebas);font-size:13px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:760px){
   .hub-hero{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:10px}
@@ -187,6 +323,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   .activity-grid{grid-template-columns:1fr}
   .ov-topic{grid-template-columns:50px 1fr;gap:10px}
   .ov-topic-themes{grid-column:1/-1;margin-top:6px}
+  #game-header{padding:8px 12px;gap:8px}
+  #game-round-label{font-size:11px;letter-spacing:2px}
+  #question-area{padding:14px}
+  .question-card{padding:14px 16px}
+  .q-stem{font-size:17px}
+  .choice{padding:12px 14px}
+  .choice-text{font-size:15px}
 }
 </style>
 </head>
@@ -493,16 +636,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
     </div>
 
     <!-- ═══════════════════════════════════════════════════
-         VOCAB QUIZ TAB — placeholder for now
+         VOCAB QUIZ TAB — live quiz (mixes term-to-def and def-to-term)
     ═══════════════════════════════════════════════════ -->
     <div id="tab-quiz" class="hub-panel">
       <div class="vocab-info">
-        <div class="vocab-info-title">Vocabulary Quiz — Coming Soon</div>
-        <div class="vocab-info-desc">Test your mastery of Unit 1 vocab. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span> · <span style="color:#c8c8d8">Silver (75%+)</span> · <span style="color:var(--gold)">Gold (90%+)</span> · <span style="color:var(--purple2)">Historian (100%)</span>. The quiz mechanics will be wired in Phase 2.</div>
+        <div class="vocab-info-title">Vocabulary Quiz</div>
+        <div class="vocab-info-desc">A 15-question randomized quiz drawn from every term in the Vocabulary tab. Some questions show the term and ask for the definition; others show the definition and ask for the term. Earn medals: <span style="color:#cd7f32">Bronze (60%+)</span>, <span style="color:#c8c8d8">Silver (75%+)</span>, <span style="color:var(--gold)">Gold (90%+)</span>, <span style="color:var(--purple2)">Historian (100%)</span>.</div>
       </div>
-      <div style="background:var(--bg2);border:1px dashed var(--border2);padding:60px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:14px;opacity:.4">🃏</div>
-        <div style="font-family:var(--bebas);font-size:14px;color:var(--text3);letter-spacing:3px">QUIZ MECHANICS COMING IN PHASE 2</div>
+
+      <div class="quiz-launcher">
+        <div class="quiz-launcher-title">🃏 Ready to test your vocab?</div>
+        <div class="quiz-launcher-desc">15 questions, randomly shuffled, drawn from all six regions. Mix of term-to-definition and definition-to-term prompts. Score well to earn gold for the Civitas vault.</div>
+        <button class="quiz-launcher-btn" onclick="launchVocabQuiz()">▶ START QUIZ</button>
+        <div class="quiz-stats-row" id="quiz-stats-row">
+          <div class="quiz-stat-pill">Best: <strong id="quiz-best">—</strong></div>
+          <div class="quiz-stat-pill">Attempts: <strong id="quiz-attempts">0</strong></div>
+        </div>
       </div>
     </div>
 
@@ -631,6 +780,53 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════
+     GAME ENGINE — runs MCQ rounds and the vocab quiz
+════════════════════════════════════════════════════════════════════ -->
+<div id="game">
+  <div id="game-header">
+    <button id="game-back" onclick="exitGame()">← Hub</button>
+    <div id="game-round-label">ROUND</div>
+    <div id="game-progress-wrap">
+      <div class="gp-pips" id="gp-pips"></div>
+    </div>
+    <div id="game-gold-disp">🪙 0</div>
+  </div>
+
+  <!-- Round intro overlay -->
+  <div id="round-intro" style="display:none">
+    <div class="ri-icon" id="ri-icon">📜</div>
+    <div class="ri-round" id="ri-round">ROUND</div>
+    <div class="ri-title" id="ri-title">Round Title</div>
+    <div class="ri-desc" id="ri-desc">Round description</div>
+    <div class="ri-docs" id="ri-docs"></div>
+    <button class="ri-btn" onclick="dismissIntro()"><span>▶ Begin Round</span></button>
+  </div>
+
+  <!-- Question area (questions get rendered into here) -->
+  <div id="question-area" style="display:none"></div>
+
+  <!-- Button row (Next button only — selecting a choice auto-grades) -->
+  <div class="btn-row" style="display:none" id="btn-row">
+    <button id="btn-submit" onclick="submitAnswer()"><span>Submit Answer</span></button>
+    <button id="btn-next" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Round complete overlay -->
+  <div id="round-complete" style="display:none">
+    <div class="rc-icon" id="rc-icon">✅</div>
+    <div class="rc-title" id="rc-title">Round Complete!</div>
+    <div class="rc-score" id="rc-score">0/0</div>
+    <div class="rc-sub" id="rc-sub">QUESTIONS CORRECT</div>
+    <div class="rc-stats" id="rc-stats"></div>
+    <div>
+      <button class="rc-next-btn" id="rc-next-btn" onclick="exitGame()">↩ Back to Hub</button>
+      <button class="rc-next-btn secondary" id="rc-replay-btn" onclick="replayRound()">↺ Replay</button>
+    </div>
+  </div>
+
+</div><!-- /game -->
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  AP WORLD HISTORY — UNIT 1 DATA
@@ -639,51 +835,460 @@ body{background:var(--bg);color:var(--text);font-family:var(--dm);
 const UNIT_ID = 'apwh_u1';
 const UNIT_TITLE = 'The Global Tapestry';
 
-// ── ROUNDS ────────────────────────────────────────────────────────────
-// 12 total: 6 regional MCQ rounds (1.1–1.6) + 3 synthesis/skills + 3 FRQ
+// ════════════════════════════════════════════════════════════════════
+//  ROUNDS — same shape as APG QUESTION_BANK, but kept named ROUNDS so the
+//  existing card renderer in the WH shell keeps working unchanged.
+//  Rounds 1-6  : full MCQ banks (Pass 1)
+//  Rounds 7-12 : structural stubs (Pass 2 will fill sets:[] with stimuli)
+// ════════════════════════════════════════════════════════════════════
 const ROUNDS = [
-  // ── Core Content (Topics 1.1–1.6) ──
-  {id:'r1',  num:1,  topic:'1.1', title:'East Asia',         icon:'🏯', themes:['CDI','GOV','TEC'],
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 1 — EAST ASIA  (Topic 1.1)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r1', num:1, topic:'1.1', title:'East Asia', icon:'🏯', themes:['CDI','GOV','TEC'],
    desc:'Song China, Neo-Confucianism, the bureaucracy, and East Asian adaptations (Japan, Korea, Vietnam).',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r2',  num:2,  topic:'1.2', title:'Dar al-Islam',      icon:'🕌', themes:['CDI','GOV'],
-   desc:'The post-Abbasid Islamic world — Mamluks, Seljuks, Delhi Sultanate, Ibn Khaldun, Sufism.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r3',  num:3,  topic:'1.3', title:'South & SE Asia',   icon:'🛕', themes:['CDI','GOV'],
+   type:'mcq', group:'core', label:'Round 1 — East Asia', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u1_mcq_001', topic:'1.1', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Song dynasty maintained centralized rule across China largely by',
+      choices:[
+        {id:'A', text:'recruiting officials through a merit-based civil service exam grounded in the Confucian classics.'},
+        {id:'B', text:'granting hereditary land titles to military aristocrats in exchange for sworn oaths of personal loyalty to the throne.'},
+        {id:'C', text:'rotating regional warlords through the capital so that no single noble family grew too strong.'},
+        {id:'D', text:'allowing Buddhist monasteries to collect provincial taxes and supervise local court appointments.'}
+      ], correct:'A',
+      explanation:'The Song expanded the civil service examination, recruiting bureaucrats by mastery of the Confucian classics rather than by birth. (B) describes European feudalism, (C) and (D) are plausible but historically wrong.'},
+
+    {id:'wh_u1_mcq_002', topic:'1.1', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Neo-Confucianism is best described as',
+      choices:[
+        {id:'A', text:'a Song-era revival of Confucian ethics that absorbed elements of Buddhism and Daoism.'},
+        {id:'B', text:'a state cult requiring ancestor worship and rejecting all foreign religious traditions.'},
+        {id:'C', text:'a populist Daoist sect that condemned imperial authority and the bureaucratic hierarchy.'},
+        {id:'D', text:'a school of Mahayana Buddhism that rejected the Confucian classics as outdated learning.'}
+      ], correct:'A',
+      explanation:'Neo-Confucianism kept Confucian ethics at its core but borrowed metaphysical ideas from Buddhism and Daoism, becoming the ruling intellectual orthodoxy of the Song.'},
+
+    {id:'wh_u1_mcq_003', topic:'1.1', bigIdea:'TEC', difficulty:'moderate',
+      stem:'The introduction of champa rice into Song China contributed most directly to',
+      choices:[
+        {id:'A', text:'rapid population growth, because it ripened quickly and allowed multiple harvests per year.'},
+        {id:'B', text:'increased dependence on imports of grain from Korea and Japan to feed Chinese cities.'},
+        {id:'C', text:'a sharp drop in tax revenues as peasants refused to grow government-mandated cash crops.'},
+        {id:'D', text:'the abandonment of the Grand Canal because rice could now be grown locally near every major Chinese city.'}
+      ], correct:'A',
+      explanation:'Champa rice was fast-ripening and drought-resistant, enabling double harvests and supporting a population over 100 million during the Song.'},
+
+    {id:'wh_u1_mcq_004', topic:'1.1', bigIdea:'SIO', difficulty:'moderate',
+      stem:'The spread of foot binding among elite Song-era families most directly reflected',
+      choices:[
+        {id:'A', text:'the way Neo-Confucian gender norms reinforced patriarchal control over women.'},
+        {id:'B', text:'the legal requirements imposed on married women by the imperial bureaucracy.'},
+        {id:'C', text:'an effort by Buddhist temples to identify women suitable for monastic vocations.'},
+        {id:'D', text:'a deliberate state policy designed to limit the number of women in the labor force.'}
+      ], correct:'A',
+      explanation:'Foot binding emerged as a cultural marker of female refinement under Neo-Confucian ideals; it was never imposed by law and spread first among elites, then downward.'},
+
+    {id:'wh_u1_mcq_005', topic:'1.1', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Compared to Heian or Kamakura Japan, Song China was distinctive in that it',
+      choices:[
+        {id:'A', text:'recruited civil officials through written examinations rather than through hereditary status.'},
+        {id:'B', text:'rejected Buddhism in favor of an exclusively Confucian state religion enforced by edict.'},
+        {id:'C', text:'organized political authority around a powerful warrior class loyal to a military shogun.'},
+        {id:'D', text:'used Chinese characters for writing while remaining culturally and economically isolated from its neighbors.'}
+      ], correct:'A',
+      explanation:'Japan in this period was structured around feudal warrior elites (shogun, daimyo, samurai). Song China relied on a meritocratic exam-recruited bureaucracy, a key contrast.'},
+
+    {id:'wh_u1_mcq_006', topic:'1.1', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Korea\'s Goryeo dynasty adopted the Chinese civil service exam, but Korean society remained more rigidly hierarchical than Song China because',
+      choices:[
+        {id:'A', text:'in Korea, only members of the aristocratic yangban class were eligible to sit for the exam.'},
+        {id:'B', text:'the Korean exam was administered orally, which prevented commoners from preparing for it.'},
+        {id:'C', text:'Korean monarchs banned the printing of Confucian texts in any vernacular Korean language.'},
+        {id:'D', text:'most candidates for office in Goryeo were appointed directly by Chinese officials sent from the imperial court.'}
+      ], correct:'A',
+      explanation:'In theory the Chinese exam was open to any educated male; in Goryeo Korea, only the yangban aristocracy could take it, locking commoners out of state service.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 2 — DAR AL-ISLAM  (Topic 1.2)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r2', num:2, topic:'1.2', title:'Dar al-Islam', icon:'🕌', themes:['CDI','GOV'],
+   desc:'The post-Abbasid Islamic world: Mamluks, Seljuks, Delhi Sultanate, Ibn Khaldun, Sufism.',
+   type:'mcq', group:'core', label:'Round 2 — Dar al-Islam', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u1_mcq_007', topic:'1.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'By 1200, political authority in the Islamic heartland of Iraq and Iran had largely shifted from the Abbasid caliph to',
+      choices:[
+        {id:'A', text:'Turkic military rulers, especially the Seljuks, who held real power while the caliph remained a religious figurehead.'},
+        {id:'B', text:'Christian crusader kingdoms that had captured the city of Baghdad and most of the Tigris-Euphrates basin by the year 1200.'},
+        {id:'C', text:'a council of Sunni religious scholars that elected each new caliph from among approved candidates.'},
+        {id:'D', text:'the Fatimid caliphate of Cairo, which absorbed the Abbasid territories into a unified Shia empire.'}
+      ], correct:'A',
+      explanation:'Turkic groups, especially the Seljuks, held real political and military power in the Abbasid heartland by the 11th-12th centuries; the caliph remained a religious symbol.'},
+
+    {id:'wh_u1_mcq_008', topic:'1.2', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Mamluk Sultanate of Egypt is best known for',
+      choices:[
+        {id:'A', text:'defeating the Mongol advance into the Islamic world at the Battle of Ain Jalut in 1260.'},
+        {id:'B', text:'sending the first Muslim diplomatic mission across the Sahara to the Mali Empire.'},
+        {id:'C', text:'establishing the first Sunni caliphate after the destruction of Abbasid Baghdad.'},
+        {id:'D', text:'leading the final Crusader recapture of Jerusalem from Saladin\'s Ayyubid dynastic heirs in Syria.'}
+      ], correct:'A',
+      explanation:'The Mamluks halted the Mongol westward advance at Ain Jalut (1260), one of the rare Mongol defeats and a key reason much of the Islamic Middle East survived intact.'},
+
+    {id:'wh_u1_mcq_009', topic:'1.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Sufism contributed most directly to the spread of Islam in West Africa, Anatolia, and South Asia by',
+      choices:[
+        {id:'A', text:'emphasizing personal mystical devotion that adapted easily to existing local religious practices.'},
+        {id:'B', text:'requiring all converts to learn Arabic and complete a pilgrimage to Mecca within two years.'},
+        {id:'C', text:'organizing armed religious orders that conquered new territory and forcibly converted the local residents.'},
+        {id:'D', text:'building large madrasas that competed with Christian and Hindu temples for state patronage.'}
+      ], correct:'A',
+      explanation:'Sufi missionaries spread Islam through personal piety and tolerance for local custom, making conversion easier than the more legalistic forms of Islam.'},
+
+    {id:'wh_u1_mcq_010', topic:'1.2', bigIdea:'CDI', difficulty:'moderate',
+      stem:'The 14th-century scholar Ibn Khaldun is most often credited with',
+      choices:[
+        {id:'A', text:'pioneering the systematic analysis of how civilizations rise and decline over historical time.'},
+        {id:'B', text:'translating the entire Greek philosophical corpus into Arabic for the first time in recorded history.'},
+        {id:'C', text:'establishing the first Sufi brotherhood and writing its founding rules and devotional manuals.'},
+        {id:'D', text:'serving as the founding chief judge of the Mamluk Sultanate and codifying its legal code.'}
+      ], correct:'A',
+      explanation:'In the Muqaddimah, Ibn Khaldun analyzed the cyclical rise and fall of dynasties and the forces of social cohesion (asabiyyah), founding what we now call sociology and historiography.'},
+
+    {id:'wh_u1_mcq_011', topic:'1.2', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Delhi Sultanate is best characterized as',
+      choices:[
+        {id:'A', text:'a series of Turkic-Afghan Muslim dynasties that ruled over a Hindu-majority population in northern India.'},
+        {id:'B', text:'a long-lasting unified empire that successfully converted the entire Indian subcontinent to Islam.'},
+        {id:'C', text:'an alliance of Hindu princes who paid tribute to the Mongols in exchange for protected status.'},
+        {id:'D', text:'a maritime confederation of Muslim port cities scattered along the Indian Malabar and Coromandel sea coasts.'}
+      ], correct:'A',
+      explanation:'The Delhi Sultanate (1206-1526) was five successive Turkic and Afghan dynasties that imposed Muslim rule over a Hindu-majority north India; it never fully Islamized the population.'},
+
+    {id:'wh_u1_mcq_012', topic:'1.2', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Which statement best describes the role of Persian-Arabic-Indian intellectual exchange in the Islamic world c. 1200-1450?',
+      choices:[
+        {id:'A', text:'Muslim scholars preserved and built on Greek, Persian, and Indian learning, producing advances later transmitted to Europe.'},
+        {id:'B', text:'Islamic governments banned non-Muslim philosophical texts and burned the libraries of conquered peoples.'},
+        {id:'C', text:'After the fall of Baghdad in 1258, no significant scientific work was produced anywhere in the Muslim world for two centuries.'},
+        {id:'D', text:'Christian scholars in Spain monopolized translation work, with no comparable centers existing in the Muslim world.'}
+      ], correct:'A',
+      explanation:'Muslim scholars in this era, including al-Tusi and Ibn Khaldun, advanced astronomy, mathematics, and historiography, drawing on and synthesizing Greek, Persian, and Indian traditions.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 3 — SOUTH & SOUTHEAST ASIA  (Topic 1.3)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r3', num:3, topic:'1.3', title:'South & SE Asia', icon:'🛕', themes:['CDI','GOV'],
    desc:'Vijayanagara, Rajputs, the Bhakti Movement, Khmer Empire, Srivijaya, Majapahit.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r4',  num:4,  topic:'1.4', title:'The Americas',      icon:'🗿', themes:['GOV','SIO'],
+   type:'mcq', group:'core', label:'Round 3 — South & Southeast Asia', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u1_mcq_013', topic:'1.3', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Vijayanagara Empire is best described as',
+      choices:[
+        {id:'A', text:'a major Hindu state in southern India that resisted Muslim expansion from the Delhi Sultanate.'},
+        {id:'B', text:'a Buddhist sea empire whose monarchs traced their authority to early Sri Lankan rulers.'},
+        {id:'C', text:'a Sunni Muslim sultanate based in the Deccan that warred constantly against the Rajput states.'},
+        {id:'D', text:'a small Christian principality founded by Nestorian missionaries on the southern Malabar Coast.'}
+      ], correct:'A',
+      explanation:'Vijayanagara (1336-1646) was a powerful Hindu kingdom in southern India that successfully resisted Delhi Sultanate expansion and preserved Hindu cultural traditions in the south.'},
+
+    {id:'wh_u1_mcq_014', topic:'1.3', bigIdea:'CDI', difficulty:'accessible',
+      stem:'The Bhakti Movement in South Asia is best described as a Hindu reform movement that',
+      choices:[
+        {id:'A', text:'emphasized direct personal devotion to a chosen deity, bypassing priests and the caste system.'},
+        {id:'B', text:'demanded that all Hindus convert to Islam in order to escape the cycle of rebirth.'},
+        {id:'C', text:'restored the priestly authority of high-caste Brahmins who had lost influence under Muslim rule.'},
+        {id:'D', text:'replaced devotional worship with strict legalistic rules drawn from the older Vedic texts.'}
+      ], correct:'A',
+      explanation:'Bhakti emphasized direct, personal love and devotion to a chosen deity, deliberately downplaying caste and priestly authority. It often used vernacular languages, making religion more accessible.'},
+
+    {id:'wh_u1_mcq_015', topic:'1.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Rajput kingdoms of northwestern India are best characterized as',
+      choices:[
+        {id:'A', text:'a network of Hindu warrior-aristocrat states that resisted Muslim political rule for centuries.'},
+        {id:'B', text:'a unified Hindu empire that successfully expelled the Delhi Sultanate from the subcontinent.'},
+        {id:'C', text:'a confederation of Buddhist monastic communities that controlled most overland trade routes.'},
+        {id:'D', text:'a mercantile alliance of port cities organized to coordinate Indian Ocean shipping routes and tariffs.'}
+      ], correct:'A',
+      explanation:'Rajput states were a decentralized network of Hindu warrior-aristocrats that fiercely resisted Muslim conquest, though they never unified into a single empire.'},
+
+    {id:'wh_u1_mcq_016', topic:'1.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'The Khmer Empire (Angkor) supported its large population most directly through',
+      choices:[
+        {id:'A', text:'a sophisticated system of reservoirs and canals that allowed multiple rice harvests per year.'},
+        {id:'B', text:'extensive deep-water shipping monopolies that controlled trade between China and India.'},
+        {id:'C', text:'aggressive military campaigns that captured large numbers of slaves to serve as agricultural laborers.'},
+        {id:'D', text:'royal silver mines whose output funded grain imports from the Chinese mainland.'}
+      ], correct:'A',
+      explanation:'Angkor\'s wealth and population rested on highly engineered hydraulic systems (barays, canals) that supported intensive rice agriculture in the Cambodian floodplain.'},
+
+    {id:'wh_u1_mcq_017', topic:'1.3', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Compared to land-based empires of the period, Srivijaya and Majapahit drew their power primarily from',
+      choices:[
+        {id:'A', text:'control over maritime trade routes connecting the Indian Ocean to the South China Sea.'},
+        {id:'B', text:'extensive land armies organized around heavy cavalry and disciplined infantry formations.'},
+        {id:'C', text:'monopolizing overland silk-trade caravans crossing through the Himalayan mountain passes.'},
+        {id:'D', text:'tightly controlled rice-tax systems run from large landlocked capitals far from the coast.'}
+      ], correct:'A',
+      explanation:'Srivijaya (Sumatra) and Majapahit (Java) were maritime states that grew rich by controlling shipping through the Strait of Malacca and the broader Southeast Asian sea trade.'},
+
+    {id:'wh_u1_mcq_018', topic:'1.3', bigIdea:'CDI', difficulty:'challenging',
+      stem:'Both the Bhakti Movement and Sufism most directly challenged established religious authority in their regions by',
+      choices:[
+        {id:'A', text:'emphasizing direct personal devotion that did not require priests or formal scholars to mediate.'},
+        {id:'B', text:'rejecting all sacred texts and arguing that scripture had no role in legitimate religious practice.'},
+        {id:'C', text:'urging the violent overthrow of existing political rulers as a precondition for true devotion.'},
+        {id:'D', text:'demanding strict literacy and rigorous Arabic or Sanskrit study for participation in worship.'}
+      ], correct:'A',
+      explanation:'Both movements bypassed institutional gatekeepers (Brahmins for Hindus, ulama for Muslims) by stressing direct personal connection to the divine, often in vernacular language.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 4 — THE AMERICAS  (Topic 1.4)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r4', num:4, topic:'1.4', title:'The Americas', icon:'🗿', themes:['GOV','SIO'],
    desc:'Mexica/Aztec, Inca, Mississippian, Chaco — state-building without contact across the Atlantic.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r5',  num:5,  topic:'1.5', title:'Africa',            icon:'🌍', themes:['CDI','GOV'],
+   type:'mcq', group:'core', label:'Round 4 — The Americas', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u1_mcq_019', topic:'1.4', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Mexica (Aztec) Empire maintained its dominance over central Mexico primarily by',
+      choices:[
+        {id:'A', text:'collecting tribute from conquered city-states, which retained their local rulers under Mexica oversight.'},
+        {id:'B', text:'replacing every conquered local ruler with an ethnic Mexica governor sent directly from the imperial capital.'},
+        {id:'C', text:'enslaving the entire male population of every conquered city and resettling them near Tenochtitlan.'},
+        {id:'D', text:'paying loyal subject states large annual subsidies of cocoa beans and obsidian in exchange for peace.'}
+      ], correct:'A',
+      explanation:'The Aztec system was a tributary empire: conquered city-states kept their own rulers and gods but paid heavy tribute and provided sacrificial victims and warriors to the Mexica.'},
+
+    {id:'wh_u1_mcq_020', topic:'1.4', bigIdea:'GOV', difficulty:'accessible',
+      stem:'The Inca state organized labor through the mit\'a system, which required',
+      choices:[
+        {id:'A', text:'subjects to perform rotating labor service for the state on roads, terraces, and temples.'},
+        {id:'B', text:'every household to send one child to be raised and trained in the Sapa Inca\'s palace school.'},
+        {id:'C', text:'each conquered region to provide an annual cash payment in silver to the Cuzco treasury.'},
+        {id:'D', text:'free farmers to surrender all crops to the state in exchange for military service exemptions.'}
+      ], correct:'A',
+      explanation:'Mit\'a was a rotational labor tax: subject households owed periods of service on state projects (roads, agriculture, mining, building), not cash or crops.'},
+
+    {id:'wh_u1_mcq_021', topic:'1.4', bigIdea:'TEC', difficulty:'moderate',
+      stem:'Although the Inca did not develop a written language, they kept detailed administrative records using',
+      choices:[
+        {id:'A', text:'quipu, a system of knotted cords that encoded numerical and possibly narrative information.'},
+        {id:'B', text:'codices made from beaten bark whose pictographs were later translated by Spanish friars.'},
+        {id:'C', text:'a syllabic alphabet derived from Mexica picture-writing brought south by trade caravans.'},
+        {id:'D', text:'large carved stone tablets used to display tribute records publicly in the central plaza of Cuzco.'}
+      ], correct:'A',
+      explanation:'Quipu used the position, color, and type of knots on cords to record numerical data (tribute, population, herds) and possibly narrative information.'},
+
+    {id:'wh_u1_mcq_022', topic:'1.4', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Cahokia, near modern St. Louis, is significant in pre-1492 American history because it was',
+      choices:[
+        {id:'A', text:'the largest Mississippian city, with a population of roughly 20,000 at its peak around 1100-1200.'},
+        {id:'B', text:'the northernmost Aztec tribute outpost, settled by Mexica colonists during the reign of Motecuhzoma I.'},
+        {id:'C', text:'the capital of an early Inca colonial expansion that briefly extended into the central Mississippi valley.'},
+        {id:'D', text:'a coastal trading post that exported buffalo hides and copper across the Atlantic to medieval Iceland.'}
+      ], correct:'A',
+      explanation:'Cahokia was the largest pre-Columbian city north of Mexico, an urban center of the Mississippian mound-building tradition built around maize agriculture.'},
+
+    {id:'wh_u1_mcq_023', topic:'1.4', bigIdea:'ENV', difficulty:'moderate',
+      stem:'The decline of the Ancestral Puebloan settlements at Mesa Verde around 1300 is most often attributed to',
+      choices:[
+        {id:'A', text:'a prolonged regional drought that made intensive agriculture in the high desert unsustainable.'},
+        {id:'B', text:'a sudden military invasion by Mexica armies marching north out of the Valley of Mexico.'},
+        {id:'C', text:'a Christian missionary campaign that converted the population and resettled it on the coast.'},
+        {id:'D', text:'a sudden smallpox pandemic introduced by Norse settlers traveling overland from Vinland to Colorado.'}
+      ], correct:'A',
+      explanation:'Tree-ring data show a long, severe drought in the late 13th century. Combined with possible social conflict, it likely drove the abandonment of cliff-dwelling sites like Mesa Verde.'},
+
+    {id:'wh_u1_mcq_024', topic:'1.4', bigIdea:'SIO', difficulty:'challenging',
+      stem:'The Mexica and Inca empires were similar in that both',
+      choices:[
+        {id:'A', text:'used state religion and elaborate ritual to legitimize the absolute authority of the ruler.'},
+        {id:'B', text:'depended on horse-mounted cavalry to project military power across long imperial distances.'},
+        {id:'C', text:'rejected human sacrifice as incompatible with their official imperial state religious doctrine.'},
+        {id:'D', text:'were governed by elected councils of merchant guilds rather than by hereditary monarchs.'}
+      ], correct:'A',
+      explanation:'Both states linked religious ritual (Aztec sacrifice, Inca solar cult of Inti) to political legitimacy: rulers were religious figures, and state ceremonies reinforced their power.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 5 — AFRICA  (Topic 1.5)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r5', num:5, topic:'1.5', title:'Africa', icon:'🌍', themes:['CDI','GOV','ECN'],
    desc:'Mali and Mansa Musa, Ethiopia, Hausa, Great Zimbabwe, the Swahili Coast.',
-   type:'mcq',  questions:12, group:'core'},
-  {id:'r6',  num:6,  topic:'1.6', title:'Europe',            icon:'⛪', themes:['CDI','GOV','ECN'],
+   type:'mcq', group:'core', label:'Round 5 — Africa', color:'var(--acc)', draw:6, questions:[
+
+    {id:'wh_u1_mcq_025', topic:'1.5', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The wealth of the Mali Empire under Mansa Musa came primarily from',
+      choices:[
+        {id:'A', text:'controlling the trans-Saharan trade in West African gold and Saharan salt.'},
+        {id:'B', text:'taxing maritime traffic moving between West Africa and Portuguese Atlantic ports.'},
+        {id:'C', text:'leasing rights to Italian banking families to finance its military campaigns.'},
+        {id:'D', text:'monopolizing exports of spices grown in the rainforests south of the empire.'}
+      ], correct:'A',
+      explanation:'Mali sat astride the trans-Saharan caravan routes and extracted revenue from the gold-salt trade, the foundation of its enormous wealth.'},
+
+    {id:'wh_u1_mcq_026', topic:'1.5', bigIdea:'CDI', difficulty:'accessible',
+      stem:'Mansa Musa\'s 1324 hajj to Mecca is historically significant largely because it',
+      choices:[
+        {id:'A', text:'spread enormous quantities of Malian gold across the Mediterranean and put Mali on European maps.'},
+        {id:'B', text:'persuaded the Abbasid caliph in Baghdad to recognize Mali as the rightful Sunni successor state.'},
+        {id:'C', text:'introduced the Bhakti movement to West Africa and triggered widespread Hindu conversion in Mali.'},
+        {id:'D', text:'led directly to the founding of the city of Timbuktu and the establishment of trans-Saharan trade.'}
+      ], correct:'A',
+      explanation:'Musa\'s lavish gold-spending in Cairo allegedly destabilized the Egyptian gold market and made Mali widely known in the Mediterranean world; European maps soon showed Mali.'},
+
+    {id:'wh_u1_mcq_027', topic:'1.5', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Ethiopia in this period was distinctive among medieval African states because it',
+      choices:[
+        {id:'A', text:'remained a Christian kingdom whose rulers traced descent from the biblical King Solomon.'},
+        {id:'B', text:'converted to Sunni Islam under pressure from the Mamluk Sultanate of nearby Egypt.'},
+        {id:'C', text:'rejected all forms of organized religion in favor of an indigenous animist royal cult.'},
+        {id:'D', text:'served as the southernmost province of the Christian Byzantine Empire centered at Constantinople.'}
+      ], correct:'A',
+      explanation:'The Solomonic dynasty of Ethiopia maintained a long Christian tradition and traced its rulers\' lineage to Solomon and the Queen of Sheba; Lalibela\'s rock-hewn churches reflect this culture.'},
+
+    {id:'wh_u1_mcq_028', topic:'1.5', bigIdea:'ECN', difficulty:'moderate',
+      stem:'The Swahili city-states along the East African coast prospered most directly from',
+      choices:[
+        {id:'A', text:'their position as commercial intermediaries linking African interior goods to Indian Ocean trade.'},
+        {id:'B', text:'a unified centralized empire that imposed peace and uniform tariffs across the entire coast.'},
+        {id:'C', text:'silver mines in the African interior whose output they transported by camel caravan to Cairo.'},
+        {id:'D', text:'a state monopoly on Indian Ocean shipbuilding that effectively excluded Arab and Persian merchant fleets.'}
+      ], correct:'A',
+      explanation:'Independent Swahili city-states like Kilwa, Mombasa, and Sofala thrived as middlemen between African interior trade (gold, ivory, slaves) and the Indian Ocean network.'},
+
+    {id:'wh_u1_mcq_029', topic:'1.5', bigIdea:'GOV', difficulty:'moderate',
+      stem:'Great Zimbabwe is best understood as',
+      choices:[
+        {id:'A', text:'the stone-walled capital of a southern African state that controlled the gold trade to the Swahili coast.'},
+        {id:'B', text:'a Christian Ethiopian outpost built to defend the southern imperial frontier against Muslim Swahili invaders.'},
+        {id:'C', text:'a Portuguese trading factory established in the late 1400s on the coast of modern-day Mozambique.'},
+        {id:'D', text:'a Berber Muslim mosque complex in the northern Sahara along the trans-Saharan caravan routes.'}
+      ], correct:'A',
+      explanation:'Great Zimbabwe was a stone-built capital (c. 1100-1450) of a southern African state whose wealth came from controlling trade in gold and ivory flowing to Swahili coastal ports.'},
+
+    {id:'wh_u1_mcq_030', topic:'1.5', bigIdea:'CDI', difficulty:'challenging',
+      stem:'A common pattern across Mali, the Hausa kingdoms, and the Swahili Coast in this period was',
+      choices:[
+        {id:'A', text:'the spread of Islam through long-distance trade rather than through state-led military conquest.'},
+        {id:'B', text:'the forced conversion of every subject by ruling elites who imposed Islamic law from the top down.'},
+        {id:'C', text:'a sharp decline in trade caused by the rise of Christian missionary activity throughout each region.'},
+        {id:'D', text:'large-scale migration of European settlers who imposed Christianity on local African populations.'}
+      ], correct:'A',
+      explanation:'In Mali, Hausa, and the Swahili coast, Islam was carried by Muslim merchants and Sufi preachers through trade and intermarriage, not by conquest. Local rulers often converted while subjects retained traditional beliefs.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUND 6 — EUROPE  (Topic 1.6)
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r6', num:6, topic:'1.6', title:'Europe', icon:'⛪', themes:['CDI','GOV','ECN'],
    desc:'Feudalism, manorialism, the Catholic Church, the Black Death, the Italian Renaissance.',
-   type:'mcq',  questions:12, group:'core'},
+   type:'mcq', group:'core', label:'Round 6 — Europe', color:'var(--acc)', draw:6, questions:[
 
-  // ── Synthesis & Skills (Topic 1.7+) ──
-  {id:'r7',  num:7,  topic:'1.7', title:'Map Mastery',       icon:'🗺️', themes:['ENV','GOV'],
+    {id:'wh_u1_mcq_031', topic:'1.6', bigIdea:'GOV', difficulty:'accessible',
+      stem:'Feudalism in medieval Europe is best described as',
+      choices:[
+        {id:'A', text:'a hierarchy of personal obligations in which lords granted land in exchange for military service.'},
+        {id:'B', text:'a centralized bureaucracy of salaried officials recruited through written competitive examinations.'},
+        {id:'C', text:'a religious order in which all noble titles and lands were held directly by Catholic bishops.'},
+        {id:'D', text:'a confederation of free city-states in which power was held by elected merchant councils.'}
+      ], correct:'A',
+      explanation:'European feudalism was a decentralized system of personal contracts: a lord granted a fief (usually land) to a vassal in exchange for military service and other obligations.'},
+
+    {id:'wh_u1_mcq_032', topic:'1.6', bigIdea:'ECN', difficulty:'accessible',
+      stem:'The economic counterpart to feudalism, manorialism, was characterized by',
+      choices:[
+        {id:'A', text:'serfs farming a noble\'s manor in exchange for protection and a share of the harvest.'},
+        {id:'B', text:'free wage laborers paid in coin who could leave one estate at will to work for another.'},
+        {id:'C', text:'enslaved African workers brought across the Sahara to staff large grain plantations.'},
+        {id:'D', text:'centrally planned village agriculture supervised by royal officials sent from the capital.'}
+      ], correct:'A',
+      explanation:'Manorialism was the economic system underpinning feudalism. Serfs were legally bound to the manor and worked the lord\'s land in exchange for protection and the right to farm strips of land for themselves.'},
+
+    {id:'wh_u1_mcq_033', topic:'1.6', bigIdea:'CDI', difficulty:'moderate',
+      stem:'During the period c. 1200-1450, the Roman Catholic Church functioned as',
+      choices:[
+        {id:'A', text:'the dominant cultural institution of Latin Christendom, often wealthier and better-organized than kings.'},
+        {id:'B', text:'a strictly local network of parishes with no significant influence beyond individual European villages.'},
+        {id:'C', text:'a junior partner of secular rulers, holding no land and depending entirely on royal financial subsidies.'},
+        {id:'D', text:'a movement that openly opposed all forms of monarchy and called for democratic republican government across Europe.'}
+      ], correct:'A',
+      explanation:'The Catholic Church was the single most powerful institution of medieval Latin Europe: it owned vast lands, ran schools and monasteries, and often outweighed kings in wealth and reach.'},
+
+    {id:'wh_u1_mcq_034', topic:'1.6', bigIdea:'SIO', difficulty:'moderate',
+      stem:'In Western Europe, the Black Death (1346-1353) most directly contributed to the',
+      choices:[
+        {id:'A', text:'gradual weakening of serfdom as labor shortages let surviving peasants demand better terms.'},
+        {id:'B', text:'permanent collapse of the Roman Catholic Church, replaced everywhere by Protestant reformers.'},
+        {id:'C', text:'rapid centralization of feudal monarchies into a single unified European empire by 1400.'},
+        {id:'D', text:'arrival of New World silver in Europe and a corresponding rise in agricultural commodity prices.'}
+      ], correct:'A',
+      explanation:'The plague killed 30-50% of Europe\'s population. Surviving peasants gained leverage to demand wages and freedom, weakening serfdom in much of Western Europe.'},
+
+    {id:'wh_u1_mcq_035', topic:'1.6', bigIdea:'CDI', difficulty:'moderate',
+      stem:'Renaissance humanism in 14th and 15th-century Italy emphasized',
+      choices:[
+        {id:'A', text:'the renewed study of classical Greek and Roman texts and the value of secular human achievement.'},
+        {id:'B', text:'the rejection of Christianity in favor of a revived form of pre-Christian Greco-Roman paganism.'},
+        {id:'C', text:'the abolition of all monasteries and the redistribution of Church wealth to urban guild members.'},
+        {id:'D', text:'a return to early medieval scholasticism as practiced in the cathedral schools of northern France.'}
+      ], correct:'A',
+      explanation:'Renaissance humanism revived classical learning and emphasized human capability and earthly life, but generally remained Christian; it was not anti-religious.'},
+
+    {id:'wh_u1_mcq_036', topic:'1.6', bigIdea:'GOV', difficulty:'challenging',
+      stem:'Compared to the centralized bureaucracy of Song China, political authority in Western Europe c. 1200-1450 was distinctive in being',
+      choices:[
+        {id:'A', text:'highly decentralized, with kings sharing power with the Church, nobles, and emerging towns.'},
+        {id:'B', text:'organized around a single hereditary emperor who held direct authority over every kingdom.'},
+        {id:'C', text:'recruited through standardized written examinations open to most educated free males.'},
+        {id:'D', text:'unified under the Roman Catholic pope as both spiritual and direct civil ruler of all of Europe.'}
+      ], correct:'A',
+      explanation:'European political authority was diffuse: kings competed with the papacy, regional nobles, and chartered towns. The Magna Carta (1215) and the Hundred Years War both reflect this fragmented landscape.'},
+
+  ]},
+
+  // ─────────────────────────────────────────────────────────────────
+  //  ROUNDS 7 - 12 — Pass 2 stubs
+  //  Stimulus rounds keep an empty sets:[] so the runner doesn't blow up
+  //  if a teacher clicks them too early. They show a friendly "Coming soon".
+  // ─────────────────────────────────────────────────────────────────
+  {id:'r7',  num:7,  topic:'1.7', title:'Map Mastery', icon:'🗺️', themes:['ENV','GOV'],
    desc:'Place all 6 regional states/empires on a world map. Identify trade networks and religious zones.',
-   type:'map',  questions:10, group:'skills'},
-  {id:'r8',  num:8,  topic:'1.7', title:'Belief Systems',    icon:'☯️', themes:['CDI'],
-   desc:'Cross-regional comparison: how religion shaped governance — Confucianism, Islam, Hinduism, Christianity, Buddhism.',
-   type:'mcq',  questions:10, group:'skills'},
-  {id:'r9',  num:9,  topic:'1.7', title:'Comparison',        icon:'⚖️', themes:['GOV'],
-   desc:'Topic 1.7 in full: explicit comparison of state-formation across the six regions. Argumentation 6.A.',
-   type:'synthesis', questions:8, group:'skills'},
+   type:'map', group:'skills', label:'Round 7 — Map Mastery', color:'var(--bronze)', draw:1, questions:10, sets:[]},
 
-  // ── Free-Response Practice ──
+  {id:'r8',  num:8,  topic:'1.7', title:'Belief Systems', icon:'☯️', themes:['CDI'],
+   desc:'Cross-regional comparison: how religion shaped governance — Confucianism, Islam, Hinduism, Christianity, Buddhism.',
+   type:'mcq', group:'skills', label:'Round 8 — Belief Systems', color:'var(--bronze)', draw:10, questions:[]},
+
+  {id:'r9',  num:9,  topic:'1.7', title:'Comparison', icon:'⚖️', themes:['GOV'],
+   desc:'Topic 1.7 in full: explicit comparison of state-formation across the six regions. Argumentation 6.A.',
+   type:'synthesis', group:'skills', label:'Round 9 — Comparison', color:'var(--bronze)', draw:1, questions:8, sets:[]},
+
   {id:'r10', num:10, topic:'1.1–1.6', title:'Document Analysis', icon:'📜', themes:['CDI','GOV'],
    desc:'5 primary-source stimulus drills — Marco Polo, Ibn Battuta, Mexica chronicles, Magna Carta. Practice HAPP.',
-   type:'documents', questions:5, group:'frq'},
-  {id:'r11', num:11, topic:'1.1–1.7', title:'SAQ Practice',  icon:'✍️', themes:['GOV','CDI'],
+   type:'documents', group:'frq', label:'Round 10 — Document Analysis', color:'var(--bronze)', draw:1, questions:5, sets:[]},
+
+  {id:'r11', num:11, topic:'1.1–1.7', title:'SAQ Practice', icon:'✍️', themes:['GOV','CDI'],
    desc:'2 full Short Answer Questions with rubric scoring. Causation, CCOT, Comparison.',
-   type:'saq', questions:2, group:'frq'},
-  {id:'r12', num:12, topic:'1.1–1.7', title:'LEQ Practice',  icon:'📝', themes:['GOV'],
+   type:'saq', group:'frq', label:'Round 11 — SAQ Practice', color:'var(--bronze)', draw:1, questions:2, sets:[]},
+
+  {id:'r12', num:12, topic:'1.1–1.7', title:'LEQ Practice', icon:'📝', themes:['GOV'],
    desc:'1 full Long Essay Question with rubric scoring. "Compare state formation in two regions, c. 1200–1450."',
-   type:'leq', questions:1, group:'frq'},
+   type:'leq', group:'frq', label:'Round 12 — LEQ Practice', color:'var(--bronze)', draw:1, questions:1, sets:[]},
 ];
+
+// QUESTION_BANK alias so APG-style references keep working anywhere
+const QUESTION_BANK = { unit: UNIT_ID, title: UNIT_TITLE, rounds: ROUNDS };
 
 // ── VOCABULARY (CED Required Illustrative Examples) ─────────────────
 const VOCAB = {
@@ -889,7 +1494,7 @@ function roundCard(r){
     `<span class="activity-card-meta-tag tag-${t.toLowerCase()}">${t}</span>`).join('');
   const badge = done
     ? `<div class="activity-card-badge" style="border-color:var(--green);color:var(--green2)">✓ DONE</div>`
-    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${r.questions} Q</div>`;
+    : `<div class="activity-card-badge" style="border-color:var(--bronze);color:var(--bronze2)">${Array.isArray(r.questions) ? r.questions.length : r.questions} Q</div>`;
   const label = ({mcq:'Multiple Choice', map:'Map', synthesis:'Synthesis', documents:'Documents', saq:'SAQ', leq:'LEQ'})[r.type] || 'Round';
   return `
     <div class="activity-card" onclick="launchRound('${r.id}')">
@@ -906,9 +1511,452 @@ function roundCard(r){
     </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GAME RUNNER — ported from APG, adapted to APWH theme
+//  Handles MCQ rounds, vocab quiz, intro/result screens, scoring.
+// ════════════════════════════════════════════════════════════════════
+
+// Live game state for the current run
+let G = null;
+
 function launchRound(roundId){
-  // Phase 2 will wire in the actual question runner.
-  alert('Round content is being built in Phase 2.\n\nFor now: explore the Briefing, Vocabulary, and Overview tabs to learn the CED-aligned content for Unit 1.');
+  const idx = ROUNDS.findIndex(r => r.id === roundId);
+  if (idx === -1) return;
+  const round = ROUNDS[idx];
+
+  // MCQ rounds with populated questions are playable.
+  // Stimulus rounds (sets:[]) and other types are Pass-2 stubs — show toast.
+  if (round.type === 'mcq' && Array.isArray(round.questions) && round.questions.length > 0) {
+    startRound(idx);
+  } else {
+    notify('🛠️ ' + round.title + ' is being built in Pass 2.');
+  }
+}
+
+function startRound(roundIdx){
+  G = {
+    mode: 'round',           // 'round' for MCQ rounds, 'vocab' for vocab quiz
+    roundIdx,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+function exitGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('hub').style.display = 'flex';
+  // Reset all overlays
+  ['round-intro','question-area','btn-row','round-complete'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  renderRoundCards();
+  renderQuizStats();
+}
+
+function buildProgressPips(){
+  const el = document.getElementById('gp-pips');
+  if (G.mode === 'vocab') {
+    // 15 pips for vocab quiz
+    el.innerHTML = Array.from({length:15}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  } else {
+    // One pip per question in this round
+    const round = ROUNDS[G.roundIdx];
+    const draw = Math.min(round.draw || round.questions.length, round.questions.length);
+    el.innerHTML = Array.from({length:draw}, (_,i) =>
+      `<div class="gp-pip ${i===0?'active':''}" id="pip-${i}"></div>`).join('');
+  }
+}
+
+function updatePips(){
+  document.querySelectorAll('.gp-pip').forEach((pip,i) => {
+    pip.classList.remove('done','active');
+    if (i < G.questionIdx) pip.classList.add('done');
+    else if (i === G.questionIdx) pip.classList.add('active');
+  });
+}
+
+// ── ROUND INTRO ──────────────────────────────────────────────────────
+function showRoundIntro(){
+  document.getElementById('round-intro').style.display = 'flex';
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'none';
+
+  if (G.mode === 'vocab') {
+    document.getElementById('ri-icon').textContent = '🃏';
+    document.getElementById('ri-round').textContent = 'VOCAB QUIZ';
+    document.getElementById('ri-title').textContent = 'Vocabulary Quiz';
+    document.getElementById('ri-desc').textContent = '15 randomized questions drawn from all 6 regions. Some show a term and ask for its definition; others show a definition and ask for the matching term.';
+    document.getElementById('game-round-label').textContent = 'VOCABULARY QUIZ';
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    document.getElementById('ri-icon').textContent = round.icon;
+    document.getElementById('ri-round').textContent = `ROUND ${round.num} · TOPIC ${round.topic}`;
+    document.getElementById('ri-title').textContent = round.title;
+    document.getElementById('ri-desc').textContent = round.desc;
+    document.getElementById('game-round-label').textContent = (round.label || round.title).toUpperCase();
+  }
+  document.getElementById('ri-docs').textContent = '';
+}
+
+function dismissIntro(){
+  document.getElementById('round-intro').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('btn-row').style.display = 'flex';
+  G.introShown = true;
+  prepareRound();
+}
+
+// ── PREPARE QUESTIONS ────────────────────────────────────────────────
+function prepareRound(){
+  if (G.mode === 'vocab') {
+    G.questions = buildVocabQuizQuestions();
+  } else {
+    const round = ROUNDS[G.roundIdx];
+    const shuffled = [...round.questions].sort(() => Math.random() - 0.5);
+    const drawN = Math.min(round.draw || round.questions.length, round.questions.length);
+    G.questions = shuffled.slice(0, drawN);
+  }
+
+  // Shuffle choices and reassign A-D labels by new position
+  const LETTERS = ['A','B','C','D'];
+  G.questions = G.questions.map(q => {
+    if (!q.choices || q.choices.length < 2) return q;
+    const correctText = (q.choices.find(c => c.id === q.correct) || {}).text;
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    const reLabeled = shuffled.map((c,i) => ({...c, id:LETTERS[i]}));
+    const newCorrect = reLabeled.find(c => c.text === correctText);
+    return {...q, choices:reLabeled, correct: newCorrect ? newCorrect.id : q.correct};
+  });
+
+  G.questionIdx = 0;
+  G.selectedChoice = null;
+  G.answered = false;
+  buildProgressPips();
+  renderQuestion();
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q = G.questions[G.questionIdx];
+  const el = document.getElementById('question-area');
+  const totalQ = G.questions.length;
+
+  G.selectedChoice = null;
+  G.answered = false;
+
+  document.getElementById('btn-next').style.display = 'none';
+
+  let metaHtml = `<div class="q-num">Q ${G.questionIdx + 1} / ${totalQ}</div>`;
+  if (G.mode === 'vocab') {
+    const kindLabel = q._kind === 't2d' ? 'TERM → DEF' : 'DEF → TERM';
+    metaHtml += `<div class="q-tag kind-${q._kind}">${kindLabel}</div>`;
+    metaHtml += `<div class="q-tag topic">${q._region}</div>`;
+  } else {
+    metaHtml += `<div class="q-tag topic">${q.topic}</div>`;
+    metaHtml += `<div class="q-tag bi-${q.bigIdea}">${q.bigIdea}</div>`;
+    metaHtml += `<div class="q-tag diff-${q.difficulty}">${q.difficulty}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="question-card" id="qcard">
+      <div class="q-meta">${metaHtml}</div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <div class="choice" id="choice-${c.id}" onclick="selectChoice('${c.id}')">
+            <div class="choice-letter">${c.id}</div>
+            <div class="choice-text">${c.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  updatePips();
+  el.scrollTop = 0;
+}
+
+// ── ANSWER HANDLING ──────────────────────────────────────────────────
+function selectChoice(id){
+  if (G.answered) return;
+  G.selectedChoice = id;
+  submitAnswer();
+}
+
+function submitAnswer(){
+  if (!G.selectedChoice || G.answered) return;
+  G.answered = true;
+
+  const q = G.questions[G.questionIdx];
+  const correct = G.selectedChoice === q.correct;
+
+  G.sessionTotal++;
+  if (correct) {
+    G.sessionCorrect++;
+    G.totalGold += 10;
+    spawnGold('+10 🪙');
+  }
+
+  // Style choices
+  document.querySelectorAll('.choice').forEach(c => {
+    c.classList.add('answered');
+    const cId = c.id.replace('choice-','');
+    if (cId === q.correct) c.classList.add('correct');
+    else if (cId === G.selectedChoice) c.classList.add('wrong');
+    else c.classList.add('dimmed');
+  });
+
+  // Show explanation
+  const qcard = document.getElementById('qcard');
+  if (qcard && q.explanation) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation' + (correct ? '' : ' wrong-exp');
+    expDiv.innerHTML = `<strong>${correct ? '✓ Correct.' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+    qcard.appendChild(expDiv);
+  }
+
+  document.getElementById('game-gold-disp').textContent = '🪙 ' + G.totalGold;
+  document.getElementById('btn-next').style.display = 'inline-block';
+
+  const el = document.getElementById('question-area');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 200);
+}
+
+function nextQuestion(){
+  G.questionIdx++;
+  if (G.questionIdx >= G.questions.length) {
+    showRoundComplete();
+  } else {
+    renderQuestion();
+    document.getElementById('question-area').scrollTop = 0;
+  }
+}
+
+// ── ROUND COMPLETE ───────────────────────────────────────────────────
+function showRoundComplete(){
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('btn-row').style.display = 'none';
+  document.getElementById('round-complete').style.display = 'flex';
+
+  const correct = G.sessionCorrect, total = G.sessionTotal;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const trophy = getTrophyForAccuracy(pct);
+
+  // Save progress
+  if (G.mode === 'vocab') {
+    saveVocabQuizProgress(pct);
+  } else {
+    saveRoundProgress(ROUNDS[G.roundIdx].id, pct, correct, total);
+  }
+
+  const titleText = G.mode === 'vocab'
+    ? 'Vocab Quiz Complete!'
+    : (ROUNDS[G.roundIdx].title + ' — Complete!');
+
+  document.getElementById('rc-icon').textContent = trophy.icon;
+  document.getElementById('rc-title').textContent = titleText;
+  document.getElementById('rc-score').textContent = correct + '/' + total;
+  document.getElementById('rc-score').style.color = trophy.color;
+  document.getElementById('rc-sub').textContent = pct + '% · ' + trophy.label;
+
+  document.getElementById('rc-stats').innerHTML =
+    `<div class="rc-stat"><div class="rc-stat-val" style="color:${trophy.color}">${pct}%</div><div class="rc-stat-lbl">Accuracy</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--gc)">${G.totalGold}</div><div class="rc-stat-lbl">Gold Earned</div></div>
+     <div class="rc-stat"><div class="rc-stat-val" style="color:var(--bronze2)">${correct}</div><div class="rc-stat-lbl">Correct</div></div>`;
+}
+
+function replayRound(){
+  if (!G) return;
+  if (G.mode === 'vocab') {
+    launchVocabQuiz();
+  } else {
+    startRound(G.roundIdx);
+  }
+}
+
+// ── TROPHY ───────────────────────────────────────────────────────────
+function getTrophyForAccuracy(pct){
+  if (pct === 100) return { label:'Historian',     icon:'🏛️', color:'var(--purple2)' };
+  if (pct >=  90)  return { label:'Gold Trophy',   icon:'🥇', color:'var(--gold)' };
+  if (pct >=  75)  return { label:'Silver Trophy', icon:'🥈', color:'var(--text)' };
+  if (pct >=  60)  return { label:'Bronze Trophy', icon:'🥉', color:'#cd7f32' };
+  if (pct >=  40)  return { label:'Completed',     icon:'✅', color:'var(--green2)' };
+  return                    { label:'Keep Trying',  icon:'📋', color:'var(--text3)' };
+}
+
+// ── PROGRESS PERSISTENCE ─────────────────────────────────────────────
+function saveRoundProgress(roundId, pct, correct, total){
+  _state.rounds = _state.rounds || {};
+  const prev = _state.rounds[roundId] || { bestPct:0, attempts:0 };
+  _state.rounds[roundId] = {
+    completed: true,
+    bestPct: Math.max(prev.bestPct || 0, pct),
+    bestCorrect: correct,
+    bestTotal: total,
+    attempts: (prev.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function saveVocabQuizProgress(pct){
+  _state.vocabQuiz = _state.vocabQuiz || { bestPct:0, attempts:0 };
+  _state.vocabQuiz = {
+    bestPct: Math.max(_state.vocabQuiz.bestPct || 0, pct),
+    attempts: (_state.vocabQuiz.attempts || 0) + 1,
+    completedAt: new Date().toISOString(),
+  };
+  saveState();
+}
+
+function renderQuizStats(){
+  const best = (_state.vocabQuiz && _state.vocabQuiz.bestPct) || 0;
+  const att  = (_state.vocabQuiz && _state.vocabQuiz.attempts) || 0;
+  const bestEl = document.getElementById('quiz-best');
+  const attEl  = document.getElementById('quiz-attempts');
+  if (bestEl) bestEl.textContent = best > 0 ? best + '%' : '—';
+  if (attEl)  attEl.textContent  = att;
+}
+
+// ── VOCAB QUIZ ───────────────────────────────────────────────────────
+function launchVocabQuiz(){
+  G = {
+    mode: 'vocab',
+    roundIdx: -1,
+    questionIdx: 0,
+    questions: [],
+    selectedChoice: null,
+    answered: false,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    totalGold: 0,
+    introShown: false,
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  showRoundIntro();
+}
+
+// Build a 15-question quiz from VOCAB. Mixes term→def and def→term.
+// Distractors come from sibling terms in the same region (more plausible).
+function buildVocabQuizQuestions(){
+  // Flatten all terms with their region
+  const allTerms = [];
+  Object.keys(VOCAB).forEach(region => {
+    VOCAB[region].terms.forEach(t => {
+      allTerms.push({ region, term: t.term, def: t.def });
+    });
+  });
+
+  // Shuffle and pick 15
+  const shuffled = [...allTerms].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 15);
+
+  return picked.map((entry, i) => {
+    // Half term→def, half def→term, alternating from a random start
+    const kind = ((i + Math.floor(Math.random()*2)) % 2 === 0) ? 't2d' : 'd2t';
+
+    // Distractors: 3 other terms, prefer same region for plausibility
+    const sameRegion = allTerms.filter(t => t.region === entry.region && t.term !== entry.term);
+    const otherRegion = allTerms.filter(t => t.region !== entry.region);
+    const pool = [
+      ...sameRegion.sort(() => Math.random() - 0.5),
+      ...otherRegion.sort(() => Math.random() - 0.5),
+    ];
+    const distractors = [];
+    for (const cand of pool) {
+      if (distractors.length >= 3) break;
+      // Avoid duplicate term/def in the choice set
+      if (kind === 't2d') {
+        if (cand.def !== entry.def && !distractors.some(d => d.def === cand.def)) {
+          distractors.push(cand);
+        }
+      } else {
+        if (cand.term !== entry.term && !distractors.some(d => d.term === cand.term)) {
+          distractors.push(cand);
+        }
+      }
+    }
+
+    let stem, choices;
+    if (kind === 't2d') {
+      stem = `Which definition best matches the term <strong style="color:var(--bronze2)">${stripHtml(entry.term)}</strong>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.def) },
+        { id:'B', text: stripHtml(distractors[0].def) },
+        { id:'C', text: stripHtml(distractors[1].def) },
+        { id:'D', text: stripHtml(distractors[2].def) },
+      ];
+    } else {
+      stem = `Which term best matches the definition: <em style="color:var(--text)">"${stripHtml(entry.def)}"</em>?`;
+      choices = [
+        { id:'A', text: stripHtml(entry.term) },
+        { id:'B', text: stripHtml(distractors[0].term) },
+        { id:'C', text: stripHtml(distractors[1].term) },
+        { id:'D', text: stripHtml(distractors[2].term) },
+      ];
+    }
+
+    return {
+      id: 'vq_' + i,
+      _kind: kind,
+      _region: entry.region.split(' — ')[0] || entry.region,
+      stem,
+      choices,
+      correct: 'A',
+      explanation: `The correct match for <strong>${stripHtml(entry.term)}</strong>: ${stripHtml(entry.def)}`,
+    };
+  });
+}
+
+// Strip any HTML entities/tags out of vocab strings so they don't break
+// the choice-text layout (the VOCAB data has occasional &amp; etc.).
+function stripHtml(s){
+  if (!s) return '';
+  // Decode common entities
+  s = String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&mdash;/g, ', ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&hellip;/g, '...')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+  // Strip tags
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+function spawnGold(text){
+  const el = document.createElement('div');
+  el.className = 'gold-particle';
+  el.textContent = text;
+  el.style.left = (Math.random()*60 + 20) + '%';
+  el.style.top = '60px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function notify(msg){
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 3200);
 }
 
 
@@ -943,6 +1991,8 @@ function switchTab(name, btn){
   document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'quiz') renderQuizStats();
+  if (name === 'play') renderRoundCards();
 }
 
 
@@ -983,11 +2033,13 @@ function boot(){
           document.getElementById('hub').style.display = 'flex';
           renderRoundCards();
           renderVocab();
+          renderQuizStats();
           // If Supabase load finishes after render, refresh progress display
           const refreshTimer = setInterval(() => {
             if (_dbLoaded) {
               clearInterval(refreshTimer);
               renderRoundCards();   // re-render with cloud-restored progress
+              renderQuizStats();
             }
           }, 200);
           setTimeout(() => clearInterval(refreshTimer), 10000); // give up after 10s
