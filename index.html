@@ -8590,9 +8590,16 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
       const scored=unitFRQs.filter(f=>frqBest[f.id]!=null);
       if(scored.length) frqPct=Math.round(scored.reduce((a,f)=>a+Math.round((frqBest[f.id]/f.points)*100),0)/scored.length);
     }
-    // composite: use stored value if available, otherwise calculate from components
-    const comp=ud.composite!=null?Math.round(ud.composite)
-      :(mcq!=null||vocab!=null?useGetComposite(mcq||0,vocab||0,frqPct||0,u.hasFRQ,effectiveHasVocab):0);
+    // composite: default to AUTO math from the visible component scores.
+    // Only use a stored composite when it was explicitly saved as a manual override.
+    // This prevents stale/partial composite values from making the card math not line up
+    // with MCQ + Vocab + FRQ.
+    const autoComp = (mcq!=null||vocab!=null||frqPct!=null)
+      ? useGetComposite(mcq||0,vocab||0,frqPct||0,u.hasFRQ,effectiveHasVocab)
+      : 0;
+    const hasManualComposite = (ud.compositeManual===true || ud.manualComposite===true || ud.compositeOverride===true);
+    const comp = (hasManualComposite && ud.composite!=null) ? Math.round(ud.composite) : autoComp;
+    const overrideVal = (hasManualComposite && ud.composite!=null) ? Math.round(ud.composite) : '';
     const tier=useCalcTier(comp);
     const wt=u.hasFRQ&&effectiveHasVocab?'50% wt':u.hasFRQ?'60% wt':effectiveHasVocab?'75% wt':'100%';
     const card=document.createElement('div');
@@ -8644,7 +8651,7 @@ function useRenderUnits(course,unitProg,vocabBest,frqBest){
           <div>
             <div style="font-family:var(--bebas);font-size:7px;letter-spacing:1.5px;color:var(--teal2);margin-bottom:3px">OVERRIDE COMPOSITE</div>
             <div style="display:flex;align-items:center;gap:4px">
-              <input type="number" min="0" max="100" id="use-override-${u.id}" placeholder="auto"
+              <input type="number" min="0" max="100" id="use-override-${u.id}" value="${overrideVal}" placeholder="auto"
                 title="Force-set the composite directly, overriding the calculation"
                 style="width:54px;text-align:center;font-family:var(--dm);font-size:11px;background:var(--bg2);border:1px solid var(--teal);color:var(--teal2);padding:4px 5px;outline:none"
                 oninput="useRecalcCard('${u.id}')"
@@ -8866,6 +8873,7 @@ async function useSaveAllScores(){
       const v = Math.max(0,Math.min(100,parseInt(overrideEl.value)));
       if(!isNaN(v) && v !== Math.round(existing.composite||0)) {
         patch.composite = v;
+        patch.compositeManual = true;
         patch.teacherAdj = true; // FIX: flag so unit game honors override
         patch.updatedAt = now;
         patch.trophy = v>=100?'historian':v>=90?'gold':v>=80?'silver':v>=70?'bronze':v>=60?'completed':'tryagain';
@@ -8874,6 +8882,12 @@ async function useSaveAllScores(){
       }
     }
 
+    // If the teacher edited component scores but left Override Composite blank,
+    // remove any old non-manual composite so the card and unit game recompute from components.
+    if(changed && overrideEl && overrideEl.value === '' && !(patch.compositeManual===true || patch.manualComposite===true || patch.compositeOverride===true)) {
+      delete patch.composite;
+      delete patch.trophy;
+    }
     if(changed) { unitProg[u.id] = patch; unitDirty = true; }
   });
   // Vocab
@@ -9087,7 +9101,12 @@ async function useSaveUSHScores(fullName, st, now){
       }
       if (compositeOverride !== null) {
         patch.composite = compositeOverride;
+        patch.compositeManual = true;
         patch.trophy = compositeOverride>=100?'historian':compositeOverride>=90?'gold':compositeOverride>=80?'silver':compositeOverride>=70?'bronze':compositeOverride>=60?'completed':'tryagain';
+      } else if (!(patch.compositeManual===true || patch.manualComposite===true || patch.compositeOverride===true)) {
+        // No manual override: do not carry forward stale composite values.
+        delete patch.composite;
+        delete patch.trophy;
       }
       unitProgressPatch[u.id] = patch;
       unitProgressDirty = true;
