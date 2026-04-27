@@ -469,6 +469,14 @@ async function _loadProfileFromDB() {
         });
         ss.courseProgress.ap_gov.frqSubmissions = existing;
         localStorage.setItem('civitas_state', JSON.stringify(ss));
+        // Also restore this theme's FRQ scores into the keys used by the theme menu.
+        ['frq1','frq2'].forEach(function(fid){
+          var rec = dbFrq['mpa_' + fid] || dbFrq['apg_bi_mpa_' + fid] || dbFrq[fid];
+          if (rec && typeof rec.bestScore !== 'undefined') {
+            localStorage.setItem('civitas_frq_mpa_' + fid, String(rec.bestScore || 0));
+            localStorage.setItem('civitas_frq_mpa_' + fid + '_attempted', '1');
+          }
+        });
       } catch(e) {}
     }
     _dbLoaded = true;
@@ -919,7 +927,7 @@ function showThemeComplete(pct) {
   banner.innerHTML = `
     <div style="font-size:40px">${trophy.icon}</div>
     <div>
-      <div style="font-family:var(--bebas);font-size:16px;color:${trophy.color};letter-spacing:3px">${UNIT_TITLE ? UNIT_TITLE.toUpperCase() : 'BIG IDEA'} COMPLETE · ${trophy.label}</div>
+      <div style="font-family:var(--bebas);font-size:16px;color:${trophy.color};letter-spacing:3px">${GAME_TITLE ? GAME_TITLE.toUpperCase() : 'BIG IDEA'} COMPLETE · ${trophy.label}</div>
       <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic">Overall accuracy: ${pct}% · All 4 rounds done. Replay any round to improve.</div>
     </div>
     <button onclick="this.parentElement.remove();renderRoundCards();" style="margin-left:auto;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer">CONTINUE</button>`;
@@ -941,6 +949,19 @@ function switchTab(name, btn) {
   if (name === 'play') { renderPlayTabSummary(); updateBadges(); }
   if (name === 'frq') renderThemeFRQTab();
 }
+
+// ── GAME START ─────────────────────────────────────
+function startRound(roundIdx) {
+  if (!isRoundUnlocked(roundIdx)) { notify('🔒 Complete the previous round first!'); return; }
+  G = {roundIdx:roundIdx, questionIdx:0, questions:[], currentSet:null, selectedChoice:null, answered:false,
+    roundScores:[], totalGold:0, sessionCorrect:0, sessionTotal:0};
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  buildProgressPips();
+  updatePips();
+  showRoundIntro();
+}
+
 function exitGame(){
   if(G.sessionTotal>0&&!confirm('Exit? Progress for this round will be lost.'))return;
   document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';
@@ -1366,6 +1387,7 @@ function renderThemeFRQTab() {
   var el = document.getElementById('frq-seq-list');
   var detail = document.getElementById('frq-seq-detail');
   if (!el) return;
+  el.style.display = 'block';
 
   var FRQ_IDS = ['frq1', 'frq2'];
   var FRQ_LABELS = {frq1:'Concept Application', frq2:'Argument Essay'};
@@ -1376,7 +1398,8 @@ function renderThemeFRQTab() {
     frq1: parseInt(localStorage.getItem(FRQ_KEY + 'frq1') || '0'),
     frq2: parseInt(localStorage.getItem(FRQ_KEY + 'frq2') || '0')
   };
-  var submitted = FRQ_IDS.filter(function(id) { return scores[id] > 0; }).length;
+  function hasAttempt(fid) { return localStorage.getItem(FRQ_KEY + fid + '_attempted') === '1' || scores[fid] > 0; }
+  var submitted = FRQ_IDS.filter(function(id) { return hasAttempt(id); }).length;
   var nextIdx = submitted;
 
   var summaryHtml = '';
@@ -1393,7 +1416,7 @@ function renderThemeFRQTab() {
 
   var rows = FRQ_IDS.map(function(fid, i) {
     var score = scores[fid];
-    var isAnswered = score > 0;
+    var isAnswered = hasAttempt(fid);
     var isUnlocked = i <= nextIdx;
     var color = FRQ_COLORS[fid];
     var label = FRQ_LABELS[fid];
@@ -1415,7 +1438,7 @@ function renderThemeFRQTab() {
       return '<div data-fid="'+fid+'" class="theme-frq-open" style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+color+';padding:12px 16px;margin-bottom:8px;cursor:pointer">'
         + '<div style="font-family:var(--dm);font-size:8px;color:'+color+';letter-spacing:2px;margin-bottom:4px">'+label+' — UNLOCKED ▶</div>'
         + '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream)">'+title+'</div>'
-        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">3 points · click to open</div>'
+        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">'+(rd ? rd.maxScore : 3)+' points · click to open</div>'
         + '</div>';
     } else {
       return '<div style="background:var(--bg3);border:1px solid var(--border);padding:12px 16px;margin-bottom:8px;opacity:.45">'
@@ -1609,6 +1632,11 @@ const FRQ_RUBRICS = {
   frq1: {
     title: 'Interpreting Political Data (Concept Application)',
     maxScore: 3, goldReward: 60,
+    promptHtml: `<p>A senator claims that a new national poll proves most Americans support expanding a federal education program.</p>
+      <p><strong>Poll details:</strong> 450 adults completed an online survey after clicking a link on a political news site. The survey asked: “Do you agree that Congress should support this valuable education program?” Sixty-two percent answered yes. The reported margin of error was ±4.5 percentage points.</p>
+      <p><strong>A.</strong> Identify one methodological limitation of the poll.</p>
+      <p><strong>B.</strong> Explain how that limitation affects the validity of the senator’s claim.</p>
+      <p><strong>C.</strong> Explain how political ideology could shape how different people interpret the same poll results.</p>`,
     rubric: `3-point Concept Application FRQ:
 PART A (1 point): Student identifies one methodological limitation. Accept: non-random/convenience sampling (online recruits not random), small sample size (450), self-selection bias, sampling error (±4.5% is high), population not defined, no likely voter screen. Must be accurately described, not just named.
 PART B (1 point): Student explains how the identified limitation affects the validity of the poll AND the senator's argument specifically. Must connect the limitation to the specific claim that "62% support" the program — not a generic answer about polling.
@@ -1618,6 +1646,10 @@ SCORING: Each part scored independently (0 or 1). Generic answers earn 0. Maximu
   frq2: {
     title: 'The Role of Public Opinion in Democratic Governance (Argument Essay)',
     maxScore: 6, goldReward: 120,
+    promptHtml: `<p>Develop an argument that responds to the following prompt:</p>
+      <p><strong>To what extent should elected officials rely on public opinion data when making policy decisions?</strong></p>
+      <p>Use at least one piece of evidence from one of the required foundational documents, such as <em>Federalist No. 10</em>, <em>Brutus No. 1</em>, or another relevant AP Government foundational document. You may also use evidence from polling, elections, political parties, interest groups, or civic participation.</p>
+      <p>Your response should include a defensible thesis, specific evidence, reasoning that connects the evidence to your claim, and a response to an opposing viewpoint.</p>`,
     rubric: `6-point Argument Essay FRQ:
 TASK A — THESIS (1 point): Defensible claim that establishes a line of reasoning. Must go beyond restating the prompt. Required for Tasks B3 and D.
 TASK B1 — EVIDENCE (1 point): One accurate piece of evidence linked to the topic.
@@ -1672,8 +1704,9 @@ async function submitFRQ(frqId) {
     try{
       const key='civitas_frq_mpa_'+frqId;
       const prev=parseInt(localStorage.getItem(key)||'0');
+      localStorage.setItem(key + '_attempted','1');
+      localStorage.setItem(key, String(Math.max(prev, score)));
       if(score>prev){
-        localStorage.setItem(key,score);
         const gold=Math.round(rd.goldReward*(score/rd.maxScore));
         if(gold>0){const cur=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',cur+gold);spawnGold('+'+gold+' 🪙');}
       }
@@ -1696,12 +1729,13 @@ async function submitFRQ(frqId) {
       ${result.improveHint?`<div style="background:rgba(0,0,0,.2);border-left:3px solid var(--acc2);padding:10px 14px;margin-bottom:8px"><div style="font-family:var(--bebas);font-size:9px;color:var(--acc2);letter-spacing:2px;margin-bottom:4px">💡 KEY IMPROVEMENT</div><div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">${result.improveHint}</div></div>`:''}
       <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Revise above and resubmit to improve your score.</div>`;
     btnEl.textContent='↺ Resubmit';
+    try { localStorage.setItem('civitas_frq_feedback_mpa_' + frqId, feedEl.innerHTML); } catch(eStore) {}
   } catch(e) {
     feedEl.innerHTML=`<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection and try again.<br><small>${e.message}</small></div>`;
     btnEl.textContent='⚡ Submit for AI Grading';
   }
   btnEl.disabled=false;
-  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); renderThemeFRQTab(); } catch(e2) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
 }
 
 
