@@ -929,7 +929,7 @@ function showThemeComplete(pct) {
   banner.innerHTML = `
     <div style="font-size:40px">${trophy.icon}</div>
     <div>
-      <div style="font-family:var(--bebas);font-size:16px;color:${trophy.color};letter-spacing:3px">${UNIT_TITLE ? UNIT_TITLE.toUpperCase() : 'BIG IDEA'} COMPLETE · ${trophy.label}</div>
+      <div style="font-family:var(--bebas);font-size:16px;color:${trophy.color};letter-spacing:3px">${GAME_TITLE ? GAME_TITLE.toUpperCase() : 'BIG IDEA'} COMPLETE · ${trophy.label}</div>
       <div style="font-family:var(--crimson);font-size:13px;color:var(--text2);font-style:italic">Overall accuracy: ${pct}% · All 4 rounds done. Replay any round to improve.</div>
     </div>
     <button onclick="this.parentElement.remove();renderRoundCards();" style="margin-left:auto;font-family:var(--bebas);font-size:11px;letter-spacing:2px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;cursor:pointer">CONTINUE</button>`;
@@ -951,6 +951,31 @@ function switchTab(name, btn) {
   if (name === 'play') { renderPlayTabSummary(); updateBadges(); }
   if (name === 'frq') renderThemeFRQTab();
 }
+function startRound(roundIdx) {
+  if (!isRoundUnlocked(roundIdx)) { notify('🔒 Complete the previous round first!'); return; }
+  G = {
+    roundIdx: roundIdx,
+    questionIdx: 0,
+    questions: [],
+    currentSet: null,
+    selectedChoice: null,
+    answered: false,
+    roundScores: [],
+    totalGold: 0,
+    sessionCorrect: 0,
+    sessionTotal: 0
+  };
+  document.getElementById('hub').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  ['round-complete','unit-complete','question-area','btn-row'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  buildProgressPips();
+  updatePips();
+  showRoundIntro();
+}
+
 function exitGame(){
   if(G.sessionTotal>0&&!confirm('Exit? Progress for this round will be lost.'))return;
   document.getElementById('game').style.display='none';document.getElementById('hub').style.display='flex';
@@ -1646,6 +1671,10 @@ const FRQ_RUBRICS = {
   frq1: {
     title: 'Voting Rights and Political Participation (Concept Application)',
     maxScore: 3, goldReward: 60,
+    promptHtml: `<p><strong>Scenario:</strong> A state legislature passes a new voter ID law requiring voters to show a government-issued photo ID before casting a ballot. Supporters argue that the law protects election integrity. A civil rights organization argues that the law will make it harder for some citizens, especially low-income voters, elderly voters, and racial minorities, to participate in elections. The organization decides to challenge the law in court and mobilize voters through public education campaigns.</p>
+<p><strong>A.</strong> Identify one constitutional amendment or federal law that is relevant to the voting rights issue in the scenario.</p>
+<p><strong>B.</strong> Explain how the amendment or law identified in Part A relates to the conflict over the voter ID law.</p>
+<p><strong>C.</strong> Explain how the civil rights organization in the scenario acts as a linkage institution in a representative democracy.</p>`,
     rubric: `3-point Concept Application FRQ:
 PART A (1 point): Student identifies a constitutional amendment or federal law relevant to the scenario. Accept: 15th Amendment (race), 24th Amendment (poll taxes), Voting Rights Act of 1965, 14th Amendment equal protection clause. Must be accurately described, not just named.
 PART B (1 point): Student explains how the provision identified in Part A relates to the conflict over the voter ID law in the specific scenario. Must connect the specific provision to the specific dispute — not a generic definition.
@@ -1655,6 +1684,15 @@ SCORING: Each part scored independently (0 or 1). Generic answers earn 0. Maximu
   frq2: {
     title: 'Social Movements and Democratic Change (Argument Essay)',
     maxScore: 6, goldReward: 120,
+    promptHtml: `<p>Develop an argument about whether social movements are an effective way for citizens to expand participation and produce democratic change in the United States.</p>
+<p>Use at least <strong>two</strong> pieces of evidence to support your claim. At least one piece of evidence should come from a required course concept, case, or document such as <em>Letter from Birmingham Jail</em>, <em>Federalist No. 10</em>, voting rights, political parties, interest groups, or linkage institutions.</p>
+<p>In your response, you should:</p>
+<ul style="margin-left:20px;line-height:1.7">
+  <li>Make a defensible claim or thesis.</li>
+  <li>Support your claim with specific evidence.</li>
+  <li>Explain how or why the evidence supports your argument.</li>
+  <li>Address an opposing or alternative perspective.</li>
+</ul>`,
     rubric: `6-point Argument Essay FRQ:
 TASK A — THESIS (1 point): Defensible claim about whether social movements are an effective means of expanding participation and producing democratic change, with a line of reasoning. Must go beyond restating the prompt. Required for Tasks B3 and D.
 TASK B1 — EVIDENCE (1 point): One accurate piece of evidence linked to the topic.
