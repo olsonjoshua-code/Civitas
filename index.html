@@ -998,6 +998,177 @@ body{background:var(--bg);color:var(--text);font-family:var(--crimson);min-heigh
 const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
 const SUPA_H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+
+// ════════════════════════════════════════════════════════════════════════════
+// CANONICAL PROGRESS READER  (Step F — added 2026-04-27)
+// ────────────────────────────────────────────────────────────────────────────
+// Mirror of the helper in ush-shell.html. Reads from civitas_profiles directly
+// so the trophy cards / certs / medals all see the same numbers as the
+// teacher editor.
+// ════════════════════════════════════════════════════════════════════════════
+const _progressCacheCV = {};
+let _progressCacheTimeCV = 0;
+const _PROGRESS_CACHE_TTL_MS_CV = 5000;
+
+function clearProgressCacheCV(fullName) {
+  if (fullName) delete _progressCacheCV[fullName];
+  else { for (const k in _progressCacheCV) delete _progressCacheCV[k]; }
+  _progressCacheTimeCV = 0;
+}
+
+async function _fetchCanonicalProfileCV(fullName) {
+  if (!fullName) return null;
+  const cached = _progressCacheCV[fullName];
+  if (cached && (Date.now() - _progressCacheTimeCV) < _PROGRESS_CACHE_TTL_MS_CV) return cached;
+  try {
+    const url = SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.'
+      + encodeURIComponent(fullName)
+      + '&select=course_progress,unit_progress,frq_progress,vocab_passed,vocab_best_score&limit=1';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    const profile = (rows && rows[0]) ? rows[0] : null;
+    if (profile) {
+      _progressCacheCV[fullName] = profile;
+      _progressCacheTimeCV = Date.now();
+    }
+    return profile;
+  } catch(e) { return null; }
+}
+
+const _DECK_MAP_CANON_CV = {
+  'unit1':'unit1_civil_war_reconstruction','unit2a':'unit2a_boomtown','unit2b':'unit2b_reform',
+  'unit3a':'unit3a_empire_rising','unit3b':'unit3b_into_the_trenches',
+  'unit4a':'unit4a_boom_or_bust','unit4b':'unit4b_crash_recovery',
+  'unit5a':'unit5a_wwii','unit5b':'unit5b_early_cold_war',
+  'unit6':'unit7b_civil_rights_movement','unit7a':'unit7a_governing_1960s',
+  'unit7b':'unit9_vietnam_nixon','unit8':'unit10_america_1980s_present',
+  'theme_power':'theme_power','theme_freedom':'theme_freedom_rights',
+  'theme_economy':'theme_economy_work','theme_conflict':'theme_conflict_change',
+  'theme_identity':'theme_american_identity',
+  'eoc_midterm':'midterm_review','eoc_practice':'eoc_review'
+};
+const _CIV_TO_INTERNAL_CV = {
+  'ush_u1':'unit1','ush_u2a':'unit2a','ush_u2b':'unit2b',
+  'ush_u3a':'unit3a','ush_u3b':'unit3b','ush_u4a':'unit4a','ush_u4b':'unit4b',
+  'ush_u5a':'unit5a','ush_u5b':'unit5b','ush_u6':'unit6',
+  'ush_u7a':'unit7a','ush_u7b':'unit7b','ush_u8':'unit8',
+  'ush_theme_power':'theme_power','ush_theme_freedom':'theme_freedom',
+  'ush_theme_economy':'theme_economy','ush_theme_conflict':'theme_conflict',
+  'ush_theme_identity':'theme_identity','ush_eoc':'eoc_practice'
+};
+function _internalIdForCV(civUnitId, hint) {
+  return hint || _CIV_TO_INTERNAL_CV[civUnitId] || civUnitId;
+}
+
+async function loadUnitProgressCV(fullName, civUnitId, internalUnitId) {
+  const empty = {
+    mcqScore:0, vocabScore:0, frqRawScore:0,
+    mcqAttempted:false, vocabAttempted:false, frqAttempted:false,
+    mcqSource:'none', vocabSource:'none', frqSource:'none',
+    loadedAt:new Date().toISOString()
+  };
+  if (!fullName || fullName === 'Guest') return empty;
+  const profile = await _fetchCanonicalProfileCV(fullName);
+  if (!profile) return empty;
+  const out = Object.assign({}, empty);
+  const intId = _internalIdForCV(civUnitId, internalUnitId);
+
+  // MCQ
+  try {
+    const up = JSON.parse(profile.unit_progress || '{}');
+    if (up[civUnitId] && typeof up[civUnitId].mcqScore === 'number' && up[civUnitId].mcqScore > 0) {
+      out.mcqScore = Math.round(up[civUnitId].mcqScore);
+      out.mcqAttempted = true;
+      out.mcqSource = 'civitas_profiles.unit_progress';
+    }
+  } catch(e) {}
+  if (!out.mcqAttempted) {
+    try {
+      const cp = JSON.parse(profile.course_progress || '{}');
+      const lbs = cp.hs_ush && cp.hs_ush.lessonBestScores;
+      if (lbs) {
+        const unitPrefix = intId.replace(/^unit/,'u') + '_';
+        const matching = Object.keys(lbs).filter(k => k.startsWith(unitPrefix));
+        if (matching.length) {
+          const avg = Math.round(matching.reduce((a,k)=>a+(+lbs[k]||0),0) / matching.length);
+          if (avg > 0) {
+            out.mcqScore = avg;
+            out.mcqAttempted = true;
+            out.mcqSource = 'civitas_profiles.course_progress.lessonBestScores';
+          }
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Vocab
+  try {
+    const vbs = JSON.parse(profile.vocab_best_score || '{}');
+    const deckId = _DECK_MAP_CANON_CV[intId] || intId;
+    const v = vbs[deckId] || vbs[civUnitId] || vbs[intId] || 0;
+    if (v > 0) {
+      out.vocabScore = Math.round(v);
+      out.vocabAttempted = true;
+      out.vocabSource = 'civitas_profiles.vocab_best_score';
+    }
+  } catch(e) {}
+
+  // FRQ
+  try {
+    const fp = JSON.parse(profile.frq_progress || '{}');
+    const key = civUnitId + '_questions';
+    if (fp[key] && typeof fp[key].composite === 'number' && fp[key].composite > 0) {
+      out.frqRawScore = Math.round(fp[key].composite);
+      out.frqAttempted = true;
+      out.frqSource = 'civitas_profiles.frq_progress';
+    }
+  } catch(e) {}
+  if (!out.frqAttempted) {
+    try {
+      const up = JSON.parse(profile.unit_progress || '{}');
+      if (up[civUnitId] && typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0) {
+        out.frqRawScore = Math.round(up[civUnitId].frqScore);
+        out.frqAttempted = true;
+        out.frqSource = 'civitas_profiles.unit_progress';
+      }
+    } catch(e) {}
+  }
+  return out;
+}
+
+function computeCompositeCV(progress) {
+  const FRQ_CURVE = 80;
+  const p = progress || {};
+  const mcqScore = +p.mcqScore || 0;
+  const vocabScore = +p.vocabScore || 0;
+  const frqRawScore = +p.frqRawScore || 0;
+  const frqCurvedScore = frqRawScore > 0 ? Math.min(100, Math.round(frqRawScore*100/FRQ_CURVE)) : 0;
+  const composite = Math.round(mcqScore*0.50 + vocabScore*0.25 + frqCurvedScore*0.25);
+  const mcqA=!!p.mcqAttempted, vocabA=!!p.vocabAttempted, frqA=!!p.frqAttempted;
+  const allAttempted = mcqA && vocabA && frqA;
+  let tier, tierLabel;
+  if (!mcqA && !vocabA && !frqA) { tier='empty'; tierLabel='Not Played'; }
+  else if (!allAttempted) { tier='inprogress'; tierLabel='In Progress'; }
+  else if (composite >= 100) { tier='historian'; tierLabel='Historian'; }
+  else if (composite >= 90) { tier='gold'; tierLabel='Gold'; }
+  else if (composite >= 75) { tier='silver'; tierLabel='Silver'; }
+  else if (composite >= 60) { tier='bronze'; tierLabel='Bronze'; }
+  else { tier='inprogress'; tierLabel='Completed'; }
+  return {
+    mcqScore, vocabScore, frqRawScore, frqCurvedScore, composite,
+    mcqAttempted:mcqA, vocabAttempted:vocabA, frqAttempted:frqA,
+    allAttempted, tier, tierLabel,
+    sources:{mcq:p.mcqSource, vocab:p.vocabSource, frq:p.frqSource}
+  };
+}
+
+window.loadUnitProgressCV = loadUnitProgressCV;
+window.computeCompositeCV = computeCompositeCV;
+window.clearProgressCacheCV = clearProgressCacheCV;
+// ════════════════════════════════════════════════════════════════════════════
+// END CANONICAL PROGRESS READER
+// ════════════════════════════════════════════════════════════════════════════
 const _supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 
 async function sfetch(path,opts={}){
@@ -5267,28 +5438,62 @@ async function syncUSHistoryProgress(){
   if(!S.name||S.isGuest)return;
   // Only run if student has us_history enrolled
   if(!(S.courses||[]).find(c=>c.id==='us_history'||c.id==='hs_ush'))return;
-  try{
-    const rows=await sfetch('/rest/v1/ac_results?name=eq.'+encodeURIComponent(S.name)
-      +'&select=unit_id,best_accuracy,best_score,completed_at'
-      +'&unit_id=not.like.test_%25'
-      +'&unit_id=not.like.vocab_%25');
-    if(!Array.isArray(rows)||!rows.length)return;
-    const prog=JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
-    let changed=false;
-    rows.forEach(r=>{
-      const civId=USH_ID_MAP[r.unit_id];
-      if(!civId)return;
-      const acc=r.best_accuracy||0;
-      if(!prog[civId]||acc>(prog[civId].bestAccuracy||0)){
-        prog[civId]={bestAccuracy:acc,completedAt:r.completed_at||new Date().toISOString()};
-        changed=true;
+  // ── PATCHED 2026-04-27 — use canonical reader so the cached unit_progress
+  // contains MCQ + Vocab + FRQ + composite, not just bestAccuracy.
+  // This makes the Civitas trophy room and unit certs show the same numbers
+  // as the History shell and the teacher editor.
+  const fullName = S.fullName || S.name;
+  if (!fullName || fullName === 'Guest') return;
+  try {
+    // Force a fresh read by clearing the cache
+    if (typeof clearProgressCacheCV === 'function') clearProgressCacheCV(fullName);
+    // Pull canonical progress for every History unit we know about
+    const civUnitIds = Object.values(USH_ID_MAP);
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
+    let changed = false;
+    for (const civId of civUnitIds) {
+      const intId = _CIV_TO_INTERNAL_CV[civId] || civId;
+      const raw = await loadUnitProgressCV(fullName, civId, intId);
+      const c = computeCompositeCV(raw);
+      // Only persist if the student has at least started something
+      if (!c.mcqAttempted && !c.vocabAttempted && !c.frqAttempted) continue;
+      const existing = prog[civId] || {};
+      const next = {
+        bestAccuracy: c.composite,            // back-compat: old code reads this
+        mcqScore: c.mcqScore,
+        vocabScore: c.vocabScore,
+        frqScore: c.frqCurvedScore,           // curved, matches what the History cert shows
+        frqRaw: c.frqRawScore,
+        composite: c.composite,
+        tier: c.tier,
+        mcqAttempted: c.mcqAttempted,
+        vocabAttempted: c.vocabAttempted,
+        frqAttempted: c.frqAttempted,
+        allAttempted: c.allAttempted,
+        completedAt: existing.completedAt || (c.allAttempted ? new Date().toISOString() : null)
+      };
+      // Only mark changed if something actually moved
+      if (existing.composite !== next.composite ||
+          existing.mcqScore !== next.mcqScore ||
+          existing.vocabScore !== next.vocabScore ||
+          existing.frqScore !== next.frqScore) {
+        prog[civId] = next;
+        changed = true;
+      } else {
+        // Even if scores haven't moved, refresh the structure to ensure subscores present
+        prog[civId] = Object.assign({}, existing, next);
       }
-    });
-    if(changed){
-      localStorage.setItem('civitas_unit_progress',JSON.stringify(prog));
-      renderDashboard(); // refresh course cards
     }
-  }catch(e){console.log('USH bridge error',e);}
+    if (changed) {
+      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    } else {
+      // Always persist (might have just added subscore fields to existing rows)
+      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    }
+    // Refresh the dashboard / trophies so the new numbers show up
+    try { if (typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+    try { if (typeof renderCourseTrophies === 'function' && _activeCourseId === 'hs_ush') renderCourseTrophies(); } catch(e) {}
+  } catch(e){ console.log('USH bridge error', e); }
 }
 
 function enterCourse(courseId){
@@ -5402,7 +5607,14 @@ function showCourseView(v){
   if(nb)nb.classList.add('active');
 
   if(v==='units')renderCourseUnits();
-  if(v==='trophies')renderCourseTrophies();
+  if(v==='trophies'){
+    renderCourseTrophies();
+    // PATCHED 2026-04-27 — for History course, also refresh canonical
+    // progress so the trophy cards reflect the latest scores.
+    if(_activeCourseId==='hs_ush'){
+      syncUSHistoryProgress();
+    }
+  }
 
   if(v==='leaderboard'){renderCourseLeaderboard();renderVocabMedals();renderBigIdeaTrophies();}
 }
@@ -6560,6 +6772,10 @@ function printUnitTrophyCert(unitId) {
   try { progress = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}'); } catch(e) {}
   var up = progress[unitId] || {};
   var isTheme = unitId.startsWith('apg_bi');
+  // PATCHED 2026-04-27 — detect History units so we use the right branding
+  // and weighting. History units use 50/25/25 (MCQ/Vocab/FRQ) like normal AP
+  // Gov units, NOT the theme weighting.
+  var isHistory = unitId.indexOf('ush_') === 0 || _activeCourseId === 'hs_ush';
   // FIX: the unit_progress blob sometimes only contains {bestAccuracy, completedAt}
   // (old partial-save bug). Derive subscores + recompute composite so the numbers
   // on the cert are always mathematically consistent.
@@ -6580,7 +6796,7 @@ function printUnitTrophyCert(unitId) {
     frqScore = up.frqScore || 0;
   }
   // Recompute composite from displayed subscores so cert math is always consistent.
-  // AP Gov themes: MCQ 67% + FRQ 33%. Regular units: MCQ 50% + Vocab 25% + FRQ 25%.
+  // AP Gov themes: MCQ 67% + FRQ 33%. Regular units AND History units: MCQ 50% + Vocab 25% + FRQ 25%.
   var pct;
   if (isTheme) {
     pct = Math.min(100, Math.round(mcqScore * 0.67 + frqScore * 0.33));
@@ -6596,6 +6812,11 @@ function printUnitTrophyCert(unitId) {
              : pct>=55 ? {label:'Bronze',   color:'#8b4010',emoji:'🥉'}
              :            {label:'Completed',color:'#1a6030',emoji:'✅'};
   var tc = tiers.color;
+  // PATCHED — branding swap based on course
+  var courseHeader = isHistory
+    ? 'AMERICAN CHRONICLES - U.S. HISTORY'
+    : 'CIVITAS - AP U.S. GOVERNMENT & POLITICS';
+  var teacherTitle = isHistory ? 'U.S. HISTORY TEACHER' : 'AP GOVERNMENT TEACHER';
   var w = window.open('','_blank','width=860,height=580');
   if (!w) { notify('Allow popups to print.'); return; }
   var statsHtml = isTheme
@@ -6604,11 +6825,13 @@ function printUnitTrophyCert(unitId) {
       + '<div><div class="stat-val">' + pct + '%</div><div class="stat-lbl">COMPOSITE</div></div>'
       + '<div><div class="stat-val">' + tiers.emoji + '</div><div class="stat-lbl">TROPHY</div></div>'
     : '<div><div class="stat-val">' + mcqScore + '%</div><div class="stat-lbl">MCQ SCORE</div></div>'
-      + '<div><div class="stat-val">' + frqScore + '%</div><div class="stat-lbl">FRQ SCORE</div></div>'
+      + '<div><div class="stat-val">' + (isHistory ? frqScore + '%' : frqScore + '%') + '</div><div class="stat-lbl">' + (isHistory ? 'OPEN ANSWER' : 'FRQ SCORE') + '</div></div>'
       + '<div><div class="stat-val">' + vocabScore + '%</div><div class="stat-lbl">VOCAB SCORE</div></div>'
       + '<div><div class="stat-val">' + pct + '%</div><div class="stat-lbl">COMPOSITE</div></div>'
       + '<div><div class="stat-val">' + tiers.emoji + '</div><div class="stat-lbl">TROPHY</div></div>';
-  var weightingNote = isTheme ? 'MCQ 67% · FRQ 33%' : 'MCQ 50% · FRQ 25% · VOCAB 25%';
+  var weightingNote = isTheme
+    ? 'MCQ 67% · FRQ 33%'
+    : (isHistory ? 'MCQ 50% · Vocab 25% · Open Answer 25%' : 'MCQ 50% · FRQ 25% · VOCAB 25%');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Unit Certificate</title>'
     + '<style>@import url(\'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital@1&display=swap\');'
     + '*{margin:0;padding:0;box-sizing:border-box}body{background:#faf7f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;flex-direction:column}'
@@ -6622,7 +6845,7 @@ function printUnitTrophyCert(unitId) {
     + '.pbtn{margin-top:14px;padding:9px 24px;background:' + tc + ';border:none;color:#1a1208;font-family:\'Cinzel\',serif;font-size:12px;cursor:pointer}'
     + '@media print{body{padding:0}.np{display:none!important}}</style></head><body>'
     + '<div class="cert">'
-    + '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:.28em;color:#8a6a2a;margin-bottom:5px">CIVITAS - AP U.S. GOVERNMENT & POLITICS</div>'
+    + '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:.28em;color:#8a6a2a;margin-bottom:5px">' + courseHeader + '</div>'
     + '<div style="font-size:44px;margin:8px 0">' + (u.icon||'🏛️') + '</div>'
     + '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;font-weight:700;color:#1a1208;margin:6px 0">Certificate of Completion</div>'
     + '<div class="divider"></div>'
@@ -6639,7 +6862,7 @@ function printUnitTrophyCert(unitId) {
     + '<div class="divider"></div>'
     + '<div class="sigs">'
     + '<div><div class="sig-line"></div><div class="sig-name">' + studentName + '</div><div class="sig-title">STUDENT' + (period && period !== 'teacher' && period !== 'guest' ? ' - PERIOD ' + period : '') + '</div></div>'
-    + '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">AP GOVERNMENT TEACHER</div></div>'
+    + '<div><div class="sig-line"></div><div class="sig-name">Joshua Olson</div><div class="sig-title">' + teacherTitle + '</div></div>'
     + '<div><div class="sig-line"></div><div class="sig-name">' + date + '</div><div class="sig-title">DATE COMPLETED</div></div>'
     + '</div></div>'
     + '<div class="np" style="text-align:center;margin-top:14px">'
