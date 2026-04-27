@@ -1027,6 +1027,221 @@ const SUPA_URL='https://dnmrwglrcvlbamzhlzlx.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRubXJ3Z2xyY3ZsYmFtemhsemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjA2OTEsImV4cCI6MjA4OTQzNjY5MX0.jEIM-dGgB0cUS0A6w31LJ5AK9QDCS_UqdVnPrb8dlXM';
 const SUPA_H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
 
+// ════════════════════════════════════════════════════════════════════════════
+// CANONICAL PROGRESS READER  (Steps A & B — added 2026-04-27)
+// ────────────────────────────────────────────────────────────────────────────
+// Single source of truth: civitas_profiles in Supabase. Every cert / trophy
+// room / medal display calls loadUnitProgress() → computeComposite() to get
+// the same answer.
+//
+// Test in console:
+//   await window.loadAndComputeUnit('Alana Cook', 'ush_u1', 'unit1')
+//
+// This block defines NEW functions but does not replace any existing reader.
+// Behavior is unchanged until later steps wire them up.
+// ════════════════════════════════════════════════════════════════════════════
+const _progressCache = {};
+let _progressCacheTime = 0;
+const _PROGRESS_CACHE_TTL_MS = 5000;
+
+function clearProgressCache(fullName) {
+  if (fullName) delete _progressCache[fullName];
+  else { for (const k in _progressCache) delete _progressCache[k]; }
+  _progressCacheTime = 0;
+}
+
+async function _fetchCanonicalProfile(fullName) {
+  if (!fullName) return null;
+  const cached = _progressCache[fullName];
+  if (cached && (Date.now() - _progressCacheTime) < _PROGRESS_CACHE_TTL_MS) return cached;
+  try {
+    const url = SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.'
+      + encodeURIComponent(fullName)
+      + '&select=course_progress,unit_progress,frq_progress,vocab_passed,vocab_best_score&limit=1';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    const profile = (rows && rows[0]) ? rows[0] : null;
+    if (profile) {
+      _progressCache[fullName] = profile;
+      _progressCacheTime = Date.now();
+    }
+    return profile;
+  } catch(e) { return null; }
+}
+
+const _DECK_MAP_CANON = {
+  'unit1':'unit1_civil_war_reconstruction','unit2a':'unit2a_boomtown','unit2b':'unit2b_reform',
+  'unit3a':'unit3a_empire_rising','unit3b':'unit3b_into_the_trenches',
+  'unit4a':'unit4a_boom_or_bust','unit4b':'unit4b_crash_recovery',
+  'unit5a':'unit5a_wwii','unit5b':'unit5b_early_cold_war',
+  'unit6':'unit7b_civil_rights_movement','unit7a':'unit7a_governing_1960s',
+  'unit7b':'unit9_vietnam_nixon','unit8':'unit10_america_1980s_present',
+  'theme_power':'theme_power','theme_freedom':'theme_freedom_rights',
+  'theme_economy':'theme_economy_work','theme_conflict':'theme_conflict_change',
+  'theme_identity':'theme_american_identity',
+  'eoc_midterm':'midterm_review','eoc_practice':'eoc_review'
+};
+const _CIV_TO_INTERNAL = {
+  'ush_u1':'unit1','ush_u2a':'unit2a','ush_u2b':'unit2b',
+  'ush_u3a':'unit3a','ush_u3b':'unit3b','ush_u4a':'unit4a','ush_u4b':'unit4b',
+  'ush_u5a':'unit5a','ush_u5b':'unit5b','ush_u6':'unit6',
+  'ush_u7a':'unit7a','ush_u7b':'unit7b','ush_u8':'unit8',
+  'ush_theme_power':'theme_power','ush_theme_freedom':'theme_freedom',
+  'ush_theme_economy':'theme_economy','ush_theme_conflict':'theme_conflict',
+  'ush_theme_identity':'theme_identity','ush_eoc':'eoc_practice'
+};
+// Reverse: internal unit ID (e.g. 'unit1') → Civitas unit ID (e.g. 'ush_u1')
+const _INTERNAL_TO_CIV = {};
+Object.keys(_CIV_TO_INTERNAL).forEach(k => { _INTERNAL_TO_CIV[_CIV_TO_INTERNAL[k]] = k; });
+function _civIdFor(internalUnitId) {
+  return _INTERNAL_TO_CIV[internalUnitId] || internalUnitId;
+}
+function _internalIdFor(civUnitId, hint) {
+  return hint || _CIV_TO_INTERNAL[civUnitId] || civUnitId;
+}
+
+// In-memory store of canonical progress, keyed by internal unit ID (matches UNIT_DATA.id).
+// Populated by preloadCanonicalProgress() before render. Read synchronously by getShellComposite().
+const _canonicalProgress = {};
+async function preloadCanonicalProgress(fullName, internalUnitIds) {
+  if (!fullName || fullName === 'Guest') return;
+  // Single profile fetch (cached for 5s) — then fan out to all units.
+  const profile = await _fetchCanonicalProfile(fullName);
+  if (!profile) return;
+  for (const intId of internalUnitIds) {
+    const civId = _civIdFor(intId);
+    // loadUnitProgress uses the cached profile, so this is fast (no extra fetches)
+    _canonicalProgress[intId] = await loadUnitProgress(fullName, civId, intId);
+  }
+}
+window.preloadCanonicalProgress = preloadCanonicalProgress;
+window._canonicalProgress = _canonicalProgress;
+
+async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
+  const empty = {
+    mcqScore:0, vocabScore:0, frqRawScore:0,
+    mcqAttempted:false, vocabAttempted:false, frqAttempted:false,
+    mcqSource:'none', vocabSource:'none', frqSource:'none',
+    loadedAt:new Date().toISOString()
+  };
+  if (!fullName || fullName === 'Guest') return empty;
+  const profile = await _fetchCanonicalProfile(fullName);
+  if (!profile) return empty;
+  const out = Object.assign({}, empty);
+  const intId = _internalIdFor(civUnitId, internalUnitId);
+
+  // MCQ — prefer unit_progress, fall back to lessonBestScores
+  try {
+    const up = JSON.parse(profile.unit_progress || '{}');
+    if (up[civUnitId] && typeof up[civUnitId].mcqScore === 'number' && up[civUnitId].mcqScore > 0) {
+      out.mcqScore = Math.round(up[civUnitId].mcqScore);
+      out.mcqAttempted = true;
+      out.mcqSource = 'civitas_profiles.unit_progress';
+    }
+  } catch(e) {}
+  if (!out.mcqAttempted) {
+    try {
+      const cp = JSON.parse(profile.course_progress || '{}');
+      const lbs = cp.hs_ush && cp.hs_ush.lessonBestScores;
+      if (lbs) {
+        const unitPrefix = intId.replace(/^unit/,'u') + '_';
+        const matching = Object.keys(lbs).filter(k => k.startsWith(unitPrefix));
+        if (matching.length) {
+          const avg = Math.round(matching.reduce((a,k)=>a+(+lbs[k]||0),0) / matching.length);
+          if (avg > 0) {
+            out.mcqScore = avg;
+            out.mcqAttempted = true;
+            out.mcqSource = 'civitas_profiles.course_progress.lessonBestScores';
+          }
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Vocab — vocab_best_score keyed by deck ID
+  try {
+    const vbs = JSON.parse(profile.vocab_best_score || '{}');
+    const deckId = _DECK_MAP_CANON[intId] || intId;
+    const v = vbs[deckId] || vbs[civUnitId] || vbs[intId] || 0;
+    if (v > 0) {
+      out.vocabScore = Math.round(v);
+      out.vocabAttempted = true;
+      out.vocabSource = 'civitas_profiles.vocab_best_score';
+    }
+  } catch(e) {}
+  if (!out.vocabAttempted) {
+    try {
+      const vp = JSON.parse(profile.vocab_passed || '{}');
+      const deckId = _DECK_MAP_CANON[intId] || intId;
+      if (vp[deckId] || vp[civUnitId] || vp[intId]) {
+        out.vocabSource = 'civitas_profiles.vocab_passed';
+      }
+    } catch(e) {}
+  }
+
+  // FRQ — frq_progress keyed by civUnitId + '_questions'
+  try {
+    const fp = JSON.parse(profile.frq_progress || '{}');
+    const key = civUnitId + '_questions';
+    if (fp[key] && typeof fp[key].composite === 'number' && fp[key].composite > 0) {
+      out.frqRawScore = Math.round(fp[key].composite);
+      out.frqAttempted = true;
+      out.frqSource = 'civitas_profiles.frq_progress';
+    }
+  } catch(e) {}
+  if (!out.frqAttempted) {
+    try {
+      const up = JSON.parse(profile.unit_progress || '{}');
+      if (up[civUnitId] && typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0) {
+        out.frqRawScore = Math.round(up[civUnitId].frqScore);
+        out.frqAttempted = true;
+        out.frqSource = 'civitas_profiles.unit_progress';
+      }
+    } catch(e) {}
+  }
+  return out;
+}
+
+function computeComposite(progress) {
+  const FRQ_CURVE = 80;
+  const p = progress || {};
+  const mcqScore = +p.mcqScore || 0;
+  const vocabScore = +p.vocabScore || 0;
+  const frqRawScore = +p.frqRawScore || 0;
+  const frqCurvedScore = frqRawScore > 0 ? Math.min(100, Math.round(frqRawScore*100/FRQ_CURVE)) : 0;
+  const composite = Math.round(mcqScore*0.50 + vocabScore*0.25 + frqCurvedScore*0.25);
+  const mcqA=!!p.mcqAttempted, vocabA=!!p.vocabAttempted, frqA=!!p.frqAttempted;
+  const allAttempted = mcqA && vocabA && frqA;
+  let tier, tierLabel;
+  if (!mcqA && !vocabA && !frqA) { tier='empty'; tierLabel='Not Played'; }
+  else if (!allAttempted) { tier='inprogress'; tierLabel='In Progress'; }
+  else if (composite >= 100) { tier='historian'; tierLabel='Historian'; }
+  else if (composite >= 90) { tier='gold'; tierLabel='Gold'; }
+  else if (composite >= 75) { tier='silver'; tierLabel='Silver'; }
+  else if (composite >= 60) { tier='bronze'; tierLabel='Bronze'; }
+  else { tier='inprogress'; tierLabel='Completed'; }
+  return {
+    mcqScore, vocabScore, frqRawScore, frqCurvedScore, composite,
+    mcqAttempted:mcqA, vocabAttempted:vocabA, frqAttempted:frqA,
+    allAttempted, tier, tierLabel,
+    sources:{mcq:p.mcqSource, vocab:p.vocabSource, frq:p.frqSource}
+  };
+}
+
+async function loadAndComputeUnit(fullName, civUnitId, internalUnitId) {
+  return computeComposite(await loadUnitProgress(fullName, civUnitId, internalUnitId));
+}
+
+// Expose for devtools testing
+window.loadUnitProgress = loadUnitProgress;
+window.computeComposite = computeComposite;
+window.loadAndComputeUnit = loadAndComputeUnit;
+window.clearProgressCache = clearProgressCache;
+// ════════════════════════════════════════════════════════════════════════════
+// END CANONICAL PROGRESS READER
+// ════════════════════════════════════════════════════════════════════════════
+
 // ── SUPABASE AUTH CLIENT ───────────────────────────────
 const _supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 let _authUser = null; // set after Google login
@@ -1288,7 +1503,29 @@ function applyFRQCurve(raw){
 }
 
 // ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
+// PATCHED 2026-04-27 — now reads from _canonicalProgress (civitas_profiles)
+// when preloadCanonicalProgress() has been called. Falls back to legacy
+// in-memory _trophyData/S behavior otherwise so old call sites still work.
 function getShellComposite(unitId){
+  // ── NEW: canonical path ────────────────────────────────────────
+  // If preloadCanonicalProgress has run for this student, use its data —
+  // it's authoritative and matches what the teacher editor sees.
+  const cp = _canonicalProgress[unitId];
+  if (cp) {
+    const c = computeComposite(cp);
+    return {
+      mcqScore: c.mcqScore,
+      vocabScore: c.vocabScore,
+      frqScore: c.frqCurvedScore,
+      frqRaw: c.frqRawScore,
+      composite: c.composite,
+      mcqAttempted: c.mcqAttempted,
+      vocabAttempted: c.vocabAttempted,
+      frqAttempted: c.frqAttempted,
+      allAttempted: c.allAttempted
+    };
+  }
+  // ── LEGACY fallback (used when preload hasn't run, e.g. campaign cards) ──
   const mcqRow=_trophyData.find(r=>r.unit_id===unitId);
   const mcqScore=mcqRow?mcqRow.best_accuracy||0:0;
   // Vocab is stored under deck ID, not unit ID — look up via DECK_MAP
@@ -4218,6 +4455,18 @@ async function renderTrophyRoom(){
   grid.innerHTML=`<div style="grid-column:1/-1;padding:14px;font-family:var(--dm);font-size:10px;color:var(--text3)">Loading from Supabase…</div>`;
   if(!S.isGuest&&S.name){const rows=await sfetch(`/rest/v1/ac_results?name=eq.${encodeURIComponent(S.name)}&select=*`);if(Array.isArray(rows))_trophyData=rows;}
   const rmap={};_trophyData.forEach(r=>rmap[r.unit_id]=r);
+
+  // ── PATCHED 2026-04-27: preload canonical progress so getShellComposite
+  // returns data that matches civitas_profiles (teacher editor source of truth).
+  // Force a fresh read by clearing the cache first.
+  try {
+    const fullName = S.fullName || S.name;
+    if (fullName && !S.isGuest) {
+      clearProgressCache(fullName);
+      const allUnitIds = UNIT_DATA.filter(u => !u.isCampaign && !u.isCheckpoint).map(u => u.id);
+      await preloadCanonicalProgress(fullName, allUnitIds);
+    }
+  } catch(e) { console.log('preloadCanonicalProgress failed', e); }
 
   const unitCards=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint).map((u,idx)=>{
     const r=rmap[u.id];
