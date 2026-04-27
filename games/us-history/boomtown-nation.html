@@ -2729,17 +2729,22 @@ function showScreen(id) {
 
 // ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
 function getCompositeScore() {
-  // MCQ — average of all completed lessons
-  const lessonScores = Object.values(P.lessonBestScores || {});
-  let mcqScore = lessonScores.length
-    ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
+  // MCQ — full Unit Game category.
+  // Unfinished MCQ lessons count as 0, so the trophy reflects weighted progress:
+  // MCQ can contribute up to 50%, vocab up to 25%, and FRQs up to 25%.
+  const lessonScoresObj = P.lessonBestScores || {};
+  const lessonScores = Object.values(lessonScoresObj);
+  const totalLessons = (typeof LESSONS !== 'undefined' && LESSONS.length) ? LESSONS.length : lessonScores.length;
+  const earnedLessonAccuracy = totalLessons
+    ? LESSONS.reduce((sum, lesson) => sum + ((lessonScoresObj[lesson.id] && lessonScoresObj[lesson.id].accuracy) || 0), 0)
     : 0;
+  let mcqScore = totalLessons ? Math.round(earnedLessonAccuracy / totalLessons) : 0;
+  const mcqAllDone = totalLessons > 0 && LESSONS.every(l => P.lessonsCompleted.includes(l.id));
 
   // Vocab — check civitas_state first (Civitas shell), then ac_shell_state (legacy)
   const VOCAB_DECK_ID = 'unit2a_boomtown';
   let vocabScore = 0;
   try {
-    // Civitas shell saves to civitas_state, legacy shell saves to ac_shell_state
     const civState = JSON.parse(localStorage.getItem('civitas_state') || '{}');
     const legacyState = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     const civScore = (civState.vocabBestScore && civState.vocabBestScore[VOCAB_DECK_ID]) || 0;
@@ -2747,14 +2752,12 @@ function getCompositeScore() {
     vocabScore = Math.max(civScore, legacyScore);
   } catch(e) {}
 
-  // FRQ — score across ALL FRQs (unsubmitted ones count as 0)
+  // FRQ — score across ALL FRQs; unanswered FRQs count as 0.
   let frqScore = 0;
   let frqAllDone = false;
   try {
     if (typeof UNIT_FRQS !== 'undefined' && UNIT_FRQS.length) {
-      // Total possible points across ALL FRQs
       const totalPossible = UNIT_FRQS.reduce((sum, f) => sum + f.points, 0);
-      // Total earned — unsubmitted FRQs count as 0
       const totalEarned = UNIT_FRQS.reduce((sum, f) => {
         const best = getFRQBestScore(f.id);
         return sum + (best !== null ? best : 0);
@@ -2762,7 +2765,6 @@ function getCompositeScore() {
       frqScore = totalPossible > 0 ? Math.round(totalEarned / totalPossible * 100) : 0;
       frqAllDone = UNIT_FRQS.every(f => getFRQBestScore(f.id) !== null);
     } else {
-      // Fallback to old system if UNIT_FRQS not defined
       const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       const frqR = shell.frqResults && shell.frqResults[UNIT_ID];
       if (frqR) {
@@ -2775,25 +2777,19 @@ function getCompositeScore() {
     }
   } catch(e) {}
 
-  // FIX: Apply teacher overrides — "override wins" for all three categories.
-  // Overrides are written to ac_shell_state.teacherOverride by restoreProgressFromCivitas.
+  // Teacher overrides from Supabase win for all categories.
   let overrideApplied = false;
   try {
     const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     const ov = shell.teacherOverride;
     if (ov) {
-      if (typeof ov.mcqScore === 'number')   { mcqScore   = ov.mcqScore;   overrideApplied = true; }
+      if (typeof ov.mcqScore === 'number')   { mcqScore = ov.mcqScore; overrideApplied = true; }
       if (typeof ov.vocabScore === 'number') { vocabScore = ov.vocabScore; overrideApplied = true; }
-      if (typeof ov.frqScore === 'number')   { frqScore   = ov.frqScore; frqAllDone = true; overrideApplied = true; }
+      if (typeof ov.frqScore === 'number')   { frqScore = ov.frqScore; frqAllDone = true; overrideApplied = true; }
     }
   } catch(e) {}
 
-  // Make mcqScore writable if it was declared as const upstream
-  // (we also need the composite to recompute after override).
-
-  // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
   let composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
-  // Full composite override if teacher set it
   try {
     const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     if (shell.teacherOverride && typeof shell.teacherOverride.composite === 'number') {
@@ -2802,14 +2798,135 @@ function getCompositeScore() {
     }
   } catch(e) {}
 
-  return { mcqScore, vocabScore, frqScore, composite,
+  return {
+    mcqScore, vocabScore, frqScore, composite,
     mcqAttempted: lessonScores.length > 0 || overrideApplied,
+    mcqAllDone,
     vocabAttempted: vocabScore > 0,
     frqAttempted: frqScore > 0,
     frqAllDone,
-    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqAllDone,
+    allAttempted: mcqAllDone && vocabScore > 0 && frqAllDone,
     teacherOverride: overrideApplied
   };
+}
+
+function getUnitProgressSnapshot() {
+  const c = getCompositeScore();
+  let frqDone = 0;
+  let frqTotal = 0;
+  try {
+    const frqState = getFRQState();
+    frqDone = (frqState.questions || []).filter(Boolean).length;
+    frqTotal = (typeof FRQ_QUESTIONS_U1 !== 'undefined' && FRQ_QUESTIONS_U1.length) ? FRQ_QUESTIONS_U1.length : frqDone;
+  } catch(e) {}
+  const lessonsTotal = (typeof LESSONS !== 'undefined' && LESSONS.length) ? LESSONS.length : 0;
+  const lessonsCompleted = (P && Array.isArray(P.lessonsCompleted)) ? P.lessonsCompleted.length : 0;
+  const tier = c.allAttempted ? calcTier(c.composite) : { label: 'In Progress', color: 'var(--gold)', icon: '⏳' };
+  const hasAnyProgress = c.composite > 0 || lessonsCompleted > 0 || c.vocabAttempted || frqDone > 0;
+  return {
+    bestAccuracy: c.composite,
+    composite: c.composite,
+    mcqScore: c.mcqScore,
+    vocabScore: c.vocabScore,
+    frqScore: c.frqScore,
+    mcqAttempted: c.mcqAttempted,
+    mcqAllDone: c.mcqAllDone,
+    vocabAttempted: c.vocabAttempted,
+    frqAttempted: c.frqAttempted,
+    frqAllDone: c.frqAllDone,
+    allAttempted: c.allAttempted,
+    hasAnyProgress,
+    inProgress: hasAnyProgress && !c.allAttempted,
+    status: c.allAttempted ? 'complete' : (hasAnyProgress ? 'in_progress' : 'not_played'),
+    trophy: tier.label.toLowerCase().replace(' ', ''),
+    lessonsCompleted,
+    lessonsTotal,
+    frqSubmitted: frqDone,
+    frqTotal,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function syncUnitProgressToSupabase(reason) {
+  try {
+    if (!P || !P.name || P.name === 'Guest') return;
+    const fullName = P.fullName || P.name;
+    const snap = getUnitProgressSnapshot();
+    if (!snap.hasAnyProgress) return;
+
+    let existing = null;
+    try {
+      const r = await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress,courses,gold&limit=1',
+        { headers: AC_HEADERS }
+      );
+      const rows = await r.json();
+      existing = rows && rows[0];
+    } catch(e) {}
+
+    let courseProgress = {};
+    try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+    if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    const ush = courseProgress[CIV_COURSE];
+    if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
+    if (snap.allAttempted && !ush.unitsCompleted.includes(CIV_UNIT_ID)) ush.unitsCompleted.push(CIV_UNIT_ID);
+
+    ush.lessonBestScores = ush.lessonBestScores || {};
+    Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+    if (!ush.lessonsCompleted || Array.isArray(ush.lessonsCompleted)) ush.lessonsCompleted = {};
+    ush.lessonsCompleted[CIV_UNIT_ID] = Array.from(new Set(P.lessonsCompleted || []));
+    ush.frqSubmissions = ush.frqSubmissions || {};
+    ush.frqSubmissions[CIV_UNIT_ID] = { submitted: snap.frqSubmitted, total: snap.frqTotal, score: snap.frqScore };
+
+    let unitProgress = {};
+    try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+    const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+    unitProgress[CIV_UNIT_ID] = Object.assign({}, prevUnit, snap, {
+      completedAt: snap.allAttempted ? (prevUnit.completedAt || new Date().toISOString()) : null,
+      lastReason: reason || 'sync'
+    });
+
+    let existingCourses = [];
+    try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+      existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+    }
+
+    await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        full_name: fullName,
+        display_name: P.name,
+        period: String(P.period || ''),
+        avatar: P.avatar || 'scholar_f',
+        courses: JSON.stringify(existingCourses),
+        unit_progress: JSON.stringify(unitProgress),
+        course_progress: JSON.stringify(courseProgress),
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
+
+    // Write/update the main unit result too. This makes the shell/trophy room
+    // see the unit as started after any component is finished, instead of NOT PLAYED.
+    await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        name: P.name,
+        period: P.period || '',
+        unit_id: UNIT_ID,
+        best_score: snap.composite,
+        best_accuracy: snap.composite,
+        trophy: snap.trophy,
+        cards: P.cardsEarned ? P.cardsEarned.length : 0,
+        attempts: 1,
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
+
+    console.log('Composite unit progress synced:', reason, snap);
+  } catch(e) { console.log('syncUnitProgressToSupabase failed', e); }
 }
 
 // ════════════════════════════════════════════
@@ -2820,8 +2937,9 @@ function getCompositeScore() {
 function renderPlayTabSummary() {
   const el = document.getElementById('play-tab-trophy-summary');
   if (!el) return;
+  const snap = getUnitProgressSnapshot();
+  if (!snap.hasAnyProgress) { el.innerHTML = ''; return; }
   const scores = Object.values(P.lessonBestScores || {});
-  if (!scores.length) { el.innerHTML = ''; return; }
 
   const { mcqScore, vocabScore, frqScore, composite, mcqAttempted, vocabAttempted, frqAttempted, frqAllDone, allAttempted } = getCompositeScore();
   const frqTotal = typeof UNIT_FRQS !== 'undefined' ? UNIT_FRQS.length : (typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : 0);
@@ -2905,6 +3023,7 @@ function updateVocabQuizStatus() {
     const best = state.vocabBestScore && state.vocabBestScore['unit2a_boomtown'];
     if (passed) {
       el.innerHTML = '<span style="color:var(--green2)">✓ Passed' + (best !== undefined ? ' — Best: ' + best + '%' : '') + '</span>';
+      try { renderPlayTabSummary(); renderHubTrophySection(); syncUnitProgressToSupabase('vocab'); } catch(e) {}
     } else {
       el.textContent = 'Not yet passed.';
     }
@@ -2964,6 +3083,7 @@ function saveFRQState(frqState) {
     renderPlayTabSummary();
     // Save composite to Supabase
     if (composite > 0) saveFRQResultToSupabase(composite, tier);
+    try { syncUnitProgressToSupabase('frq'); } catch(e) {}
     updateFRQBadge(composite, tier);
   } catch(e) {}
 }
@@ -3510,32 +3630,25 @@ function renderHubTrophySection() {
   const el = document.getElementById('hub-trophy-section');
   if (!el) return;
 
-  // Only show if at least one lesson completed
-  const scores = Object.values(P.lessonBestScores || {});
-  if (!scores.length) { el.style.display = 'none'; return; }
+  const snap = getUnitProgressSnapshot();
+  if (!snap.hasAnyProgress) { el.style.display = 'none'; return; }
   el.style.display = 'block';
 
-  const best = P.lessonBestScores;
-  const tierOrder = ['tryagain','completed','bronze','silver','gold','historian'];
-
-  // Unit overall trophy = best single-lesson accuracy
-  const bestAcc = Math.max(...scores.map(s => s.accuracy));
-  const unitTier = calcTier(bestAcc);
-
-  // EOC rating from the EOC lesson specifically, or overall avg
-  const eocScore = best['eoc'] ? best['eoc'].accuracy :
-    Math.round(scores.reduce((a, s) => a + s.accuracy, 0) / scores.length);
-  const eoc = eocLevel(eocScore);
+  const tier = snap.allAttempted ? calcTier(snap.composite) : { label: 'In Progress', color: 'var(--gold)', icon: '⏳' };
+  const eoc = eocLevel(snap.composite);
 
   el.innerHTML = `
     <div class="sh" style="margin-top:20px;">Unit Performance</div>
     <div class="trophy-display">
-      <div class="trophy-icon">${unitTier.icon}</div>
+      <div class="trophy-icon">${tier.icon}</div>
       <div class="trophy-info">
-        <div class="trophy-tier-name" style="color:${unitTier.color}">${unitTier.label}</div>
+        <div class="trophy-tier-name" style="color:${tier.color}">${tier.label}</div>
         <div class="trophy-stat-row">
-          <div class="trophy-stat">Best accuracy: <strong>${bestAcc}%</strong></div>
-          <div class="trophy-stat">Lessons done: <strong>${P.lessonsCompleted.length}/${LESSONS.length}</strong></div>
+          <div class="trophy-stat">Composite score: <strong>${snap.composite}%</strong></div>
+          <div class="trophy-stat">MCQ: <strong>${snap.mcqScore}%</strong></div>
+          <div class="trophy-stat">Vocab: <strong>${snap.vocabScore}%</strong></div>
+          <div class="trophy-stat">Open Answer: <strong>${snap.frqSubmitted}/${snap.frqTotal}</strong></div>
+          <div class="trophy-stat">Lessons done: <strong>${snap.lessonsCompleted}/${snap.lessonsTotal}</strong></div>
         </div>
         <div class="eoc-rating-badge" style="color:${eoc.color};border-color:${eoc.color};">
           EOC ${eoc.label}
@@ -3814,6 +3927,7 @@ function finishLesson() {
     pushRewardsToShell(activeLesson);
   }
   saveP();
+  try { syncUnitProgressToSupabase('mcq'); } catch(e) {}
 
   // Only push to Supabase when the entire unit is complete
   const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
@@ -3823,6 +3937,7 @@ function finishLesson() {
       ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
       : acc;
     pushACResult(overallAcc);
+    try { syncUnitProgressToSupabase('unit_complete'); } catch(e) {}
       }
 
   // ── Trophy badge ──────────────────────────────────────
