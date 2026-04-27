@@ -1994,7 +1994,16 @@ async function restoreProgressFromCivitas(fullName) {
           if (typeof myUnit.mcqScore === 'number')   state.teacherOverride.mcqScore   = myUnit.mcqScore;
           if (typeof myUnit.vocabScore === 'number') state.teacherOverride.vocabScore = myUnit.vocabScore;
           if (typeof myUnit.frqScore === 'number')   state.teacherOverride.frqScore   = myUnit.frqScore;
-          if (typeof myUnit.composite === 'number')  state.teacherOverride.composite  = myUnit.composite;
+          // Only treat composite as a direct override if the teacher explicitly used
+          // the Override Composite box. Otherwise stale composite values must not beat
+          // the recalculated MCQ/Vocab/FRQ formula.
+          if ((myUnit.compositeManual === true || myUnit.manualComposite === true || myUnit.compositeOverride === true) && typeof myUnit.composite === 'number') {
+            state.teacherOverride.composite = myUnit.composite;
+            state.teacherOverride.compositeManual = true;
+          } else if (state.teacherOverride.composite !== undefined) {
+            delete state.teacherOverride.composite;
+            delete state.teacherOverride.compositeManual;
+          }
           state.teacherOverride.updatedAt = myUnit.updatedAt || new Date().toISOString();
           localStorage.setItem(SHELL_KEY, JSON.stringify(state));
           console.log('Teacher overrides applied for', CIV_UNIT_ID, state.teacherOverride);
@@ -2293,10 +2302,11 @@ function getCompositeScore() {
 
   // Weighted composite — zeros count if not attempted (max 50% without vocab+FRQ)
   let composite = Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25);
-  // Full composite override if teacher set it
+  // Full composite override only if teacher explicitly used Override Composite.
+  // Otherwise recompute from MCQ/Vocab/FRQ so the score always matches the visible subscores.
   try {
     const shell = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    if (shell.teacherOverride && typeof shell.teacherOverride.composite === 'number') {
+    if (shell.teacherOverride && shell.teacherOverride.compositeManual === true && typeof shell.teacherOverride.composite === 'number') {
       composite = shell.teacherOverride.composite;
       overrideApplied = true;
     }
