@@ -2222,11 +2222,18 @@ function calcTier(acc) {
 
 // ── Composite Unit Score (MCQ 50% · Vocab 25% · FRQ 25%) ──────────────
 function getCompositeScore() {
-  // MCQ — average of all completed lessons
-  const lessonScores = Object.values(P.lessonBestScores || {});
-  let mcqScore = lessonScores.length
-    ? Math.round(lessonScores.reduce((a, s) => a + s.accuracy, 0) / lessonScores.length)
+  // MCQ — full Unit Game category.
+  // Unfinished MCQ lessons count as 0 so the MCQ category cannot show 100%
+  // after only one lesson. When every MCQ/capstone/EOC item is complete,
+  // this becomes the true MCQ average and contributes up to 50% of the trophy.
+  const lessonScoresObj = P.lessonBestScores || {};
+  const lessonScores = Object.values(lessonScoresObj);
+  const totalLessons = (typeof LESSONS !== 'undefined' && LESSONS.length) ? LESSONS.length : lessonScores.length;
+  const earnedLessonAccuracy = totalLessons
+    ? LESSONS.reduce((sum, lesson) => sum + ((lessonScoresObj[lesson.id] && lessonScoresObj[lesson.id].accuracy) || 0), 0)
     : 0;
+  let mcqScore = totalLessons ? Math.round(earnedLessonAccuracy / totalLessons) : 0;
+  const mcqAllDone = totalLessons > 0 && LESSONS.every(l => P.lessonsCompleted.includes(l.id));
 
   // Vocab — check civitas_state first (Civitas shell), then ac_shell_state (legacy)
   const VOCAB_DECK_ID = 'unit1_civil_war_reconstruction';
@@ -2297,12 +2304,131 @@ function getCompositeScore() {
 
   return { mcqScore, vocabScore, frqScore, composite,
     mcqAttempted: lessonScores.length > 0 || overrideApplied,
+    mcqAllDone,
     vocabAttempted: vocabScore > 0,
     frqAttempted: frqScore > 0,
     frqAllDone,
-    allAttempted: lessonScores.length > 0 && vocabScore > 0 && frqAllDone,
+    allAttempted: mcqAllDone && vocabScore > 0 && frqAllDone,
     teacherOverride: overrideApplied
   };
+}
+
+function getUnitProgressSnapshot() {
+  const c = getCompositeScore();
+  let frqDone = 0;
+  let frqTotal = 0;
+  try {
+    const frqState = getFRQState();
+    frqDone = (frqState.questions || []).filter(Boolean).length;
+    frqTotal = (typeof FRQ_QUESTIONS_U1 !== 'undefined' && FRQ_QUESTIONS_U1.length) ? FRQ_QUESTIONS_U1.length : frqDone;
+  } catch(e) {}
+  const lessonsTotal = (typeof LESSONS !== 'undefined' && LESSONS.length) ? LESSONS.length : 0;
+  const lessonsCompleted = (P && Array.isArray(P.lessonsCompleted)) ? P.lessonsCompleted.length : 0;
+  const tier = c.allAttempted ? calcTier(c.composite) : { label: 'In Progress', color: 'var(--amber)', icon: '⏳' };
+  const hasAnyProgress = c.composite > 0 || lessonsCompleted > 0 || c.vocabAttempted || frqDone > 0;
+  return {
+    bestAccuracy: c.composite,
+    composite: c.composite,
+    mcqScore: c.mcqScore,
+    vocabScore: c.vocabScore,
+    frqScore: c.frqScore,
+    mcqAttempted: c.mcqAttempted,
+    mcqAllDone: c.mcqAllDone,
+    vocabAttempted: c.vocabAttempted,
+    frqAttempted: c.frqAttempted,
+    frqAllDone: c.frqAllDone,
+    allAttempted: c.allAttempted,
+    hasAnyProgress,
+    inProgress: hasAnyProgress && !c.allAttempted,
+    status: c.allAttempted ? 'complete' : (hasAnyProgress ? 'in_progress' : 'not_played'),
+    trophy: tier.label.toLowerCase().replace(' ', ''),
+    lessonsCompleted,
+    lessonsTotal,
+    frqSubmitted: frqDone,
+    frqTotal,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function syncUnitProgressToSupabase(reason) {
+  try {
+    if (!P || !P.name || P.name === 'Guest') return;
+    const fullName = P.fullName || P.name;
+    const snap = getUnitProgressSnapshot();
+    if (!snap.hasAnyProgress) return;
+
+    let existing = null;
+    try {
+      const r = await fetch(
+        AC_SUPA_URL + '/rest/v1/civitas_profiles?full_name=eq.' + encodeURIComponent(fullName) + '&select=course_progress,unit_progress,courses,gold&limit=1',
+        { headers: AC_HEADERS }
+      );
+      const rows = await r.json();
+      existing = rows && rows[0];
+    } catch(e) {}
+
+    let courseProgress = {};
+    try { courseProgress = JSON.parse(existing?.course_progress || '{}'); } catch(e) {}
+    if (!courseProgress[CIV_COURSE]) courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    const ush = courseProgress[CIV_COURSE];
+    if (!Array.isArray(ush.unitsCompleted)) ush.unitsCompleted = [];
+    if (snap.allAttempted && !ush.unitsCompleted.includes(CIV_UNIT_ID)) ush.unitsCompleted.push(CIV_UNIT_ID);
+    ush.lessonBestScores = ush.lessonBestScores || {};
+    Object.assign(ush.lessonBestScores, P.lessonBestScores || {});
+    if (!ush.lessonsCompleted || Array.isArray(ush.lessonsCompleted)) ush.lessonsCompleted = {};
+    ush.lessonsCompleted[CIV_UNIT_ID] = Array.from(new Set(P.lessonsCompleted || []));
+    ush.frqSubmissions = ush.frqSubmissions || {};
+    ush.frqSubmissions[CIV_UNIT_ID] = { submitted: snap.frqSubmitted, total: snap.frqTotal, score: snap.frqScore };
+
+    let unitProgress = {};
+    try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
+    const prevUnit = unitProgress[CIV_UNIT_ID] || {};
+    unitProgress[CIV_UNIT_ID] = Object.assign({}, prevUnit, snap, {
+      completedAt: snap.allAttempted ? (prevUnit.completedAt || new Date().toISOString()) : null,
+      lastReason: reason || 'sync'
+    });
+
+    let existingCourses = [];
+    try { existingCourses = JSON.parse(existing?.courses || '[]'); } catch(e) {}
+    if (!existingCourses.find(c => c.id === CIV_COURSE)) {
+      existingCourses.push({ id: CIV_COURSE, period: String(P.period || ''), enrolledAt: new Date().toISOString() });
+    }
+
+    await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        full_name: fullName,
+        display_name: P.name,
+        period: String(P.period || ''),
+        avatar: P.avatar || 'scholar_f',
+        courses: JSON.stringify(existingCourses),
+        unit_progress: JSON.stringify(unitProgress),
+        course_progress: JSON.stringify(courseProgress),
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
+
+    // Write/update the main unit result too. This makes the shell/trophy room
+    // see the unit as started after any component is finished, instead of NOT PLAYED.
+    await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
+      method: 'POST',
+      headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
+      body: JSON.stringify({
+        name: P.name,
+        period: P.period || '',
+        unit_id: UNIT_ID,
+        best_score: snap.composite,
+        best_accuracy: snap.composite,
+        trophy: snap.trophy,
+        cards: P.cardsEarned ? P.cardsEarned.length : 0,
+        attempts: 1,
+        updated_at: new Date().toISOString()
+      })
+    }).catch(()=>{});
+
+    console.log('Composite unit progress synced:', reason, snap);
+  } catch(e) { console.log('syncUnitProgressToSupabase failed', e); }
 }
 
 function notify(msg, col) {
@@ -2468,8 +2594,11 @@ function saveFRQState(frqState) {
     localStorage.setItem(SHELL_KEY, JSON.stringify(state));
     renderHubTrophySection();
     renderPlayTabSummary();
-    // Save composite to Supabase
-    if (composite > 0) saveFRQResultToSupabase(composite, tier);
+    // Save composite to Supabase and update the main unit trophy/progress record.
+    if (composite > 0) {
+      saveFRQResultToSupabase(composite, tier);
+      syncUnitProgressToSupabase('frq_submit');
+    }
     updateFRQBadge(composite, tier);
   } catch(e) {}
 }
@@ -2800,6 +2929,10 @@ async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
         updated_at: new Date().toISOString()
       })
     }).catch(()=>{});
+
+    // Also update the main unit trophy/progress record so the shell moves
+    // from NOT PLAYED to IN PROGRESS after the vocab component is finished.
+    syncUnitProgressToSupabase('vocab_submit');
   } catch(e) {}
 }
 
@@ -3368,6 +3501,7 @@ function finishLesson() {
   // ── Save after every lesson, not just full unit completion ───────────
   // This means students can switch devices mid-unit and pick up where they left off
   pushLessonProgress(acc);
+  syncUnitProgressToSupabase('mcq_lesson_complete');
 
   // Full unit complete — push final result and show trophy
   const allDoneCheck = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
@@ -3803,18 +3937,15 @@ function pushLessonProgress(acc) {
         if (!ush.lessonsCompleted[CIV_UNIT_ID].includes(id)) ush.lessonsCompleted[CIV_UNIT_ID].push(id);
       });
 
-      // Merge unit_progress — track in-progress units too, not just completed
+      // Merge unit_progress — track the full weighted trophy progress, not only the latest MCQ lesson.
       let unitProgress = {};
       try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
       const prevUnit = unitProgress[CIV_UNIT_ID] || {};
-      const allDone = LESSONS.every(l => P.lessonsCompleted.includes(l.id));
-      unitProgress[CIV_UNIT_ID] = {
-        bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
-        lessonsCompleted: P.lessonsCompleted.length,
-        lessonsTotal: LESSONS.length,
-        inProgress: !allDone,
-        completedAt: allDone ? (prevUnit.completedAt || new Date().toISOString()) : null
-      };
+      const snap = getUnitProgressSnapshot();
+      unitProgress[CIV_UNIT_ID] = Object.assign({}, prevUnit, snap, {
+        completedAt: snap.allAttempted ? (prevUnit.completedAt || new Date().toISOString()) : null,
+        lastReason: 'mcq_lesson_complete'
+      });
 
       // Build courses array so the teacher dashboard filter includes this student
       let existingCourses = [];
@@ -3902,14 +4033,15 @@ async function pushACResult(acc) {
     const profRows = await profResp.json();
     const existing = profRows && profRows[0];
 
-    // Merge unit_progress — keep best accuracy per unit
+    // Merge unit_progress — save the weighted composite trophy state
     let unitProgress = {};
     try { unitProgress = JSON.parse(existing?.unit_progress || '{}'); } catch(e) {}
     const prevUnit = unitProgress[CIV_UNIT_ID] || {};
-    unitProgress[CIV_UNIT_ID] = {
-      bestAccuracy: Math.max(acc, prevUnit.bestAccuracy || 0),
-      completedAt: prevUnit.completedAt || new Date().toISOString()
-    };
+    const snap = getUnitProgressSnapshot();
+    unitProgress[CIV_UNIT_ID] = Object.assign({}, prevUnit, snap, {
+      completedAt: snap.allAttempted ? (prevUnit.completedAt || new Date().toISOString()) : null,
+      lastReason: 'final_result'
+    });
 
     // Merge course_progress — preserve frqSubmissions and other fields
     let courseProgress = {};
