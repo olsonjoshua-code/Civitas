@@ -2894,6 +2894,7 @@ async function syncUnitProgressToSupabase(reason) {
 
     await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -2911,6 +2912,7 @@ async function syncUnitProgressToSupabase(reason) {
     // see the unit as started after any component is finished, instead of NOT PLAYED.
     await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         name: P.name,
@@ -3049,41 +3051,125 @@ const FRQ_QUESTIONS_U1 = [
 
 let _frqCurrentIdx = null; // which question is active
 
-function getFRQState() {
+
+// ── FRQ persistence hardening ─────────────────────────────
+// The shell can rewrite ac_shell_state when a student returns to the trophy room,
+// so FRQ progress is mirrored in three places: ac_shell_state, civitas_state,
+// and a dedicated backup key.
+const FRQ_LOCAL_BACKUP_KEY = 'civitas_frq_backup_' + UNIT_ID;
+
+function normalizeFRQState(raw) {
+  if (!raw) return { questions: [] };
+  if (raw.score !== undefined && !raw.questions) {
+    return { questions: [{ q: raw.question || '', score: raw.score, tier: raw.tier, answer: raw.answer || '', date: raw.date || Date.now() }] };
+  }
+  const out = Object.assign({}, raw);
+  out.questions = Array.isArray(out.questions) ? out.questions.slice() : [];
+  return out;
+}
+
+function mergeFRQStates() {
+  const sources = [];
   try {
-    const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
-    const r = state.frqResults && state.frqResults['unit2a'];
-    if (!r) return { questions: [] };
-    // Migrate old single-score format
-    if (r.score !== undefined && !r.questions) {
-      return { questions: [{ q: r.question || '', score: r.score, tier: r.tier, date: r.date }] };
-    }
-    return r;
-  } catch(e) { return { questions: [] }; }
+    const legacy = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (legacy.frqResults && legacy.frqResults[UNIT_ID]) sources.push(legacy.frqResults[UNIT_ID]);
+  } catch(e) {}
+  try {
+    const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    if (civ.frqResults && civ.frqResults[UNIT_ID]) sources.push(civ.frqResults[UNIT_ID]);
+    if (civ.frqProgress && civ.frqProgress[CIV_UNIT_ID]) sources.push(civ.frqProgress[CIV_UNIT_ID]);
+    if (civ.frqProgress && civ.frqProgress[CIV_UNIT_ID + '_questions']) sources.push(civ.frqProgress[CIV_UNIT_ID + '_questions']);
+  } catch(e) {}
+  try {
+    const backup = JSON.parse(localStorage.getItem(FRQ_LOCAL_BACKUP_KEY) || 'null');
+    if (backup) sources.push(backup);
+  } catch(e) {}
+
+  const merged = { questions: [] };
+  sources.map(normalizeFRQState).forEach(src => {
+    (src.questions || []).forEach((q, i) => {
+      if (!q) return;
+      const old = merged.questions[i];
+      if (!old || (q.score || 0) >= (old.score || 0)) merged.questions[i] = q;
+    });
+  });
+
+  const total = (typeof FRQ_QUESTIONS_U1 !== 'undefined' && FRQ_QUESTIONS_U1.length) ? FRQ_QUESTIONS_U1.length : merged.questions.length;
+  const submitted = merged.questions.filter(Boolean).length;
+  const earned = merged.questions.reduce((a, q) => a + (q ? (q.score || 0) : 0), 0);
+  const composite = total > 0 ? Math.round(earned / total) : 0;
+  const allDone = submitted >= total && total > 0;
+  merged.composite = composite;
+  merged.score = composite;
+  merged.compositeTier = allDone ? (composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null) : null;
+  return merged;
+}
+
+function persistFRQStateLocally(frqState) {
+  const clean = normalizeFRQState(frqState);
+  localStorage.setItem(FRQ_LOCAL_BACKUP_KEY, JSON.stringify(clean));
+
+  try {
+    const legacy = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
+    if (!legacy.frqResults) legacy.frqResults = {};
+    legacy.frqResults[UNIT_ID] = clean;
+    localStorage.setItem(SHELL_KEY, JSON.stringify(legacy));
+  } catch(e) {}
+
+  try {
+    const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    if (!civ.frqResults) civ.frqResults = {};
+    if (!civ.frqProgress) civ.frqProgress = {};
+    civ.frqResults[UNIT_ID] = clean;
+    civ.frqProgress[CIV_UNIT_ID] = clean;
+    civ.frqProgress[CIV_UNIT_ID + '_questions'] = clean;
+    localStorage.setItem('civitas_state', JSON.stringify(civ));
+  } catch(e) {}
+}
+
+function writeLocalUnitProgressSnapshot(reason) {
+  try {
+    if (typeof getUnitProgressSnapshot !== 'function') return;
+    const snap = getUnitProgressSnapshot();
+    if (!snap || !snap.hasAnyProgress) return;
+    const civ = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    if (!civ.unitProgress) civ.unitProgress = {};
+    if (!civ.courseProgress) civ.courseProgress = {};
+    if (!civ.courseProgress[CIV_COURSE]) civ.courseProgress[CIV_COURSE] = { unitsCompleted: [], badgesEarned: [], vocabPassed: {}, frqSubmissions: {} };
+    civ.unitProgress[CIV_UNIT_ID] = Object.assign({}, civ.unitProgress[CIV_UNIT_ID] || {}, snap, { lastReason: reason || 'local' });
+    civ.courseProgress[CIV_COURSE].frqSubmissions = civ.courseProgress[CIV_COURSE].frqSubmissions || {};
+    civ.courseProgress[CIV_COURSE].frqSubmissions[CIV_UNIT_ID] = { submitted: snap.frqSubmitted, total: snap.frqTotal, score: snap.frqScore };
+    localStorage.setItem('civitas_state', JSON.stringify(civ));
+  } catch(e) {}
+}
+
+function getFRQState() {
+  try { return mergeFRQStates(); }
+  catch(e) { return { questions: [] }; }
 }
 
 function saveFRQState(frqState) {
   try {
     const state = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
     if (!state.frqResults) state.frqResults = {};
-    // Compute composite = total earned / total possible (unanswered = 0)
     const qs = frqState.questions || [];
     const total = typeof FRQ_QUESTIONS_U1 !== 'undefined' ? FRQ_QUESTIONS_U1.length : qs.length;
-    const allDone = qs.length >= total;
-    const earned = qs.reduce((a, q) => a + (q.score || 0), 0);
+    const submitted = qs.filter(Boolean).length;
+    const allDone = submitted >= total;
+    const earned = qs.reduce((a, q) => a + (q ? (q.score || 0) : 0), 0);
     const composite = total > 0 ? Math.round(earned / total) : 0;
-    // Only award a trophy tier when ALL FRQs are submitted
     const tier = allDone ? (composite >= 90 ? 'gold' : composite >= 75 ? 'silver' : composite >= 60 ? 'bronze' : null) : null;
     frqState.composite = composite;
     frqState.compositeTier = tier;
-    frqState.score = composite; // backwards compat
-    state.frqResults['unit2a'] = frqState;
+    frqState.score = composite;
+    state.frqResults[UNIT_ID] = frqState;
     localStorage.setItem(SHELL_KEY, JSON.stringify(state));
+    persistFRQStateLocally(frqState);
+    writeLocalUnitProgressSnapshot('frq');
     renderHubTrophySection();
     renderPlayTabSummary();
-    // Save composite to Supabase
     if (composite > 0) saveFRQResultToSupabase(composite, tier);
-    try { syncUnitProgressToSupabase('frq'); } catch(e) {}
+    try { if (typeof syncUnitProgressToSupabase === 'function') syncUnitProgressToSupabase('frq'); } catch(e) {}
     updateFRQBadge(composite, tier);
   } catch(e) {}
 }
@@ -3301,6 +3387,7 @@ async function saveFRQResultToSupabase(score, tier) {
     // dropping every in-game FRQ submission.
     fetch(supaUrl + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
+      keepalive: true,
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify({
         name, period,
@@ -3315,7 +3402,7 @@ async function saveFRQResultToSupabase(score, tier) {
     const fullName = (typeof P !== 'undefined' && P) ? (P.fullName || P.name) : name;
     if (!fullName || fullName === 'Guest') return;
 
-    const localFrq = (state.frqResults && state.frqResults['unit2a']) || null;
+    const localFrq = (state.frqResults && state.frqResults[UNIT_ID]) || null;
     if (!localFrq || !localFrq.questions || !localFrq.questions.length) return;
 
     // Fetch existing frq_progress so we don't stomp other units' data
@@ -3332,7 +3419,7 @@ async function saveFRQResultToSupabase(score, tier) {
     } catch(e) {}
 
     // Merge: take best-score-per-question between server and local
-    const serverQs = (existingProgress['ush_u2a_questions'] && existingProgress['ush_u2a_questions'].questions) || [];
+    const serverQs = (existingProgress[CIV_UNIT_ID + '_questions'] && existingProgress[CIV_UNIT_ID + '_questions'].questions) || [];
     const mergedQs = [];
     const maxLen = Math.max(serverQs.length, localFrq.questions.length);
     for (let i = 0; i < maxLen; i++) {
@@ -3344,7 +3431,7 @@ async function saveFRQResultToSupabase(score, tier) {
         mergedQs[i] = l || s;
       }
     }
-    existingProgress['ush_u2a_questions'] = {
+    existingProgress[CIV_UNIT_ID + '_questions'] = {
       questions: mergedQs,
       composite: localFrq.composite || score,
       compositeTier: localFrq.compositeTier || tier,
@@ -3353,6 +3440,7 @@ async function saveFRQResultToSupabase(score, tier) {
 
     await fetch(supaUrl + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: { ...supaH, 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify({
         full_name: fullName,
@@ -3365,12 +3453,12 @@ async function saveFRQResultToSupabase(score, tier) {
     if (serverQs.length || mergedQs.length) {
       const ss = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
       if (!ss.frqResults) ss.frqResults = {};
-      ss.frqResults['unit2a'] = Object.assign({}, ss.frqResults['unit2a'] || {}, {
+      ss.frqResults[UNIT_ID] = Object.assign({}, ss.frqResults[UNIT_ID] || {}, {
         questions: mergedQs,
-        composite: ((existingProgress['ush_u2a_questions']||{}).composite || localFrq.composite || score),
-        compositeTier: ((existingProgress['ush_u2a_questions']||{}).compositeTier || localFrq.compositeTier || tier)
+        composite: ((existingProgress[CIV_UNIT_ID + '_questions']||{}).composite || localFrq.composite || score),
+        compositeTier: ((existingProgress[CIV_UNIT_ID + '_questions']||{}).compositeTier || localFrq.compositeTier || tier)
       });
-      if (ss.frqResults['unit2a'].composite === undefined) ss.frqResults['unit2a'].composite = localFrq.composite || score;
+      if (ss.frqResults[UNIT_ID].composite === undefined) ss.frqResults[UNIT_ID].composite = localFrq.composite || score;
       localStorage.setItem(SHELL_KEY, JSON.stringify(ss));
     }
   } catch(e) { console.log('saveFRQResultToSupabase failed', e); }
@@ -3388,6 +3476,7 @@ async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
     // Push to civitas_profiles (Civitas shell)
     fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -3399,6 +3488,7 @@ async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
     // Also push to ac_student_profiles (US History hub)
     fetch(AC_SUPA_URL + '/rest/v1/ac_student_profiles?on_conflict=full_name,period', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -4136,13 +4226,28 @@ function closeUnitTrophy() {
     showUnitHub && showUnitHub();
   }
 }
-function returnToShell() {
+async function returnToShell() {
   saveP();
+  try {
+    const frq = getFRQState();
+    if (frq && (frq.questions || []).filter(Boolean).length) {
+      persistFRQStateLocally(frq);
+      writeLocalUnitProgressSnapshot('return_to_shell');
+      const timeout = new Promise(resolve => setTimeout(resolve, 1200));
+      await Promise.race([Promise.allSettled([
+        saveFRQResultToSupabase(frq.composite || frq.score || 0, frq.compositeTier || frq.tier),
+        (typeof syncUnitProgressToSupabase === 'function' ? syncUnitProgressToSupabase('return_to_shell') : Promise.resolve())
+      ]), timeout]);
+    }
+  } catch(e) {}
   if (window.opener && !window.opener.closed) { window.opener.focus(); window.close(); return; }
   try { window.parent.postMessage({type:'RETURN_TO_SHELL', unitId: UNIT_ID}, '*'); } catch(e) {}
-  notify('Returning to American Chronicles…');
-  const shellURL = localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
-  setTimeout(() => { window.location.href = shellURL; }, 600);
+  try { localStorage.setItem('civitas_returning', '1'); } catch(e) {}
+  try { localStorage.setItem('civitas_last_course', 'us_history'); } catch(e) {}
+  try { localStorage.setItem('ac_returning_from_game', '1'); } catch(e) {}
+  notify('Returning to Civitas…');
+  const shellURL = localStorage.getItem('civitas_shell_url') || localStorage.getItem('ac_shell_url') || 'https://olsonjoshua-code.github.io/Civitas/';
+  setTimeout(() => { window.location.href = shellURL; }, 200);
 }
 
 function replayFromBeginning() {
@@ -4157,12 +4262,10 @@ function replayFromBeginning() {
 
 function printCertificate() {
   const scores = P.lessonBestScores;
-  const allScores = Object.values(scores);
-  const avgAcc = allScores.length
-    ? Math.round(allScores.reduce((a, s) => a + s.accuracy, 0) / allScores.length)
-    : 0;
-  const tier = calcTier(avgAcc);
-  const eoc = eocLevel(avgAcc);
+  const { mcqScore, vocabScore, frqScore, composite, allAttempted } = getCompositeScore();
+  const avgAcc = composite;
+  const tier = allAttempted ? calcTier(composite) : {label:'In Progress', color:'#c83020', icon:'⏳'};
+  const eoc = eocLevel(composite);
   const date = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
   const lessonRows = LESSONS.map(l => {
     const s = scores[l.id];
@@ -4200,7 +4303,8 @@ function printCertificate() {
     <div style="font-family:'Cinzel',serif;font-size:15px;color:#1a0a08;margin:4px 0">Iron and Gold — Unit 2A: The Gilded Age and Industrial America</div>
     ${P.period ? `<div style="font-size:11px;color:#888;margin-top:4px">Period ${P.period}</div>` : ''}
     <div class="divider"></div>
-    <div class="tier">${tier.label} · ${avgAcc}% Accuracy</div>
+    <div class="tier">${tier.label} · ${avgAcc}% Composite</div>
+    <div style="font-size:12px;color:#555;margin:4px 0">MCQ ${mcqScore}% · Vocab ${vocabScore}% · Open Answer ${frqScore}%</div>
     <div style="font-size:12px;color:#555;margin:4px 0">EOC Practice Rating: ${eoc.label}</div>
     <table>
       <thead><tr><th>Lesson</th><th>Title</th><th style="text-align:center">Accuracy</th><th style="text-align:center">Score</th></tr></thead>
