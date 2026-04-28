@@ -1048,6 +1048,12 @@ function clearProgressCache(fullName) {
   if (fullName) delete _progressCache[fullName];
   else { for (const k in _progressCache) delete _progressCache[k]; }
   _progressCacheTime = 0;
+  // Also clear ac_results cache so next read picks up fresh data
+  if (typeof _acResultsCache !== 'undefined') {
+    if (fullName) delete _acResultsCache[fullName];
+    else { for (const k in _acResultsCache) delete _acResultsCache[k]; }
+    _acResultsCacheTime = 0;
+  }
 }
 
 async function _fetchCanonicalProfile(fullName) {
@@ -1069,6 +1075,80 @@ async function _fetchCanonicalProfile(fullName) {
     return profile;
   } catch(e) { return null; }
 }
+
+// Parallel cache: ac_results rows for the student, keyed by display name (the
+// `name` column in ac_results, e.g. "Miranda P."). This is the original
+// source of truth for MCQ scores written by the unit games.
+// PATCHED 2026-04-28 — added to fix Step F regression where students whose
+// MCQ data lives in ac_results showed as "NOT PLAYED" in the trophy room.
+const _acResultsCache = {};
+let _acResultsCacheTime = 0;
+async function _fetchAcResults(displayName) {
+  if (!displayName) return [];
+  const cached = _acResultsCache[displayName];
+  if (cached && (Date.now() - _acResultsCacheTime) < _PROGRESS_CACHE_TTL_MS) return cached;
+  try {
+    const url = SUPA_URL + '/rest/v1/ac_results?name=eq.'
+      + encodeURIComponent(displayName)
+      + '&select=unit_id,best_accuracy,best_score';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (!r.ok) return [];
+    const rows = await r.json();
+    if (Array.isArray(rows)) {
+      _acResultsCache[displayName] = rows;
+      _acResultsCacheTime = Date.now();
+      return rows;
+    }
+    return [];
+  } catch(e) { return []; }
+}
+
+// Given ac_results rows + a unit_id pattern, return the BEST best_accuracy.
+// Multiple rows can exist for the same unit_id (e.g. retakes); we take the max.
+function _bestAcAccuracy(rows, unitId) {
+  if (!rows || !rows.length) return 0;
+  let best = 0;
+  for (const r of rows) {
+    if (r.unit_id === unitId && typeof r.best_accuracy === 'number') {
+      if (r.best_accuracy > best) best = r.best_accuracy;
+    }
+  }
+  return best;
+}
+
+// PATCHED 2026-04-28 — fullName resolver.
+// Some students have S.fullName set to their display name (e.g. "Miranda P.")
+// instead of their true civitas_profiles.full_name (e.g. "Miranda Pickett").
+// This breaks the canonical lookup. This helper detects the mismatch and
+// resolves the real full_name from civitas_profiles by querying display_name.
+const _fullNameResolveCache = {};
+async function _resolveFullName(possibleFullName, displayName) {
+  if (!displayName) return possibleFullName || '';
+  // If possibleFullName looks distinct from displayName AND doesn't look like
+  // a display-name pattern, trust it.
+  const looksLikeDisplay = possibleFullName === displayName
+    || /^[A-Z][a-z]+ [A-Z]\.$/.test(possibleFullName || '')   // "Miranda P."
+    || !possibleFullName;
+  if (!looksLikeDisplay) return possibleFullName;
+  // Look up in cache
+  if (_fullNameResolveCache[displayName]) return _fullNameResolveCache[displayName];
+  // Query civitas_profiles by display_name
+  try {
+    const url = SUPA_URL + '/rest/v1/civitas_profiles?display_name=eq.'
+      + encodeURIComponent(displayName) + '&select=full_name&limit=1';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (r.ok) {
+      const rows = await r.json();
+      if (rows && rows[0] && rows[0].full_name) {
+        _fullNameResolveCache[displayName] = rows[0].full_name;
+        return rows[0].full_name;
+      }
+    }
+  } catch(e) {}
+  // Fallback: just use whatever we had
+  return possibleFullName || displayName;
+}
+window._resolveFullName = _resolveFullName;
 
 const _DECK_MAP_CANON = {
   'unit1':'unit1_civil_war_reconstruction','unit2a':'unit2a_boomtown','unit2b':'unit2b_reform',
@@ -1104,21 +1184,21 @@ function _internalIdFor(civUnitId, hint) {
 // In-memory store of canonical progress, keyed by internal unit ID (matches UNIT_DATA.id).
 // Populated by preloadCanonicalProgress() before render. Read synchronously by getShellComposite().
 const _canonicalProgress = {};
-async function preloadCanonicalProgress(fullName, internalUnitIds) {
+async function preloadCanonicalProgress(fullName, internalUnitIds, displayName) {
   if (!fullName || fullName === 'Guest') return;
-  // Single profile fetch (cached for 5s) — then fan out to all units.
+  // Single profile fetch + single ac_results fetch (both cached) — then fan out.
   const profile = await _fetchCanonicalProfile(fullName);
   if (!profile) return;
+  if (displayName) await _fetchAcResults(displayName); // populate cache
   for (const intId of internalUnitIds) {
     const civId = _civIdFor(intId);
-    // loadUnitProgress uses the cached profile, so this is fast (no extra fetches)
-    _canonicalProgress[intId] = await loadUnitProgress(fullName, civId, intId);
+    _canonicalProgress[intId] = await loadUnitProgress(fullName, civId, intId, displayName);
   }
 }
 window.preloadCanonicalProgress = preloadCanonicalProgress;
 window._canonicalProgress = _canonicalProgress;
 
-async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
+async function loadUnitProgress(fullName, civUnitId, internalUnitId, displayName) {
   const empty = {
     mcqScore:0, vocabScore:0, frqRawScore:0,
     mcqAttempted:false, vocabAttempted:false, frqAttempted:false,
@@ -1131,15 +1211,50 @@ async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
   const out = Object.assign({}, empty);
   const intId = _internalIdFor(civUnitId, internalUnitId);
 
-  // MCQ — prefer unit_progress, fall back to lessonBestScores
+  // Pull ac_results in parallel — original source of truth for MCQ/FRQ
+  // written by the unit games. Falls back gracefully if displayName missing.
+  const acRows = displayName ? await _fetchAcResults(displayName) : [];
+
+  // ── MCQ ───────────────────────────────────────────────────────────────
+  // Three sources, in priority order:
+  //   1. unit_progress[civId].mcqScore (>0) — fresh write from unit game
+  //   2. ac_results unit_id=intId.best_accuracy — ground truth from unit game
+  //   3. unit_progress[civId].bestAccuracy (>0) — legacy field
+  //   4. course_progress.lessonBestScores aggregated — last resort
+  // PATCHED 2026-04-28: ac_results is now checked BEFORE bestAccuracy because
+  // bestAccuracy may have been corrupted by a previous bad sync — ac_results
+  // is the original write site and never holds composite values, only pure MCQ.
   try {
     const up = JSON.parse(profile.unit_progress || '{}');
     if (up[civUnitId] && typeof up[civUnitId].mcqScore === 'number' && up[civUnitId].mcqScore > 0) {
       out.mcqScore = Math.round(up[civUnitId].mcqScore);
       out.mcqAttempted = true;
-      out.mcqSource = 'civitas_profiles.unit_progress';
+      out.mcqSource = 'civitas_profiles.unit_progress.mcqScore';
     }
   } catch(e) {}
+  if (!out.mcqAttempted) {
+    const acScore = _bestAcAccuracy(acRows, intId);
+    if (acScore > 0) {
+      out.mcqScore = Math.round(acScore);
+      out.mcqAttempted = true;
+      out.mcqSource = 'ac_results.' + intId;
+    }
+  }
+  if (!out.mcqAttempted) {
+    try {
+      const up = JSON.parse(profile.unit_progress || '{}');
+      // Only trust bestAccuracy if it looks like raw MCQ (>= some reasonable floor).
+      // bestAccuracy may have been overwritten with a composite by old sync code,
+      // but composites would be lower than the actual MCQ score in those cases.
+      // We only get here if mcqScore is missing AND ac_results has nothing —
+      // in that case bestAccuracy is the only signal we have.
+      if (up[civUnitId] && typeof up[civUnitId].bestAccuracy === 'number' && up[civUnitId].bestAccuracy > 0) {
+        out.mcqScore = Math.round(up[civUnitId].bestAccuracy);
+        out.mcqAttempted = true;
+        out.mcqSource = 'civitas_profiles.unit_progress.bestAccuracy';
+      }
+    } catch(e) {}
+  }
   if (!out.mcqAttempted) {
     try {
       const cp = JSON.parse(profile.course_progress || '{}');
@@ -1159,7 +1274,7 @@ async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
     } catch(e) {}
   }
 
-  // Vocab — vocab_best_score keyed by deck ID
+  // ── Vocab ─────────────────────────────────────────────────────────────
   try {
     const vbs = JSON.parse(profile.vocab_best_score || '{}');
     const deckId = _DECK_MAP_CANON[intId] || intId;
@@ -1180,7 +1295,11 @@ async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
     } catch(e) {}
   }
 
-  // FRQ — frq_progress keyed by civUnitId + '_questions'
+  // ── FRQ ───────────────────────────────────────────────────────────────
+  // Three sources, priority order:
+  //   1. frq_progress[civId + '_questions'].composite (>0)
+  //   2. ac_results unit_id=intId+'_frq'.best_accuracy
+  //   3. unit_progress[civId].frqScore / frqRaw
   try {
     const fp = JSON.parse(profile.frq_progress || '{}');
     const key = civUnitId + '_questions';
@@ -1191,12 +1310,28 @@ async function loadUnitProgress(fullName, civUnitId, internalUnitId) {
     }
   } catch(e) {}
   if (!out.frqAttempted) {
+    const acFrq = _bestAcAccuracy(acRows, intId + '_frq');
+    if (acFrq > 0) {
+      out.frqRawScore = Math.round(acFrq);
+      out.frqAttempted = true;
+      out.frqSource = 'ac_results.' + intId + '_frq';
+    }
+  }
+  if (!out.frqAttempted) {
     try {
       const up = JSON.parse(profile.unit_progress || '{}');
-      if (up[civUnitId] && typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0) {
-        out.frqRawScore = Math.round(up[civUnitId].frqScore);
-        out.frqAttempted = true;
-        out.frqSource = 'civitas_profiles.unit_progress';
+      if (up[civUnitId]) {
+        // Prefer frqRaw since frqScore may be the curved value.
+        const raw = (typeof up[civUnitId].frqRaw === 'number' && up[civUnitId].frqRaw > 0)
+          ? up[civUnitId].frqRaw
+          : (typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0)
+            ? up[civUnitId].frqScore
+            : 0;
+        if (raw > 0) {
+          out.frqRawScore = Math.round(raw);
+          out.frqAttempted = true;
+          out.frqSource = 'civitas_profiles.unit_progress';
+        }
       }
     } catch(e) {}
   }
@@ -1229,8 +1364,8 @@ function computeComposite(progress) {
   };
 }
 
-async function loadAndComputeUnit(fullName, civUnitId, internalUnitId) {
-  return computeComposite(await loadUnitProgress(fullName, civUnitId, internalUnitId));
+async function loadAndComputeUnit(fullName, civUnitId, internalUnitId, displayName) {
+  return computeComposite(await loadUnitProgress(fullName, civUnitId, internalUnitId, displayName));
 }
 
 // Expose for devtools testing
@@ -4459,12 +4594,18 @@ async function renderTrophyRoom(){
   // ── PATCHED 2026-04-27: preload canonical progress so getShellComposite
   // returns data that matches civitas_profiles (teacher editor source of truth).
   // Force a fresh read by clearing the cache first.
+  // PATCHED 2026-04-28: also pass displayName (S.name) so the canonical reader
+  // can fall back to ac_results for MCQ/FRQ when civitas_profiles is sparse.
+  // PATCHED 2026-04-28b: resolve full_name from display_name if local
+  // S.fullName looks like a display-name (e.g. "Miranda P."). Otherwise the
+  // civitas_profiles lookup fails silently and vocab/frq come back empty.
   try {
-    const fullName = S.fullName || S.name;
+    const displayName = S.name;
+    const fullName = await _resolveFullName(S.fullName, displayName);
     if (fullName && !S.isGuest) {
       clearProgressCache(fullName);
       const allUnitIds = UNIT_DATA.filter(u => !u.isCampaign && !u.isCheckpoint).map(u => u.id);
-      await preloadCanonicalProgress(fullName, allUnitIds);
+      await preloadCanonicalProgress(fullName, allUnitIds, displayName);
     }
   } catch(e) { console.log('preloadCanonicalProgress failed', e); }
 
@@ -4731,9 +4872,21 @@ function drawLbTable(sts,period){
 }
 
 // ── CERTIFICATE PRINTER ───────────────────────────────
-function printCert(uid){
+async function printCert(uid){
   const u=UNIT_DATA.find(x=>x.id===uid);
   if(!u){notify('Unit not found!');return;}
+  // PATCHED 2026-04-28 — ensure canonical data is loaded for this unit before
+  // reading getShellComposite, so the cert works even when invoked from a path
+  // that didn't run the trophy room preload (e.g. unit hub button).
+  // Also resolve the real full_name in case S.fullName is set to display name.
+  try {
+    const displayName = S.name;
+    const fullName = await _resolveFullName(S.fullName, displayName);
+    if (fullName && !S.isGuest) {
+      const civId = _civIdFor(uid);
+      _canonicalProgress[uid] = await loadUnitProgress(fullName, civId, uid, displayName);
+    }
+  } catch(e) { console.log('printCert canonical preload failed', e); }
   const {mcqScore,vocabScore,frqScore,frqRaw,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(uid);
   if(!mcqAttempted){notify('Play this unit first!');return;}
   const tier=allAttempted?calcTier(composite):'inprogress';
