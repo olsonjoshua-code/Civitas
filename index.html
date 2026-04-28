@@ -6675,7 +6675,7 @@ function renderBigIdeaTrophies() {
     + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
     + BIG_IDEAS.map(function(bi) {
       var p = prog[bi.id];
-      var done = p && p.completedAt;
+      var done = !!(p && (p.completedAt || p.bestAccuracy != null || p.composite != null || p.mcqScore != null || p.frqScore != null || p.mcqAttempted || p.frqAttempted || p.frqAllDone));
       // FIX: match the cert's logic exactly — if subscores are stored use them,
       // otherwise infer MCQ from bestAccuracy and assume FRQ=0 (partial-save case).
       // Then always compute composite from the (possibly inferred) subscores.
@@ -6800,6 +6800,9 @@ function printUnitTrophyCert(unitId) {
   var pct;
   if (isTheme) {
     pct = Math.min(100, Math.round(mcqScore * 0.67 + frqScore * 0.33));
+    if ((!hasSubScores || pct === 0) && (typeof up.composite === 'number' || typeof up.bestAccuracy === 'number')) {
+      pct = Math.min(100, Math.round(up.composite || up.bestAccuracy || 0));
+    }
   } else {
     pct = Math.min(100, Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25));
   }
