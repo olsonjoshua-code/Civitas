@@ -1157,16 +1157,7 @@ async function loadUnitProgressCV(fullName, civUnitId, internalUnitId, displayNa
     }
   }
   if (!out.mcqAttempted) {
-    try {
-      const up = JSON.parse(profile.unit_progress || '{}');
-      if (up[civUnitId] && typeof up[civUnitId].bestAccuracy === 'number' && up[civUnitId].bestAccuracy > 0) {
-        out.mcqScore = Math.round(up[civUnitId].bestAccuracy);
-        out.mcqAttempted = true;
-        out.mcqSource = 'civitas_profiles.unit_progress.bestAccuracy';
-      }
-    } catch(e) {}
-  }
-  if (!out.mcqAttempted) {
+    // PATCHED 2026-04-28d — removed bestAccuracy fallback (contaminated with composites)
     try {
       const cp = JSON.parse(profile.course_progress || '{}');
       const lbs = cp.hs_ush && cp.hs_ush.lessonBestScores;
