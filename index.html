@@ -1036,6 +1036,42 @@ async function _fetchCanonicalProfileCV(fullName) {
   } catch(e) { return null; }
 }
 
+// PATCHED 2026-04-28 — ac_results fallback cache. ac_results is the original
+// source of truth for History MCQ/FRQ scores (written by the unit games).
+// Without this, students whose data hasn't been mirrored into civitas_profiles
+// show as "NOT PLAYED" even when they completed units.
+const _acResultsCacheCV = {};
+let _acResultsCacheTimeCV = 0;
+async function _fetchAcResultsCV(displayName) {
+  if (!displayName) return [];
+  const cached = _acResultsCacheCV[displayName];
+  if (cached && (Date.now() - _acResultsCacheTimeCV) < _PROGRESS_CACHE_TTL_MS_CV) return cached;
+  try {
+    const url = SUPA_URL + '/rest/v1/ac_results?name=eq.'
+      + encodeURIComponent(displayName)
+      + '&select=unit_id,best_accuracy,best_score';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (!r.ok) return [];
+    const rows = await r.json();
+    if (Array.isArray(rows)) {
+      _acResultsCacheCV[displayName] = rows;
+      _acResultsCacheTimeCV = Date.now();
+      return rows;
+    }
+    return [];
+  } catch(e) { return []; }
+}
+function _bestAcAccuracyCV(rows, unitId) {
+  if (!rows || !rows.length) return 0;
+  let best = 0;
+  for (const r of rows) {
+    if (r.unit_id === unitId && typeof r.best_accuracy === 'number') {
+      if (r.best_accuracy > best) best = r.best_accuracy;
+    }
+  }
+  return best;
+}
+
 const _DECK_MAP_CANON_CV = {
   'unit1':'unit1_civil_war_reconstruction','unit2a':'unit2a_boomtown','unit2b':'unit2b_reform',
   'unit3a':'unit3a_empire_rising','unit3b':'unit3b_into_the_trenches',
@@ -1061,7 +1097,7 @@ function _internalIdForCV(civUnitId, hint) {
   return hint || _CIV_TO_INTERNAL_CV[civUnitId] || civUnitId;
 }
 
-async function loadUnitProgressCV(fullName, civUnitId, internalUnitId) {
+async function loadUnitProgressCV(fullName, civUnitId, internalUnitId, displayName) {
   const empty = {
     mcqScore:0, vocabScore:0, frqRawScore:0,
     mcqAttempted:false, vocabAttempted:false, frqAttempted:false,
@@ -1074,15 +1110,36 @@ async function loadUnitProgressCV(fullName, civUnitId, internalUnitId) {
   const out = Object.assign({}, empty);
   const intId = _internalIdForCV(civUnitId, internalUnitId);
 
-  // MCQ
+  // PATCHED 2026-04-28 — pull ac_results in parallel as fallback source
+  const acRows = displayName ? await _fetchAcResultsCV(displayName) : [];
+
+  // MCQ — three-tier fallback (mcqScore → ac_results → bestAccuracy → lessonBestScores)
   try {
     const up = JSON.parse(profile.unit_progress || '{}');
     if (up[civUnitId] && typeof up[civUnitId].mcqScore === 'number' && up[civUnitId].mcqScore > 0) {
       out.mcqScore = Math.round(up[civUnitId].mcqScore);
       out.mcqAttempted = true;
-      out.mcqSource = 'civitas_profiles.unit_progress';
+      out.mcqSource = 'civitas_profiles.unit_progress.mcqScore';
     }
   } catch(e) {}
+  if (!out.mcqAttempted) {
+    const acScore = _bestAcAccuracyCV(acRows, intId);
+    if (acScore > 0) {
+      out.mcqScore = Math.round(acScore);
+      out.mcqAttempted = true;
+      out.mcqSource = 'ac_results.' + intId;
+    }
+  }
+  if (!out.mcqAttempted) {
+    try {
+      const up = JSON.parse(profile.unit_progress || '{}');
+      if (up[civUnitId] && typeof up[civUnitId].bestAccuracy === 'number' && up[civUnitId].bestAccuracy > 0) {
+        out.mcqScore = Math.round(up[civUnitId].bestAccuracy);
+        out.mcqAttempted = true;
+        out.mcqSource = 'civitas_profiles.unit_progress.bestAccuracy';
+      }
+    } catch(e) {}
+  }
   if (!out.mcqAttempted) {
     try {
       const cp = JSON.parse(profile.course_progress || '{}');
@@ -1114,7 +1171,7 @@ async function loadUnitProgressCV(fullName, civUnitId, internalUnitId) {
     }
   } catch(e) {}
 
-  // FRQ
+  // FRQ — three-tier fallback (frq_progress → ac_results → unit_progress)
   try {
     const fp = JSON.parse(profile.frq_progress || '{}');
     const key = civUnitId + '_questions';
@@ -1125,12 +1182,27 @@ async function loadUnitProgressCV(fullName, civUnitId, internalUnitId) {
     }
   } catch(e) {}
   if (!out.frqAttempted) {
+    const acFrq = _bestAcAccuracyCV(acRows, intId + '_frq');
+    if (acFrq > 0) {
+      out.frqRawScore = Math.round(acFrq);
+      out.frqAttempted = true;
+      out.frqSource = 'ac_results.' + intId + '_frq';
+    }
+  }
+  if (!out.frqAttempted) {
     try {
       const up = JSON.parse(profile.unit_progress || '{}');
-      if (up[civUnitId] && typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0) {
-        out.frqRawScore = Math.round(up[civUnitId].frqScore);
-        out.frqAttempted = true;
-        out.frqSource = 'civitas_profiles.unit_progress';
+      if (up[civUnitId]) {
+        const raw = (typeof up[civUnitId].frqRaw === 'number' && up[civUnitId].frqRaw > 0)
+          ? up[civUnitId].frqRaw
+          : (typeof up[civUnitId].frqScore === 'number' && up[civUnitId].frqScore > 0)
+            ? up[civUnitId].frqScore
+            : 0;
+        if (raw > 0) {
+          out.frqRawScore = Math.round(raw);
+          out.frqAttempted = true;
+          out.frqSource = 'civitas_profiles.unit_progress';
+        }
       }
     } catch(e) {}
   }
@@ -5438,61 +5510,85 @@ async function syncUSHistoryProgress(){
   if(!S.name||S.isGuest)return;
   // Only run if student has us_history enrolled
   if(!(S.courses||[]).find(c=>c.id==='us_history'||c.id==='hs_ush'))return;
-  // ── PATCHED 2026-04-27 — use canonical reader so the cached unit_progress
-  // contains MCQ + Vocab + FRQ + composite, not just bestAccuracy.
-  // This makes the Civitas trophy room and unit certs show the same numbers
-  // as the History shell and the teacher editor.
+  // ── PATCHED 2026-04-28 — non-destructive merge.
+  // Critical lesson learned the hard way: the previous version of this
+  // function would write {mcqScore: 0} into civitas_profiles.unit_progress
+  // for any student whose MCQ data lived only in ac_results (not yet
+  // mirrored into civitas_profiles). That clobbered students' working
+  // bestAccuracy values with 0 and made trophy cards show "NOT PLAYED".
+  //
+  // This version:
+  //   1. Passes displayName (S.name) so canonical reader can find ac_results
+  //   2. Uses Math.max(existing, new) for every score field so we never
+  //      regress a real value to a missing/zero value
+  //   3. Only writes a row if at least one component is genuinely attempted
   const fullName = S.fullName || S.name;
+  const displayName = S.name;
   if (!fullName || fullName === 'Guest') return;
   try {
-    // Force a fresh read by clearing the cache
     if (typeof clearProgressCacheCV === 'function') clearProgressCacheCV(fullName);
-    // Pull canonical progress for every History unit we know about
+    if (typeof _acResultsCacheCV !== 'undefined') {
+      delete _acResultsCacheCV[displayName];
+      _acResultsCacheTimeCV = 0;
+    }
     const civUnitIds = Object.values(USH_ID_MAP);
     const prog = JSON.parse(localStorage.getItem('civitas_unit_progress')||'{}');
-    let changed = false;
+    let dirty = false;
     for (const civId of civUnitIds) {
       const intId = _CIV_TO_INTERNAL_CV[civId] || civId;
-      const raw = await loadUnitProgressCV(fullName, civId, intId);
+      const raw = await loadUnitProgressCV(fullName, civId, intId, displayName);
       const c = computeCompositeCV(raw);
-      // Only persist if the student has at least started something
+      // Skip entirely-empty units
       if (!c.mcqAttempted && !c.vocabAttempted && !c.frqAttempted) continue;
       const existing = prog[civId] || {};
-      const next = {
-        bestAccuracy: c.composite,            // back-compat: old code reads this
-        mcqScore: c.mcqScore,
-        vocabScore: c.vocabScore,
-        frqScore: c.frqCurvedScore,           // curved, matches what the History cert shows
-        frqRaw: c.frqRawScore,
-        composite: c.composite,
-        tier: c.tier,
-        mcqAttempted: c.mcqAttempted,
-        vocabAttempted: c.vocabAttempted,
-        frqAttempted: c.frqAttempted,
-        allAttempted: c.allAttempted,
-        completedAt: existing.completedAt || (c.allAttempted ? new Date().toISOString() : null)
+      // Non-destructive merge: take the max of existing and new for each score.
+      // This way a stale call that returns 0 for MCQ won't overwrite a real
+      // value of 100 already in localStorage.
+      const merged = {
+        // Preserve fields we don't manage
+        ...existing,
+        // Take max of existing and new for each numeric score
+        mcqScore: Math.max(+existing.mcqScore || 0, c.mcqScore || 0),
+        vocabScore: Math.max(+existing.vocabScore || 0, c.vocabScore || 0),
+        frqScore: Math.max(+existing.frqScore || 0, c.frqCurvedScore || 0),
+        frqRaw: Math.max(+existing.frqRaw || 0, c.frqRawScore || 0),
+        // Attempted flags: once true, always true
+        mcqAttempted: !!(existing.mcqAttempted || c.mcqAttempted),
+        vocabAttempted: !!(existing.vocabAttempted || c.vocabAttempted),
+        frqAttempted: !!(existing.frqAttempted || c.frqAttempted),
+        completedAt: existing.completedAt ||
+          (c.allAttempted ? new Date().toISOString() : null)
       };
-      // Only mark changed if something actually moved
-      if (existing.composite !== next.composite ||
-          existing.mcqScore !== next.mcqScore ||
-          existing.vocabScore !== next.vocabScore ||
-          existing.frqScore !== next.frqScore) {
-        prog[civId] = next;
-        changed = true;
-      } else {
-        // Even if scores haven't moved, refresh the structure to ensure subscores present
-        prog[civId] = Object.assign({}, existing, next);
+      // Recompute composite from the MERGED scores (not the canonical reader's
+      // c.composite, which may be lower if it didn't see all the data).
+      merged.composite = Math.round(
+        (merged.mcqScore || 0) * 0.50 +
+        (merged.vocabScore || 0) * 0.25 +
+        (merged.frqScore || 0) * 0.25
+      );
+      merged.bestAccuracy = merged.composite; // back-compat
+      merged.allAttempted = merged.mcqAttempted && merged.vocabAttempted && merged.frqAttempted;
+      // Recompute tier from the merged composite using same thresholds as canonical
+      merged.tier = !merged.allAttempted ? 'inprogress'
+        : merged.composite >= 100 ? 'historian'
+        : merged.composite >= 90 ? 'gold'
+        : merged.composite >= 75 ? 'silver'
+        : merged.composite >= 60 ? 'bronze' : 'inprogress';
+      // Did anything actually change?
+      if (existing.composite !== merged.composite ||
+          existing.mcqScore !== merged.mcqScore ||
+          existing.vocabScore !== merged.vocabScore ||
+          existing.frqScore !== merged.frqScore ||
+          existing.tier !== merged.tier) {
+        dirty = true;
       }
+      prog[civId] = merged;
     }
-    if (changed) {
-      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
-    } else {
-      // Always persist (might have just added subscore fields to existing rows)
-      localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    if (dirty) {
+      try { if (typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+      try { if (typeof renderCourseTrophies === 'function' && _activeCourseId === 'hs_ush') renderCourseTrophies(); } catch(e) {}
     }
-    // Refresh the dashboard / trophies so the new numbers show up
-    try { if (typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
-    try { if (typeof renderCourseTrophies === 'function' && _activeCourseId === 'hs_ush') renderCourseTrophies(); } catch(e) {}
   } catch(e){ console.log('USH bridge error', e); }
 }
 
@@ -6675,7 +6771,7 @@ function renderBigIdeaTrophies() {
     + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">'
     + BIG_IDEAS.map(function(bi) {
       var p = prog[bi.id];
-      var done = !!(p && (p.completedAt || p.bestAccuracy != null || p.composite != null || p.mcqScore != null || p.frqScore != null || p.mcqAttempted || p.frqAttempted || p.frqAllDone));
+      var done = p && p.completedAt;
       // FIX: match the cert's logic exactly — if subscores are stored use them,
       // otherwise infer MCQ from bestAccuracy and assume FRQ=0 (partial-save case).
       // Then always compute composite from the (possibly inferred) subscores.
@@ -6800,9 +6896,6 @@ function printUnitTrophyCert(unitId) {
   var pct;
   if (isTheme) {
     pct = Math.min(100, Math.round(mcqScore * 0.67 + frqScore * 0.33));
-    if ((!hasSubScores || pct === 0) && (typeof up.composite === 'number' || typeof up.bestAccuracy === 'number')) {
-      pct = Math.min(100, Math.round(up.composite || up.bestAccuracy || 0));
-    }
   } else {
     pct = Math.min(100, Math.round(mcqScore * 0.50 + vocabScore * 0.25 + frqScore * 0.25));
   }
