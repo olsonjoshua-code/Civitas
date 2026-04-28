@@ -1250,21 +1250,12 @@ async function loadUnitProgress(fullName, civUnitId, internalUnitId, displayName
     }
   }
   if (!out.mcqAttempted) {
-    try {
-      const up = JSON.parse(profile.unit_progress || '{}');
-      // Only trust bestAccuracy if it looks like raw MCQ (>= some reasonable floor).
-      // bestAccuracy may have been overwritten with a composite by old sync code,
-      // but composites would be lower than the actual MCQ score in those cases.
-      // We only get here if mcqScore is missing AND ac_results has nothing —
-      // in that case bestAccuracy is the only signal we have.
-      if (up[civUnitId] && typeof up[civUnitId].bestAccuracy === 'number' && up[civUnitId].bestAccuracy > 0) {
-        out.mcqScore = Math.round(up[civUnitId].bestAccuracy);
-        out.mcqAttempted = true;
-        out.mcqSource = 'civitas_profiles.unit_progress.bestAccuracy';
-      }
-    } catch(e) {}
-  }
-  if (!out.mcqAttempted) {
+    // PATCHED 2026-04-28d — removed bestAccuracy fallback. The bestAccuracy
+    // field in civitas_profiles.unit_progress is contaminated with COMPOSITE
+    // scores (not pure MCQ) by the unit game's "any component finished" code
+    // path. Trusting it caused George O. to show MCQ 25% when he never took
+    // the MCQ. Better to under-report than to hallucinate. If a real MCQ play
+    // happened, mcqScore (above) or ac_results (above) will have it.
     try {
       const cp = JSON.parse(profile.course_progress || '{}');
       const lbs = cp.hs_ush && cp.hs_ush.lessonBestScores;
@@ -4621,13 +4612,16 @@ async function renderTrophyRoom(){
   const unitCards=UNIT_DATA.filter(u=>!u.isCampaign&&!u.isCheckpoint).map((u,idx)=>{
     const r=rmap[u.id];
     const {mcqScore,vocabScore,frqScore,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(u.id);
-    const tier=allAttempted?calcTier(composite):mcqAttempted?'inprogress':'empty';
+    // PATCHED 2026-04-28d — recognize ANY component as "started", not just MCQ.
+    // Previously a student who only finished vocab showed as NOT PLAYED.
+    const anyAttempted = mcqAttempted || vocabAttempted || frqAttempted;
+    const tier=allAttempted?calcTier(composite):anyAttempted?'inprogress':'empty';
     const tc=TIER_COLOR[tier],te=TIER_EMOJI[tier],tl=TIER_LABEL[tier];
     const grey=tier==='empty';
     const eraArt=eraTrophyScene(u.id,u.eraColor,tier);
     const medalColor=grey?'var(--border)':tc;
 
-    const subScores=mcqAttempted?`
+    const subScores=anyAttempted?`
       <div style="display:flex;gap:4px;margin:5px 0;flex-wrap:wrap;justify-content:center">
         <span style="font-family:var(--dm);font-size:7px;padding:2px 5px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'}</span>
         <span style="font-family:var(--dm);font-size:7px;padding:2px 5px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOC ${vocabAttempted?vocabScore+'%':'—'}</span>
@@ -4897,7 +4891,8 @@ async function printCert(uid){
     }
   } catch(e) { console.log('printCert canonical preload failed', e); }
   const {mcqScore,vocabScore,frqScore,frqRaw,composite,mcqAttempted,vocabAttempted,frqAttempted,allAttempted}=getShellComposite(uid);
-  if(!mcqAttempted){notify('Play this unit first!');return;}
+  // PATCHED 2026-04-28d — allow cert if any component is attempted (was MCQ-only)
+  if(!mcqAttempted && !vocabAttempted && !frqAttempted){notify('Play this unit first!');return;}
   const tier=allAttempted?calcTier(composite):'inprogress';
   const tc=TIER_COLOR[tier].replace('var(--gold)','#ffd700').replace('var(--silver)','#c8c8d8').replace('var(--bronze)','#cd7f32').replace('var(--green2)','#38a050').replace('var(--red2)','#e04040').replace('var(--historian)','#e8d0ff').replace('var(--text3)','#584840');
   const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
