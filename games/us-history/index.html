@@ -1090,7 +1090,7 @@ async function _fetchAcResults(displayName) {
   try {
     const url = SUPA_URL + '/rest/v1/ac_results?name=eq.'
       + encodeURIComponent(displayName)
-      + '&select=unit_id,best_accuracy,best_score';
+      + '&select=unit_id,best_accuracy,best_score,trophy';
     const r = await fetch(url, { headers: SUPA_H });
     if (!r.ok) return [];
     const rows = await r.json();
@@ -1105,12 +1105,21 @@ async function _fetchAcResults(displayName) {
 
 // Given ac_results rows + a unit_id pattern, return the BEST best_accuracy.
 // Multiple rows can exist for the same unit_id (e.g. retakes); we take the max.
+// PATCHED 2026-04-28c — skip rows with trophy='inprogress'. Those rows are
+// written by the unit game's "any component finished" code path with a
+// COMPOSITE score in best_accuracy, not a pure MCQ score. Trusting them
+// makes the reader treat composite values as MCQ values (e.g. George O. had
+// MCQ shown as 25 because that was his vocab-only composite written into
+// ac_results.unit1.best_accuracy with trophy='inprogress'). Real MCQ plays
+// always have a non-inprogress tier.
 function _bestAcAccuracy(rows, unitId) {
   if (!rows || !rows.length) return 0;
   let best = 0;
   for (const r of rows) {
-    if (r.unit_id === unitId && typeof r.best_accuracy === 'number') {
-      if (r.best_accuracy > best) best = r.best_accuracy;
+    if (r.unit_id !== unitId) continue;
+    if (r.trophy === 'inprogress') continue; // skip composite-contaminated rows
+    if (typeof r.best_accuracy === 'number' && r.best_accuracy > best) {
+      best = r.best_accuracy;
     }
   }
   return best;
