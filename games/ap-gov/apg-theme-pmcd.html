@@ -923,7 +923,7 @@ async function saveProgressToSupabase() {
     let unitProg = _dbUnitProgress || {};
     try {
       const lsProg = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
-      Object.keys(lsProg).forEach(k => { if (!unitProg[k]) unitProg[k] = lsProg[k]; });
+      unitProg = Object.assign({}, unitProg || {}, lsProg || {});
     } catch(e) {}
     // Collect FRQ submission scores
     let frqProgress = {};
@@ -1580,15 +1580,23 @@ function getCompositeScore() {
     : 0;
   const mcqAttempted = QUESTION_BANK.rounds.every((_, i) => getRoundProgress(i) !== null);
 
-  // FRQ score — from theme FRQ save key
+  // FRQ score — from theme FRQ save keys. Attempt/completion flags are separate
+  // from score so a 0-point FRQ still unlocks the next FRQ and counts as done.
   const frq1Raw = parseInt(localStorage.getItem('civitas_frq_pmcd_frq1') || '0');
   const frq2Raw = parseInt(localStorage.getItem('civitas_frq_pmcd_frq2') || '0');
-  const frqScore = Math.round((frq1Raw + frq2Raw) / 9 * 100); // 9 total points (frq1=3 + frq2=6)
-  const frqAttempted = isThemeFRQAttempted('frq1') || isThemeFRQAttempted('frq2');
-  const frqAllDone = isThemeFRQAttempted('frq1') && isThemeFRQAttempted('frq2'); // both submitted, even if one earned 0
+  const _frq1Max = (typeof FRQ_RUBRICS !== 'undefined' && FRQ_RUBRICS.frq1) ? FRQ_RUBRICS.frq1.maxScore : 3;
+  const _frq2Max = (typeof FRQ_RUBRICS !== 'undefined' && FRQ_RUBRICS.frq2) ? FRQ_RUBRICS.frq2.maxScore : 6;
+  const _frqTotalMax = _frq1Max + _frq2Max;
+  const frqScore = _frqTotalMax > 0 ? Math.min(100, Math.round((frq1Raw + frq2Raw) / _frqTotalMax * 100)) : 0;
+  const frqAttempted = (typeof isThemeFRQAttempted === 'function')
+    ? (isThemeFRQAttempted('frq1') || isThemeFRQAttempted('frq2'))
+    : (frq1Raw > 0 || frq2Raw > 0);
+  const frqAllDone = (typeof isThemeFRQAttempted === 'function')
+    ? (isThemeFRQAttempted('frq1') && isThemeFRQAttempted('frq2'))
+    : (frq1Raw > 0 && frq2Raw > 0);
 
   // Composite: MCQ 67% + FRQ 33%
-  const composite = Math.round(mcqScore * 0.67 + frqScore * 0.33);
+  const composite = Math.min(100, Math.round(mcqScore * 0.67 + frqScore * 0.33));
 
   return { mcqScore, frqScore, composite,
     mcqAttempted, frqAttempted, frqAllDone,
@@ -1601,6 +1609,39 @@ function calcTier(composite) {
   if (composite >= 75)  return { label: 'Silver',    icon: '🥈', color: '#c8c8d8' };
   if (composite >= 60)  return { label: 'Bronze',    icon: '🥉', color: '#cd7f32' };
   return null;
+}
+
+// ── ROBUST THEME TROPHY / SHELL SYNC ─────────────────────────────────────
+// Keeps the game, Civitas shell trophy room, certificate button, and Supabase
+// in agreement. A section counts as attempted even if the score is 0.
+function persistThemeCompositeProgress(options) {
+  options = options || {};
+  try {
+    if (typeof getCompositeScore !== 'function') return null;
+    const cs = getCompositeScore();
+    const attempted = !!(cs.mcqAttempted || cs.frqAttempted);
+    if (!attempted) return cs;
+    const prog = JSON.parse(localStorage.getItem('civitas_unit_progress') || '{}');
+    const existing = prog[UNIT_ID] || {};
+    const next = Object.assign({}, existing, {
+      bestAccuracy: Math.min(100, Math.max(cs.composite || 0, existing.bestAccuracy || 0)),
+      composite: Math.min(100, Math.max(cs.composite || 0, existing.composite || 0)),
+      mcqScore: Math.min(100, Math.max(cs.mcqScore || 0, existing.mcqScore || 0)),
+      frqScore: Math.min(100, Math.max(cs.frqScore || 0, existing.frqScore || 0)),
+      mcqAttempted: !!cs.mcqAttempted,
+      frqAttempted: !!cs.frqAttempted,
+      frqAllDone: !!cs.frqAllDone,
+      completedAt: existing.completedAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    prog[UNIT_ID] = next;
+    localStorage.setItem('civitas_unit_progress', JSON.stringify(prog));
+    try { _dbUnitProgress = Object.assign({}, _dbUnitProgress || {}, prog); } catch(e) {}
+    if (!options.deferCloud) {
+      try { _pushRoundsToSupabase(); } catch(e) {}
+    }
+    return cs;
+  } catch(e) { return null; }
 }
 
 function renderHubTrophySection() {
@@ -1648,6 +1689,8 @@ function renderHubTrophySection() {
         Weighted: MCQ 67% · FRQ 33% · Unfinished sections count as 0%
       </div>
     </div>`;
+
+  persistThemeCompositeProgress({deferCloud:true});
 
   // Save scores to unit progress
   try {
