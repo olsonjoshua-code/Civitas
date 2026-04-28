@@ -761,8 +761,8 @@ function showHub() {
   } catch(e) {}
   // Restore vocab badge from civitas_state on load
   try {
-    const frq1Done = parseInt(localStorage.getItem('civitas_frq_pmcd_frq1') || '0') > 0;
-    const frq2Done = parseInt(localStorage.getItem('civitas_frq_pmcd_frq2') || '0') > 0;
+    const frq1Done = isThemeFRQAttempted('frq1');
+    const frq2Done = isThemeFRQAttempted('frq2');
     const frqDoneCount = (frq1Done ? 1 : 0) + (frq2Done ? 1 : 0);
     const _f1 = parseInt(localStorage.getItem('civitas_frq_pmcd_frq1') || '0') > 0;
     const _f2 = parseInt(localStorage.getItem('civitas_frq_pmcd_frq2') || '0') > 0;
@@ -1584,8 +1584,8 @@ function getCompositeScore() {
   const frq1Raw = parseInt(localStorage.getItem('civitas_frq_pmcd_frq1') || '0');
   const frq2Raw = parseInt(localStorage.getItem('civitas_frq_pmcd_frq2') || '0');
   const frqScore = Math.round((frq1Raw + frq2Raw) / 9 * 100); // 9 total points (frq1=3 + frq2=6)
-  const frqAttempted = frq1Raw > 0 || frq2Raw > 0;
-  const frqAllDone = frq1Raw > 0 && frq2Raw > 0; // both submitted
+  const frqAttempted = isThemeFRQAttempted('frq1') || isThemeFRQAttempted('frq2');
+  const frqAllDone = isThemeFRQAttempted('frq1') && isThemeFRQAttempted('frq2'); // both submitted, even if one earned 0
 
   // Composite: MCQ 67% + FRQ 33%
   const composite = Math.round(mcqScore * 0.67 + frqScore * 0.33);
@@ -1705,12 +1705,52 @@ function updateBadges() {
   // FRQ badge
   const frq1b = parseInt(localStorage.getItem('civitas_frq_pmcd_frq1') || '0');
   const frq2b = parseInt(localStorage.getItem('civitas_frq_pmcd_frq2') || '0');
-  const frqDoneCt = (frq1b > 0 ? 1 : 0) + (frq2b > 0 ? 1 : 0);
+  const frqDoneCt = (isThemeFRQAttempted('frq1') ? 1 : 0) + (isThemeFRQAttempted('frq2') ? 1 : 0);
   const badgeFRQ = document.getElementById('badge-frq');
   if (badgeFRQ && frqDoneCt > 0) {
     badgeFRQ.textContent = frqDoneCt + '/2';
     badgeFRQ.style.display = 'block';
   }
+}
+
+
+function getThemeFRQKey(frqId) { return 'civitas_frq_pmcd_' + frqId; }
+function getThemeFRQSubmittedKey(frqId) { return 'civitas_frq_pmcd_' + frqId + '_submitted'; }
+function isThemeFRQAttempted(frqId) {
+  try {
+    return localStorage.getItem(getThemeFRQSubmittedKey(frqId)) === '1'
+      || parseInt(localStorage.getItem(getThemeFRQKey(frqId)) || '0') > 0
+      || !!localStorage.getItem('civitas_frq_feedback_pmcd_' + frqId);
+  } catch(e) { return false; }
+}
+function setThemeFRQAttempted(frqId) {
+  try { localStorage.setItem(getThemeFRQSubmittedKey(frqId), '1'); } catch(e) {}
+}
+function saveThemeFRQToState(frqId, score, maxScore, feedbackHtml, tasks, responseText) {
+  try {
+    const ss = JSON.parse(localStorage.getItem('civitas_state') || '{}');
+    if (!ss.courseProgress) ss.courseProgress = {};
+    if (!ss.courseProgress.ap_gov) ss.courseProgress.ap_gov = {};
+    if (!ss.courseProgress.ap_gov.frqSubmissions) ss.courseProgress.ap_gov.frqSubmissions = {};
+    const id = UNIT_ID + '_' + frqId;
+    const existing = ss.courseProgress.ap_gov.frqSubmissions[id] || {};
+    const bestScore = Math.max(score || 0, existing.bestScore || 0);
+    ss.courseProgress.ap_gov.frqSubmissions[id] = {
+      unitId: UNIT_ID,
+      theme: 'PMCD',
+      frqId: frqId,
+      title: (FRQ_RUBRICS[frqId] && FRQ_RUBRICS[frqId].title) || frqId,
+      score: score || 0,
+      bestScore: bestScore,
+      maxScore: maxScore || 0,
+      attempted: true,
+      completedAt: new Date().toISOString(),
+      feedbackHtml: feedbackHtml || existing.feedbackHtml || '',
+      tasks: tasks || existing.tasks || {},
+      response: responseText || existing.response || ''
+    };
+    localStorage.setItem('civitas_state', JSON.stringify(ss));
+  } catch(e) {}
 }
 
 function renderThemeFRQTab() {
@@ -1727,7 +1767,11 @@ function renderThemeFRQTab() {
     frq1: parseInt(localStorage.getItem(FRQ_KEY + 'frq1') || '0'),
     frq2: parseInt(localStorage.getItem(FRQ_KEY + 'frq2') || '0')
   };
-  var submitted = FRQ_IDS.filter(function(id) { return scores[id] > 0; }).length;
+  var attempted = {
+    frq1: isThemeFRQAttempted('frq1'),
+    frq2: isThemeFRQAttempted('frq2')
+  };
+  var submitted = FRQ_IDS.filter(function(id) { return attempted[id]; }).length;
   var nextIdx = submitted;
 
   var summaryHtml = '';
@@ -1744,7 +1788,7 @@ function renderThemeFRQTab() {
 
   var rows = FRQ_IDS.map(function(fid, i) {
     var score = scores[fid];
-    var isAnswered = score > 0;
+    var isAnswered = attempted[fid];
     var isUnlocked = i <= nextIdx;
     var color = FRQ_COLORS[fid];
     var label = FRQ_LABELS[fid];
@@ -1766,7 +1810,7 @@ function renderThemeFRQTab() {
       return '<div data-fid="'+fid+'" class="theme-frq-open" style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid '+color+';padding:12px 16px;margin-bottom:8px;cursor:pointer">'
         + '<div style="font-family:var(--dm);font-size:8px;color:'+color+';letter-spacing:2px;margin-bottom:4px">'+label+' — UNLOCKED ▶</div>'
         + '<div style="font-family:var(--playfair);font-size:14px;color:var(--cream)">'+title+'</div>'
-        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">3 points · click to open</div>'
+        + '<div style="font-family:var(--dm);font-size:9px;color:var(--text3);margin-top:4px">'+(rd ? rd.maxScore : 3)+' points · click to open</div>'
         + '</div>';
     } else {
       return '<div style="background:var(--bg3);border:1px solid var(--border);padding:12px 16px;margin-bottom:8px;opacity:.45">'
@@ -1801,12 +1845,13 @@ function openThemeFRQDetail(frqId) {
   var color = FRQ_COLORS[frqId] || 'var(--teal2)';
   var label = FRQ_LABELS[frqId] || frqId;
   var savedScore = parseInt(localStorage.getItem(FRQ_KEY + frqId) || '0');
+  var attempted = isThemeFRQAttempted(frqId);
   var fb = localStorage.getItem('civitas_frq_feedback_pmcd_' + frqId) || '';
 
   detail.style.display = 'block';
   if (list) list.style.display = 'none';
 
-  var scoreHtml = savedScore > 0
+  var scoreHtml = attempted
     ? '<div style="text-align:center;flex-shrink:0"><div style="font-family:var(--bebas);font-size:24px;line-height:1;color:var(--green2)">'+savedScore+'/'+(rd?rd.maxScore:3)+'</div><div style="font-family:var(--dm);font-size:7px;color:var(--text3)">BEST</div></div>'
     : '';
 
@@ -2067,13 +2112,16 @@ async function submitFRQ(frqId) {
     const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
     const score=result.totalScore??0;
     const tasks=result.tasks||{};
-    // Save & gold
+    // Save attempt, best score, and gold. A 0-point score still counts as completed/attempted.
     try{
-      const key='civitas_frq_con_'+frqId;
+      const key='civitas_frq_pmcd_'+frqId;
       const prev=parseInt(localStorage.getItem(key)||'0');
+      setThemeFRQAttempted(frqId);
+      if(score>=prev){
+        localStorage.setItem(key, String(score));
+      }
       if(score>prev){
-        localStorage.setItem(key,score);
-        const gold=Math.round(rd.goldReward*(score/rd.maxScore));
+        const gold=Math.round(rd.goldReward*((score-prev)/rd.maxScore));
         if(gold>0){const cur=parseInt(localStorage.getItem('civitas_gold')||'0');localStorage.setItem('civitas_gold',cur+gold);spawnGold('+'+gold+' 🪙');}
       }
       const badge=document.getElementById(frqId+'-badge');
@@ -2094,13 +2142,19 @@ async function submitFRQ(frqId) {
       </div>
       ${result.improveHint?`<div style="background:rgba(0,0,0,.2);border-left:3px solid var(--acc2);padding:10px 14px;margin-bottom:8px"><div style="font-family:var(--bebas);font-size:9px;color:var(--acc2);letter-spacing:2px;margin-bottom:4px">💡 KEY IMPROVEMENT</div><div style="font-family:var(--crimson);font-size:13px;color:var(--text);line-height:1.5">${result.improveHint}</div></div>`:''}
       <div style="font-family:var(--dm);font-size:9px;color:var(--text3)">Revise above and resubmit to improve your score.</div>`;
+    try {
+      localStorage.setItem('civitas_frq_feedback_pmcd_' + frqId, feedEl.innerHTML);
+      localStorage.setItem('civitas_frq_tasks_' + frqId, JSON.stringify(tasks || {}));
+      saveThemeFRQToState(frqId, Math.max(score, parseInt(localStorage.getItem('civitas_frq_pmcd_' + frqId) || '0')), rd.maxScore, feedEl.innerHTML, tasks, resp);
+      saveProgressToSupabase();
+    } catch(eSave) {}
     btnEl.textContent='↺ Resubmit';
   } catch(e) {
     feedEl.innerHTML=`<div style="font-family:var(--dm);font-size:11px;color:var(--red2);padding:8px">Grading failed — check your connection and try again.<br><small>${e.message}</small></div>`;
     btnEl.textContent='⚡ Submit for AI Grading';
   }
   btnEl.disabled=false;
-  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); renderThemeFRQTab(); } catch(e2) {}
+  try { renderHubTrophySection(); renderPlayTabSummary(); updateBadges(); } catch(e2) {}
 }
 
 // Anti-cheat
