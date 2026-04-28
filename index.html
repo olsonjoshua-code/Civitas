@@ -1072,6 +1072,30 @@ function _bestAcAccuracyCV(rows, unitId) {
   return best;
 }
 
+// PATCHED 2026-04-28 — fullName resolver (mirror of ush-shell version).
+const _fullNameResolveCacheCV = {};
+async function _resolveFullNameCV(possibleFullName, displayName) {
+  if (!displayName) return possibleFullName || '';
+  const looksLikeDisplay = possibleFullName === displayName
+    || /^[A-Z][a-z]+ [A-Z]\.$/.test(possibleFullName || '')
+    || !possibleFullName;
+  if (!looksLikeDisplay) return possibleFullName;
+  if (_fullNameResolveCacheCV[displayName]) return _fullNameResolveCacheCV[displayName];
+  try {
+    const url = SUPA_URL + '/rest/v1/civitas_profiles?display_name=eq.'
+      + encodeURIComponent(displayName) + '&select=full_name&limit=1';
+    const r = await fetch(url, { headers: SUPA_H });
+    if (r.ok) {
+      const rows = await r.json();
+      if (rows && rows[0] && rows[0].full_name) {
+        _fullNameResolveCacheCV[displayName] = rows[0].full_name;
+        return rows[0].full_name;
+      }
+    }
+  } catch(e) {}
+  return possibleFullName || displayName;
+}
+
 const _DECK_MAP_CANON_CV = {
   'unit1':'unit1_civil_war_reconstruction','unit2a':'unit2a_boomtown','unit2b':'unit2b_reform',
   'unit3a':'unit3a_empire_rising','unit3b':'unit3b_into_the_trenches',
@@ -5522,8 +5546,8 @@ async function syncUSHistoryProgress(){
   //   2. Uses Math.max(existing, new) for every score field so we never
   //      regress a real value to a missing/zero value
   //   3. Only writes a row if at least one component is genuinely attempted
-  const fullName = S.fullName || S.name;
   const displayName = S.name;
+  const fullName = await _resolveFullNameCV(S.fullName, displayName);
   if (!fullName || fullName === 'Guest') return;
   try {
     if (typeof clearProgressCacheCV === 'function') clearProgressCacheCV(fullName);
