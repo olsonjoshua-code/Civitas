@@ -1049,7 +1049,7 @@ async function _fetchAcResultsCV(displayName) {
   try {
     const url = SUPA_URL + '/rest/v1/ac_results?name=eq.'
       + encodeURIComponent(displayName)
-      + '&select=unit_id,best_accuracy,best_score';
+      + '&select=unit_id,best_accuracy,best_score,trophy';
     const r = await fetch(url, { headers: SUPA_H });
     if (!r.ok) return [];
     const rows = await r.json();
@@ -1065,8 +1065,10 @@ function _bestAcAccuracyCV(rows, unitId) {
   if (!rows || !rows.length) return 0;
   let best = 0;
   for (const r of rows) {
-    if (r.unit_id === unitId && typeof r.best_accuracy === 'number') {
-      if (r.best_accuracy > best) best = r.best_accuracy;
+    if (r.unit_id !== unitId) continue;
+    if (r.trophy === 'inprogress') continue; // skip composite-contaminated rows (see ush-shell for details)
+    if (typeof r.best_accuracy === 'number' && r.best_accuracy > best) {
+      best = r.best_accuracy;
     }
   }
   return best;
