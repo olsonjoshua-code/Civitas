@@ -2400,25 +2400,35 @@ async function restoreProgressFromCivitas(fullName) {
       const cp = JSON.parse(profile.course_progress || '{}');
       const ush = cp[CIV_COURSE] || cp.us_history || {};
 
-      // Restore lesson best scores
-      if (ush.lessonBestScores && Object.keys(ush.lessonBestScores).length) {
-        P.lessonBestScores = Object.assign({}, ush.lessonBestScores, P.lessonBestScores || {});
+      // Restore lesson best scores — ONLY for lessons COMPLETED in THIS unit.
+      // PATCHED 2026-04-29 — previously this loaded ALL lesson scores across
+      // every unit into P.lessonBestScores, causing cross-unit pollution where
+      // a student would open one unit and see lessons/badges from other units
+      // marked complete. The fix uses lessonsCompleted[CIV_UNIT_ID] (which IS
+      // unit-scoped) as the source of truth — only load scores for lessons
+      // we have an explicit completion record for in THIS unit. Generic IDs
+      // like 'capstone' and 'eoc' that exist across many units must be
+      // verified against the unit-scoped completion list, not just the unit's
+      // LESSONS array (which would falsely match them).
+      const storedCompleted = (ush.lessonsCompleted || {})[CIV_UNIT_ID] || [];
+      const myLessonIds = new Set(storedCompleted);
+
+      if (ush.lessonBestScores) {
+        const filtered = {};
+        for (const [id, score] of Object.entries(ush.lessonBestScores)) {
+          if (myLessonIds.has(id)) filtered[id] = score;
+        }
+        P.lessonBestScores = Object.assign({}, filtered, P.lessonBestScores || {});
       }
 
-      // Restore lessonsCompleted — prefer explicit list, fall back to inferring from scores
-      const storedCompleted = (ush.lessonsCompleted || {})[CIV_UNIT_ID] || [];
-      if (storedCompleted.length) {
-        storedCompleted.forEach(id => {
-          if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
-        });
-      } else {
-        // Fallback: infer from best scores (any lesson passed at 60%+ counts)
-        Object.entries(P.lessonBestScores)
-          .filter(([, s]) => s.accuracy >= 60)
-          .forEach(([id]) => {
-            if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
-          });
-      }
+      // Restore lessonsCompleted ONLY from the explicit unit-keyed list.
+      // REMOVED the fallback that inferred completion from lessonBestScores —
+      // that was the root cause of cross-unit completion bleeding. If a unit's
+      // lessonsCompleted entry is genuinely empty, the unit IS unstarted
+      // regardless of what scores might exist elsewhere.
+      storedCompleted.forEach(id => {
+        if (!P.lessonsCompleted.includes(id)) P.lessonsCompleted.push(id);
+      });
 
       if (P.lessonsCompleted.length) {
         saveP(); // persist restored state to localStorage
