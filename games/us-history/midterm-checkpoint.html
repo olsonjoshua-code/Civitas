@@ -1272,6 +1272,7 @@ function savePartialToSupabase() {
       if (!P || !P.name || P.name === 'Guest') return;
       await fetch(AC_SUPA_URL + '/rest/v1/ac_partial_progress?on_conflict=name,period,unit_id', {
         method: 'POST',
+        keepalive: true,
         headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
         body: JSON.stringify({
           name: P.name,
@@ -1330,6 +1331,7 @@ async function pushACResult() {
     var attempts = (prev ? prev.attempts || 1 : 0) + 1;
     await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({name: G.name, period: G.period || '', unit_id: SHELL_UNIT_ID, best_score: bestScore, best_accuracy: bestAcc, trophy: bestTrophy, attempts: attempts, cards: 0, updated_at: new Date().toISOString()})
     });
@@ -1361,6 +1363,7 @@ async function pushACResult() {
     }
     await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName, display_name: G.name,

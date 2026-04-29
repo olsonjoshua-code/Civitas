@@ -529,6 +529,7 @@
         if(!existingCourses.find(c=>c.id==='hs_ush'))existingCourses.push({id:'hs_ush',period:String(sPeriod||''),enrolledAt:new Date().toISOString()});
         await fetch(SUPA_URL+'/rest/v1/civitas_profiles?on_conflict=full_name',{
           method:'POST',
+          keepalive: true,
           headers:Object.assign({},HDRS,{'Prefer':'resolution=merge-duplicates'}),
           body:JSON.stringify({full_name:fullName,display_name:sName,period:String(sPeriod||''),courses:JSON.stringify(existingCourses),unit_progress:JSON.stringify(unitProgress),course_progress:JSON.stringify(courseProgress),updated_at:new Date().toISOString()})
         });

@@ -2471,6 +2471,7 @@ function awardGoldToShell(amount, source, showParticle = true) {
         const s = JSON.parse(localStorage.getItem(SHELL_KEY) || '{}');
         fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
           method: 'POST',
+          keepalive: true,
           headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
           body: JSON.stringify({
             full_name: fullName,
@@ -2482,6 +2483,7 @@ function awardGoldToShell(amount, source, showParticle = true) {
         // Also push to ac_student_profiles
         fetch(AC_SUPA_URL + '/rest/v1/ac_student_profiles?on_conflict=full_name,period', {
           method: 'POST',
+          keepalive: true,
           headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
           body: JSON.stringify({
             full_name: fullName,
@@ -2741,6 +2743,7 @@ async function syncUnitProgressToSupabase(reason) {
 
     await fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -2758,6 +2761,7 @@ async function syncUnitProgressToSupabase(reason) {
     // see the unit as started after any component is finished, instead of NOT PLAYED.
     await fetch(AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         name: P.name,
@@ -2809,7 +2813,7 @@ function renderPlayTabSummary() {
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${mcqAttempted?'var(--gold)':'var(--text3)'}">MCQ ${mcqAttempted?mcqScore+'%':'—'} <span style="opacity:.5">50%</span></span>
       <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${vocabAttempted?'#a080e8':'var(--text3)'}">VOCAB ${vocabAttempted?vocabScore+'%':'—'} <span style="opacity:.5">25%</span></span>
-      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqDoneCount}/${frqCountPS} ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
+      <span style="font-family:var(--dm);font-size:8px;padding:3px 7px;border:1px solid var(--border);color:${frqAttempted?'var(--teal2)':'var(--text3)'}">OPEN ANSWER ${frqDone}/${frqTotal} ${frqAttempted?frqScore+'%':'—'} <span style="opacity:.5">25%</span></span>
     </div>
   </div>`;
 }
@@ -3134,6 +3138,7 @@ async function submitFRQUnit() {
   try {
     const resp = await fetch('https://aged-tooth-21e7.jonesolson79.workers.dev', {
       method: 'POST',
+      keepalive: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
@@ -3320,6 +3325,7 @@ async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
     // Push to civitas_profiles (Civitas shell)
     fetch(AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -3331,6 +3337,7 @@ async function pushVocabToSupabase(vocabPassed, vocabBestScore) {
     // Also push to ac_student_profiles (US History hub)
     fetch(AC_SUPA_URL + '/rest/v1/ac_student_profiles?on_conflict=full_name,period', {
       method: 'POST',
+      keepalive: true,
       headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
       body: JSON.stringify({
         full_name: fullName,
@@ -4179,6 +4186,7 @@ function savePartialToSupabase() {
       };
       await fetch(AC_SUPA_URL + '/rest/v1/ac_partial_progress?on_conflict=name,period,unit_id', {
         method: 'POST',
+        keepalive: true,
         headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
         body: JSON.stringify(payload)
       });
@@ -4271,6 +4279,7 @@ function pushLessonProgress(acc) {
         AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
         {
           method: 'POST',
+          keepalive: true,
           headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
           body: JSON.stringify({
             full_name:       fullName,
@@ -4315,6 +4324,7 @@ async function pushACResult(acc) {
       AC_SUPA_URL + '/rest/v1/ac_results?on_conflict=name,period,unit_id',
       {
         method: 'POST',
+        keepalive: true,
         headers: Object.assign({}, AC_HEADERS, {'Prefer':'resolution=merge-duplicates'}),
         body: JSON.stringify({
           name: P.name,
@@ -4381,6 +4391,7 @@ async function pushACResult(acc) {
       AC_SUPA_URL + '/rest/v1/civitas_profiles?on_conflict=full_name',
       {
         method: 'POST',
+        keepalive: true,
         headers: Object.assign({}, AC_HEADERS, {'Prefer': 'resolution=merge-duplicates'}),
         body: JSON.stringify({
           full_name:       fullName,
