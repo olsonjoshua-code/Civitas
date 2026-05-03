@@ -431,6 +431,36 @@ body::before{content:'';position:fixed;inset:0;
 .rpg-progress-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .rpg-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1);}
 .rpg-unlock-hint{font-family:var(--mono,monospace);font-size:8px;color:var(--gold2);margin-top:5px;}
+
+/* ── CIVITAS DASH SECTION (sibling of RPG card) ──────────── */
+@keyframes dashGlow{0%,100%{box-shadow:0 0 18px rgba(64,108,168,.18),inset 0 0 18px rgba(64,108,168,.04)}50%{box-shadow:0 0 38px rgba(96,148,208,.42),inset 0 0 24px rgba(96,148,208,.08)}}
+@keyframes dashShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes dashUnlock{0%{transform:scale(.9);opacity:0}50%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+.dash-unlock-card{
+  background:linear-gradient(135deg,rgba(14,18,30,.99),rgba(8,12,22,.99));
+  border:1px solid var(--border2);border-left:3px solid #6094d0;
+  padding:12px 24px;
+  position:relative;overflow:hidden;
+  cursor:pointer;transition:all .2s;
+  animation:dashGlow 4s infinite;
+  height:100%;box-sizing:border-box;
+}
+.dash-unlock-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#6094d0,#a0c4f0,#6094d0,transparent);
+  background-size:200% 100%;animation:dashShimmer 2.5s linear infinite;
+}
+.dash-unlock-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#406ca8,transparent);opacity:.4;
+}
+.dash-unlock-card:hover{border-color:#a0c4f0;box-shadow:0 2px 22px rgba(96,148,208,.2);}
+.dash-inner{display:flex;align-items:center;gap:16px;position:relative;z-index:1;height:100%;}
+.dash-content{flex:1;}
+.dash-eyebrow{font-family:var(--mono,monospace);font-size:7px;color:#a0c4f0;letter-spacing:.2em;margin-bottom:3px;text-transform:uppercase;}
+.dash-title{font-family:var(--bebas);font-size:20px;color:#dce4f4;letter-spacing:.08em;text-shadow:0 0 14px rgba(96,148,208,.4);}
+.dash-cta{font-family:var(--bebas);font-size:12px;letter-spacing:.1em;display:inline-block;padding:7px 16px;background:rgba(96,148,208,.12);border:1px solid #6094d0;color:#dce4f4;transition:all .2s;white-space:nowrap;}
+.dash-cta:hover{background:rgba(96,148,208,.22);}
 /* ── FRQ Modal ── */
 #frq-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:16px}
 #frq-modal.open{display:flex}
@@ -622,6 +652,7 @@ body::before{content:'';position:fixed;inset:0;
           <div style="font-family:var(--dm);font-size:9px;color:var(--text2);margin-top:5px">Scroll left to right through 150 years of history. Click any unit to preview and launch.</div>
         </div>
         <div id="hub-rpg-mini" style="flex-shrink:0;margin-left:10px"></div>
+        <div id="hub-dash-mini" style="flex-shrink:0;margin-left:6px"></div>
       </div>
       <div id="tl-outer">
         <div id="era-bar"><div id="era-bar-inner"></div></div>
@@ -699,7 +730,10 @@ body::before{content:'';position:fixed;inset:0;
     <!-- TROPHY VIEW -->
     <div id="view-trophies" class="view">
       <div class="campaign-section" id="campaign-rpg-section" style="margin-bottom:22px">
-        <div id="rpg-card-mount"></div>
+        <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap">
+          <div id="rpg-card-mount" style="flex:1;min-width:300px"></div>
+          <div id="dash-card-mount" style="flex:1;min-width:300px"></div>
+        </div>
       </div>
       <div class="trophy-room-hero"><div class="tr-icon">🏆</div><div style="flex:1"><div class="tr-title">Trophy Room</div><div class="tr-sub">Your best performance in each era. Earned by accuracy — certificates print your full history.</div></div><button onclick="fullRefreshFromSupabase()" style="font-family:var(--bebas);font-size:10px;letter-spacing:1px;background:none;border:1px solid var(--border2);color:var(--text3);padding:6px 12px;cursor:pointer;flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='var(--teal2)';this.style.color='var(--teal2)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">↻ Refresh</button></div>
       <div class="tier-legend">
@@ -3366,6 +3400,8 @@ async function syncFromSupabase(){
 
   renderCampaignRPG();
   renderHubRPGMini();
+  renderDashCard();
+  renderHubDashMini();
   // Push any newly-synced progress back to profile DB
   if(_authUser && !S.isGuest) saveProfileToDB();
 }
@@ -3618,6 +3654,8 @@ function renderTimeline(){
   refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();
   renderCampaignRPG();
   renderHubRPGMini();
+  renderDashCard();
+  renderHubDashMini();
 }
 function renderCampaignRPG(){
   const mount=document.getElementById('rpg-card-mount');
@@ -3748,6 +3786,59 @@ function renderHubRPGMini(){
       <div style="font-family:var(--bebas);font-size:10px;letter-spacing:.1em;display:inline-block;padding:4px 10px;background:rgba(200,160,32,.14);border:1px solid var(--gold2);color:var(--gold);width:100%;text-align:center;box-sizing:border-box">${done?'&#9654; CONTINUE':'&#9654; LAUNCH'}</div>
     </div>`;
   }
+}
+
+// ── CIVITAS DASH (Mario-style platformer covering the full course) ──
+// Sibling to the RPG. Always available — students don't need to grind
+// gold trophies to play. URL: civitas-dash.html in the us-history folder.
+const DASH_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/civitas-dash.html';
+
+function launchDash(){
+  try{ localStorage.setItem('ac_shell_state', JSON.stringify(S)); }catch(e){}
+  const USH_URL = 'https://olsonjoshua-code.github.io/Civitas/games/us-history/';
+  localStorage.setItem('ac_shell_url', USH_URL);
+  localStorage.setItem('ac_returning_from_game', '1');
+  if(S.fromCivitas){
+    localStorage.setItem('civitas_shell_url', USH_URL);
+    localStorage.setItem('civitas_returning', '1');
+  }
+  try{ sessionStorage.removeItem('ac_shell_active'); }catch(e){}
+  acLogEvent && acLogEvent('dash_launched','civitas_dash',null,{url:DASH_URL},null);
+  window.location.href = DASH_URL;
+}
+
+function renderDashCard(){
+  const mount = document.getElementById('dash-card-mount');
+  if(!mount) return;
+  mount.innerHTML = `<div class="dash-unlock-card" onclick="launchDash()" style="animation:dashUnlock .5s ease both">
+    <div class="dash-inner">
+      <div style="font-size:28px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(96,148,208,.45))">🏃</div>
+      <div class="dash-content">
+        <div class="dash-eyebrow">◈ Platformer · All 17 Units</div>
+        <div class="dash-title" style="font-size:20px;margin-bottom:2px">Civitas Dash</div>
+        <div style="font-family:var(--dm,sans-serif);font-size:10px;color:var(--text2)">Run, jump, and answer your way through US History — Civil War to Today</div>
+      </div>
+      <div style="flex-shrink:0">
+        <div class="dash-cta" style="font-size:12px;padding:7px 16px">▶ Start Running</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderHubDashMini(){
+  const mount = document.getElementById('hub-dash-mini');
+  if(!mount) return;
+  mount.innerHTML = `<div onclick="launchDash()" style="width:140px;background:rgba(10,14,24,.92);border:1px solid #406ca8;padding:8px 10px;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;animation:dashGlow 4s infinite" onmouseenter="this.style.borderColor='#a0c4f0';this.style.transform='translateY(-1px)'" onmouseleave="this.style.borderColor='#406ca8';this.style.transform='translateY(0)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#6094d0,transparent);opacity:.6"></div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:16px">&#x1F3C3;</span>
+      <div>
+        <div style="font-family:var(--bebas);font-size:9px;letter-spacing:2px;color:#a0c4f0">Platformer</div>
+        <div style="font-family:var(--bebas);font-size:13px;color:#dce4f4;letter-spacing:.05em;line-height:1">Civitas Dash</div>
+      </div>
+    </div>
+    <div style="font-family:var(--bebas);font-size:10px;letter-spacing:.1em;display:inline-block;padding:4px 10px;background:rgba(96,148,208,.14);border:1px solid #6094d0;color:#dce4f4;width:100%;text-align:center;box-sizing:border-box">&#9654; LAUNCH</div>
+  </div>`;
 }
 
 function syncEraBar(){const t=document.getElementById('tl-track');const ebi=document.getElementById('era-bar-inner');if(t&&ebi)ebi.style.left=`-${t.scrollLeft}px`;}
@@ -4507,6 +4598,7 @@ function renderArchive(){
         if(S.name&&!S.isGuest)syncFromSupabase();
         renderTimeline();refreshProfile();renderBadges();renderStory();refreshMidtermCard();refreshEOCPracticeCard();refreshEOCPracticeCard();
         renderCampaignRPG();renderHubRPGMini();
+        renderDashCard();renderHubDashMini();
         updateHUD();
       }
     }
