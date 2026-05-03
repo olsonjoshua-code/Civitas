@@ -1442,7 +1442,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
   <!-- ── FOOTER ──────────────────────────────────────────── -->
   <div class="footer-bar">
-    <span>CIVITAS DASH · BUILD 0.6.1</span>
+    <span>CIVITAS DASH · BUILD 0.6.2</span>
     <span><button id="debugToggle">DEBUG</button></span>
   </div>
 
@@ -4701,9 +4701,26 @@ function handleAnswer(refs, choiceIdx, btn){
         (G.cannons || []).forEach(cn => { cn.lastFireAt += pauseElapsed; });
       }
       G.questionPausedAt = 0;
+      // Despawn any in-flight cannonballs within the player's danger zone.
+      // While the modal was up, cannonballs that were already mid-flight just
+      // froze in place — when play resumes, the player has zero time to dodge
+      // them. Anything from -30px (just behind player) to +250px ahead gets
+      // cleared. Cannonballs further out still travel normally.
+      const playerWXResume = G.distance + PLAYER_LEFT;
+      for(let i = G.cannonballs.length - 1; i >= 0; i--){
+        const b = G.cannonballs[i];
+        const dx = b.worldX - playerWXResume;
+        if(dx > -30 && dx < 250){
+          if(b.el && b.el.parentNode) b.el.remove();
+          G.cannonballs.splice(i, 1);
+        }
+      }
       // 800ms post-question grace period during which cannons hold fire,
       // giving the player a moment to gather themselves and step off.
       G.safetyUntil = Date.now() + 800;
+      // Brief invincibility too — covers the edge case of a cannonball spawned
+      // exactly at the platform's worldX (very rare but possible).
+      G.invincibleUntil = Math.max(G.invincibleUntil, Date.now() + 600);
       G.currentPlatform = null;
       G.running = true;
       // Award the pending streak bonus AFTER closing the modal so the toast is visible
