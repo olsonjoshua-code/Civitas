@@ -12,6 +12,10 @@
 // ════════════════════════════════════════════════════════════════
 (function(){
   try{
+    // PROTOTYPE DEMO BYPASS: lets this file run directly without the Civitas shell.
+    if(!localStorage.getItem('civitas_state') && !localStorage.getItem('ac_shell_state')){
+      localStorage.setItem('civitas_state', JSON.stringify({name:'Demo Historian', fullName:'Demo Historian', period:'Preview', source:'prototype'}));
+    }
     var civ=localStorage.getItem('civitas_state');
     if(civ){var cp=JSON.parse(civ);if(cp&&cp.name&&cp.name!=='Guest')return;}
     var s=localStorage.getItem('ac_shell_state');
@@ -1256,6 +1260,116 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   .round-clear-overlay h2{font-size:1.7rem;letter-spacing:5px;}
   .round-clear-overlay .rc-title{font-size:1.2rem;}
 }
+
+
+/* ════════════════════════════════════════════════════════════════
+   ARCHIVE QUEST PROTOTYPE PATCH — Mario-like, history-themed skin
+   Adds source blocks, gold seals, archive-crate platforms, and more
+   branching/high-low path choices for Round 1-1 only.
+   ════════════════════════════════════════════════════════════════ */
+.game-area.theme-archivequest{
+  background:
+    linear-gradient(180deg,#9fd6e8 0%,#c8e8d8 48%,#f6dd93 100%);
+}
+.game-area.theme-archivequest::before{
+  content:'';position:absolute;left:0;right:0;bottom:130px;height:190px;z-index:1;pointer-events:none;opacity:.28;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='190' viewBox='0 0 900 190'><g fill='none' stroke='%235a4030' stroke-width='3' opacity='.75'><path d='M20 165 L95 82 L170 165 Z'/><path d='M200 165 L300 45 L400 165 Z'/><path d='M450 165 L520 95 L590 165 Z'/><path d='M640 165 L760 35 L880 165 Z'/></g><g fill='%23fff8e0' opacity='.9'><rect x='105' y='105' width='52' height='35' rx='3'/><rect x='525' y='115' width='45' height='30' rx='3'/></g><g fill='%237a5018' opacity='.55'><rect x='110' y='110' width='10' height='25'/><rect x='126' y='110' width='10' height='25'/><rect x='142' y='110' width='10' height='25'/><rect x='530' y='120' width='9' height='20'/><rect x='545' y='120' width='9' height='20'/><rect x='560' y='120' width='9' height='20'/></g></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+  background-position-x:calc(var(--scrollX, 0px) * .25);
+}
+.game-area.theme-archivequest .ground{
+  background:linear-gradient(180deg,#8a5a20 0%,#5a3514 100%);
+}
+.game-area.theme-archivequest .ground::before{
+  background-image:
+    linear-gradient(90deg,rgba(40,20,5,.35) 0 2px,transparent 2px 64px),
+    linear-gradient(0deg,rgba(40,20,5,.35) 0 2px,transparent 2px 64px),
+    radial-gradient(circle at 20% 35%,rgba(20,10,5,.3) 1.5px,transparent 2.5px);
+  background-size:64px 64px,64px 64px,120px 70px;
+}
+.platform.source-block{
+  width:86px;height:86px;
+  background:linear-gradient(180deg,#fff1b8 0%,#d4a850 55%,#9a6424 100%);
+  border:4px solid #3a2510;border-radius:8px;
+  box-shadow:inset 0 4px 0 rgba(255,255,255,.35), inset 0 -6px 0 rgba(0,0,0,.25), 0 5px 0 rgba(0,0,0,.35), 0 0 0 3px rgba(252,229,152,.15);
+}
+.platform.source-block::after{
+  background:
+    linear-gradient(90deg,transparent 0 18px,rgba(58,37,16,.2) 18px 20px,transparent 20px),
+    linear-gradient(0deg,transparent 0 18px,rgba(58,37,16,.2) 18px 20px,transparent 20px);
+  background-size:40px 40px;opacity:.75;
+}
+.platform.source-block.armed::before{
+  content:'?';font-family:var(--playfair);font-size:3.2rem;font-style:italic;font-weight:900;color:#3a2510;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);z-index:2;
+}
+.platform.source-block.cleared{
+  background:linear-gradient(180deg,#dcefc8 0%,#5a8a30 65%,#2f4a16 100%);
+  border-color:#18320c;
+}
+.platform.source-block.cleared::before{content:'✓';font-family:var(--bebas);font-size:3rem;color:#fff;z-index:2;}
+.platform.source-block .platform-label{
+  bottom:-28px;background:#fff8e0;border:2px solid #3a2510;border-radius:999px;color:#3a2510;
+  font-size:.62rem;padding:3px 9px;box-shadow:0 2px 0 rgba(0,0,0,.18);
+}
+.deco-platform.archive-path{
+  background:linear-gradient(180deg,#caa46a,#7a5018);
+  border:3px solid #3a2510;border-radius:5px;
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.22),inset 0 -4px 0 rgba(0,0,0,.28),0 3px 0 rgba(0,0,0,.32);
+}
+.deco-platform.archive-path::before{
+  content:'';position:absolute;inset:6px;background:repeating-linear-gradient(90deg,rgba(58,37,16,.35) 0 2px,transparent 2px 16px);opacity:.7;
+}
+.obstacle.bigblock.archive-crate{
+  background:linear-gradient(180deg,#b6864f,#654018);border-color:#2a1608;border-radius:4px;
+}
+.obstacle.bigblock.archive-crate::after{
+  content:'ARCHIVE';position:absolute;left:4px;right:4px;top:18px;text-align:center;font-family:var(--bebas);font-size:.55rem;letter-spacing:1.5px;color:#fce598;text-shadow:0 1px 1px #000;
+}
+.coin.gold-seal{
+  width:22px;height:22px;border:2px solid #5a4010;
+  background:radial-gradient(circle at 32% 30%,#fff8c8 0%,#fce598 28%,#d4a850 58%,#8a5a18 100%);
+  box-shadow:0 0 10px rgba(252,229,152,.75),inset 0 -2px 0 rgba(0,0,0,.22);
+}
+.coin.gold-seal::before{
+  content:'★';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;color:#6a4010;text-shadow:0 1px 0 rgba(255,255,255,.55);
+}
+.enemy.rumor-gremlin{width:40px;height:42px;bottom:130px;}
+.enemy.rumor-gremlin svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+.enemy.rumor-gremlin::after{
+  content:'RUMOR';position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-family:var(--bebas);font-size:.52rem;letter-spacing:1.5px;color:#5a0808;background:#fff8e0;border:1px solid #5a0808;padding:1px 4px;opacity:.85;
+}
+.game-message.prototype-note{font-size:1rem;max-width:560px;line-height:1.45;}
+
+.enemy.backlash-gremlin::after{
+  content:'BACKLASH';
+  color:#2a2030;
+  border-color:#2a2030;
+}
+
+
+
+
+/* ── New enemy: Bias Bat (introduced in Round 1-3) ── */
+.enemy.bias-bat{
+  width:42px;height:34px;bottom:210px;z-index:6;
+  animation:biasBatFlap .38s ease-in-out infinite;
+}
+.enemy.bias-bat svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));}
+@keyframes biasBatFlap{
+  0%,100%{transform:translateY(0) scaleY(1);}50%{transform:translateY(-3px) scaleY(.92);}
+}
+.cannonball.boss-shot{
+  background:radial-gradient(circle at 35% 30%,#fce598 0%,#a8202a 45%,#4a0608 100%);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.6),0 0 12px rgba(168,32,42,.75),0 2px 4px rgba(0,0,0,.5);
+}
+.boss-shadow{
+  position:absolute;width:70px;height:12px;border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 72%);
+  bottom:130px;z-index:4;pointer-events:none;
+}
+
 </style>
 </head>
 <body>
@@ -2838,7 +2952,7 @@ const GENERAL_SVG = `<svg viewBox="0 0 60 78" xmlns="http://www.w3.org/2000/svg"
 // ── Game state ───────────────────────────────────────────────────
 const FINISH = 12500;
 const GROUND_HEIGHT = 130;
-const PLAYER_LEFT = 120;       // fixed x of player on screen (camera is what scrolls)
+const PLAYER_LEFT = 120;       // normal player screen x; boss arena can lock camera and let player move on screen
 const GRAVITY = 1.1;
 const JUMP_VELOCITY = -20;
 const STOMP_BOUNCE = -12;
@@ -2855,6 +2969,7 @@ function freshGameState(){
     running:false, paused:false, over:false, finished:false,
     questionInProgress:false,
     distance: 0, parallaxX: 0,
+    cameraX: 0, bossArenaActive: false, bossArenaStartX: null, bossArenaCameraX: null,
     y: 0, velocity: 0, jumping: false, ducking: false,
     facing: 1,
     lives: 3, correctCount: 0, retryCount: 0, score: 0, coinsCollected: 0,
@@ -3008,10 +3123,10 @@ function buildRound1_1(refs){
   for(let i=0; i<8; i++){
     const worldX = FIRST_X + i * SPACING;
     const el = document.createElement('div');
-    el.className = 'platform armed';
+    el.className = 'platform armed source-block';
     const lbl = document.createElement('div');
     lbl.className = 'platform-label';
-    lbl.textContent = 'PLATFORM ' + (i+1);
+    lbl.textContent = 'SOURCE ' + (i+1);
     el.appendChild(lbl);
     area.appendChild(el);
     G.platforms.push({ el, lbl, worldX, idx:i, cleared:false, armed:true, width:80, height:120 });
@@ -3185,7 +3300,7 @@ function buildRound1_1(refs){
     // Skip if a coin would overlap a pit (don't dangle coins over pits)
     if(G.pits.some(p => c.worldX > p.worldX - 30 && c.worldX < p.worldX + p.width + 30)) return;
     const el = document.createElement('div');
-    el.className = 'coin';
+    el.className = 'coin gold-seal';
     area.appendChild(el);
     G.coins.push({ el, worldX: c.worldX, y: c.y, collected: false });
   });
@@ -3226,10 +3341,10 @@ function buildRound1_2(refs){
   for(let i=0; i<8; i++){
     const worldX = FIRST_X + i * SPACING;
     const el = document.createElement('div');
-    el.className = 'platform armed';
+    el.className = 'platform armed source-block';
     const lbl = document.createElement('div');
     lbl.className = 'platform-label';
-    lbl.textContent = 'PLATFORM ' + (i+1);
+    lbl.textContent = 'SOURCE ' + (i+1);
     el.appendChild(lbl);
     area.appendChild(el);
     G.platforms.push({ el, lbl, worldX, idx:i, cleared:false, armed:true, width:80, height:120 });
@@ -3392,7 +3507,7 @@ function buildRound1_2(refs){
   coinSpots.forEach(c => {
     if(G.pits.some(p => c.worldX > p.worldX - 30 && c.worldX < p.worldX + p.width + 30)) return;
     const el = document.createElement('div');
-    el.className = 'coin';
+    el.className = 'coin gold-seal';
     area.appendChild(el);
     G.coins.push({ el, worldX: c.worldX, y: c.y, collected: false });
   });
@@ -3431,10 +3546,10 @@ function buildRound1_3(refs){
   for(let i=0; i<8; i++){
     const worldX = FIRST_X + i * SPACING;
     const el = document.createElement('div');
-    el.className = 'platform armed';
+    el.className = 'platform armed source-block';
     const lbl = document.createElement('div');
     lbl.className = 'platform-label';
-    lbl.textContent = 'PLATFORM ' + (i+1);
+    lbl.textContent = 'SOURCE ' + (i+1);
     el.appendChild(lbl);
     area.appendChild(el);
     G.platforms.push({ el, lbl, worldX, idx:i, cleared:false, armed:true, width:80, height:120 });
@@ -3633,7 +3748,7 @@ function buildRound1_3(refs){
   coinSpots.forEach(c => {
     if(G.pits.some(p => c.worldX > p.worldX - 30 && c.worldX < p.worldX + p.width + 30)) return;
     const el = document.createElement('div');
-    el.className = 'coin';
+    el.className = 'coin gold-seal';
     area.appendChild(el);
     G.coins.push({ el, worldX: c.worldX, y: c.y, collected: false });
   });
@@ -3660,7 +3775,7 @@ function buildRound1_3(refs){
 // ════════════════════════════════════════════════════════════════
 function buildRound1_4_castle(refs){
   const area = refs.area;
-  area.querySelectorAll('.platform, .deco-platform, .finish-platform, .castle-finish, .pit, .coin, .enemy, .obstacle, .cannon, .cannonball, .cannonball-trail, .cannon-flash, .debris, .debris-warning, .boss-health').forEach(el => el.remove());
+  area.querySelectorAll('.platform, .deco-platform, .finish-platform, .castle-finish, .pit, .coin, .enemy, .obstacle, .cannon, .cannonball, .cannonball-trail, .cannon-flash, .debris, .debris-warning, .boss-health, .boss-shadow').forEach(el => el.remove());
 
   area.classList.add('theme-castle');
 
@@ -3674,10 +3789,10 @@ function buildRound1_4_castle(refs){
   for(let i=0; i<10; i++){
     const worldX = FIRST_X + i * SPACING;
     const el = document.createElement('div');
-    el.className = 'platform armed';
+    el.className = 'platform armed source-block';
     const lbl = document.createElement('div');
     lbl.className = 'platform-label';
-    lbl.textContent = 'PLATFORM ' + (i+1);
+    lbl.textContent = 'SOURCE ' + (i+1);
     el.appendChild(lbl);
     area.appendChild(el);
     G.platforms.push({ el, lbl, worldX, idx:i, cleared:false, armed:true, width:80, height:120 });
@@ -3794,7 +3909,7 @@ function buildRound1_4_castle(refs){
   // Patrols a long range just before the finish gate. Health = 3.
   // Each stomp drops health by 1 + brief stunned animation.
   // When health hits 0, boss is defeated and the finish gate unlocks.
-  const bossWorldX = FIRST_X + SPACING * 9 + 700;
+  const bossWorldX = FIRST_X + SPACING * 9 + 1040; // v3: moved farther back so the final approach is a clean boss arena
   const bossEl = document.createElement('div');
   bossEl.className = 'enemy boss';
   bossEl.innerHTML = GENERAL_SVG;
@@ -3803,25 +3918,41 @@ function buildRound1_4_castle(refs){
   const healthEl = document.createElement('div');
   healthEl.className = 'boss-health';
   healthEl.innerHTML = `
-    <div class="boss-health-label">GENERAL</div>
+    <div class="boss-health-label">RESISTANCE</div>
     <div class="boss-health-fill" id="bossHealthFill"></div>
   `;
   area.appendChild(healthEl);
 
+  const bossShadow = document.createElement('div');
+  bossShadow.className = 'boss-shadow';
+  area.appendChild(bossShadow);
+
   G.boss = {
     el: bossEl,
+    shadowEl: bossShadow,
     healthEl: healthEl,
     healthFill: healthEl.querySelector('.boss-health-fill'),
     worldX: bossWorldX,
-    vx: -2.2,                              // faster patrol than sentries
-    patrolMin: bossWorldX - 220,
-    patrolMax: bossWorldX + 220,
+    vx: -1.25,                             // v4: slower, more readable patrol
+    patrolMin: bossWorldX - 95,
+    patrolMax: bossWorldX + 95,
+    y: 0,
+    vy: 0,
+    onGround: true,
+    nextJumpAt: Date.now() + 3200,
+    nextShotAt: Date.now() + 5200,
+    shotIndex: 0,
     health: 3,
     maxHealth: 3,
     dead: false,
     invulnerableUntil: 0,                  // brief I-frames after stomp
   };
   G.bossDefeated = false;
+  // Lock the camera in the final room so the boss stays on screen.
+  // Player enters at the left side of the arena; boss remains around 760px.
+  G.bossArenaStartX = bossWorldX - 640;
+  G.bossArenaCameraX = bossWorldX - 760;
+  G.bossArenaActive = false;
 
   // ── Cannons (carried from 1-2) — 2 alternating ──
   G.cannons = [];
@@ -3908,7 +4039,7 @@ function buildRound1_4_castle(refs){
   coinSpots.forEach(c => {
     if(G.pits.some(p => c.worldX > p.worldX - 30 && c.worldX < p.worldX + p.width + 30)) return;
     const el = document.createElement('div');
-    el.className = 'coin';
+    el.className = 'coin gold-seal';
     area.appendChild(el);
     G.coins.push({ el, worldX: c.worldX, y: c.y, collected: false });
   });
@@ -3927,9 +4058,26 @@ function buildRound1_4_castle(refs){
   }
 }
 
+// ── Camera helper ───────────────────────────────────────────────
+// Normal rounds keep the player at PLAYER_LEFT and scroll the world.
+// In the castle boss arena, the camera locks so the boss stays visible
+// and the player can move around the final room without pushing the boss
+// off-screen.
+function getCameraX(){
+  if(!G) return 0;
+  const playerWX = G.distance + PLAYER_LEFT;
+  if(G.boss && !G.boss.dead && G.bossArenaStartX != null && playerWX >= G.bossArenaStartX){
+    G.bossArenaActive = true;
+    return G.bossArenaCameraX;
+  }
+  G.bossArenaActive = false;
+  return G.distance;
+}
+
 // ── Visual update — apply world coordinates to screen ────────────
 function updateWorldVisuals(refs){
-  const cam = G.distance;
+  const cam = getCameraX();
+  G.cameraX = cam;
   // Scrolling backgrounds
   refs.parallaxFar.style.backgroundPositionX  = (-cam * 0.15) + 'px';
   refs.parallaxMid.style.backgroundPositionX  = (-cam * 0.35) + 'px';
@@ -3974,6 +4122,9 @@ function updateWorldVisuals(refs){
     }
     e.el.style.display = 'block';
     e.el.style.left = (e.worldX - cam) + 'px';
+    if(e.type === 'biasbat'){
+      e.el.style.bottom = (GROUND_HEIGHT + (e.y || e.baseY || 150)) + 'px';
+    }
   });
   // Cannons (Round 1-2+) — stationary, just update screen position
   (G.cannons || []).forEach(cn => {
@@ -3987,11 +4138,20 @@ function updateWorldVisuals(refs){
       G.boss.healthEl.style.left = (G.boss.worldX - cam - 10) + 'px';
       G.boss.healthEl.style.display = G.boss.dead ? 'none' : 'block';
     }
+    G.boss.el.style.bottom = (GROUND_HEIGHT + (G.boss.y || 0)) + 'px';
+    if(G.boss.shadowEl){
+      G.boss.shadowEl.style.left = (G.boss.worldX - cam - 5) + 'px';
+      G.boss.shadowEl.style.display = G.boss.dead ? 'none' : 'block';
+      G.boss.shadowEl.style.opacity = Math.max(.18, 1 - ((G.boss.y || 0) / 220));
+    }
   }
   // Cannonballs are positioned in step() during their own physics loop
 }
 
 function updatePlayerVisual(refs){
+  const cam = (G && G.cameraX != null) ? G.cameraX : G.distance;
+  const playerScreenX = (G.distance + PLAYER_LEFT) - cam;
+  refs.player.style.left = playerScreenX + 'px';
   refs.player.style.bottom = (GROUND_HEIGHT + G.y) + 'px';
   refs.player.classList.toggle('running', !G.jumping && !G.ducking && (inputState.right || inputState.left));
   refs.player.classList.toggle('jumping', G.jumping);
@@ -4031,6 +4191,8 @@ function updateHud(refs){
 
 // ── Physics & step ───────────────────────────────────────────────
 function step(refs){
+  // v5 boss-arena fix: projectiles draw from camera coordinates, not player distance,
+  // so shots no longer appear to drift backward/forward when the arena camera is locked.
   if(!G.running || G.questionInProgress || G.over || G.finished) return;
 
   // Horizontal motion (proposed — gate may clamp it below).
@@ -4049,7 +4211,21 @@ function step(refs){
   for(const p of G.platforms){
     if(!p.cleared){ blocker = p; break; }
   }
-  const proposedDistance = G.distance + dx;
+  let proposedDistance = G.distance + dx;
+  // In the locked boss arena, keep the player inside the visible room.
+  // This prevents the player from walking so far right that the fight leaves the frame.
+  if(G.boss && !G.boss.dead && G.bossArenaStartX != null){
+    const playerWXNow = G.distance + PLAYER_LEFT;
+    const wouldEnterArena = playerWXNow >= G.bossArenaStartX || (proposedDistance + PLAYER_LEFT) >= G.bossArenaStartX;
+    if(wouldEnterArena){
+      const arenaCam = G.bossArenaCameraX;
+      const visibleW = refs.area.clientWidth || window.innerWidth || 1180;
+      const minWX = G.bossArenaStartX - 5;
+      const maxWX = arenaCam + visibleW - 92;
+      const proposedWX = Math.max(minWX, Math.min(maxWX, proposedDistance + PLAYER_LEFT));
+      proposedDistance = proposedWX - PLAYER_LEFT;
+    }
+  }
   const proposedCenter = proposedDistance + PLAYER_LEFT + 24;
   if(blocker && dx > 0 && proposedCenter > blocker.worldX){
     // Hit the platform's left edge — clamp position and trigger question.
@@ -4186,18 +4362,72 @@ function step(refs){
     e.worldX += e.vx;
     if(e.worldX <= e.patrolMin){ e.worldX = e.patrolMin; e.vx = Math.abs(e.vx); }
     if(e.worldX >= e.patrolMax){ e.worldX = e.patrolMax; e.vx = -Math.abs(e.vx); }
+    if(e.type === 'biasbat'){
+      e.phase = (e.phase || 0) + 0.055;
+      e.y = (e.baseY || 150) + Math.sin(e.phase) * (e.amp || 30);
+    }
   });
 
-  // Boss patrol (castle round only)
+  // Boss movement (castle round only): patrol + jump pattern + policy shots.
   if(G.boss && !G.boss.dead){
-    G.boss.worldX += G.boss.vx;
-    if(G.boss.worldX <= G.boss.patrolMin){
-      G.boss.worldX = G.boss.patrolMin;
-      G.boss.vx = Math.abs(G.boss.vx);
+    const boss = G.boss;
+    boss.worldX += boss.vx;
+    if(boss.worldX <= boss.patrolMin){ boss.worldX = boss.patrolMin; boss.vx = Math.abs(boss.vx); }
+    if(boss.worldX >= boss.patrolMax){ boss.worldX = boss.patrolMax; boss.vx = -Math.abs(boss.vx); }
+
+    const bossNow = Date.now();
+    boss.y = boss.y || 0;
+    boss.vy = boss.vy || 0;
+    boss.onGround = boss.y <= 0;
+    if(boss.onGround && bossNow >= (boss.nextJumpAt || 0)){
+      boss.vy = 16.5;
+      boss.onGround = false;
+      boss.nextJumpAt = bossNow + 7200;
+      refs.msg.textContent = 'Boss jump — watch the landing!';
+      refs.msg.classList.add('visible');
+      setTimeout(() => refs.msg.classList.remove('visible'), 1100);
     }
-    if(G.boss.worldX >= G.boss.patrolMax){
-      G.boss.worldX = G.boss.patrolMax;
-      G.boss.vx = -Math.abs(G.boss.vx);
+    if(!boss.onGround){
+      boss.y += boss.vy;
+      boss.vy -= 0.95;
+      if(boss.y <= 0){
+        boss.y = 0; boss.vy = 0; boss.onGround = true;
+        // Landing sends a low shockwave left. It uses cannonball collision rules.
+        const waveEl = document.createElement('div');
+        waveEl.className = 'cannonball boss-shot low';
+        refs.area.appendChild(waveEl);
+        G.cannonballs.push({
+          el: waveEl, worldX: boss.worldX - 16, y: 8, height:'low', vx:-1.55,
+          spawnedAt: bossNow, lastTrailAt: bossNow,
+        });
+      }
+    }
+
+    // Boss fires alternating high/low policy shots while the player is near the final room.
+    const playerDist = boss.worldX - (G.distance + PLAYER_LEFT);
+    const activeBossShots = (G.cannonballs || []).filter(b => b.el && b.el.classList && b.el.classList.contains('boss-shot')).length;
+    if(playerDist > -180 && playerDist < 760 && activeBossShots < 1 && bossNow >= (boss.nextShotAt || 0)){
+      boss.shotIndex = (boss.shotIndex || 0) + 1;
+      boss.nextShotAt = bossNow + 9500;
+      const high = boss.shotIndex % 2 === 0;
+      const shotEl = document.createElement('div');
+      shotEl.className = 'cannonball boss-shot ' + (high ? 'high' : 'low');
+      refs.area.appendChild(shotEl);
+      G.cannonballs.push({
+        el: shotEl,
+        worldX: boss.worldX - 10,
+        y: high ? 50 : 22,
+        height: high ? 'high' : 'low',
+        vx: -1.55,
+        spawnedAt: bossNow,
+        lastTrailAt: bossNow,
+      });
+      if(high && !G._bossDuckHintShown){
+        G._bossDuckHintShown = true;
+        refs.msg.textContent = 'High boss shot — press DOWN to duck!';
+        refs.msg.classList.add('visible');
+        setTimeout(() => refs.msg.classList.remove('visible'), 1800);
+      }
     }
   }
 
@@ -4262,7 +4492,8 @@ function step(refs){
       // Spawn a quick muzzle flash at the right height
       const flashEl = document.createElement('div');
       flashEl.className = 'cannon-flash';
-      flashEl.style.left = (cn.worldX - G.distance - 15) + 'px';
+      const flashCam = (G && G.cameraX != null) ? G.cameraX : getCameraX();
+      flashEl.style.left = (cn.worldX - flashCam - 15) + 'px';
       flashEl.style.bottom = (GROUND_HEIGHT + (height === 'high' ? 38 : 18)) + 'px';
       refs.area.appendChild(flashEl);
       setTimeout(() => { if(flashEl.parentNode) flashEl.remove(); }, 350);
@@ -4280,13 +4511,15 @@ function step(refs){
       b.lastTrailAt = now;
       const t = document.createElement('div');
       t.className = 'cannonball-trail';
-      t.style.left = (b.worldX - G.distance + 6) + 'px';
+      const projectileCam = (G && G.cameraX != null) ? G.cameraX : getCameraX();
+      t.style.left = (b.worldX - projectileCam + 6) + 'px';
       t.style.bottom = (GROUND_HEIGHT + b.y - 5) + 'px';
       refs.area.appendChild(t);
       setTimeout(() => { if(t.parentNode) t.remove(); }, 500);
     }
     // Despawn conditions
-    const offScreen = (b.worldX - G.distance) < -100 || (b.worldX - G.distance) > 2000;
+    const cannonCamForOffscreen = (G && G.cameraX != null) ? G.cameraX : getCameraX();
+    const offScreen = (b.worldX - cannonCamForOffscreen) < -140 || (b.worldX - cannonCamForOffscreen) > 2000;
     const tooOld = now - b.spawnedAt > 8000;
     if(offScreen || tooOld){
       b.el.remove();
@@ -4294,7 +4527,8 @@ function step(refs){
       continue;
     }
     // Position update
-    b.el.style.left = (b.worldX - G.distance) + 'px';
+    const cannonCamForDraw = (G && G.cameraX != null) ? G.cameraX : getCameraX();
+    b.el.style.left = (b.worldX - cannonCamForDraw) + 'px';
     b.el.style.bottom = (GROUND_HEIGHT + b.y) + 'px';
   }
 
@@ -4432,14 +4666,19 @@ function step(refs){
   if(Date.now() > G.invincibleUntil){
     for(const e of G.enemies){
       if(e.dead) continue;
-      // Redeemers are slightly bigger; both use a 22px horizontal hitbox center
-      const enemyCenterOffset = (e.type === 'redeemer') ? 18 : 17;
+      const enemyCenterOffset = (e.type === 'redeemer') ? 18 : (e.type === 'biasbat' ? 21 : 17);
+      const enemyWidthHalf = (e.type === 'biasbat') ? 25 : 22;
       const dxe = playerCenterX - (e.worldX + enemyCenterOffset);
-      const horizontalHit = Math.abs(dxe) < 22;
+      const horizontalHit = Math.abs(dxe) < enemyWidthHalf;
       if(!horizontalHit) continue;
 
-      const enemyTopY = (e.type === 'redeemer') ? 54 : 50; // redeemer slightly taller
-      const isStomp = G.jumping && G.velocity > 0 && G.y > enemyTopY - 14 && G.y < enemyTopY + 14;
+      const enemyBottomY = (e.type === 'biasbat') ? (e.y || e.baseY || 150) : 0;
+      const enemyHeight = (e.type === 'redeemer') ? 54 : (e.type === 'biasbat' ? 34 : 50);
+      const enemyTopY = enemyBottomY + enemyHeight;
+      const playerBottom = G.y + 4;
+      const playerTop = G.y + (G.ducking ? 32 : 56);
+      const verticalOverlap = playerTop > enemyBottomY + 4 && playerBottom < enemyTopY - 2;
+      const isStomp = G.jumping && G.velocity > 0 && playerBottom >= enemyTopY - 24 && playerBottom <= enemyTopY + 10;
       if(isStomp){
         e.dead = true;
         e.el.classList.add('stomped');
@@ -4454,8 +4693,8 @@ function step(refs){
         } else {
           setTimeout(() => { if(e.el && e.el.parentNode) e.el.remove(); }, 400);
         }
-      } else if(G.y < (enemyTopY - 8)){
-        const reason = e.type === 'redeemer' ? 'blocked by Redeemer' : 'caught by sentry';
+      } else if(verticalOverlap){
+        const reason = e.type === 'redeemer' ? 'blocked by Redeemer' : (e.type === 'biasbat' ? 'hit by Bias Bat' : 'caught by sentry');
         loseLife(refs, reason);
         return;
       }
@@ -4469,10 +4708,14 @@ function step(refs){
   if(G.boss && !G.boss.dead && Date.now() > G.invincibleUntil){
     const boss = G.boss;
     const dxb = playerCenterX - (boss.worldX + 30);
-    const horizontalHit = Math.abs(dxb) < 32;
-    if(horizontalHit){
-      const bossTopY = 78;
-      const isStomp = G.jumping && G.velocity > 0 && G.y > bossTopY - 16 && G.y < bossTopY + 16;
+    const horizontalHit = Math.abs(dxb) < 34;
+    const bossBottomY = boss.y || 0;
+    const bossTopY = bossBottomY + 78;
+    const pBottom = G.y + 4;
+    const pTop = G.y + (G.ducking ? 32 : 56);
+    const verticalOverlap = pTop > bossBottomY + 4 && pBottom < bossTopY - 2;
+    if(horizontalHit && verticalOverlap){
+      const isStomp = G.jumping && G.velocity > 0 && pBottom >= bossTopY - 26 && pBottom <= bossTopY + 10;
       const bossInvuln = Date.now() < (boss.invulnerableUntil || 0);
       if(isStomp && !bossInvuln){
         boss.health--;
@@ -4506,8 +4749,8 @@ function step(refs){
           refs.msg.classList.add('visible');
           setTimeout(() => refs.msg.classList.remove('visible'), 2400);
         }
-      } else if(G.y < (bossTopY - 12) && !bossInvuln){
-        loseLife(refs, 'crushed by the General');
+      } else if(!bossInvuln){
+        loseLife(refs, boss.y > 25 ? 'hit by the jumping General' : 'crushed by the General');
         return;
       }
     }
@@ -4581,7 +4824,7 @@ function showPlatformQuestion(refs){
   const idx = G.currentPlatform.idx;
   const q = activeRoundQuestions[idx];
 
-  refs.qEyebrow.textContent = 'PLATFORM ' + (idx+1) + ' OF ' + activeRoundQuestions.length;
+  refs.qEyebrow.textContent = 'SOURCE BLOCK ' + (idx+1) + ' OF ' + activeRoundQuestions.length;
 
   // Progress dots
   refs.qProgress.innerHTML = '';
@@ -4983,7 +5226,7 @@ function launchRound(world, round){
   refs.player.style.left = PLAYER_LEFT + 'px';
 
   // Clear any previous round's theme classes
-  refs.area.classList.remove('theme-battlefield', 'theme-postwar', 'theme-castle');
+  refs.area.classList.remove('theme-battlefield', 'theme-postwar', 'theme-castle', 'theme-archivequest');
 
   ROUND_BUILDERS[round.id](refs);
   refs.qmodalBg.classList.remove('visible');
@@ -5246,6 +5489,458 @@ async function boot(){
     loadingMsg.textContent = 'Loading failed. Refresh to retry. (' + (e.message || 'unknown') + ')';
     console.error('boot error', e);
   }
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// ARCHIVE QUEST PROTOTYPE PATCH — replaces Round 1-1 layout only.
+// Keeps the existing Civitas engine, questions, HUD, saving, modal,
+// lives, collisions, and round-clear flow. The goal is to preview a
+// Mario-like but visually unique history level with more route choice.
+// ════════════════════════════════════════════════════════════════
+const RUMOR_GREMLIN_SVG = `<svg viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="20" cy="25" rx="15" ry="13" fill="#5a4030" stroke="#1a0e08" stroke-width="1.5"/>
+  <path d="M8 18 Q4 10 13 12" fill="#5a4030" stroke="#1a0e08" stroke-width="1.2"/>
+  <path d="M32 18 Q36 10 27 12" fill="#5a4030" stroke="#1a0e08" stroke-width="1.2"/>
+  <ellipse cx="15" cy="23" rx="3" ry="4" fill="#fce598"/><ellipse cx="25" cy="23" rx="3" ry="4" fill="#fce598"/>
+  <circle cx="16" cy="24" r="1" fill="#1a0e08"/><circle cx="24" cy="24" r="1" fill="#1a0e08"/>
+  <path d="M13 31 Q20 36 27 31" fill="none" stroke="#f0d4c4" stroke-width="2" stroke-linecap="round"/>
+  <path d="M9 36 L5 42" stroke="#1a0e08" stroke-width="2"/><path d="M31 36 L35 42" stroke="#1a0e08" stroke-width="2"/>
+  <path d="M9 15 Q20 2 31 15" fill="none" stroke="#a8202a" stroke-width="2" stroke-dasharray="3 2"/>
+</svg>`;
+
+const BIAS_BAT_SVG = `<svg viewBox="0 0 42 34" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 13 Q12 2 3 8 Q10 10 12 18 Q15 13 20 15" fill="#3a2a1a" stroke="#1a0e08" stroke-width="1.2"/>
+  <path d="M22 13 Q30 2 39 8 Q32 10 30 18 Q27 13 22 15" fill="#3a2a1a" stroke="#1a0e08" stroke-width="1.2"/>
+  <ellipse cx="21" cy="17" rx="9" ry="8" fill="#5a4030" stroke="#1a0e08" stroke-width="1.2"/>
+  <path d="M14 10 L9 4 M28 10 L33 4" stroke="#a8202a" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="18" cy="16" r="2.2" fill="#fce598"/><circle cx="24" cy="16" r="2.2" fill="#fce598"/>
+  <circle cx="18.5" cy="16.5" r=".8" fill="#1a0e08"/><circle cx="23.5" cy="16.5" r=".8" fill="#1a0e08"/>
+  <path d="M17 23 Q21 26 25 23" fill="none" stroke="#f0d4c4" stroke-width="1.7" stroke-linecap="round"/>
+  <rect x="16" y="1" width="10" height="5" rx="1" fill="#f5e8c4" stroke="#6a4a28" stroke-width=".8" transform="rotate(-8 21 3)"/>
+  <path d="M18 3 L24 3" stroke="#a8202a" stroke-width=".7"/>
+</svg>`;
+
+
+function buildRound1_1_archiveQuestPrototype(refs){
+  const area = refs.area;
+  area.querySelectorAll('.platform, .deco-platform, .finish-platform, .pit, .coin, .enemy, .obstacle, .cannon, .cannonball, .cannonball-trail, .cannon-flash, .debris, .debris-warning, .castle-finish, .boss-health, .boss-shadow').forEach(el => el.remove());
+  area.classList.add('theme-archivequest');
+
+  const SPACING = 1430;
+  const FIRST_X = 900;
+
+  // Source Blocks: same question-gate logic, redesigned as historical source blocks.
+  G.platforms = [];
+  for(let i=0; i<8; i++){
+    const worldX = FIRST_X + i * SPACING;
+    const el = document.createElement('div');
+    el.className = 'platform armed source-block';
+    const lbl = document.createElement('div');
+    lbl.className = 'platform-label';
+    lbl.textContent = 'SOURCE ' + (i+1);
+    el.appendChild(lbl);
+    area.appendChild(el);
+    G.platforms.push({ el, lbl, worldX, idx:i, cleared:false, armed:true, width:86, height:86 });
+  }
+
+  // Finish: courthouse/debate stand vibe using existing grandstand parts.
+  const fEl = document.createElement('div');
+  fEl.className = 'finish-platform';
+  fEl.innerHTML = `
+    <div class="fp-post-l"></div><div class="fp-post-r"></div><div class="fp-bar"></div>
+    <div class="fp-banner">ARCHIVE</div>
+    <div class="fp-bunting"><div class="swag blue"></div><div class="swag white"></div><div class="swag red"></div><div class="swag white"></div><div class="swag blue"></div></div>
+    <div class="fp-base"></div>`;
+  area.appendChild(fEl);
+  G.finishPlatform = { el:fEl, worldX: FINISH - 200, width:120, height:170 };
+
+  // Wider, more meaningful gaps so route choice matters.
+  G.pits = [
+    { worldX: FIRST_X + SPACING * 1 + 840, width: 150 },
+    { worldX: FIRST_X + SPACING * 3 + 760, width: 190 },
+    { worldX: FIRST_X + SPACING * 5 + 620, width: 150 },
+  ];
+  G.pits.forEach(pit => {
+    const el = document.createElement('div');
+    el.className = 'pit';
+    el.style.width = pit.width + 'px';
+    area.appendChild(el);
+    pit.el = el;
+  });
+
+  // Alternate paths: low route = easier jumps but more enemies/spikes; high route = platforming reward path.
+  G.decoPlatforms = [];
+  const decoSpec = [
+    // Opening staircase into the first source block.
+    { worldX:FIRST_X+360, width:95, height:26, bottomOffset:45 },
+    { worldX:FIRST_X+560, width:95, height:26, bottomOffset:90 },
+    // High path over the first rumor zone.
+    { worldX:FIRST_X+SPACING*1+220, width:105, height:24, bottomOffset:115 },
+    { worldX:FIRST_X+SPACING*1+440, width:105, height:24, bottomOffset:150 },
+    { worldX:FIRST_X+SPACING*1+660, width:105, height:24, bottomOffset:115 },
+    // Bridge over pit 1.
+    { worldX:FIRST_X+SPACING*1+835, width:60, height:22, bottomOffset:70 },
+    { worldX:FIRST_X+SPACING*1+925, width:60, height:22, bottomOffset:100 },
+    { worldX:FIRST_X+SPACING*1+1015,width:60, height:22, bottomOffset:70 },
+    // Mid-level split path: top route bypasses archive crates.
+    { worldX:FIRST_X+SPACING*2+370, width:110, height:24, bottomOffset:135 },
+    { worldX:FIRST_X+SPACING*2+610, width:110, height:24, bottomOffset:175 },
+    { worldX:FIRST_X+SPACING*2+850, width:110, height:24, bottomOffset:135 },
+    // Wide gap / rooftop route.
+    { worldX:FIRST_X+SPACING*3+710, width:70, height:22, bottomOffset:80 },
+    { worldX:FIRST_X+SPACING*3+820, width:70, height:22, bottomOffset:125 },
+    { worldX:FIRST_X+SPACING*3+930, width:70, height:22, bottomOffset:80 },
+    // Long optional balcony with seals.
+    { worldX:FIRST_X+SPACING*4+250, width:120, height:24, bottomOffset:130 },
+    { worldX:FIRST_X+SPACING*4+490, width:120, height:24, bottomOffset:165 },
+    { worldX:FIRST_X+SPACING*4+730, width:120, height:24, bottomOffset:130 },
+    // Final zig-zag: less linear end section.
+    { worldX:FIRST_X+SPACING*6+250, width:85, height:24, bottomOffset:85 },
+    { worldX:FIRST_X+SPACING*6+450, width:85, height:24, bottomOffset:145 },
+    { worldX:FIRST_X+SPACING*6+650, width:85, height:24, bottomOffset:95 },
+    { worldX:FIRST_X+SPACING*6+880, width:100,height:24, bottomOffset:155 },
+  ];
+  decoSpec.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'deco-platform archive-path';
+    el.style.width = d.width + 'px';
+    el.style.height = d.height + 'px';
+    el.style.bottom = (GROUND_HEIGHT + d.bottomOffset) + 'px';
+    area.appendChild(el);
+    G.decoPlatforms.push({ el, worldX:d.worldX, width:d.width, height:d.height, bottomOffset:d.bottomOffset });
+  });
+
+  // Rumor gremlins use sentry mechanics but fit the history theme.
+  G.enemies = [];
+  const rawGremlins = [
+    { worldX:FIRST_X+SPACING*1+350, patrolMin:FIRST_X+SPACING*1+180, patrolMax:FIRST_X+SPACING*1+760, vx:-1.35 },
+    { worldX:FIRST_X+SPACING*2+330, patrolMin:FIRST_X+SPACING*2+180, patrolMax:FIRST_X+SPACING*2+560, vx:-1.45 },
+    { worldX:FIRST_X+SPACING*4+500, patrolMin:FIRST_X+SPACING*4+260, patrolMax:FIRST_X+SPACING*4+900, vx:-1.55 },
+    { worldX:FIRST_X+SPACING*6+520, patrolMin:FIRST_X+SPACING*6+300, patrolMax:FIRST_X+SPACING*6+920, vx:-1.65 },
+  ];
+  rawGremlins.forEach(sp => {
+    const clamped = clampPatrolToPits(sp);
+    const el = document.createElement('div');
+    el.className = 'enemy sentry rumor-gremlin';
+    el.innerHTML = RUMOR_GREMLIN_SVG;
+    area.appendChild(el);
+    G.enemies.push({ el, type:'sentry', worldX:clamped.worldX, vx:clamped.vx, patrolMin:clamped.patrolMin, patrolMax:clamped.patrolMax, dead:false });
+  });
+
+  // Archive crates = stand-on-able bigblocks; spikes are still quick hazard reads.
+  G.obstacles = [];
+  const obstacleSpec = [
+    { type:'spike', worldX:FIRST_X+SPACING*0+760 },
+    { type:'bigblock', worldX:FIRST_X+SPACING*2+700 },
+    { type:'bigblock', worldX:FIRST_X+SPACING*2+775 },
+    { type:'spike', worldX:FIRST_X+SPACING*2+940 },
+    { type:'spike', worldX:FIRST_X+SPACING*3+520 },
+    { type:'spike', worldX:FIRST_X+SPACING*3+580 },
+    { type:'bigblock', worldX:FIRST_X+SPACING*5+230 },
+    { type:'spike', worldX:FIRST_X+SPACING*5+370 },
+    { type:'spike', worldX:FIRST_X+SPACING*6+1040 },
+    { type:'spike', worldX:FIRST_X+SPACING*6+1100 },
+  ];
+  obstacleSpec.forEach(o => {
+    if(G.pits.some(p => o.worldX > p.worldX - 45 && o.worldX < p.worldX + p.width + 45)) return;
+    const el = document.createElement('div');
+    el.className = 'obstacle ' + o.type + (o.type === 'bigblock' ? ' archive-crate' : '');
+    area.appendChild(el);
+    const w = o.type === 'spike' ? 34 : 54;
+    const h = o.type === 'spike' ? 42 : 52;
+    G.obstacles.push({ el, type:o.type, worldX:o.worldX, width:w, height:h });
+  });
+
+  // Gold Seals: ground path + high-route bonus trails.
+  G.coins = [];
+  const coinSpots = [];
+  for(let i=0; i<7; i++){
+    const baseX = FIRST_X + i * SPACING + 710;
+    coinSpots.push({worldX:baseX, y:60},{worldX:baseX+34, y:60},{worldX:baseX+68, y:60});
+  }
+  [
+    [1,250,140],[1,470,180],[1,690,140],
+    [2,390,165],[2,630,205],[2,870,165],
+    [4,285,160],[4,525,200],[4,765,160],
+    [6,270,115],[6,470,175],[6,670,125],[6,900,185]
+  ].forEach(([seg,off,y])=>coinSpots.push({worldX:FIRST_X+SPACING*seg+off,y}));
+  coinSpots.forEach(c => {
+    if(G.pits.some(p => c.worldX > p.worldX - 25 && c.worldX < p.worldX + p.width + 25 && c.y < 90)) return;
+    const el = document.createElement('div');
+    el.className = 'coin gold-seal';
+    area.appendChild(el);
+    G.coins.push({ el, worldX:c.worldX, y:c.y, collected:false });
+  });
+
+  // More stylized clouds.
+  refs.skyClouds.innerHTML = '';
+  for(let i=0; i<7; i++){
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    const w = 55 + Math.random() * 85;
+    c.style.width = w + 'px';
+    c.style.height = (w * 0.42) + 'px';
+    c.style.left = (5 + Math.random() * 90) + '%';
+    c.style.top = (4 + Math.random() * 34) + '%';
+    refs.skyClouds.appendChild(c);
+  }
+
+  refs.msg.innerHTML = 'Archive Quest prototype: try the high routes for bonus seals, or stay low and fight through rumor gremlins.';
+  refs.msg.classList.add('visible','prototype-note');
+  setTimeout(() => refs.msg.classList.remove('visible','prototype-note'), 4200);
+}
+
+
+// ────────────────────────────────────────────────────────────────
+// UNIT 1 POLISH PASS — keep 1-1, then make 1-2/1-3/1-4 match it.
+// Fixes:
+//   • Round 1-2/1-3/1-4 no longer visually rely on the old sentry enemy.
+//   • Bias Bats are introduced clearly in 1-3 and return in the castle.
+//   • Source Block / Gold Seal styling carries across Unit 1.
+//   • Bonus seal trails snap above nearby platforms so they don't float awkwardly.
+// ────────────────────────────────────────────────────────────────
+function applyUnit1VisualPolish(refs, roundId){
+  const area = refs.area;
+
+  // All Unit 1 question gates should now read as Source Blocks.
+  (G.platforms || []).forEach((p, i) => {
+    p.el.classList.add('source-block');
+    if(p.lbl){ p.lbl.textContent = 'SOURCE ' + (i + 1); }
+  });
+
+  // All collectibles become Gold Seals.
+  (G.coins || []).forEach(c => c.el && c.el.classList.add('gold-seal'));
+
+  // Fix misaligned floating seals: if a seal is intended as a platform reward,
+  // place it just above the closest platform top instead of using hard-coded y.
+  const platforms = (G.decoPlatforms || []).filter(Boolean);
+  (G.coins || []).forEach(c => {
+    let best = null;
+    let bestDx = Infinity;
+    for(const d of platforms){
+      const left = d.worldX - 18;
+      const right = d.worldX + d.width + 18;
+      if(c.worldX >= left && c.worldX <= right){
+        const center = d.worldX + d.width / 2;
+        const dx = Math.abs(c.worldX - center);
+        if(dx < bestDx){ best = d; bestDx = dx; }
+      }
+    }
+    if(best && c.y > 80){
+      c.y = best.bottomOffset + best.height + 14;
+    }
+  });
+}
+
+function makeRumorGremlinEnemy(area, sp){
+  const clamped = clampPatrolToPits(sp);
+  const el = document.createElement('div');
+  el.className = 'enemy sentry rumor-gremlin';
+  el.innerHTML = RUMOR_GREMLIN_SVG;
+  area.appendChild(el);
+  return {
+    el, type:'sentry',
+    worldX:clamped.worldX, vx:clamped.vx,
+    patrolMin:clamped.patrolMin, patrolMax:clamped.patrolMax,
+    dead:false
+  };
+}
+
+function makeBiasBatEnemy(area, sp){
+  const el = document.createElement('div');
+  el.className = 'enemy bias-bat';
+  el.innerHTML = BIAS_BAT_SVG;
+  area.appendChild(el);
+  return {
+    el, type:'biasbat',
+    worldX:sp.worldX,
+    vx:sp.vx || -1.15,
+    patrolMin:sp.patrolMin,
+    patrolMax:sp.patrolMax,
+    baseY:sp.baseY || 150,
+    y:sp.baseY || 150,
+    amp:sp.amp || 28,
+    phase:sp.phase || 0,
+    dead:false
+  };
+}
+
+function replaceSentriesWithRumorGremlins(area, label){
+  const updated = [];
+  (G.enemies || []).forEach((e, idx) => {
+    if(e.type === 'sentry'){
+      if(e.el && e.el.parentNode) e.el.remove();
+      updated.push(makeRumorGremlinEnemy(area, {
+        worldX:e.worldX,
+        patrolMin:e.patrolMin,
+        patrolMax:e.patrolMax,
+        vx:e.vx || -1.35
+      }));
+    }else{
+      updated.push(e);
+    }
+  });
+  G.enemies = updated;
+}
+
+function addRound13BiasBats(area){
+  const FIRST_X = 900;
+  const SPACING = 1350;
+  const batSpecs = [
+    { worldX:FIRST_X + SPACING*2 + 650, patrolMin:FIRST_X + SPACING*2 + 420, patrolMax:FIRST_X + SPACING*2 + 920, baseY:165, amp:34, vx:-1.05, phase:0.4 },
+    { worldX:FIRST_X + SPACING*4 + 520, patrolMin:FIRST_X + SPACING*4 + 300, patrolMax:FIRST_X + SPACING*4 + 880, baseY:190, amp:38, vx:-1.20, phase:1.8 },
+    { worldX:FIRST_X + SPACING*6 + 650, patrolMin:FIRST_X + SPACING*6 + 420, patrolMax:FIRST_X + SPACING*6 + 980, baseY:155, amp:30, vx:-1.15, phase:2.7 },
+  ];
+  batSpecs.forEach(sp => G.enemies.push(makeBiasBatEnemy(area, sp)));
+}
+
+function addRound14BiasBats(area){
+  const FIRST_X = 900;
+  const SPACING = 1080;
+  const batSpecs = [
+    { worldX:FIRST_X + SPACING*3 + 520, patrolMin:FIRST_X + SPACING*3 + 280, patrolMax:FIRST_X + SPACING*3 + 820, baseY:170, amp:30, vx:-1.2, phase:1.1 },
+    { worldX:FIRST_X + SPACING*7 + 450, patrolMin:FIRST_X + SPACING*7 + 230, patrolMax:FIRST_X + SPACING*7 + 760, baseY:190, amp:36, vx:-1.25, phase:2.2 },
+  ];
+  batSpecs.forEach(sp => G.enemies.push(makeBiasBatEnemy(area, sp)));
+}
+
+function convertCastleSentriesToRedeemers(area){
+  // v3: remove the old Lincoln/top-hat style ground enemies from the castle.
+  // Ground patrols now become Backlash Gremlins so 1-4 visually matches the
+  // redesigned history-fantasy enemy set instead of the original sentries.
+  const updated = [];
+  (G.enemies || []).forEach((e) => {
+    if(e.type === 'sentry' || e.type === 'redeemer'){
+      if(e.el && e.el.parentNode) e.el.remove();
+      const clamped = clampPatrolToPits({
+        worldX:e.worldX,
+        patrolMin:e.patrolMin || e.worldX - 120,
+        patrolMax:e.patrolMax || e.worldX + 120,
+        vx:e.vx || -1.25
+      });
+      const el = document.createElement('div');
+      el.className = 'enemy sentry rumor-gremlin backlash-gremlin';
+      el.innerHTML = RUMOR_GREMLIN_SVG;
+      area.appendChild(el);
+      updated.push({
+        el, type:'sentry',
+        worldX:clamped.worldX, vx:Math.max(-1.35, Math.min(1.35, clamped.vx)),
+        patrolMin:clamped.patrolMin, patrolMax:clamped.patrolMax,
+        dead:false
+      });
+    }else{
+      updated.push(e);
+    }
+  });
+  G.enemies = updated;
+}
+
+function normalizeGoldSealAlignment(){
+  // v3: platform reward seals now snap to the centerline of the platform
+  // they belong to, then spread evenly. This fixes the awkward off-center
+  // floating clusters on the small stepping stones.
+  const platforms = (G.decoPlatforms || []).filter(d => d && typeof d.worldX === 'number');
+  if(!platforms.length || !G.coins) return;
+  const groups = new Map();
+  (G.coins || []).forEach(c => {
+    if(!c || c.collected || c.y <= 80) return;
+    let best = null;
+    let bestScore = Infinity;
+    for(const d of platforms){
+      const center = d.worldX + d.width / 2;
+      const dx = Math.abs(c.worldX - center);
+      const within = c.worldX >= d.worldX - 90 && c.worldX <= d.worldX + d.width + 90;
+      if(within && dx < bestScore){ best = d; bestScore = dx; }
+    }
+    if(!best) return;
+    const key = best.worldX + ':' + best.width + ':' + best.bottomOffset;
+    if(!groups.has(key)) groups.set(key, { platform: best, coins: [] });
+    groups.get(key).coins.push(c);
+  });
+  groups.forEach(group => {
+    const d = group.platform;
+    const topY = d.bottomOffset + d.height;
+    const center = d.worldX + d.width / 2;
+    const coins = group.coins.sort((a,b)=>a.worldX-b.worldX).slice(0,5);
+    const gap = Math.min(34, Math.max(26, d.width / Math.max(1, coins.length)));
+    coins.forEach((c, i) => {
+      c.worldX = center + (i - (coins.length - 1) / 2) * gap;
+      c.y = topY + 18;
+    });
+  });
+}
+
+// Save the original authored builders, then wrap them.
+const ORIGINAL_BUILDERS_UNIT1 = {
+  '1-2': buildRound1_2,
+  '1-3': buildRound1_3,
+  '1-4': buildRound1_4_castle,
+};
+
+function buildRound1_2_polished(refs){
+  ORIGINAL_BUILDERS_UNIT1['1-2'](refs);
+  const area = refs.area;
+  replaceSentriesWithRumorGremlins(area, '1-2');
+  applyUnit1VisualPolish(refs, '1-2');
+  normalizeGoldSealAlignment();
+  refs.msg.textContent = 'Round 1-2 adds cannons: low shots must be jumped, high shots must be ducked.';
+  refs.msg.classList.add('visible');
+  setTimeout(() => refs.msg.classList.remove('visible'), 3400);
+}
+
+function buildRound1_3_polished(refs){
+  ORIGINAL_BUILDERS_UNIT1['1-3'](refs);
+  const area = refs.area;
+  replaceSentriesWithRumorGremlins(area, '1-3');
+  addRound13BiasBats(area);
+  applyUnit1VisualPolish(refs, '1-3');
+  normalizeGoldSealAlignment();
+  refs.msg.textContent = 'New enemy: Bias Bats fly in a wave pattern. Watch the air, not just the ground.';
+  refs.msg.classList.add('visible');
+  setTimeout(() => refs.msg.classList.remove('visible'), 3800);
+}
+
+function buildRound1_4_castle_polished(refs){
+  ORIGINAL_BUILDERS_UNIT1['1-4'](refs);
+  const area = refs.area;
+  convertCastleSentriesToRedeemers(area);
+  addRound14BiasBats(area);
+  applyUnit1VisualPolish(refs, '1-4');
+  normalizeGoldSealAlignment();
+  if(G.boss){
+    // v3: clean boss arena. Once the player reaches the final stretch,
+    // the only challenge should be the boss, not a spike/enemy/projectile pileup.
+    const arenaStart = G.boss.worldX - 760;
+    G.obstacles = (G.obstacles || []).filter(o => {
+      const keep = o.worldX < arenaStart;
+      if(!keep && o.el && o.el.parentNode) o.el.remove();
+      return keep;
+    });
+    G.enemies = (G.enemies || []).filter(e => {
+      const keep = e.worldX < arenaStart || e.type === 'biasbat';
+      if(!keep && e.el && e.el.parentNode) e.el.remove();
+      return keep;
+    });
+    G.boss.health = 4;
+    G.boss.maxHealth = 4;
+    G.boss.nextJumpAt = Date.now() + 2200;
+    G.boss.nextShotAt = Date.now() + 3200;
+    if(G.boss.healthFill) G.boss.healthFill.style.width = '100%';
+    const label = G.boss.healthEl && G.boss.healthEl.querySelector('.boss-health-label');
+    if(label) label.textContent = 'RESISTANCE';
+  }
+  refs.msg.textContent = 'Castle boss: Resistance jumps, lands with shockwaves, and fires high/low policy attacks.';
+  refs.msg.classList.add('visible');
+  setTimeout(() => refs.msg.classList.remove('visible'), 4200);
+}
+
+// Patch all Unit 1 builders before boot.
+if(typeof ROUND_BUILDERS !== 'undefined'){
+  ROUND_BUILDERS['1-1'] = buildRound1_1_archiveQuestPrototype;
+  ROUND_BUILDERS['1-2'] = buildRound1_2_polished;
+  ROUND_BUILDERS['1-3'] = buildRound1_3_polished;
+  ROUND_BUILDERS['1-4'] = buildRound1_4_castle_polished;
 }
 
 boot();
