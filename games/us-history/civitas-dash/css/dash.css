@@ -1,0 +1,1761 @@
+/* Civitas Dash styles extracted from original single-file prototype. */
+
+:root{
+  --sky:#a8d8e8; --sky2:#fce598;
+  --grass:#5a7a4a; --grass2:#3a8a30;
+  --ground:#7a5018; --ground2:#5a3010;
+  --paper:#fff8e0; --paper2:#f7eed4; --paper3:#e8d4a0;
+  --paper-edge:#7a5018;
+  --bg:#2c1f14; --bg2:#3a2a1a; --bg3:#4a3525;
+  --border:#5c4030; --border2:#7a5840;
+  --gold:#d4a850; --gold2:#a87830; --gold3:#fce598;
+  --red:#c83020; --red2:#8b1a1a; --red3:#5a0808;
+  --green:#5a8a30; --green2:#3a5a18;
+  --blue:#1f3656; --blue2:#3060a8;
+  --text:#1a0e08; --text2:#3a2510; --text3:#5a4030; --textOnDark:#fce598;
+  --bebas:'Bebas Neue',sans-serif;
+  --playfair:'Playfair Display',serif;
+  --crimson:'Crimson Text',serif;
+  --georgia:Georgia,serif;
+  --dm:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--georgia);background:var(--sky);color:var(--text);}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+
+.app{width:100vw;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--sky);}
+
+/* ── TOP BAR ─────────────────────────────────────────────── */
+.topbar{
+  background:linear-gradient(180deg,#2c1f14,#3a2a1a);color:var(--textOnDark);
+  padding:10px 20px;border-bottom:3px solid var(--gold);
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  font-family:var(--bebas);flex-shrink:0;z-index:10;
+}
+.title-block{display:flex;align-items:center;gap:12px;}
+.seal{
+  width:38px;height:38px;border:2px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#3a2a1a 0%,#2c1f14 100%);
+  color:var(--gold3);font-family:var(--playfair);font-size:18px;font-weight:bold;font-style:italic;
+}
+.title-text h1{font-family:var(--playfair);font-style:italic;font-size:1.2rem;letter-spacing:1px;font-weight:900;color:var(--gold3);}
+.title-text .subtitle{font-family:var(--bebas);font-size:.78rem;letter-spacing:3px;color:var(--gold);}
+.nav{display:flex;gap:6px;}
+.nav-btn{
+  font-family:var(--bebas);color:var(--textOnDark);
+  padding:6px 14px;border:1px solid transparent;border-radius:2px;
+  font-size:.95rem;letter-spacing:2px;
+}
+.nav-btn:hover{border-color:var(--gold);background:rgba(212,168,80,.1);}
+.nav-btn.active{border-color:var(--gold);background:rgba(212,168,80,.2);color:var(--gold3);}
+.identity-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;background:rgba(212,168,80,.1);
+  border:1px solid var(--gold2);font-family:var(--bebas);font-size:.78rem;letter-spacing:2px;
+}
+.ident-name{color:var(--gold3);}
+.ident-period{color:var(--gold);}
+.ident-progress{
+  font-family:var(--georgia);font-style:italic;color:var(--gold3);font-size:.72rem;letter-spacing:0;
+  margin-left:6px;border-left:1px solid var(--gold2);padding-left:8px;
+}
+
+/* ── SCREEN SYSTEM ───────────────────────────────────────── */
+.screen{flex:1;min-height:0;position:relative;overflow:auto;display:none;}
+.screen.active{display:block;}
+
+/* ── LOADING OVERLAY ─────────────────────────────────────── */
+.loading-overlay{
+  position:absolute;inset:0;background:linear-gradient(180deg,#2c1f14,#1a0e08);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;color:var(--gold3);
+}
+.loading-overlay.hidden{display:none;}
+.loading-seal{
+  width:80px;height:80px;border:3px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#3a2a1a 0%,#1a0e08 100%);
+  color:var(--gold3);font-family:var(--playfair);font-size:36px;font-weight:bold;font-style:italic;
+  margin-bottom:24px;animation:loadingPulse 1.6s ease-in-out infinite;
+}
+@keyframes loadingPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(212,168,80,.4);}
+  50%{box-shadow:0 0 32px 8px rgba(212,168,80,.6);}
+}
+.loading-title{font-family:var(--playfair);font-style:italic;font-size:1.6rem;color:var(--gold3);margin-bottom:8px;}
+.loading-msg{font-family:var(--georgia);font-style:italic;font-size:1rem;color:var(--gold);max-width:400px;text-align:center;}
+
+/* ── PLACEHOLDER SCREENS (Chunk 2+ replaces) ─────────────── */
+.world-map{padding:30px 40px;max-width:1100px;margin:0 auto;position:relative;z-index:5;}
+.unit-header{text-align:center;margin-bottom:30px;padding-bottom:18px;border-bottom:1px solid var(--gold2);}
+.unit-eyebrow{font-family:var(--bebas);font-size:.85rem;letter-spacing:4px;color:var(--gold2);}
+.unit-title{font-family:var(--playfair);font-style:italic;font-size:2.4rem;color:var(--text);margin:6px 0 4px;font-weight:900;}
+.unit-question{font-style:italic;color:var(--text2);font-size:1.05rem;}
+
+.placeholder-card{
+  background:var(--paper);border:1px solid var(--paper-edge);padding:22px;margin-bottom:14px;
+  position:relative;
+}
+.placeholder-card .badge{
+  display:inline-block;font-family:var(--bebas);letter-spacing:2px;font-size:.7rem;
+  padding:3px 10px;background:var(--gold);color:var(--text);margin-bottom:8px;
+}
+.placeholder-card h3{font-family:var(--playfair);font-style:italic;color:var(--text);font-size:1.15rem;margin-bottom:6px;}
+.placeholder-card p{font-family:var(--georgia);color:var(--text2);font-size:.95rem;line-height:1.5;}
+.placeholder-card.locked{opacity:.55;}
+.placeholder-card.locked::before{
+  content:'LOCKED';position:absolute;top:14px;right:18px;
+  font-family:var(--bebas);letter-spacing:2px;font-size:.7rem;color:var(--text3);
+}
+
+.kv-list{margin-top:12px;font-family:'Courier New',monospace;font-size:.78rem;color:var(--text3);}
+.kv-list div{display:flex;gap:8px;padding:2px 0;}
+.kv-list .k{color:var(--text2);font-weight:bold;min-width:160px;}
+.kv-list .v{color:var(--text);}
+
+/* ── FOOTER / DEBUG TOGGLE ───────────────────────────────── */
+.footer-bar{
+  background:linear-gradient(180deg,#3a2a1a,#2c1f14);color:var(--gold);
+  padding:8px 20px;font-family:var(--bebas);font-size:.75rem;letter-spacing:1.5px;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-top:1px solid var(--gold2);
+}
+.footer-bar button{
+  font-family:var(--bebas);color:var(--gold);border:1px solid transparent;
+  padding:3px 10px;font-size:.75rem;letter-spacing:1.5px;
+}
+.footer-bar button:hover{border-color:var(--gold2);background:rgba(212,168,80,.1);}
+
+.debug-panel{
+  position:fixed;bottom:46px;right:14px;
+  width:420px;max-width:calc(100vw - 28px);max-height:60vh;overflow:auto;
+  background:rgba(20,15,8,.97);color:var(--gold3);
+  border:1px solid var(--gold);padding:14px;
+  font-family:'Courier New',monospace;font-size:11px;
+  z-index:9000;display:none;
+}
+.debug-panel.visible{display:block;}
+.debug-panel pre{white-space:pre-wrap;word-break:break-all;color:var(--gold3);}
+.debug-panel h4{font-family:var(--bebas);color:var(--gold);margin-bottom:8px;letter-spacing:2px;font-size:13px;border-bottom:1px solid var(--gold2);padding-bottom:4px;}
+.debug-panel .debug-section{margin-bottom:14px;}
+.debug-panel .debug-action{
+  display:inline-block;font-family:var(--bebas);font-size:11px;letter-spacing:1.5px;
+  padding:4px 10px;border:1px solid var(--gold);color:var(--gold);margin:6px 4px 0 0;cursor:pointer;
+}
+.debug-panel .debug-action:hover{background:rgba(212,168,80,.15);}
+
+/* ════════════════════════════════════════════════════════════════
+   CHUNK 2 — World map (Mario 3 path style) + Unit entry screen
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── World-map screen background: sky gradient + soft hills ─── */
+#screen-worldMap{
+  background:linear-gradient(180deg, var(--sky) 0%, #c8e8d8 55%, var(--sky2) 100%);
+}
+.wm-stage{
+  position:relative;max-width:1180px;margin:0 auto;padding:24px 24px 60px;
+}
+.wm-header{text-align:center;margin-bottom:18px;}
+.wm-header .eyebrow{font-family:var(--bebas);font-size:.78rem;letter-spacing:4px;color:var(--text2);}
+.wm-header h2{font-family:var(--playfair);font-style:italic;font-size:2rem;color:var(--text);margin:4px 0 2px;font-weight:900;}
+.wm-header .sub{font-style:italic;color:var(--text2);font-size:.95rem;}
+
+.wm-progress-banner{
+  margin:14px auto 24px;max-width:640px;background:rgba(255,248,224,.7);
+  border:1px solid var(--gold2);padding:10px 18px;
+  display:flex;justify-content:space-around;align-items:center;gap:18px;flex-wrap:wrap;
+  font-family:var(--bebas);letter-spacing:2px;font-size:.85rem;color:var(--text2);
+}
+.wm-progress-banner b{font-family:var(--playfair);font-size:1.4rem;color:var(--text);font-weight:900;font-style:italic;letter-spacing:0;}
+
+/* The map itself: SVG fills the container, circles overlay it */
+.wm-map{
+  position:relative;width:100%;
+  /* Tall enough to fit 3 rows of circles */
+  min-height:540px;
+}
+.wm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+/* Era-themed circles, absolutely positioned */
+.wm-node{
+  position:absolute;width:88px;height:88px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  cursor:pointer;transition:transform .2s ease;
+}
+.wm-node:hover{transform:scale(1.06);}
+.wm-node.locked{cursor:not-allowed;}
+.wm-node.locked:hover{transform:none;}
+
+.wm-circle{
+  width:68px;height:68px;border-radius:50%;
+  border:3px solid var(--text);box-shadow:0 3px 0 rgba(0,0,0,.35), inset 0 -3px 0 rgba(0,0,0,.18);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--era-color, #8b4513);
+  position:relative;
+  color:#fff;
+}
+.wm-circle .wm-icon{
+  width:42px;height:42px;display:block;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));
+}
+.wm-circle .wm-icon svg{width:100%;height:100%;display:block;}
+.wm-num-badge{
+  position:absolute;bottom:-4px;right:-4px;
+  width:24px;height:24px;border-radius:50%;
+  background:#fff8e0;border:2px solid var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--playfair);font-style:italic;font-weight:900;font-size:.85rem;color:var(--text);
+  line-height:1;
+}
+.wm-node.locked .wm-circle{
+  background:#9a8a7a !important;border-color:#5c4030;
+}
+.wm-node.locked .wm-circle .wm-icon{opacity:.55;}
+.wm-node.locked .wm-num-badge{background:#d8c8b8;color:var(--text3);border-color:#5c4030;}
+.wm-node.unlocked .wm-circle{
+  animation:wmPulse 2.4s ease-in-out infinite;
+}
+@keyframes wmPulse{
+  0%,100%{box-shadow:0 3px 0 rgba(0,0,0,.35), inset 0 -3px 0 rgba(0,0,0,.18), 0 0 0 0 rgba(252,229,152,.6);}
+  50%{box-shadow:0 3px 0 rgba(0,0,0,.35), inset 0 -3px 0 rgba(0,0,0,.18), 0 0 0 8px rgba(252,229,152,0);}
+}
+
+.wm-node .wm-completed-mark{
+  position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold3);border:2px solid var(--text2);
+  display:flex;align-items:center;justify-content:center;color:var(--text);
+  font-family:var(--bebas);font-size:.7rem;font-weight:bold;line-height:1;
+  z-index:2;
+}
+
+.wm-node .wm-name{
+  font-family:var(--playfair);font-style:italic;font-size:.78rem;color:var(--text);
+  margin-top:6px;text-align:center;line-height:1.1;font-weight:700;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);
+  max-width:130px;
+}
+.wm-node .wm-years{
+  font-family:var(--bebas);letter-spacing:1px;font-size:.6rem;color:var(--text3);
+  margin-top:1px;
+}
+
+/* Tooltip box that appears on hover for unlocked / next-up nodes */
+.wm-tip{
+  position:absolute;top:-72px;left:50%;transform:translateX(-50%);
+  background:rgba(28,18,10,.95);color:var(--gold3);
+  padding:8px 12px;min-width:160px;max-width:240px;
+  font-family:var(--georgia);font-size:.78rem;line-height:1.35;
+  border:1px solid var(--gold2);
+  pointer-events:none;opacity:0;transition:opacity .15s;
+  z-index:10;text-align:center;
+}
+.wm-tip::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--gold2);
+}
+.wm-node:hover .wm-tip{opacity:1;}
+.wm-tip .tip-title{font-family:var(--playfair);font-style:italic;font-weight:700;font-size:.9rem;color:var(--gold3);display:block;margin-bottom:2px;}
+.wm-tip .tip-meta{font-family:var(--bebas);letter-spacing:2px;font-size:.65rem;color:var(--gold);}
+
+/* ── UNIT ENTRY screen: 4 round cards for a selected world ───── */
+#screen-unitEntry{
+  background:linear-gradient(180deg, var(--sky2) 0%, #fff8e0 100%);
+}
+.ue-stage{max-width:1100px;margin:0 auto;padding:24px;}
+.ue-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--bebas);letter-spacing:2px;font-size:.85rem;color:var(--text2);
+  padding:6px 14px;border:1px solid var(--gold2);background:rgba(255,248,224,.6);
+  margin-bottom:16px;
+}
+.ue-back:hover{background:rgba(212,168,80,.15);color:var(--text);}
+
+.ue-header{text-align:center;margin:8px 0 26px;padding-bottom:16px;border-bottom:1px solid var(--gold2);}
+.ue-eyebrow{font-family:var(--bebas);letter-spacing:4px;font-size:.85rem;color:var(--gold2);}
+.ue-title{font-family:var(--playfair);font-style:italic;font-size:2.4rem;color:var(--text);margin:4px 0 2px;font-weight:900;}
+.ue-years{font-family:var(--bebas);letter-spacing:3px;font-size:.85rem;color:var(--text3);}
+.ue-blurb{font-family:var(--georgia);font-style:italic;color:var(--text2);font-size:1rem;max-width:600px;margin:8px auto 0;line-height:1.5;}
+
+.ue-rounds{
+  display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;
+  margin-top:8px;
+}
+.ue-round{
+  background:#fff8e0;border:2px solid var(--blue);
+  padding:18px 16px;cursor:pointer;position:relative;
+  transition:transform .15s, box-shadow .15s;
+}
+.ue-round:hover{transform:translateY(-2px);box-shadow:0 4px 0 rgba(0,0,0,.1);}
+.ue-round.locked{
+  background:#e8d4a0;border-color:var(--text3);border-style:dashed;
+  opacity:.6;cursor:not-allowed;
+}
+.ue-round.locked:hover{transform:none;box-shadow:none;}
+.ue-round.castle{
+  background:#5a0808;border-color:#3a0404;color:var(--gold3);
+}
+.ue-round.castle.locked{background:#5a0808;opacity:.6;}
+.ue-round .round-num{font-family:var(--bebas);letter-spacing:3px;font-size:.85rem;color:var(--blue);}
+.ue-round.castle .round-num{color:var(--gold3);}
+.ue-round.locked .round-num{color:var(--text3);}
+.ue-round .round-title{font-family:var(--playfair);font-style:italic;font-size:1.15rem;font-weight:700;color:var(--text);margin:4px 0;line-height:1.2;}
+.ue-round.castle .round-title{color:var(--gold3);}
+.ue-round.locked .round-title{color:var(--text3);}
+.ue-round .round-sub{font-family:var(--georgia);font-size:.82rem;color:var(--text2);font-style:italic;}
+.ue-round.castle .round-sub{color:#f4d8a0;}
+.ue-round.locked .round-sub{color:var(--text3);}
+.ue-round .round-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:14px;font-family:var(--bebas);letter-spacing:2px;font-size:.7rem;color:var(--text3);
+}
+.ue-round.castle .round-meta{color:#f4d8a0;}
+.ue-round .stars{font-family:var(--georgia);font-size:1rem;letter-spacing:2px;}
+.ue-round .stars.earned{color:var(--gold);}
+.ue-round .stars.empty{color:var(--text3);opacity:.4;}
+.ue-round.castle .stars.earned{color:var(--gold3);}
+
+.ue-round .lock-badge{
+  position:absolute;top:10px;right:12px;
+  font-family:var(--bebas);letter-spacing:2px;font-size:.65rem;
+}
+
+@media (max-width:600px){
+  .topbar{padding:8px 12px;}
+  .title-text h1{font-size:1rem;}
+  .nav-btn{padding:5px 10px;font-size:.8rem;}
+  .world-map{padding:20px 16px;}
+  .unit-title{font-size:1.7rem;}
+  .identity-pill{font-size:.7rem;}
+  .wm-stage{padding:14px 8px 40px;}
+  .wm-header h2{font-size:1.5rem;}
+  .wm-progress-banner{padding:8px 12px;font-size:.75rem;}
+  .wm-progress-banner b{font-size:1.15rem;}
+  .wm-map{min-height:600px;}
+  .wm-circle{width:58px;height:58px;}
+  .wm-circle .wm-icon{width:36px;height:36px;}
+  .wm-num-badge{width:20px;height:20px;font-size:.75rem;}
+  .wm-node{width:74px;height:74px;}
+  .wm-node .wm-name{font-size:.7rem;max-width:100px;}
+  .wm-node .wm-years{font-size:.55rem;}
+  .ue-stage{padding:14px;}
+  .ue-title{font-size:1.6rem;}
+  .ue-rounds{grid-template-columns:1fr;gap:10px;}
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CHUNK 3 — Gameplay (Round 1-1 playable platformer)
+   ════════════════════════════════════════════════════════════════ */
+/* When the game screen is active, hide the topbar and footer for full-bleed play */
+.app.game-active .topbar,
+.app.game-active .footer-bar{display:none;}
+.app.game-active .screen{flex:1 1 auto;}
+#screen-game{
+  background:linear-gradient(180deg,#a8d8e8 0%,#c8e8d8 55%,#fce598 100%);
+  flex-direction:column;
+  position:relative;overflow:hidden;
+}
+/* Override the default .screen.active rule to use flex instead of block */
+#screen-game.active{display:flex;}
+.game-hud{
+  background:linear-gradient(180deg,rgba(20,15,8,.92),rgba(28,20,12,.95));
+  color:var(--gold3);padding:10px 18px;
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  border-bottom:2px solid var(--gold);font-family:var(--bebas);
+  flex-shrink:0;z-index:11;letter-spacing:1.5px;font-size:.78rem;
+}
+.game-hud .hud-title{font-family:var(--playfair);font-style:italic;font-size:.95rem;color:var(--gold3);font-weight:700;letter-spacing:0;}
+.game-hud .hud-subtitle{color:var(--gold);font-size:.7rem;letter-spacing:2px;margin-left:6px;}
+.game-hud .stat-grp{display:flex;gap:18px;flex-wrap:wrap;}
+.game-hud .stat-item strong{color:var(--gold3);font-family:var(--playfair);font-style:italic;font-size:1.1rem;letter-spacing:0;font-weight:900;}
+.game-hud .stat-item strong.hot{
+  color:#fce598;
+  text-shadow:0 0 8px rgba(252,229,152,.8);
+  animation:streakHot 1s ease-in-out infinite;
+}
+@keyframes streakHot{
+  0%,100%{text-shadow:0 0 4px rgba(252,229,152,.6);}
+  50%{text-shadow:0 0 10px rgba(252,229,152,1);}
+}
+.game-hud .lives{display:inline-flex;gap:4px;}
+.life-token{
+  display:inline-block;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fce598,var(--gold) 60%,#7a5e20);
+  border:1px solid #5a4818;
+}
+.life-token.spent{background:#3a2818;opacity:.4;}
+.exit-btn{
+  background:transparent;color:var(--gold3);
+  border:1px solid var(--gold);padding:5px 12px;
+  font-family:var(--bebas);font-size:.72rem;letter-spacing:2px;
+}
+.exit-btn:hover{background:var(--gold);color:var(--bg);}
+
+.game-area{
+  position:relative;flex:1;min-height:0;overflow:hidden;
+  background:transparent;
+}
+.sky-clouds{
+  position:absolute;left:0;right:0;top:0;height:50%;
+  pointer-events:none;z-index:0;
+}
+.cloud{
+  position:absolute;background:#fff;border-radius:50%;opacity:.8;
+}
+.parallax-far{
+  position:absolute;left:0;right:0;bottom:130px;height:60px;
+  pointer-events:none;z-index:1;opacity:.4;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='60' viewBox='0 0 800 60'><path d='M0,60 L0,40 Q40,28 80,38 Q120,22 160,35 Q200,18 240,32 Q280,15 320,30 L360,18 Q400,32 440,25 Q480,12 520,28 Q560,15 600,32 Q640,18 680,30 Q720,12 760,28 L800,30 L800,60 Z' fill='%235a7a4a'/></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.parallax-mid{
+  position:absolute;left:0;right:0;bottom:130px;height:80px;
+  pointer-events:none;z-index:2;opacity:.7;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='80' viewBox='0 0 600 80'><path d='M0,80 L0,55 Q40,40 80,50 Q120,30 160,45 Q200,25 240,42 Q280,30 320,48 L360,32 Q400,48 440,38 Q480,22 520,42 Q560,28 600,45 L600,80 Z' fill='%233a8a30'/></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.ground{
+  position:absolute;left:0;right:0;bottom:0;height:130px;z-index:3;
+  background:linear-gradient(180deg,#7a5018 0%,#5a3010 100%);
+  border-top:3px solid var(--text);
+  --scrollX:0px;
+}
+.ground::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 15% 30%,rgba(20,10,5,.4) 1.5px,transparent 2.5px),
+                   radial-gradient(circle at 35% 60%,rgba(20,10,5,.3) 1.5px,transparent 2.5px),
+                   radial-gradient(circle at 55% 25%,rgba(20,10,5,.4) 2px,transparent 3px),
+                   radial-gradient(circle at 75% 65%,rgba(20,10,5,.3) 1.5px,transparent 2.5px);
+  background-size:140px 70px,110px 60px,160px 80px,120px 65px;
+  background-repeat:repeat;background-position:var(--scrollX) 0;
+  pointer-events:none;
+}
+.ground-track{display:none;}
+
+.player{
+  position:absolute;width:48px;height:60px;
+  left:120px;bottom:130px;z-index:7;
+  transform-origin:center;
+}
+.player svg{width:100%;height:100%;display:block;overflow:visible;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));}
+.player .leg-front,.player .leg-back{transform-origin:50% 0;}
+.player.running .leg-front{animation:runFront .32s linear infinite;}
+.player.running .leg-back{animation:runBack .32s linear infinite;}
+.player.jumping .leg-front{transform:rotate(-30deg);}
+.player.jumping .leg-back{transform:rotate(20deg);}
+.player.flipped svg{transform:scaleX(-1);}
+.player.ducking svg{
+  transform:scaleY(0.55);transform-origin:bottom center;
+}
+.player.ducking.flipped svg{
+  transform:scaleY(0.55) scaleX(-1);transform-origin:bottom center;
+}
+.player.ducking .leg-front,
+.player.ducking .leg-back{
+  /* Stop leg animation while ducked */
+  animation:none !important;
+}
+@keyframes runFront{0%,100%{transform:rotate(-32deg);}50%{transform:rotate(28deg);}}
+@keyframes runBack{0%,100%{transform:rotate(28deg);}50%{transform:rotate(-32deg);}}
+
+.platform{
+  position:absolute;width:80px;height:120px;bottom:130px;z-index:4;
+  background:#c8a060;border:3px solid var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--playfair);font-style:italic;font-size:2.4rem;color:#fce598;
+  font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.5);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.25), 0 3px 0 rgba(0,0,0,.3);
+}
+.platform::after{
+  /* Wood grain texture */
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(122,80,24,0) 0%, rgba(122,80,24,.3) 100%),
+             repeating-linear-gradient(0deg, rgba(58,40,20,.15) 0 1px, transparent 1px 8px);
+  pointer-events:none;
+}
+.platform.armed::before{
+  content:'?';font-family:var(--playfair);font-style:italic;font-size:3rem;
+  color:#fce598;text-shadow:0 2px 3px rgba(0,0,0,.5);
+  animation:platformBob 1.6s ease-in-out infinite;
+  z-index:1;
+}
+@keyframes platformBob{
+  0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}
+}
+.platform.cleared{
+  background:#5a8a30;border-color:#1a3a08;
+}
+.platform.cleared::before{content:'✓';color:#fff;font-family:var(--bebas);font-size:2.4rem;font-style:normal;}
+.platform.castle{background:#5a0808;border-color:#3a0404;}
+.platform.castle::before{color:var(--gold3);}
+
+.platform-label{
+  position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);
+  font-family:var(--bebas);letter-spacing:2px;font-size:.62rem;color:var(--text);
+  background:rgba(255,248,224,.85);padding:2px 8px;
+  border:1px solid var(--text2);
+  white-space:nowrap;
+  z-index:2;
+}
+
+.deco-platform{
+  position:absolute;width:80px;height:30px;bottom:170px;z-index:4;
+  background:#a08458;border:2px solid var(--text);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);
+}
+
+/* ── Finish: Civil War review stand / grandstand with bunting ── */
+.finish-platform{
+  position:absolute;width:120px;height:170px;bottom:130px;z-index:4;
+  /* No backgrounds on the container — the children draw the visual */
+  background:transparent;border:none;box-shadow:none;
+  pointer-events:none;
+  animation:finishPulse 1.6s ease-in-out infinite;
+}
+@keyframes finishPulse{
+  0%,100%{filter:drop-shadow(0 0 12px rgba(252,229,152,.4));}
+  50%{filter:drop-shadow(0 0 24px rgba(252,229,152,.9));}
+}
+/* Posts holding the bunting up */
+.finish-platform .fp-post-l,
+.finish-platform .fp-post-r{
+  position:absolute;bottom:0;width:8px;height:170px;
+  background:linear-gradient(180deg,#a08458,#5a3010);
+  border:1px solid #2a1408;
+}
+.finish-platform .fp-post-l{left:8px;}
+.finish-platform .fp-post-r{right:8px;}
+/* Top finial */
+.finish-platform .fp-post-l::before,
+.finish-platform .fp-post-r::before{
+  content:'';position:absolute;top:-6px;left:-3px;
+  width:14px;height:10px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fce598,#a87830);
+  border:1px solid #5a4010;
+}
+/* Top crossbar */
+.finish-platform .fp-bar{
+  position:absolute;top:6px;left:8px;right:8px;height:10px;
+  background:linear-gradient(180deg,#7a5018,#3a2008);
+  border:1px solid #2a1408;
+}
+/* Banner stretched between the posts */
+.finish-platform .fp-banner{
+  position:absolute;top:18px;left:14px;right:14px;height:34px;
+  background:linear-gradient(180deg,#fce598,var(--gold));
+  border:2px solid var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--bebas);letter-spacing:3px;color:var(--text);
+  font-size:.85rem;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);
+}
+/* Star detail on the banner */
+.finish-platform .fp-banner::before{
+  content:'★';margin-right:6px;color:var(--red3);font-size:.95rem;
+}
+.finish-platform .fp-banner::after{
+  content:'★';margin-left:6px;color:var(--red3);font-size:.95rem;
+}
+/* Red-white-blue bunting hanging below the banner */
+.finish-platform .fp-bunting{
+  position:absolute;top:54px;left:8px;right:8px;height:36px;
+  display:flex;
+}
+.finish-platform .fp-bunting .swag{
+  flex:1;height:100%;
+  border-radius:0 0 50% 50%;
+  border:1px solid var(--text2);
+  position:relative;
+}
+.finish-platform .fp-bunting .swag.red{background:#a8202a;}
+.finish-platform .fp-bunting .swag.white{background:#f4ecd8;}
+.finish-platform .fp-bunting .swag.blue{background:#1f3656;}
+/* Gold tassel/star at the bottom of each swag */
+.finish-platform .fp-bunting .swag::after{
+  content:'';position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);border:1px solid var(--text2);
+}
+/* Decorative grandstand "platform" base — wooden plank */
+.finish-platform .fp-base{
+  position:absolute;bottom:0;left:0;right:0;height:42px;
+  background:linear-gradient(180deg,#a08458 0%,#6a4a28 100%);
+  border:2px solid var(--text);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);
+}
+.finish-platform .fp-base::before{
+  /* Wood plank lines */
+  content:'';position:absolute;inset:4px;
+  background:repeating-linear-gradient(0deg, transparent 0 8px, rgba(58,40,20,.25) 8px 9px);
+}
+
+.coin{
+  position:absolute;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fce598,var(--gold) 60%,#a87830);
+  border:1px solid #5a4818;z-index:5;
+  box-shadow:0 0 6px rgba(252,229,152,.6);
+  animation:coinSpin 1.2s ease-in-out infinite;
+}
+@keyframes coinSpin{
+  0%,100%{transform:scaleX(1);}50%{transform:scaleX(.3);}
+}
+
+.pit{
+  position:absolute;left:0;bottom:0;width:90px;height:130px;z-index:4;
+  background:linear-gradient(180deg,#1a0e08 0%,#000 100%);
+  border-left:2px solid #2a1a08;border-right:2px solid #2a1a08;
+}
+
+/* ── Spikes (lethal ground obstacle) ── */
+.obstacle{position:absolute;bottom:130px;z-index:4;}
+.obstacle.spike{
+  width:34px;height:42px;
+  background:linear-gradient(180deg,#7a4a20 0%,#4a2810 100%);
+  border:2px solid #2a1408;
+  clip-path:polygon(50% 0,85% 25%,90% 100%,10% 100%,15% 25%);
+  box-shadow:0 2px 0 rgba(0,0,0,.5),inset 0 2px 0 rgba(220,180,120,.3);
+}
+.obstacle.spike-pair{
+  /* paired spikes — 2 close together, narrower than full pair */
+  width:34px;height:42px;
+}
+
+/* ── Bigblock (stand-on-able decorative block) ── */
+.obstacle.bigblock{
+  width:54px;height:52px;
+  background:linear-gradient(180deg,#a08458 0%,#6a4a28 100%);
+  border:2px solid #3a2510;
+  border-radius:3px 3px 2px 2px;
+  box-shadow:0 2px 0 rgba(0,0,0,.5),inset 0 3px 0 rgba(220,180,120,.4),inset 0 -2px 0 rgba(0,0,0,.3);
+}
+.obstacle.bigblock::before{
+  content:'';position:absolute;left:6px;right:6px;top:10px;
+  height:2px;background:rgba(40,20,10,.4);
+  box-shadow:0 12px 0 rgba(40,20,10,.4),0 24px 0 rgba(40,20,10,.4),0 36px 0 rgba(40,20,10,.4);
+}
+
+/* ── Sentry stomp animation ── */
+.enemy.sentry.stomped{
+  animation:sentryStomp .35s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes sentryStomp{
+  0%{transform:translateY(0) scaleY(1);opacity:1;}
+  35%{transform:translateY(0) scaleY(.4);opacity:1;}
+  100%{transform:translateY(40px) scaleY(.2) rotate(20deg);opacity:0;}
+}
+
+.enemy{
+  position:absolute;z-index:6;
+}
+.enemy.sentry{
+  width:34px;height:50px;bottom:130px;
+}
+.enemy.sentry svg{width:100%;height:100%;display:block;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+
+/* ── Cannons (Round 1-2+): stationary, fire cannonballs on cooldown ── */
+.cannon{
+  position:absolute;width:60px;height:46px;bottom:130px;z-index:6;
+  pointer-events:none;
+}
+.cannon svg{width:100%;height:100%;display:block;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+.cannon.firing{
+  animation:cannonRecoil .25s ease-out;
+}
+@keyframes cannonRecoil{
+  0%{transform:translateX(0);}
+  30%{transform:translateX(8px);}
+  100%{transform:translateX(0);}
+}
+.cannon-flash{
+  position:absolute;width:40px;height:40px;
+  background:radial-gradient(circle,#fce598 0%,#d4a850 30%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+  animation:cannonFlash .3s ease-out forwards;
+  z-index:7;
+}
+@keyframes cannonFlash{
+  0%{opacity:1;transform:scale(.3);}
+  100%{opacity:0;transform:scale(1.5);}
+}
+
+/* ── Cannonballs (slow projectiles, jump-over-able) ── */
+.cannonball{
+  position:absolute;width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#5a5048 0%,#2a2018 60%,#0a0604 100%);
+  border:1px solid #000;
+  z-index:6;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.6),
+             inset 1px 1px 2px rgba(140,130,120,.3),
+             0 2px 4px rgba(0,0,0,.5);
+  animation:cannonballSpin .6s linear infinite;
+}
+/* High cannonballs glow faint red so the duck signal is readable at a glance. */
+.cannonball.high{
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.6),
+             inset 1px 1px 2px rgba(140,130,120,.3),
+             0 2px 4px rgba(0,0,0,.5),
+             0 0 10px rgba(208,80,80,.7);
+}
+@keyframes cannonballSpin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+.cannonball-trail{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle,rgba(160,160,160,.5) 0%,transparent 70%);
+  z-index:5;pointer-events:none;
+  animation:trailFade .5s linear forwards;
+}
+@keyframes trailFade{
+  0%{opacity:.7;transform:scale(1);}
+  100%{opacity:0;transform:scale(.4);}
+}
+
+/* ── Round-specific theming ── */
+/* 1-1 (default): pastoral countryside — already styled */
+/* 1-2: battlefield — gray sky, smoke clouds, torn ground */
+.game-area.theme-battlefield{
+  background:linear-gradient(180deg,#7a8090 0%,#9a9a8a 55%,#c4b890 100%);
+}
+.game-area.theme-battlefield .cloud{
+  background:#888a85;opacity:.5;
+}
+.game-area.theme-battlefield .parallax-far{
+  filter:hue-rotate(20deg) brightness(.6) saturate(.4);
+  opacity:.6;
+}
+.game-area.theme-battlefield .parallax-mid{
+  filter:hue-rotate(15deg) brightness(.55) saturate(.5);
+  opacity:.7;
+}
+.game-area.theme-battlefield .ground{
+  background:linear-gradient(180deg,#6a4818 0%,#4a3010 100%);
+}
+
+/* ── Round 1-3 theme: post-war town (smoke-tinged, charred ground) ── */
+.game-area.theme-postwar{
+  background:linear-gradient(180deg,#a09080 0%,#b8a890 55%,#d4c0a0 100%);
+}
+.game-area.theme-postwar .cloud{
+  background:#b8a8a0;opacity:.6;
+}
+.game-area.theme-postwar .parallax-far{
+  filter:hue-rotate(-10deg) brightness(.65) saturate(.5);
+  opacity:.55;
+}
+.game-area.theme-postwar .parallax-mid{
+  filter:hue-rotate(-15deg) brightness(.6) saturate(.6);
+  opacity:.7;
+}
+.game-area.theme-postwar .ground{
+  background:linear-gradient(180deg,#5a4030 0%,#3a2818 100%);
+}
+
+/* ── Round 1-4 castle theme: twilight, stone fortress ── */
+.game-area.theme-castle{
+  background:linear-gradient(180deg,#3a4860 0%,#5a5870 50%,#8a7a78 100%);
+}
+.game-area.theme-castle .cloud{
+  background:#6a6878;opacity:.6;
+}
+.game-area.theme-castle .parallax-far{
+  filter:hue-rotate(180deg) brightness(.4) saturate(.3);
+  opacity:.5;
+}
+.game-area.theme-castle .parallax-mid{
+  filter:hue-rotate(180deg) brightness(.45) saturate(.4);
+  opacity:.7;
+}
+.game-area.theme-castle .ground{
+  background:linear-gradient(180deg,#5a5560 0%,#3a3540 100%);
+}
+
+/* ── Redeemer politician (top-hatted patrol enemy in castle) ── */
+.enemy.redeemer{
+  width:36px;height:54px;bottom:130px;
+}
+.enemy.redeemer svg{width:100%;height:100%;display:block;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+.enemy.redeemer.respawning{
+  /* While "respawning," fade out and back in */
+  animation:redeemerRespawn 3s ease-in-out forwards;
+}
+@keyframes redeemerRespawn{
+  0%{opacity:1;}
+  10%{opacity:0;transform:translateY(8px);}
+  90%{opacity:0;transform:translateY(8px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+
+/* ── Civil War general boss — bigger, with health bar ── */
+.enemy.boss{
+  width:60px;height:78px;bottom:130px;z-index:7;
+}
+.enemy.boss svg{width:100%;height:100%;display:block;
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,.6));}
+.enemy.boss.stunned{
+  animation:bossStunned .35s ease-out;
+}
+@keyframes bossStunned{
+  0%{transform:translateX(0) scale(1);}
+  30%{transform:translateX(-6px) scale(.92);}
+  60%{transform:translateX(4px) scale(.95);}
+  100%{transform:translateX(0) scale(1);}
+}
+.boss-health{
+  position:absolute;width:80px;height:14px;z-index:8;
+  background:rgba(0,0,0,.65);border:2px solid #1a1a1a;
+  border-radius:3px;pointer-events:none;
+  bottom:225px; /* sits above the boss head */
+  box-shadow:0 2px 4px rgba(0,0,0,.5);
+}
+.boss-health-fill{
+  height:100%;width:100%;
+  background:linear-gradient(180deg,#d04050 0%,#a02030 100%);
+  transition:width .3s ease-out;
+}
+.boss-health-label{
+  position:absolute;left:0;right:0;top:-14px;
+  text-align:center;color:#fce598;
+  font-family:var(--bebas);font-size:.7rem;letter-spacing:2px;
+  text-shadow:0 1px 2px rgba(0,0,0,.8);
+}
+
+/* ── Castle finish: stone gate with chain barrier ── */
+.castle-finish{
+  position:absolute;width:140px;height:200px;bottom:130px;
+  z-index:5;pointer-events:none;
+}
+.castle-finish .cf-arch{
+  position:absolute;left:0;right:0;bottom:0;height:100%;
+  background:linear-gradient(180deg,#7a7080 0%,#4a4050 100%);
+  border:3px solid #2a2030;
+  border-bottom:none;
+  border-radius:60px 60px 0 0;
+  box-shadow:inset 0 4px 0 rgba(255,255,255,.1),inset 0 -4px 0 rgba(0,0,0,.4);
+}
+.castle-finish .cf-arch::before{
+  /* Stone block lines */
+  content:'';position:absolute;inset:0;border-radius:55px 55px 0 0;
+  background-image:
+    linear-gradient(90deg, transparent 32%, rgba(0,0,0,.25) 32%, rgba(0,0,0,.25) 34%, transparent 34%),
+    linear-gradient(90deg, transparent 64%, rgba(0,0,0,.25) 64%, rgba(0,0,0,.25) 66%, transparent 66%),
+    linear-gradient(180deg, transparent 24%, rgba(0,0,0,.2) 24%, rgba(0,0,0,.2) 26%, transparent 26%),
+    linear-gradient(180deg, transparent 50%, rgba(0,0,0,.2) 50%, rgba(0,0,0,.2) 52%, transparent 52%);
+  pointer-events:none;
+}
+.castle-finish .cf-flag{
+  position:absolute;left:50%;top:-25px;transform:translateX(-50%);
+  width:26px;height:32px;
+  background:linear-gradient(180deg,#a0202a 0%,#601010 100%);
+  border:2px solid #2a0a0a;
+  clip-path:polygon(0 0, 100% 0, 100% 70%, 50% 90%, 0 70%);
+}
+.castle-finish .cf-pole{
+  position:absolute;left:50%;top:-30px;transform:translateX(-50%);
+  width:3px;height:35px;background:#3a2010;
+}
+.castle-finish .cf-banner{
+  position:absolute;left:50%;top:38px;transform:translateX(-50%);
+  background:#fce598;color:#3a1a08;
+  padding:4px 14px;font-family:var(--bebas);letter-spacing:3px;font-size:.95rem;
+  border:2px solid #5a3010;border-radius:2px;
+  box-shadow:0 2px 4px rgba(0,0,0,.4);
+  white-space:nowrap;
+}
+/* Chain barrier — visible until boss defeated */
+.castle-finish .cf-chains{
+  position:absolute;left:0;right:0;bottom:0;height:80%;
+  background:repeating-linear-gradient(
+    -45deg,
+    #4a4040 0 8px,
+    #2a2020 8px 12px,
+    #6a5a50 12px 16px,
+    #2a2020 16px 20px
+  );
+  border:2px solid #1a1010;
+  opacity:.85;
+  transition:opacity .6s ease-out, transform .6s ease-out;
+}
+.castle-finish.unlocked .cf-chains{
+  opacity:0;
+  transform:translateY(60px) rotate(8deg);
+  pointer-events:none;
+}
+.castle-finish.unlocked{
+  filter:drop-shadow(0 0 16px rgba(252,229,152,.8));
+}
+
+/* ── Falling debris (Round 1-3+): charred wooden plank that drops from the sky ── */
+.debris{
+  position:absolute;width:42px;height:18px;z-index:6;
+  background:linear-gradient(180deg,#5a3818 0%,#2a1808 100%);
+  border:2px solid #1a0a04;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(180,140,80,.3);
+  /* Slight rotation for chaotic/natural feel */
+  transform:rotate(-8deg);
+  /* Wood-grain stripes */
+  background-image:
+    linear-gradient(180deg,#5a3818 0%,#2a1808 100%),
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(0,0,0,.25) 4px 5px);
+  pointer-events:none;
+}
+.debris.falling{
+  animation:debrisTumble .8s linear infinite;
+}
+@keyframes debrisTumble{
+  0%{transform:rotate(-15deg);}
+  50%{transform:rotate(15deg);}
+  100%{transform:rotate(-15deg);}
+}
+.debris.landed{
+  /* When debris hits the ground, it rests in place as wreckage */
+  background:linear-gradient(180deg,#3a2010 0%,#1a0e04 100%);
+  border-color:#0a0402;
+  transform:rotate(-6deg);
+  animation:none;
+  opacity:.85;
+}
+
+/* Warning shadow on the ground that previews where debris will land */
+.debris-warning{
+  position:absolute;height:6px;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(168,32,42,.6) 0%, rgba(168,32,42,0) 70%);
+  bottom:130px;
+  animation:debrisWarn .8s ease-in-out infinite;
+}
+@keyframes debrisWarn{
+  0%,100%{opacity:.5;transform:scaleX(1);}
+  50%{opacity:1;transform:scaleX(1.15);}
+}
+
+.player.invincible svg{
+  animation:invFlash .15s linear infinite;
+}
+@keyframes invFlash{
+  0%,100%{opacity:1;}50%{opacity:.3;}
+}
+
+.game-message{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:rgba(20,15,8,.92);color:var(--gold3);
+  border:2px solid var(--gold);padding:18px 28px;
+  font-family:var(--playfair);font-style:italic;font-size:1.3rem;
+  z-index:50;text-align:center;display:none;
+  box-shadow:0 6px 30px rgba(0,0,0,.5);
+}
+.game-message.visible{display:block;}
+
+/* ── Life-gained toast (streak / coin / perfect-round bonus) ── */
+.life-toast{
+  position:absolute;left:50%;top:84px;transform:translateX(-50%) translateY(-30px);
+  background:linear-gradient(180deg,#fce598,var(--gold) 50%,#a87830);
+  color:var(--text);border:2px solid #5a4010;
+  padding:10px 22px;
+  font-family:var(--bebas);letter-spacing:3px;font-size:1rem;
+  z-index:60;pointer-events:none;
+  box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.4);
+  opacity:0;
+  white-space:nowrap;
+}
+.life-toast.visible{
+  animation:lifeToastPop 2.2s ease-out forwards;
+}
+@keyframes lifeToastPop{
+  0%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(.8);}
+  15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.08);}
+  25%{transform:translateX(-50%) translateY(0) scale(1);}
+  80%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+  100%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.95);}
+}
+
+/* ── Question modal ── (Chunk 4 will style as parchment scroll) ── */
+/* ── Parchment-scroll question modal (Chunk 4 styling) ── */
+.qmodal-bg{
+  position:absolute;inset:0;background:rgba(20,15,8,.55);
+  backdrop-filter:blur(2px);
+  z-index:100;display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.qmodal-bg.visible{display:flex;}
+@keyframes scrollUnfurl{
+  0%{transform:scale(.7) rotate(-3deg);opacity:0;}
+  60%{transform:scale(1.02) rotate(0.5deg);opacity:1;}
+  100%{transform:scale(1) rotate(-0.6deg);opacity:1;}
+}
+.qmodal{
+  /* Parchment look: layered cream gradients + subtle aged texture */
+  background:
+    /* Edge darkening (vignette) */
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(168,128,72,.18) 100%),
+    /* Subtle paper grain */
+    repeating-linear-gradient(91deg, rgba(168,128,72,.04) 0 2px, transparent 2px 6px),
+    /* Main parchment color */
+    linear-gradient(180deg, #faf0d4 0%, #f5e8c4 100%);
+  border:1px solid #a08458;
+  /* Deckled / torn edge effect via box-shadow + outline */
+  box-shadow:
+    0 0 0 6px #f5e8c4,
+    0 0 0 7px #6a4a28,
+    0 18px 38px rgba(20,15,8,.45),
+    inset 0 0 60px rgba(168,128,72,.18);
+  max-width:680px;width:100%;max-height:85vh;overflow:auto;
+  padding:32px 36px 28px;position:relative;
+  animation:scrollUnfurl .35s ease-out;
+  transform:rotate(-0.6deg);
+}
+/* Wax seal in upper-left corner */
+.qmodal::before{
+  content:'';
+  position:absolute;top:-14px;left:-14px;
+  width:50px;height:50px;border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 30%, #d04030 0%, #8a1810 45%, #5a0a08 100%);
+  border:2px solid #3a0408;
+  box-shadow:
+    inset 0 -3px 6px rgba(0,0,0,.4),
+    inset 2px 2px 4px rgba(255,180,160,.4),
+    0 4px 8px rgba(0,0,0,.35);
+  z-index:2;
+}
+/* Star embossed in the wax seal */
+.qmodal::after{
+  content:'★';
+  position:absolute;top:-6px;left:-2px;
+  width:30px;height:30px;line-height:28px;text-align:center;
+  font-size:1.4rem;color:#fce598;
+  text-shadow:1px 1px 1px rgba(0,0,0,.5);
+  z-index:3;
+}
+
+.qmodal-eyebrow{
+  font-family:var(--bebas);letter-spacing:4px;font-size:.85rem;
+  color:#8a3010;text-align:center;margin-top:6px;
+}
+.qmodal-progress{
+  display:flex;justify-content:center;gap:8px;margin:10px 0 18px;
+}
+.qmodal-progress .dot{
+  width:11px;height:11px;border-radius:50%;
+  border:1.5px solid #6a4a28;background:transparent;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.15);
+}
+.qmodal-progress .dot.cleared{background:#5a8a30;border-color:#1a3a08;}
+.qmodal-progress .dot.current{background:#a8202a;border-color:#5a0a08;
+  box-shadow:0 0 0 2px rgba(168,32,42,.2);}
+
+.qmodal-stem{
+  font-family:var(--playfair);font-style:italic;font-size:1.15rem;
+  color:#3a2a18;text-align:center;line-height:1.55;
+  margin:0 8px 22px;white-space:pre-wrap;
+  /* Subtle ink-like text shadow */
+  text-shadow:0 1px 0 rgba(255,255,255,.5);
+}
+.qmodal-stem::before,
+.qmodal-stem::after{
+  content:'';display:block;width:80px;height:1px;
+  background:linear-gradient(90deg,transparent,#a08458,transparent);
+  margin:8px auto;
+}
+
+.qmodal-choices{display:flex;flex-direction:column;gap:10px;}
+.qmodal-choice{
+  display:flex;gap:14px;align-items:flex-start;
+  background:rgba(255,250,228,.7);
+  border:1.5px solid #b89858;
+  padding:13px 16px;cursor:pointer;text-align:left;
+  font-family:var(--georgia);font-size:.98rem;color:#3a2a18;
+  transition:background .12s, border-color .12s, transform .12s, box-shadow .12s;
+  min-height:46px;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+}
+.qmodal-choice:hover{
+  background:rgba(212,168,80,.18);border-color:#8a3010;
+  transform:translateX(2px);
+}
+/* Keyboard focus state — visually distinct from hover */
+.qmodal-choice.kb-focus{
+  border-color:#8a3010;border-width:2.5px;
+  background:rgba(252,229,152,.4);
+  transform:translateX(4px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), -3px 0 0 #8a3010;
+}
+.qmodal-choice .letter{
+  font-family:var(--playfair);font-style:italic;font-weight:900;
+  font-size:1.25rem;color:#8a3010;
+  flex-shrink:0;width:24px;line-height:1;
+}
+.qmodal-choice.correct{
+  background:#d8e8c4;border-color:#5a8a30;border-width:2.5px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 1px #5a8a30;
+}
+.qmodal-choice.wrong{
+  background:#f0d4c4;border-color:#a8202a;border-width:2.5px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 1px #a8202a;
+}
+.qmodal-choice:disabled{cursor:default;transform:none;}
+.qmodal-choice:disabled.kb-focus{transform:none;}
+
+.qmodal-feedback{
+  margin-top:18px;padding:14px 16px;
+  font-family:var(--georgia);font-size:.95rem;line-height:1.55;
+  display:none;border-radius:1px;
+  color:#3a2a18;
+}
+.qmodal-feedback.correct{display:block;background:#d8e8c4;border-left:5px solid #5a8a30;}
+.qmodal-feedback.wrong{display:block;background:#f0d4c4;border-left:5px solid #a8202a;}
+.qmodal-feedback .label{
+  font-family:var(--bebas);letter-spacing:3px;font-size:.85rem;
+  display:block;margin-bottom:6px;
+}
+.qmodal-feedback.correct .label{color:#1a3a08;}
+.qmodal-feedback.wrong .label{color:#8a1810;}
+
+.qmodal-actions{margin-top:18px;text-align:center;display:none;}
+.qmodal-actions.visible{display:block;}
+.qmodal-btn{
+  font-family:var(--bebas);letter-spacing:3px;font-size:.95rem;
+  padding:12px 28px;
+  background:linear-gradient(180deg,#3a5a8a,#1f3656);color:#fce598;
+  border:2px solid #0a1a30;
+  box-shadow:0 3px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.15);
+  cursor:pointer;
+}
+.qmodal-btn:hover,
+.qmodal-btn.kb-focus{
+  background:linear-gradient(180deg,#4a6a9a,#2a4666);
+  box-shadow:0 3px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 2px #fce598;
+}
+.qmodal-hint{
+  font-family:var(--bebas);letter-spacing:2px;font-size:.65rem;
+  color:#6a4a28;text-align:center;margin-top:10px;
+  opacity:.7;
+}
+
+/* ── Round-clear celebration: spinning gold star ── */
+.round-clear-overlay{
+  position:absolute;inset:0;background:rgba(20,15,8,.95);
+  z-index:200;display:none;align-items:center;justify-content:center;
+  flex-direction:column;color:var(--gold3);text-align:center;padding:30px;
+}
+.round-clear-overlay.visible{display:flex;}
+.rc-star-host{
+  width:160px;height:160px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.rc-star{
+  width:100%;height:100%;
+  filter:drop-shadow(0 0 20px rgba(252,229,152,.7));
+  animation:starEnter 1s ease-out, starSpin 8s linear 1s infinite;
+}
+@keyframes starEnter{
+  0%{transform:scale(0) rotate(-720deg);opacity:0;}
+  60%{transform:scale(1.2) rotate(-30deg);opacity:1;}
+  80%{transform:scale(.95) rotate(10deg);}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
+}
+@keyframes starSpin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+/* Sparkle bursts around the star */
+.rc-sparkle{
+  position:absolute;width:6px;height:6px;border-radius:50%;
+  background:#fce598;opacity:0;
+  box-shadow:0 0 8px #fce598;
+}
+.rc-star-host .rc-sparkle:nth-child(2){top:5%;left:30%;animation:sparkle 1.5s ease-out .8s infinite;}
+.rc-star-host .rc-sparkle:nth-child(3){top:20%;right:8%;animation:sparkle 1.5s ease-out 1.0s infinite;}
+.rc-star-host .rc-sparkle:nth-child(4){bottom:25%;left:5%;animation:sparkle 1.5s ease-out 1.2s infinite;}
+.rc-star-host .rc-sparkle:nth-child(5){bottom:8%;right:25%;animation:sparkle 1.5s ease-out 1.4s infinite;}
+.rc-star-host .rc-sparkle:nth-child(6){top:50%;left:0;animation:sparkle 1.5s ease-out 1.6s infinite;}
+.rc-star-host .rc-sparkle:nth-child(7){top:50%;right:0;animation:sparkle 1.5s ease-out 1.8s infinite;}
+@keyframes sparkle{
+  0%{opacity:0;transform:scale(.3);}
+  50%{opacity:1;transform:scale(1.4);}
+  100%{opacity:0;transform:scale(.3);}
+}
+
+.round-clear-overlay h2{
+  font-family:var(--bebas);letter-spacing:8px;font-size:2.4rem;
+  color:var(--gold3);
+  text-shadow:0 2px 8px rgba(252,229,152,.4);
+  animation:rcFadeUp .6s ease-out 1s backwards;
+}
+.round-clear-overlay .rc-title{
+  font-family:var(--playfair);font-style:italic;font-size:1.7rem;
+  margin:6px 0 28px;color:var(--gold3);
+  animation:rcFadeUp .6s ease-out 1.2s backwards;
+}
+@keyframes rcFadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.round-clear-overlay .rc-stats{
+  display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;
+  animation:rcFadeUp .6s ease-out 1.4s backwards;
+}
+.round-clear-overlay .rc-stat{
+  background:rgba(212,168,80,.15);border:1px solid var(--gold);
+  padding:14px 22px;
+}
+.round-clear-overlay .rc-stat .v{font-family:var(--playfair);font-style:italic;font-weight:900;font-size:1.8rem;color:var(--gold3);display:block;letter-spacing:0;}
+.round-clear-overlay .rc-stat .k{font-family:var(--bebas);letter-spacing:2px;font-size:.7rem;color:var(--gold);}
+.round-clear-overlay .rc-actions{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+  animation:rcFadeUp .6s ease-out 1.6s backwards;
+}
+.round-clear-overlay .rc-actions button{
+  font-family:var(--bebas);letter-spacing:2px;font-size:.9rem;
+  padding:10px 22px;background:transparent;color:var(--gold3);
+  border:1px solid var(--gold);cursor:pointer;
+}
+.round-clear-overlay .rc-actions button:hover{background:var(--gold);color:var(--text);}
+.round-clear-overlay .rc-actions button#rcNext{
+  background:linear-gradient(180deg,var(--gold),var(--gold2));color:var(--text);
+  border-color:var(--gold3);font-weight:bold;
+}
+.round-clear-overlay .rc-actions button#rcNext:hover{
+  background:linear-gradient(180deg,#fce598,var(--gold));
+  box-shadow:0 0 12px rgba(252,229,152,.5);
+}
+
+@media (max-width:600px){
+  .qmodal{padding:24px 20px 22px;transform:rotate(0deg);}
+  .qmodal-stem{font-size:1.05rem;margin:0 0 16px;}
+  .qmodal-choice{font-size:.92rem;padding:11px 14px;}
+  .qmodal::before{width:38px;height:38px;top:-10px;left:-10px;}
+  .qmodal::after{font-size:1.1rem;top:-4px;left:-1px;width:24px;height:24px;line-height:22px;}
+  .rc-star-host{width:120px;height:120px;}
+  .round-clear-overlay h2{font-size:1.7rem;letter-spacing:5px;}
+  .round-clear-overlay .rc-title{font-size:1.2rem;}
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   ARCHIVE QUEST PROTOTYPE PATCH — Mario-like, history-themed skin
+   Adds source blocks, gold seals, archive-crate platforms, and more
+   branching/high-low path choices for Round 1-1 only.
+   ════════════════════════════════════════════════════════════════ */
+.game-area.theme-archivequest{
+  background:
+    linear-gradient(180deg,#9fd6e8 0%,#c8e8d8 48%,#f6dd93 100%);
+}
+.game-area.theme-archivequest::before{
+  content:'';position:absolute;left:0;right:0;bottom:130px;height:190px;z-index:1;pointer-events:none;opacity:.28;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='190' viewBox='0 0 900 190'><g fill='none' stroke='%235a4030' stroke-width='3' opacity='.75'><path d='M20 165 L95 82 L170 165 Z'/><path d='M200 165 L300 45 L400 165 Z'/><path d='M450 165 L520 95 L590 165 Z'/><path d='M640 165 L760 35 L880 165 Z'/></g><g fill='%23fff8e0' opacity='.9'><rect x='105' y='105' width='52' height='35' rx='3'/><rect x='525' y='115' width='45' height='30' rx='3'/></g><g fill='%237a5018' opacity='.55'><rect x='110' y='110' width='10' height='25'/><rect x='126' y='110' width='10' height='25'/><rect x='142' y='110' width='10' height='25'/><rect x='530' y='120' width='9' height='20'/><rect x='545' y='120' width='9' height='20'/><rect x='560' y='120' width='9' height='20'/></g></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+  background-position-x:calc(var(--scrollX, 0px) * .25);
+}
+.game-area.theme-archivequest .ground{
+  background:linear-gradient(180deg,#8a5a20 0%,#5a3514 100%);
+}
+.game-area.theme-archivequest .ground::before{
+  background-image:
+    linear-gradient(90deg,rgba(40,20,5,.35) 0 2px,transparent 2px 64px),
+    linear-gradient(0deg,rgba(40,20,5,.35) 0 2px,transparent 2px 64px),
+    radial-gradient(circle at 20% 35%,rgba(20,10,5,.3) 1.5px,transparent 2.5px);
+  background-size:64px 64px,64px 64px,120px 70px;
+}
+.platform.source-block{
+  width:86px;height:86px;
+  background:linear-gradient(180deg,#fff1b8 0%,#d4a850 55%,#9a6424 100%);
+  border:4px solid #3a2510;border-radius:8px;
+  box-shadow:inset 0 4px 0 rgba(255,255,255,.35), inset 0 -6px 0 rgba(0,0,0,.25), 0 5px 0 rgba(0,0,0,.35), 0 0 0 3px rgba(252,229,152,.15);
+}
+.platform.source-block::after{
+  background:
+    linear-gradient(90deg,transparent 0 18px,rgba(58,37,16,.2) 18px 20px,transparent 20px),
+    linear-gradient(0deg,transparent 0 18px,rgba(58,37,16,.2) 18px 20px,transparent 20px);
+  background-size:40px 40px;opacity:.75;
+}
+.platform.source-block.armed::before{
+  content:'?';font-family:var(--playfair);font-size:3.2rem;font-style:italic;font-weight:900;color:#3a2510;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);z-index:2;
+}
+.platform.source-block.cleared{
+  background:linear-gradient(180deg,#dcefc8 0%,#5a8a30 65%,#2f4a16 100%);
+  border-color:#18320c;
+}
+.platform.source-block.cleared::before{content:'✓';font-family:var(--bebas);font-size:3rem;color:#fff;z-index:2;}
+.platform.source-block .platform-label{
+  bottom:-28px;background:#fff8e0;border:2px solid #3a2510;border-radius:999px;color:#3a2510;
+  font-size:.62rem;padding:3px 9px;box-shadow:0 2px 0 rgba(0,0,0,.18);
+}
+.deco-platform.archive-path{
+  background:linear-gradient(180deg,#caa46a,#7a5018);
+  border:3px solid #3a2510;border-radius:5px;
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.22),inset 0 -4px 0 rgba(0,0,0,.28),0 3px 0 rgba(0,0,0,.32);
+}
+.deco-platform.archive-path::before{
+  content:'';position:absolute;inset:6px;background:repeating-linear-gradient(90deg,rgba(58,37,16,.35) 0 2px,transparent 2px 16px);opacity:.7;
+}
+.obstacle.bigblock.archive-crate{
+  background:linear-gradient(180deg,#b6864f,#654018);border-color:#2a1608;border-radius:4px;
+}
+.obstacle.bigblock.archive-crate::after{
+  content:'ARCHIVE';position:absolute;left:4px;right:4px;top:18px;text-align:center;font-family:var(--bebas);font-size:.55rem;letter-spacing:1.5px;color:#fce598;text-shadow:0 1px 1px #000;
+}
+.coin.gold-seal{
+  width:22px;height:22px;border:2px solid #5a4010;
+  background:radial-gradient(circle at 32% 30%,#fff8c8 0%,#fce598 28%,#d4a850 58%,#8a5a18 100%);
+  box-shadow:0 0 10px rgba(252,229,152,.75),inset 0 -2px 0 rgba(0,0,0,.22);
+}
+.coin.gold-seal::before{
+  content:'★';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;color:#6a4010;text-shadow:0 1px 0 rgba(255,255,255,.55);
+}
+.enemy.rumor-gremlin{width:40px;height:42px;bottom:130px;}
+.enemy.rumor-gremlin svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+.enemy.rumor-gremlin::after{
+  content:'RUMOR';position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-family:var(--bebas);font-size:.52rem;letter-spacing:1.5px;color:#5a0808;background:#fff8e0;border:1px solid #5a0808;padding:1px 4px;opacity:.85;
+}
+.game-message.prototype-note{font-size:1rem;max-width:560px;line-height:1.45;}
+
+.enemy.backlash-gremlin::after{
+  content:'BACKLASH';
+  color:#2a2030;
+  border-color:#2a2030;
+}
+
+
+
+
+/* ── New enemy: Bias Bat (introduced in Round 1-3) ── */
+.enemy.bias-bat{
+  width:42px;height:34px;bottom:210px;z-index:6;
+  animation:biasBatFlap .38s ease-in-out infinite;
+}
+.enemy.bias-bat svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));}
+@keyframes biasBatFlap{
+  0%,100%{transform:translateY(0) scaleY(1);}50%{transform:translateY(-3px) scaleY(.92);}
+}
+.cannonball.boss-shot{
+  background:radial-gradient(circle at 35% 30%,#fce598 0%,#a8202a 45%,#4a0608 100%);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.6),0 0 12px rgba(168,32,42,.75),0 2px 4px rgba(0,0,0,.5);
+}
+.boss-shadow{
+  position:absolute;width:70px;height:12px;border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 72%);
+  bottom:130px;z-index:4;pointer-events:none;
+}
+
+
+
+/* ════════════════════════════════════════════════════════════════
+   WORLD 2 PROTOTYPE — The Gilded Machine visual system
+   ════════════════════════════════════════════════════════════════ */
+.game-area.theme-gilded{
+  background:linear-gradient(180deg,#d68f58 0%,#b96b42 38%,#6f5b52 72%,#3c3030 100%);
+}
+.game-area.theme-gilded .cloud{
+  background:#6d6260;opacity:.42;filter:blur(.2px);
+}
+.game-area.theme-gilded .parallax-far{
+  opacity:.75;filter:saturate(.25) brightness(.55);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='80' viewBox='0 0 900 80'><rect x='0' y='52' width='900' height='28' fill='%23322b2b'/><rect x='45' y='28' width='36' height='52' fill='%23322b2b'/><rect x='155' y='12' width='28' height='68' fill='%23322b2b'/><rect x='330' y='22' width='42' height='58' fill='%23322b2b'/><rect x='520' y='5' width='30' height='75' fill='%23322b2b'/><rect x='705' y='34' width='48' height='46' fill='%23322b2b'/><circle cx='169' cy='10' r='11' fill='%236d6260' opacity='.7'/><circle cx='534' cy='4' r='13' fill='%236d6260' opacity='.65'/></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.game-area.theme-gilded .parallax-mid{
+  opacity:.92;filter:saturate(.35) brightness(.68);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='720' height='90' viewBox='0 0 720 90'><rect x='0' y='56' width='720' height='34' fill='%23443834'/><path d='M0 58 L80 34 L160 58 L240 34 L320 58 L400 34 L480 58 L560 34 L640 58 L720 34 L720 90 L0 90 Z' fill='%23443834'/><rect x='90' y='20' width='22' height='70' fill='%23443834'/><rect x='360' y='8' width='22' height='82' fill='%23443834'/><circle cx='101' cy='18' r='9' fill='%23726a68' opacity='.6'/><circle cx='371' cy='6' r='11' fill='%23726a68' opacity='.58'/></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.game-area.theme-gilded .ground{
+  background:linear-gradient(180deg,#584134 0%,#2b2220 100%);
+  border-top:4px solid #1a1110;
+  --scrollX:0px !important;
+}
+.game-area.theme-gilded .ground::after{
+  content:'';position:absolute;left:0;right:0;top:0;height:18px;
+  background:repeating-linear-gradient(90deg,#2b2220 0 24px,#4c3b34 24px 30px,#2b2220 30px 54px);
+  opacity:.8;pointer-events:none;
+}
+.deco-platform.rail-beam{
+  background:linear-gradient(180deg,#5c5b5d 0%,#323135 100%);
+  border:2px solid #161619;
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.12),inset 0 -3px 0 rgba(0,0,0,.4),0 3px 0 rgba(0,0,0,.35);
+}
+.deco-platform.rail-beam::before{
+  content:'';position:absolute;left:0;right:0;top:45%;height:3px;background:#1b1a1d;
+}
+.deco-platform.rail-beam::after{
+  content:'';position:absolute;inset:4px;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.35) 22px 25px);
+  pointer-events:none;
+}
+.obstacle.steam-vent{
+  width:42px;height:46px;bottom:130px;
+  background:linear-gradient(180deg,#6d6560,#34302e);
+  border:2px solid #171414;border-radius:4px 4px 1px 1px;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 2px 0 rgba(0,0,0,.45);
+}
+.obstacle.steam-vent::before{
+  content:'';position:absolute;left:6px;right:6px;top:8px;height:5px;
+  background:repeating-linear-gradient(90deg,#1b1b1b 0 4px,#8b8179 4px 7px);
+}
+.obstacle.steam-vent::after{
+  content:'';position:absolute;left:50%;bottom:36px;transform:translateX(-50%);
+  width:42px;height:82px;border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(235,230,220,.6) 0%,rgba(235,230,220,.24) 40%,rgba(235,230,220,0) 72%);
+  animation:steamPuff 1.7s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes steamPuff{0%,100%{opacity:.18;transform:translateX(-50%) translateY(12px) scale(.82);}50%{opacity:.82;transform:translateX(-50%) translateY(-6px) scale(1.08);}}
+.platform.source-block.industrial-source{
+  width:86px!important;height:86px!important;
+  background:linear-gradient(180deg,#a36a38 0%,#5b3826 100%);
+  border-color:#1a1110;
+}
+.platform.source-block.industrial-source::before{
+  content:'⚙';font-family:Georgia,serif;font-size:2.35rem;color:#f5d27a;
+  text-shadow:0 2px 3px rgba(0,0,0,.6);
+  animation:gearBob 1.6s ease-in-out infinite;
+  z-index:1;
+}
+@keyframes gearBob{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-3px) rotate(12deg);}}
+.platform.source-block.industrial-source.cleared::before{content:'✓';font-family:var(--bebas);font-size:2.4rem;color:#fff;animation:none;}
+.enemy.trust-goblin{width:42px;height:54px;}
+.enemy.trust-goblin svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));}
+.coin.gold-seal.gilded-token{
+  background:radial-gradient(circle at 30% 30%,#ffe8a8,#d99a35 58%,#7b4d18);
+  border:1px solid #3a2208;
+  box-shadow:0 0 8px rgba(255,220,120,.65),inset 0 -2px 0 rgba(0,0,0,.18);
+}
+
+/* WORLD 2 v2 — challenge pass: enemy variety + timing hazards */
+.enemy.pinkerton-guard{width:38px;height:52px;bottom:130px;}
+.enemy.pinkerton-guard svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));}
+.enemy.smoke-cloud{width:48px;height:34px;}
+.enemy.smoke-cloud svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));opacity:.92;}
+.enemy.smoke-cloud::after{content:'SMOKE';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--bebas);font-size:.48rem;letter-spacing:1px;color:#2b2220;opacity:.55;}
+.enemy.gear-rat{width:40px;height:34px;bottom:130px;}
+.enemy.gear-rat svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));}
+.enemy.gear-rat::after{content:'⚙';position:absolute;right:-3px;bottom:2px;font-size:.9rem;color:#d99a35;text-shadow:0 1px 1px #1a1110;animation:gearRatSpin .8s linear infinite;}
+@keyframes gearRatSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.game-message.prototype-note{max-width:720px;font-size:1.02rem;}
+
+.obstacle.steam-vent.hazard::after{animation:steamPuffDanger 1.7s ease-in-out infinite;}
+@keyframes steamPuffDanger{0%,100%{opacity:.12;transform:translateX(-50%) translateY(16px) scale(.72);}45%,70%{opacity:.95;transform:translateX(-50%) translateY(-10px) scale(1.18);}}
+.obstacle.steam-vent.hazard::before{box-shadow:0 -5px 12px rgba(235,230,220,.22);}
+.deco-platform.rail-beam.danger-step{border-color:#3a1a10;box-shadow:inset 0 3px 0 rgba(255,255,255,.12),inset 0 -3px 0 rgba(0,0,0,.4),0 0 0 2px rgba(217,154,53,.18),0 3px 0 rgba(0,0,0,.35);}
+.platform.source-block.industrial-source .platform-label{background:rgba(245,210,122,.92);border-color:#1a1110;color:#21120a;}
+
+
+/* WORLD 2 polish pass — fixed treadmill floor + distinct level skins */
+.game-area.theme-gilded .ground::before{
+  background-image:none !important;
+  background-position:0 0 !important;
+}
+.game-area.theme-gilded .ground::after{
+  height:16px !important;
+  background:linear-gradient(180deg,#16110f 0%,#4a3730 50%,#16110f 100%) !important;
+  opacity:.9 !important;
+}
+.game-area.theme-gilded-rails{
+  background:linear-gradient(180deg,#d68f58 0%,#b96b42 38%,#6f5b52 72%,#3c3030 100%);
+}
+.game-area.theme-gilded-labor{
+  background:linear-gradient(180deg,#9b5442 0%,#74433a 42%,#4b3432 72%,#292020 100%);
+}
+.game-area.theme-gilded-labor .cloud{background:#4a3d3c;opacity:.58;}
+.game-area.theme-gilded-labor .parallax-far{filter:saturate(.18) brightness(.48);opacity:.82;}
+.game-area.theme-gilded-labor .parallax-mid{filter:saturate(.28) brightness(.55);opacity:.94;}
+.game-area.theme-gilded-city{
+  background:linear-gradient(180deg,#6e8492 0%,#596671 38%,#494548 70%,#282021 100%);
+}
+.game-area.theme-gilded-city .cloud{background:#d0c5b6;opacity:.35;}
+.game-area.theme-gilded-city .parallax-far{
+  opacity:.72;filter:saturate(.25) brightness(.5);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='90' viewBox='0 0 900 90'><rect x='0' y='58' width='900' height='32' fill='%23262226'/><rect x='28' y='18' width='50' height='72' fill='%23262226'/><rect x='120' y='35' width='70' height='55' fill='%23262226'/><rect x='240' y='8' width='56' height='82' fill='%23262226'/><rect x='350' y='26' width='86' height='64' fill='%23262226'/><rect x='520' y='12' width='64' height='78' fill='%23262226'/><rect x='680' y='30' width='92' height='60' fill='%23262226'/><g fill='%23d8b36c' opacity='.32'><rect x='40' y='30' width='7' height='7'/><rect x='58' y='44' width='7' height='7'/><rect x='138' y='48' width='7' height='7'/><rect x='260' y='22' width='7' height='7'/><rect x='280' y='38' width='7' height='7'/><rect x='382' y='40' width='7' height='7'/><rect x='545' y='28' width='7' height='7'/><rect x='708' y='46' width='7' height='7'/></g></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.game-area.theme-gilded-city .parallax-mid{
+  opacity:.9;filter:saturate(.35) brightness(.62);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='720' height='90' viewBox='0 0 720 90'><rect x='0' y='64' width='720' height='26' fill='%2333292a'/><rect x='55' y='30' width='70' height='60' fill='%2333292a'/><rect x='170' y='18' width='85' height='72' fill='%2333292a'/><rect x='315' y='34' width='78' height='56' fill='%2333292a'/><rect x='470' y='22' width='95' height='68' fill='%2333292a'/><path d='M60 30 h60 M60 45 h60 M60 60 h60 M60 75 h60 M180 32 h65 M180 48 h65 M180 64 h65 M330 48 h55 M330 64 h55 M485 36 h70 M485 52 h70 M485 68 h70' stroke='%237a6a5c' stroke-width='2' opacity='.55'/></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.deco-platform.fire-escape{
+  background:linear-gradient(180deg,#353439 0%,#1b1a1e 100%);
+  border:2px solid #09090a;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.10),0 3px 0 rgba(0,0,0,.38);
+}
+.deco-platform.fire-escape::before{
+  content:'';position:absolute;inset:3px;
+  background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(217,154,53,.35) 12px 14px),repeating-linear-gradient(0deg,transparent 0 7px,rgba(217,154,53,.22) 7px 9px);
+  pointer-events:none;
+}
+.cannon.paper-shooter{
+  width:50px;height:58px;bottom:130px;z-index:6;
+}
+.cannon.paper-shooter svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));}
+.cannon.paper-shooter.firing{animation:cannonRecoil .20s ease-out;}
+.cannonball.paper-shot{
+  width:28px;height:18px;border-radius:3px;
+  background:linear-gradient(180deg,#fff4d4 0%,#d7c29a 100%);
+  border:1px solid #5b4128;
+  box-shadow:0 2px 4px rgba(0,0,0,.35);
+  animation:paperFlutter .45s ease-in-out infinite;
+}
+.cannonball.paper-shot::before{content:'NEWS';position:absolute;left:3px;right:3px;top:4px;text-align:center;font-family:var(--bebas);font-size:.42rem;letter-spacing:.7px;color:#5b2b1a;}
+@keyframes paperFlutter{0%,100%{transform:rotate(-8deg) translateY(0);}50%{transform:rotate(9deg) translateY(-3px);}}
+
+
+
+/* WORLD 2 scope pass — Iron and Gold / final machine boss visual layer */
+.game-area.theme-gilded-machine{
+  background:linear-gradient(180deg,#2d3540 0%,#313035 35%,#221b1b 68%,#100d0d 100%);
+}
+.game-area.theme-gilded-machine .cloud{background:#7e746b;opacity:.34;filter:blur(.3px);}
+.game-area.theme-gilded-machine .parallax-far{
+  opacity:.86;filter:saturate(.28) brightness(.46);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='940' height='96' viewBox='0 0 940 96'><rect x='0' y='64' width='940' height='32' fill='%2319181a'/><rect x='40' y='18' width='70' height='78' fill='%2319181a'/><rect x='170' y='34' width='110' height='62' fill='%2319181a'/><rect x='350' y='8' width='80' height='88' fill='%2319181a'/><rect x='520' y='30' width='150' height='66' fill='%2319181a'/><rect x='760' y='12' width='90' height='84' fill='%2319181a'/><g stroke='%23b87830' stroke-width='3' opacity='.34' fill='none'><circle cx='220' cy='58' r='22'/><circle cx='576' cy='56' r='28'/><path d='M140 76 H320 M460 76 H720'/></g></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.game-area.theme-gilded-machine .parallax-mid{
+  opacity:.96;filter:saturate(.36) brightness(.56);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='760' height='96' viewBox='0 0 760 96'><rect x='0' y='70' width='760' height='26' fill='%23251d1c'/><path d='M0 72 H120 L160 44 H260 L300 72 H420 L470 38 H590 L640 72 H760 V96 H0 Z' fill='%23251d1c'/><g stroke='%23745a38' stroke-width='2' opacity='.65'><path d='M40 72 V48 H105 V72 M180 72 V54 H250 V72 M500 72 V50 H580 V72'/><path d='M40 58 H105 M180 63 H250 M500 60 H580'/></g><g fill='%23d89840' opacity='.28'><rect x='58' y='52' width='8' height='8'/><rect x='82' y='62' width='8' height='8'/><rect x='205' y='58' width='8' height='8'/><rect x='532' y='54' width='8' height='8'/></g></svg>");
+  background-repeat:repeat-x;background-size:auto 100%;
+}
+.game-area.theme-gilded-machine .ground,
+.game-area.theme-gilded-city .ground,
+.game-area.theme-gilded-labor .ground,
+.game-area.theme-gilded-rails .ground,
+.game-area.theme-gilded .ground{
+  --scrollX:0px !important;
+}
+.game-area.theme-gilded-machine .ground::before,
+.game-area.theme-gilded-city .ground::before,
+.game-area.theme-gilded-labor .ground::before,
+.game-area.theme-gilded-rails .ground::before,
+.game-area.theme-gilded .ground::before{
+  background-image:none !important;
+  background-position:0 0 !important;
+}
+
+/* World 2 comfort patch: keep floor/near-ground layers anchored. */
+.game-area.theme-gilded-machine .parallax-far,
+.game-area.theme-gilded-machine .parallax-mid,
+.game-area.theme-gilded-city .parallax-far,
+.game-area.theme-gilded-city .parallax-mid,
+.game-area.theme-gilded-labor .parallax-far,
+.game-area.theme-gilded-labor .parallax-mid,
+.game-area.theme-gilded-rails .parallax-far,
+.game-area.theme-gilded-rails .parallax-mid,
+.game-area.theme-gilded .parallax-far,
+.game-area.theme-gilded .parallax-mid{
+  background-position-x:0px !important;
+}
+.game-area.theme-gilded-machine .ground,
+.game-area.theme-gilded-city .ground,
+.game-area.theme-gilded-labor .ground,
+.game-area.theme-gilded-rails .ground,
+.game-area.theme-gilded .ground{
+  --scrollX:0px !important;
+}
+.game-area.theme-gilded-machine .ground::before,
+.game-area.theme-gilded-city .ground::before,
+.game-area.theme-gilded-labor .ground::before,
+.game-area.theme-gilded-rails .ground::before,
+.game-area.theme-gilded .ground::before{
+  background-image:none !important;
+  background-position:0 0 !important;
+}
+
+.game-area.theme-gilded-machine .ground::after{
+  content:'';position:absolute;left:0;right:0;top:0;height:20px;
+  background:repeating-linear-gradient(90deg,#0c0b0c 0 20px,#b87830 20px 24px,#0c0b0c 24px 48px);
+  opacity:.64;pointer-events:none;
+}
+.enemy.machine-boss{width:74px;height:86px;bottom:130px;z-index:7;}
+.enemy.machine-boss svg{width:100%;height:100%;display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.72));}
+.enemy.machine-boss::after{content:'$';position:absolute;left:50%;top:16px;transform:translateX(-50%);font-family:var(--bebas);font-size:1rem;color:#f5d27a;text-shadow:0 1px 2px #000;}
+.castle-finish.machine-gate .cf-banner{background:#d89840;color:#140d08;}
+.castle-finish.machine-gate .cf-banner::before{content:'⚙';margin-right:6px;}
+.castle-finish.machine-gate .cf-banner::after{content:'⚙';margin-left:6px;}
+.castle-finish.machine-gate .cf-arch{background:linear-gradient(180deg,#4a3b34 0%,#201818 100%);border-color:#090606;}
+.castle-finish.machine-gate .cf-chains{background:repeating-linear-gradient(-45deg,#b87830 0 8px,#2a1a0d 8px 14px,#5e3a12 14px 20px,#1a1008 20px 26px);}
+
+/* WORLD 2 2-4 boss/gate clarity patch: the gate is now AFTER the boss arena, and the boss reads as the machine enemy. */
+.enemy.machine-boss{width:88px!important;height:102px!important;}
+.enemy.machine-boss::after{top:19px!important;font-size:1.15rem!important;}
+.castle-finish.machine-gate{width:132px!important;height:178px!important;}
+.castle-finish.machine-gate .cf-banner{font-size:.78rem!important;letter-spacing:2px!important;}
+
+
+
+/* WORLD 2 COMFORT FIX v2 — remove visual treadmill/locked-floor illusion.
+   The floor is now deliberately plain; the skyline provides only subtle motion. */
+.game-area.theme-gilded-machine .ground,
+.game-area.theme-gilded-city .ground,
+.game-area.theme-gilded-labor .ground,
+.game-area.theme-gilded-rails .ground,
+.game-area.theme-gilded .ground{
+  background:linear-gradient(180deg,#2b2220 0%,#181312 100%) !important;
+  border-top:4px solid #0f0b0a !important;
+  --scrollX:0px !important;
+}
+.game-area.theme-gilded-machine .ground::before,
+.game-area.theme-gilded-city .ground::before,
+.game-area.theme-gilded-labor .ground::before,
+.game-area.theme-gilded-rails .ground::before,
+.game-area.theme-gilded .ground::before,
+.game-area.theme-gilded-machine .ground::after,
+.game-area.theme-gilded-city .ground::after,
+.game-area.theme-gilded-labor .ground::after,
+.game-area.theme-gilded-rails .ground::after,
+.game-area.theme-gilded .ground::after{
+  content:'' !important;
+  display:none !important;
+  background:none !important;
+  background-image:none !important;
+  opacity:0 !important;
+}
+/* Let the skyline move just a touch; the JS sets the actual position each frame. */
+.game-area.theme-gilded-machine .parallax-far,
+.game-area.theme-gilded-city .parallax-far,
+.game-area.theme-gilded-labor .parallax-far,
+.game-area.theme-gilded-rails .parallax-far,
+.game-area.theme-gilded .parallax-far,
+.game-area.theme-gilded-machine .parallax-mid,
+.game-area.theme-gilded-city .parallax-mid,
+.game-area.theme-gilded-labor .parallax-mid,
+.game-area.theme-gilded-rails .parallax-mid,
+.game-area.theme-gilded .parallax-mid{
+  background-position-y:0 !important;
+}
+
+
+
+/* ════════════════════════════════════════════════════════════════
+   WORLD 2 RE-SLOT: Challenges in the West visual system
+   ════════════════════════════════════════════════════════════════ */
+.game-area.theme-west-trails{
+  background:linear-gradient(180deg,#9fcce0 0%,#d7c48e 54%,#d49a57 100%);
+}
+.game-area.theme-west-plains{
+  background:linear-gradient(180deg,#8ebbd2 0%,#c5b278 48%,#9f7a4e 100%);
+}
+.game-area.theme-west-farmers{
+  background:linear-gradient(180deg,#98bdd0 0%,#d8c076 48%,#b78239 100%);
+}
+.game-area.theme-west-crossgold{
+  background:linear-gradient(180deg,#6f8796 0%,#b69053 47%,#6a3f22 100%);
+}
+.game-area[class*="theme-west-"] .cloud{background:#fff3cf;opacity:.55;}
+.game-area[class*="theme-west-"] .parallax-far{
+  opacity:.65;filter:hue-rotate(328deg) saturate(.8) brightness(.95);
+}
+.game-area[class*="theme-west-"] .parallax-mid{
+  opacity:.75;filter:hue-rotate(330deg) saturate(.9) brightness(.85);
+}
+.game-area[class*="theme-west-"] .ground{
+  background:linear-gradient(180deg,#b57938 0%,#75421e 100%);
+  border-top:3px solid #2e1a0b;
+}
+.game-area[class*="theme-west-"] .ground::before{
+  /* Comfort pass: no treadmill texture in western worlds. */
+  background:none !important;
+}
+.deco-platform.wagon-plank{
+  background:linear-gradient(180deg,#b47b3e,#7a431e);
+  border:2px solid #2d1809;border-radius:2px;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),0 2px 0 rgba(0,0,0,.35);
+}
+.deco-platform.rail-trestle{
+  background:repeating-linear-gradient(90deg,#5d3820 0 18px,#7a4b2a 18px 24px);
+  border:2px solid #241208;border-radius:1px;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.32),0 2px 0 rgba(0,0,0,.35);
+}
+.deco-platform.farm-crate{
+  background:linear-gradient(180deg,#d0a34e,#9a681f);
+  border:2px solid #3a2308;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 0 rgba(0,0,0,.35);
+}
+.platform.frontier-source{
+  background:linear-gradient(180deg,#c99242,#80501f);
+  border-color:#2e1807;
+}
+.platform.frontier-source::before{content:'?';color:#ffe8a0;}
+.platform.frontier-source .platform-label{background:#fff0c8;border-color:#4a2a10;color:#2a1708;}
+.coin.trail-token{
+  background:radial-gradient(circle at 30% 30%,#fff4b0,#d6a23a 62%,#8b5a12);
+  border-color:#4a2e08;
+}
+.enemy.prairie-wolf svg,.enemy.rail-baron svg,.enemy.debt-beetle svg,.enemy.dust-devil svg{
+  width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));
+}
+.enemy.dust-devil{width:44px;height:58px;bottom:130px;}
+.enemy.prairie-wolf{width:46px;height:38px;bottom:130px;}
+.enemy.rail-baron{width:42px;height:54px;bottom:130px;}
+.enemy.debt-beetle{width:38px;height:34px;bottom:130px;}
+.obstacle.rail-spike{
+  width:38px;height:42px;background:linear-gradient(180deg,#7b7b72,#2e2c28);
+  border:2px solid #111;clip-path:polygon(50% 0,86% 100%,14% 100%);
+}
+.obstacle.tumbleweed{
+  width:42px;height:42px;border-radius:50%;background:radial-gradient(circle,#c89a54,#6c431f 68%,#3a2110);
+  border:2px solid #2d1809;opacity:.9;
+}
+.enemy.boss.rail-baron-boss{width:74px;height:86px;}
+
+
+
+/* ════════════════════════════════════════════════════════════════
+   WORLD 2 GAMEPLAY VARIETY PASS — rail timing, wind, depot shooters
+   ════════════════════════════════════════════════════════════════ */
+.deco-platform.rail-cart{
+  background:linear-gradient(180deg,#8d6a3a,#4c2d18);
+  border:2px solid #1d1008;
+  border-radius:4px;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.35),0 3px 0 rgba(0,0,0,.35);
+}
+.deco-platform.rail-cart::before{
+  content:'';position:absolute;left:8px;right:8px;bottom:-9px;height:8px;
+  background:radial-gradient(circle at 15% 50%,#111 0 4px,transparent 5px),radial-gradient(circle at 85% 50%,#111 0 4px,transparent 5px);
+}
+.deco-platform.grain-elevator{
+  background:linear-gradient(180deg,#d7b760,#8f5d20);
+  border:2px solid #3b2208;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.3),0 3px 0 rgba(0,0,0,.35);
+}
+.deco-platform.grain-elevator::after{
+  content:'';position:absolute;inset:5px;
+  background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(60,30,8,.25) 12px 14px);
+  pointer-events:none;
+}
+.obstacle.wind-gust{
+  width:72px;height:86px;bottom:130px;
+  background:radial-gradient(ellipse at center,rgba(244,226,175,.55) 0%,rgba(205,160,90,.28) 48%,transparent 72%);
+  border:0;clip-path:none;opacity:.9;
+  animation:westWindPulse 1.7s ease-in-out infinite;
+}
+.obstacle.wind-gust::before{
+  content:'≈';position:absolute;left:0;right:0;top:6px;text-align:center;
+  font-family:var(--playfair);font-style:italic;font-size:58px;color:rgba(90,55,24,.7);
+  transform:rotate(-8deg);
+}
+.obstacle.wind-gust::after{
+  content:'WIND';position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);
+  font-family:var(--bebas);letter-spacing:2px;font-size:.55rem;color:#3a2410;background:rgba(255,240,200,.75);border:1px solid #5a3610;padding:1px 5px;
+}
+@keyframes westWindPulse{0%,100%{opacity:.35;transform:scaleX(.88)}50%{opacity:1;transform:scaleX(1.12)}}
+.cannon.west-shooter{
+  width:56px;height:58px;bottom:130px;
+}
+.cannon.west-shooter svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));}
+.cannonball.west-shot{
+  background:linear-gradient(180deg,#f6e7c3,#d0ad67);
+  border:1px solid #6a4314;border-radius:2px;
+  width:30px;height:18px;
+  box-shadow:0 2px 3px rgba(0,0,0,.35);
+}
+.cannonball.west-shot::before{
+  content:'DUE';position:absolute;left:2px;right:2px;top:3px;text-align:center;
+  font-family:var(--bebas);font-size:.45rem;letter-spacing:.6px;color:#6a2b14;
+}
+.cannonball.west-shot.high::before{content:'RATE';}
