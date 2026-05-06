@@ -1591,7 +1591,7 @@ function updateWorldVisuals(refs){
   } else {
     refs.parallaxFar.style.backgroundPositionX  = (-cam * 0.15) + 'px';
     refs.parallaxMid.style.backgroundPositionX  = (-cam * 0.35) + 'px';
-    refs.ground.style.setProperty('--scrollX', (-cam * 0.7) + 'px');
+    refs.ground.style.setProperty('--scrollX', '0px');
   }
 
   // Platforms
@@ -1837,9 +1837,15 @@ function step(refs){
   }
 
   // ── Pit check (only at ground level) ──
+  // v4 comfort fix: pits use a small edge forgiveness zone. This prevents
+  // "I made it, but the game said I fell" moments when only the sprite's
+  // center is barely inside the edge of the gap during a landing.
   if(!G.jumping && G.y === 0 && !standingOn){
     for(const pit of G.pits){
-      if(playerCenterX > pit.worldX && playerCenterX < pit.worldX + pit.width){
+      const edgeForgiveness = Math.min(24, Math.max(12, pit.width * 0.18));
+      const hazardLeft = pit.worldX + edgeForgiveness;
+      const hazardRight = pit.worldX + pit.width - edgeForgiveness;
+      if(playerCenterX > hazardLeft && playerCenterX < hazardRight){
         loseLife(refs, 'fell into a pit');
         return;
       }
@@ -2072,19 +2078,20 @@ function step(refs){
   }
 
   // ── Falling debris (Round 1-3+) ──
-  // Trigger zones arm when player crosses triggerX. Debris spawns above
-  // the (jittered) landX with a warning shadow on the ground, then
-  // falls under gravity. Hits ground = becomes inert "wreckage" pile.
-  // landX is randomized on arm so students can't memorize impact spots
-  // across replays — they have to actually read the warning shadow.
+  // v4 fairness pass: debris now telegraphs before it falls. The warning
+  // shadow appears first, then after a readable delay the debris drops.
+  // This keeps the hazard challenging without feeling random or unfair.
   (G.debris || []).forEach(d => {
     // Arm the trigger when player crosses past triggerX
     if(!d.armed && (G.distance + PLAYER_LEFT) > d.triggerX){
       d.armed = true;
-      d.falling = true;
+      d.falling = false;
+      d.landed = false;
+      d.warningOnly = true;
+      d.warningUntil = Date.now() + (d.warningMs || 1150);
+
       // Randomize impact: ± half the zone's jitterRange (default 360 = ±180).
-      // Castle round uses a smaller range so the variance is more readable
-      // given its tighter spacing. Re-roll if it lands inside a pit.
+      // Re-roll if it lands inside a pit so the warning is readable and fair.
       const jitterRange = d.jitterRange || 360;
       let jittered;
       let attempts = 0;
@@ -2097,21 +2104,38 @@ function step(refs){
         G.pits.some(p => jittered > p.worldX - 30 && jittered < p.worldX + p.width + 30)
       );
       d.landX = jittered;
-      d.y = 430;       // spawn near the top of the sky for readability
+      d.y = 430;
       d.velocity = 0;
-      d.el = document.createElement('div');
-      d.el.className = 'debris falling';
-      refs.area.appendChild(d.el);
+
       d.warningEl = document.createElement('div');
       d.warningEl.className = 'debris-warning';
-      d.warningEl.style.width = '50px';
+      d.warningEl.style.width = '58px';
       refs.area.appendChild(d.warningEl);
     }
 
+    // Warning-only phase: show the landing shadow before the debris appears.
+    if(d.warningOnly && !d.falling && !d.landed){
+      if(d.warningEl){
+        d.warningEl.style.left = (d.landX - G.distance - 29) + 'px';
+        d.warningEl.style.opacity = '1';
+      }
+      if(Date.now() >= d.warningUntil){
+        d.warningOnly = false;
+        d.falling = true;
+        d.y = 430;
+        d.velocity = 0;
+        d.el = document.createElement('div');
+        d.el.className = 'debris falling';
+        refs.area.appendChild(d.el);
+      } else {
+        return;
+      }
+    }
+
     if(d.falling){
-      // Gravity tuned to 0.85 — total fall ~32 frames ≈ 530ms.
-      // Visible enough to read, fast enough to feel weighty.
-      d.velocity += 0.85;
+      // Slightly slower than the prototype, because the real challenge should
+      // be reading the warning and moving, not reacting to instant randomness.
+      d.velocity += 0.70;
       d.y -= d.velocity;
 
       if(d.el){
@@ -2119,8 +2143,8 @@ function step(refs){
         d.el.style.bottom = (GROUND_HEIGHT + d.y) + 'px';
       }
       if(d.warningEl){
-        d.warningEl.style.left = (d.landX - G.distance - 25) + 'px';
-        const alpha = Math.max(0.4, Math.min(1, 1 - (d.y / 430)));
+        d.warningEl.style.left = (d.landX - G.distance - 29) + 'px';
+        const alpha = Math.max(0.55, Math.min(1, 1 - (d.y / 430)));
         d.warningEl.style.opacity = alpha;
       }
 
@@ -3436,10 +3460,16 @@ function normalizeGoldSealAlignment(){
 
 // Save the original authored builders, then wrap them.
 const ORIGINAL_BUILDERS_UNIT1 = {
+  '1-1': buildRound1_1_archiveQuestPrototype,
   '1-2': buildRound1_2,
   '1-3': buildRound1_3,
   '1-4': buildRound1_4_castle,
 };
+
+function buildRound1_1_polished(refs){
+  ORIGINAL_BUILDERS_UNIT1['1-1'](refs);
+  normalizeGoldSealAlignment();
+}
 
 function buildRound1_2_polished(refs){
   ORIGINAL_BUILDERS_UNIT1['1-2'](refs);
@@ -3500,7 +3530,7 @@ function buildRound1_4_castle_polished(refs){
 
 // Patch all Unit 1 builders before boot.
 if(typeof ROUND_BUILDERS !== 'undefined'){
-  ROUND_BUILDERS['1-1'] = buildRound1_1_archiveQuestPrototype;
+  ROUND_BUILDERS['1-1'] = buildRound1_1_polished;
   ROUND_BUILDERS['1-2'] = buildRound1_2_polished;
   ROUND_BUILDERS['1-3'] = buildRound1_3_polished;
   ROUND_BUILDERS['1-4'] = buildRound1_4_castle_polished;
@@ -4725,6 +4755,22 @@ if(typeof ROUND_BUILDERS !== 'undefined'){
    WORLD 2 BALANCE PASS — more patrol enemies, longer spacing,
    Source Blocks as safe reprieves rather than chaos traps.
    ════════════════════════════════════════════════════════════════ */
+
+
+/* WORLD 2 DIFFICULTY PATCH — adds extra patrols after Source safe-zone cleanup.
+   Use absolute world coordinates so these patrols sit between question reprieve zones. */
+function addWestExtraEnemies(refs, specs){
+  const area = refs && refs.area;
+  if(!area) return;
+  specs.forEach(e=>{
+    const sp={worldX:e.x, patrolMin:e.min, patrolMax:e.max, vx:e.vx, baseY:e.baseY, amp:e.amp, phase:e.phase};
+    if(e.kind==='dust') G.enemies.push(makeDustDevilEnemy(area,sp));
+    else if(e.kind==='baron') G.enemies.push(makeRailBaronEnemy(area,sp));
+    else if(e.kind==='debt') G.enemies.push(makeDebtBeetleEnemy(area,sp));
+    else G.enemies.push(makePrairieWolfEnemy(area,sp));
+  });
+}
+
 function buildRound2_1_westTrails_enemySpacing(refs){
   buildWestRound(refs,{
     theme:'theme-west-trails',finish:'TRAIL END',spacing:1540,
@@ -4758,6 +4804,15 @@ function buildRound2_1_westTrails_enemySpacing(refs){
     ]
   });
   createWorld2SourceSafeZones({before:360,after:560});
+  addWestExtraEnemies(refs,[
+    {kind:'wolf',x:1590,min:1495,max:1900,vx:-1.28},
+    {kind:'wolf',x:3160,min:3050,max:3470,vx:-1.35},
+    {kind:'dust',x:4690,min:4590,max:5000,vx:.68,baseY:158,amp:34},
+    {kind:'wolf',x:6260,min:6130,max:6530,vx:-1.38},
+    {kind:'dust',x:7790,min:7660,max:8090,vx:-.72,baseY:168,amp:36},
+    {kind:'wolf',x:9340,min:9200,max:9600,vx:-1.42},
+    {kind:'wolf',x:10860,min:10720,max:11120,vx:-1.48}
+  ]);
 }
 
 function buildRound2_2_plainsPressure_enemySpacing(refs){
@@ -4801,15 +4856,24 @@ function buildRound2_2_plainsPressure_enemySpacing(refs){
     {x:10850,cooldown:5900,delay:3100,pattern:'low'}
   ]);
   createWorld2SourceSafeZones({before:380,after:590});
+  addWestExtraEnemies(refs,[
+    {kind:'wolf',x:1580,min:1490,max:1910,vx:-1.48},
+    {kind:'baron',x:3150,min:3040,max:3480,vx:-1.62},
+    {kind:'wolf',x:4680,min:4570,max:5020,vx:-1.55},
+    {kind:'dust',x:6250,min:6120,max:6550,vx:.82,baseY:190,amp:42},
+    {kind:'baron',x:7780,min:7650,max:8100,vx:-1.7},
+    {kind:'wolf',x:9340,min:9200,max:9610,vx:-1.58},
+    {kind:'baron',x:10850,min:10700,max:11130,vx:-1.78}
+  ]);
 }
 
 function buildRound2_3_farmersPopulists_enemySpacing(refs){
   buildWestRound(refs,{
     theme:'theme-west-farmers',finish:'DEPOT STAGE',spacing:1540,
     msg:'2-3 Farmers and Populists: grain-elevator climbs, debt patrols, wind lanes, and calmer Source checkpoints.',
-    pits:[{x:820,w:195},{x:2360,w:230},{x:3900,w:210},{x:5440,w:250},{x:6980,w:220},{x:8520,w:245},{x:10060,w:210}],
+    pits:[{x:980,w:125},{x:2360,w:230},{x:3900,w:210},{x:5440,w:250},{x:6980,w:220},{x:8520,w:245},{x:10060,w:210}],
     decos:[
-      {x:310,w:150,y:74,cls:'farm-crate'},{x:620,w:100,y:136,cls:'farm-crate',hard:true},{x:930,w:135,y:80,cls:'farm-crate'},
+      {x:310,w:150,y:74,cls:'farm-crate'},{x:620,w:100,y:136,cls:'farm-crate',hard:true},{x:860,w:120,y:96,cls:'farm-crate',hard:true},{x:1040,w:145,y:78,cls:'farm-crate'},
       {x:1650,w:112,y:74,cls:'grain-elevator'},{x:1880,w:92,y:132,cls:'grain-elevator',hard:true},{x:2090,w:82,y:190,cls:'grain-elevator',hard:true},{x:2320,w:130,y:98,cls:'grain-elevator'},
       {x:3210,w:135,y:76,cls:'rail-trestle'},{x:3510,w:92,y:134,cls:'rail-cart',hard:true},{x:3820,w:88,y:190,cls:'rail-cart',hard:true},{x:4070,w:126,y:96,cls:'rail-trestle'},
       {x:4720,w:124,y:76,cls:'farm-crate'},{x:4990,w:92,y:134,cls:'farm-crate',hard:true},{x:5200,w:82,y:194,cls:'grain-elevator',hard:true},{x:5450,w:132,y:98,cls:'grain-elevator'},
@@ -4844,6 +4908,13 @@ function buildRound2_3_farmersPopulists_enemySpacing(refs){
     {x:9320,cooldown:6000,delay:3200,pattern:'high'}
   ]);
   createWorld2SourceSafeZones({before:390,after:610});
+  addWestExtraEnemies(refs,[
+    {kind:'debt',x:3150,min:3040,max:3480,vx:-2.05},
+    {kind:'baron',x:4680,min:4560,max:5020,vx:-1.68},
+    {kind:'debt',x:6260,min:6120,max:6560,vx:-2.18},
+    {kind:'dust',x:7790,min:7660,max:8100,vx:.86,baseY:178,amp:40},
+    {kind:'debt',x:9340,min:9200,max:9620,vx:-2.25}
+  ]);
 }
 
 function buildRound2_4_crossGold_enemySpacing(refs){
