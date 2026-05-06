@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Civitas Dash — From Civil War to Modern Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+// ════════════════════════════════════════════════════════════════
+// SHELL SESSION GUARD — must run synchronously before anything else.
+// Mirrors house-divided.html exactly. No civitas_state? Redirect home.
+// ════════════════════════════════════════════════════════════════
+(function(){
+  try{
+    // PROTOTYPE DEMO BYPASS: lets this file run directly without the Civitas shell.
+    if(!localStorage.getItem('civitas_state') && !localStorage.getItem('ac_shell_state')){
+      localStorage.setItem('civitas_state', JSON.stringify({name:'Demo Historian', fullName:'Demo Historian', period:'Preview', source:'prototype'}));
+    }
+    var civ=localStorage.getItem('civitas_state');
+    if(civ){var cp=JSON.parse(civ);if(cp&&cp.name&&cp.name!=='Guest')return;}
+    var s=localStorage.getItem('ac_shell_state');
+    if(s){var p=JSON.parse(s);if(p&&p.name&&p.name!=='Guest')return;}
+    var returnURL=localStorage.getItem('civitas_shell_url')||localStorage.getItem('ac_shell_url')||'https://olsonjoshua-code.github.io/Civitas/';
+    window.location.replace(returnURL);
+  }catch(e){window.location.replace('https://olsonjoshua-code.github.io/Civitas/');}
+})();
+</script>
+<link rel="stylesheet" href="css/dash.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- ── LOADING OVERLAY (visible on first paint) ──────────── -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-seal">CD</div>
+    <div class="loading-title">Civitas Dash</div>
+    <div class="loading-msg" id="loadingMsg">Loading your progress…</div>
+  </div>
+
+  <!-- ── TOP BAR ──────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="title-block">
+      <div class="seal">CD</div>
+      <div class="title-text">
+        <h1>Civitas Dash</h1>
+        <div class="subtitle">FROM CIVIL WAR TO MODERN DAY</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-screen="worldMap">Map</button>
+      <button class="nav-btn" data-screen="leaderboard">Leaderboard</button>
+      <button class="nav-btn" data-screen="profile">Profile</button>
+    </nav>
+    <div class="identity-pill" id="identityPill">
+      <span class="ident-name" id="identName">—</span>
+      <span class="ident-period" id="identPeriod"></span>
+      <span class="ident-progress" id="identProgress"></span>
+    </div>
+  </header>
+
+  <!-- ── WORLD MAP SCREEN (Mario-3 winding path) ──────────── -->
+  <main class="screen active" id="screen-worldMap">
+    <div class="wm-stage">
+      <div class="wm-header">
+        <div class="eyebrow">A MASTER HISTORIAN CAMPAIGN</div>
+        <h2>From Civil War to Modern Day</h2>
+        <div class="sub">17 worlds · One trophy · The full sweep of U.S. history</div>
+      </div>
+      <div class="wm-progress-banner" id="wmProgressBanner">
+        <span><b id="wmRounds">0</b> / 63 rounds</span>
+        <span><b id="wmUnits">0</b> / 17 units</span>
+        <span><b id="wmComposite">0%</b> composite</span>
+        <span id="wmTier"><b>—</b> tier</span>
+      </div>
+      <div class="wm-map" id="wmMap">
+        <!-- SVG path drawn as background, nodes overlaid as positioned divs -->
+        <svg class="wm-svg" id="wmSvg" preserveAspectRatio="none"></svg>
+        <!-- Filled by renderWorldMap() -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ── UNIT ENTRY SCREEN (rounds within a selected world) ── -->
+  <main class="screen" id="screen-unitEntry">
+    <div class="ue-stage">
+      <button class="ue-back" id="ueBack">← Back to Map</button>
+      <div class="ue-header">
+        <div class="ue-eyebrow" id="ueEyebrow">UNIT 1</div>
+        <h2 class="ue-title" id="ueTitle">A House Divided</h2>
+        <div class="ue-years" id="ueYears">1861 - 1877</div>
+        <div class="ue-blurb" id="ueBlurb"></div>
+      </div>
+      <div class="ue-rounds" id="ueRounds">
+        <!-- Filled by renderUnitEntry() -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ── GAME SCREEN (Round 1-1 playable) ─────────────────── -->
+  <main class="screen" id="screen-game">
+    <div class="game-hud">
+      <div>
+        <span class="hud-title" id="hudTitle">Civitas Dash</span>
+        <span class="hud-subtitle" id="hudSubtitle">UNIT 1 · ROUND 1-1</span>
+      </div>
+      <div class="stat-grp">
+        <div class="stat-item">LIVES <span class="lives" id="hudLives"></span></div>
+        <div class="stat-item">CORRECT <strong id="hudCorrect">0/8</strong></div>
+        <div class="stat-item" id="hudStreakItem">STREAK <strong id="hudStreak">0</strong></div>
+        <div class="stat-item">COINS <strong id="hudCoins">0/100</strong></div>
+        <div class="stat-item">SCORE <strong id="hudScore">0</strong></div>
+      </div>
+      <button class="exit-btn" id="hudExit">EXIT</button>
+    </div>
+    <div class="game-area" id="gameArea">
+      <div class="sky-clouds" id="skyClouds"></div>
+      <div class="parallax-far" id="parallaxFar"></div>
+      <div class="parallax-mid" id="parallaxMid"></div>
+      <div class="ground" id="ground">
+        <div class="ground-track"></div>
+      </div>
+      <div class="player" id="player"></div>
+      <div class="game-message" id="gameMessage"></div>
+
+      <!-- Question modal -->
+      <div class="qmodal-bg" id="qmodalBg">
+        <div class="qmodal" id="qmodal">
+          <div class="qmodal-eyebrow" id="qmodalEyebrow">PLATFORM 1 OF 8</div>
+          <div class="qmodal-progress" id="qmodalProgress"></div>
+          <div class="qmodal-stem" id="qmodalStem"></div>
+          <div class="qmodal-choices" id="qmodalChoices"></div>
+          <div class="qmodal-feedback" id="qmodalFeedback"></div>
+          <div class="qmodal-actions" id="qmodalActions">
+            <button class="qmodal-btn" id="qmodalContinue">Continue</button>
+          </div>
+          <div class="qmodal-hint">↑↓ select · Enter lock in · or click</div>
+        </div>
+      </div>
+
+      <!-- Round-clear overlay -->
+      <div class="round-clear-overlay" id="roundClear">
+        <div class="rc-star-host" id="rcStarHost">
+          <svg class="rc-star" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="starGrad" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#fff8d8"/>
+                <stop offset="40%" stop-color="#fce598"/>
+                <stop offset="80%" stop-color="#d4a850"/>
+                <stop offset="100%" stop-color="#a87830"/>
+              </radialGradient>
+            </defs>
+            <polygon points="50,5 61,38 96,38 67,59 78,93 50,72 22,93 33,59 4,38 39,38"
+                     fill="url(#starGrad)" stroke="#5a4010" stroke-width="2" stroke-linejoin="round"/>
+            <polygon points="50,15 57,38 75,38 60,52 66,72 50,60 34,72 40,52 25,38 43,38"
+                     fill="rgba(255,248,216,.5)"/>
+          </svg>
+          <span class="rc-sparkle"></span>
+          <span class="rc-sparkle"></span>
+          <span class="rc-sparkle"></span>
+          <span class="rc-sparkle"></span>
+          <span class="rc-sparkle"></span>
+          <span class="rc-sparkle"></span>
+        </div>
+        <h2 id="rcHeading">ROUND CLEAR</h2>
+        <div class="rc-title" id="rcTitle"></div>
+        <div class="rc-stats" id="rcStats"></div>
+        <div class="rc-actions">
+          <button id="rcNext" style="display:none;">Next Round →</button>
+          <button id="rcReplay">Play Again</button>
+          <button id="rcMap">Back to Map</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── LEADERBOARD SCREEN (Chunk 6) ─────────────────────── -->
+  <main class="screen" id="screen-leaderboard">
+    <div class="world-map">
+      <div class="unit-header">
+        <div class="unit-eyebrow">THE RECORDS</div>
+        <h2 class="unit-title">Leaderboard</h2>
+      </div>
+      <div class="placeholder-card">
+        <span class="badge">CHUNK 6</span>
+        <h3>Class &amp; global rankings.</h3>
+        <p>Sorted by composite score. Tabs for "My Class" and "All-Time." Pulled live from Supabase.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── PROFILE SCREEN ───────────────────────────────────── -->
+  <main class="screen" id="screen-profile">
+    <div class="world-map">
+      <div class="unit-header">
+        <div class="unit-eyebrow">YOUR CAMPAIGN</div>
+        <h2 class="unit-title">Profile</h2>
+      </div>
+      <div class="placeholder-card">
+        <span class="badge">IDENTITY</span>
+        <h3 id="profileName">—</h3>
+        <p id="profileMeta"></p>
+        <div class="kv-list" id="profileStats"></div>
+      </div>
+      <div class="placeholder-card">
+        <span class="badge">CHUNK 6</span>
+        <h3>Print certificate</h3>
+        <p>One certificate that shows cumulative progress across all 17 worlds, with per-unit breakdown. Updates as you complete more.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── FOOTER ──────────────────────────────────────────── -->
+  <div class="footer-bar">
+    <span>CIVITAS DASH · BUILD 0.6.2</span>
+    <span><button id="debugToggle">DEBUG</button></span>
+  </div>
+
+  <div class="debug-panel" id="debugPanel">
+    <h4>Debug — current state</h4>
+    <div class="debug-section" id="debugContent"></div>
+    <div>
+      <button class="debug-action" onclick="DEBUG.dump()">Refresh</button>
+      <button class="debug-action" onclick="DEBUG.clearLocal()">Clear Local Cache</button>
+      <button class="debug-action" onclick="DEBUG.forceSyncDown()">Resync from Supabase</button>
+      <button class="debug-action" onclick="DEBUG.dumpQuestions()">Show Question Library</button>
+      <button class="debug-action" onclick="DEBUG.unlockAll()">Unlock All Rounds</button>
+    </div>
+  </div>
+</div>
+<script src="data/unit1.js"></script>
+<script src="data/unit2.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>
