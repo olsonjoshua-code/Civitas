@@ -1,0 +1,314 @@
+/* ════════════════════════════════════════════════════════════════
+ * DYNAMIC ENEMIES — Visual styles for new enemy types and hazards.
+ * Loaded AFTER dash.css; everything here is additive and prefixed
+ * so it can't accidentally collide with the original prototype.
+ * ════════════════════════════════════════════════════════════════ */
+
+/* ── LOCOMOTIVE ────────────────────────────────────────────────── */
+.de-track-warning{
+  position:absolute;
+  height:14px;
+  bottom:130px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(220, 40, 30, .85) 0 12px,
+    rgba(20, 14, 8, .85) 12px 24px
+  );
+  border-top:2px solid #f5d040;
+  border-bottom:2px solid #f5d040;
+  box-shadow:0 0 16px rgba(255, 100, 50, .55);
+  animation: de-track-flash .42s steps(2) infinite;
+  z-index:6;
+  pointer-events:none;
+  transition: opacity .25s ease;
+}
+@keyframes de-track-flash{
+  0%{opacity:.45;}
+  100%{opacity:1;}
+}
+.de-locomotive{
+  position:absolute;
+  width:230px;
+  height:90px;
+  z-index:8;
+  pointer-events:none;
+  filter:drop-shadow(0 6px 6px rgba(0,0,0,.45));
+}
+.de-locomotive .smoke{
+  position:absolute;
+  top:-22px;
+  left:30px;
+  width:34px;
+  height:34px;
+  background:radial-gradient(circle, #4a3a2a 0%, #6a5a4a 60%, transparent 75%);
+  border-radius:50%;
+  opacity:.85;
+  animation: de-smoke 1.4s ease-out infinite;
+}
+@keyframes de-smoke{
+  0%{transform:translate(0,0) scale(.8); opacity:.85;}
+  100%{transform:translate(-30px,-44px) scale(1.6); opacity:0;}
+}
+.de-locomotive .smoke.s2{ left:46px; animation-delay:.4s; }
+.de-locomotive .smoke.s3{ left:18px; animation-delay:.8s; }
+
+/* ── BUFFALO STAMPEDE ──────────────────────────────────────────── */
+.de-rumble-warning{
+  position:absolute;
+  height:8px;
+  bottom:130px;
+  background: linear-gradient(90deg,
+    rgba(140, 80, 30, 0) 0%,
+    rgba(140, 80, 30, .65) 50%,
+    rgba(140, 80, 30, 0) 100%
+  );
+  animation: de-rumble 0.18s ease-in-out infinite;
+  z-index:5;
+  pointer-events:none;
+  transition: opacity .25s ease;
+}
+@keyframes de-rumble{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(2px); }
+}
+.de-buffalo{
+  position:absolute;
+  width:70px;
+  height:54px;
+  z-index:7;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.4));
+}
+.de-buffalo .dust{
+  position:absolute;
+  bottom:-2px; left:-15px;
+  width:38px; height:14px;
+  background:radial-gradient(ellipse, rgba(180,140,90,.75) 0%, rgba(180,140,90,0) 70%);
+  animation: de-dust .35s ease-in-out infinite alternate;
+}
+@keyframes de-dust{
+  0%{ transform: scaleX(.8); opacity:.45; }
+  100%{ transform: scaleX(1.3); opacity:.85; }
+}
+
+/* ── BIG TORNADO ───────────────────────────────────────────────── */
+.de-big-tornado{
+  position:absolute;
+  width:120px;
+  height:180px;
+  z-index:6;
+  pointer-events:none;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.5));
+}
+.de-big-tornado .funnel{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 50% 100%,
+      rgba(160, 130, 90, .85) 0%,
+      rgba(120, 95, 65, .75) 35%,
+      rgba(80, 60, 40, .55) 65%,
+      rgba(80, 60, 40, 0) 80%);
+  clip-path: polygon(35% 0, 65% 0, 95% 100%, 5% 100%);
+  animation: de-funnel-spin .55s linear infinite;
+}
+.de-big-tornado .funnel.b{
+  opacity:.55;
+  animation-direction:reverse;
+  animation-duration:.85s;
+  transform: scale(1.15);
+}
+@keyframes de-funnel-spin{
+  0%{ transform: skewX(-6deg) scaleX(.9); }
+  50%{ transform: skewX(6deg) scaleX(1); }
+  100%{ transform: skewX(-6deg) scaleX(.9); }
+}
+.de-big-tornado .ring{
+  position:absolute;
+  bottom:0;
+  left:50%; transform: translateX(-50%);
+  width:140px; height:24px;
+  background:radial-gradient(ellipse, rgba(120,80,40,.75) 0%, rgba(120,80,40,0) 70%);
+}
+
+/* ── CHARGER GLOW ──────────────────────────────────────────────── */
+.enemy.de-charging{
+  filter: drop-shadow(0 0 8px rgba(220, 60, 40, .85));
+  animation: de-charge-pulse .25s ease-in-out infinite alternate;
+}
+@keyframes de-charge-pulse{
+  0%{ transform: translateY(0) scale(1); }
+  100%{ transform: translateY(-1px) scale(1.04); }
+}
+
+/* ── PROJECTILES ───────────────────────────────────────────────── */
+.de-projectile{
+  position:absolute;
+  width:24px; height:24px;
+  z-index:7;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.45));
+}
+.de-projectile.bond{
+  background: radial-gradient(circle, #f5d860 30%, #a87830 70%);
+  border:1.5px solid #5a3a18;
+  border-radius:4px;
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  text-align:center;
+  line-height:21px;
+  color:#3a2010;
+  font-weight:bold;
+}
+.de-projectile.bond::before{ content:'$'; }
+.de-projectile.paper{
+  background: linear-gradient(180deg, #f8eecc 0%, #d8c89a 100%);
+  border:1px solid #7a5a30;
+  border-radius:2px;
+  transform: rotate(-8deg);
+}
+.de-projectile.paper::before{
+  content:'';
+  position:absolute;
+  inset:3px 4px;
+  background: repeating-linear-gradient(0deg, #5a4020 0 1px, transparent 1px 4px);
+  opacity:.5;
+}
+.de-projectile.spark{
+  background: radial-gradient(circle, #ffe680 0%, #f08a20 50%, transparent 75%);
+  border-radius:50%;
+}
+
+/* ── MACHINE ARM ───────────────────────────────────────────────── */
+.de-machine-arm{
+  position:absolute;
+  z-index:6;
+  pointer-events:none;
+  transform-origin: 50% 0%;
+}
+.de-machine-arm .shaft{
+  position:absolute;
+  top:0; left:50%;
+  transform: translateX(-50%);
+  width:10px;
+  background: linear-gradient(90deg, #3a3025 0%, #6a5a48 50%, #3a3025 100%);
+  border-left:1px solid #1a1208;
+  border-right:1px solid #1a1208;
+}
+.de-machine-arm .head{
+  position:absolute;
+  bottom:0; left:50%;
+  transform: translateX(-50%);
+  width:48px; height:48px;
+  background: radial-gradient(circle, #6a5a48 30%, #2a1f14 75%);
+  border:3px solid #1a1208;
+  border-radius:8px;
+  box-shadow: inset 0 -6px 8px rgba(0,0,0,.5), 0 0 12px rgba(255, 100, 30, .55);
+}
+.de-machine-arm .head::after{
+  content:'';
+  position:absolute;
+  inset:8px;
+  background: repeating-linear-gradient(45deg,
+    rgba(255, 200, 80, .55) 0 4px,
+    rgba(40, 20, 10, .8) 4px 8px);
+  border-radius:4px;
+}
+
+/* ── COAL SOOT CLOUD ───────────────────────────────────────────── */
+.de-soot-cloud{
+  position:absolute;
+  width:130px;
+  height:88px;
+  z-index:6;
+  pointer-events:none;
+}
+.de-soot-cloud .body{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 30% 60%, #1a120a 0%, #2a1f14 40%, transparent 70%),
+    radial-gradient(ellipse at 70% 40%, #2a1f14 0%, #3a2a1a 50%, transparent 75%),
+    radial-gradient(ellipse at 50% 70%, #1a120a 0%, transparent 60%);
+  border-radius:50%;
+  filter: blur(3px);
+  animation: de-soot-pulse 2.4s ease-in-out infinite;
+}
+.de-soot-cloud .ember{
+  position:absolute;
+  width:4px; height:4px;
+  background: radial-gradient(circle, #ff8030 0%, transparent 70%);
+  border-radius:50%;
+  animation: de-ember 1.8s ease-out infinite;
+}
+.de-soot-cloud .ember.e1{ top:30%; left:25%; animation-delay:.2s; }
+.de-soot-cloud .ember.e2{ top:55%; left:60%; animation-delay:.7s; }
+.de-soot-cloud .ember.e3{ top:40%; left:80%; animation-delay:1.2s; }
+@keyframes de-soot-pulse{
+  0%,100%{ transform: scale(1) rotate(0deg); }
+  50%{ transform: scale(1.06) rotate(2deg); }
+}
+@keyframes de-ember{
+  0%{ opacity:0; transform: translate(0,0); }
+  20%{ opacity:1; }
+  100%{ opacity:0; transform: translate(0, -30px); }
+}
+
+/* ── TELEGRAPH BANNER ──────────────────────────────────────────── */
+.de-telegraph{
+  position:absolute;
+  top:14%;
+  left:50%;
+  transform:translateX(-50%) translateY(-10px);
+  background: linear-gradient(180deg, #5a1a14 0%, #3a0a08 100%);
+  color: #fce598;
+  padding:8px 18px;
+  font-family:'Bebas Neue', sans-serif;
+  font-size:18px;
+  letter-spacing: 1.5px;
+  border:2px solid #fce598;
+  border-radius:4px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(252, 229, 152, .35);
+  z-index:30;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+.de-telegraph.visible{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ── RIVER (optional decorative override) ──────────────────────── */
+.deco-platform.de-river-log{
+  background: linear-gradient(180deg, #6a4520 0%, #4a3015 60%, #2a1808 100%);
+  border:2px solid #2a1808;
+  border-radius:18px / 8px;
+  box-shadow: inset 0 -4px 6px rgba(0,0,0,.45), 0 4px 8px rgba(0,0,0,.3);
+}
+.deco-platform.de-river-log::after{
+  content:'';
+  position:absolute;
+  inset:3px 14px;
+  background: repeating-linear-gradient(90deg,
+    rgba(80, 50, 25, .6) 0 6px,
+    transparent 6px 14px);
+  border-radius:8px;
+}
+.pit.de-river{
+  background: linear-gradient(180deg, #3a6a8a 0%, #1a3a5a 100%) !important;
+  border-top:3px solid #6aa8c8 !important;
+}
+.pit.de-river::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background: repeating-linear-gradient(45deg,
+    rgba(255,255,255,.18) 0 6px,
+    transparent 6px 18px);
+  animation: de-river-flow 1.4s linear infinite;
+  pointer-events:none;
+}
+@keyframes de-river-flow{
+  0%{ background-position: 0 0; }
+  100%{ background-position: 36px 0; }
+}
